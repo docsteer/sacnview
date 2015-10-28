@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MDIMainWindow</class>
+ <widget class="QMainWindow" name="MDIMainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>749</width>
+    <height>528</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>sACNView</string>
+  </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>false</bool>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QMdiArea" name="mdiArea"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <property name="iconSize">
+    <size>
+     <width>32</width>
+     <height>32</height>
+    </size>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionScopeView"/>
+   <addaction name="actionRecieve"/>
+   <addaction name="actionTranmsit"/>
+   <addaction name="actionSnapshot"/>
+   <addaction name="actionSettings"/>
+   <addaction name="actionAbout"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QDockWidget" name="dwUnivList">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+   </property>
+   <property name="windowTitle">
+    <string>Universe List</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QTableWidget" name="tableWidget"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <action name="actionScopeView">
+   <property name="icon">
+    <iconset resource="res/resources.qrc">
+     <normaloff>:/icons/scope.png</normaloff>:/icons/scope.png</iconset>
+   </property>
+   <property name="text">
+    <string>ScopeView</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Opens an oscilloscope style view of the levels of a set of addresses over time&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="actionSnapshot">
+   <property name="icon">
+    <iconset resource="res/resources.qrc">
+     <normaloff>:/icons/snapshot.png</normaloff>:/icons/snapshot.png</iconset>
+   </property>
+   <property name="text">
+    <string>Snapshot</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Opens a window allowing snapshot and playback of a universe of sACN levels&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="actionTranmsit">
+   <property name="icon">
+    <iconset resource="res/resources.qrc">
+     <normaloff>:/icons/transmit.png</normaloff>:/icons/transmit.png</iconset>
+   </property>
+   <property name="text">
+    <string>Tranmsit</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Opens a window allowing transmission of a universe of sACN&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="actionRecieve">
+   <property name="icon">
+    <iconset resource="res/resources.qrc">
+     <normaloff>:/icons/univ_view.png</normaloff>:/icons/univ_view.png</iconset>
+   </property>
+   <property name="text">
+    <string>Recieve</string>
+   </property>
+   <property name="toolTip">
+    <string>View a universe of sACN</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="icon">
+    <iconset resource="res/resources.qrc">
+     <normaloff>:/icons/settings.png</normaloff>:/icons/settings.png</iconset>
+   </property>
+   <property name="text">
+    <string>Settings</string>
+   </property>
+   <property name="toolTip">
+    <string>Configure application settings</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="icon">
+    <iconset resource="res/resources.qrc">
+     <normaloff>:/icons/info.png</normaloff>:/icons/info.png</iconset>
+   </property>
+   <property name="text">
+    <string>About</string>
+   </property>
+   <property name="toolTip">
+    <string>About sACNView</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="res/resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>
