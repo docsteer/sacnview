@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Tom Barthel-Steer, http://www.tomsteer.net
+// Copyright (c) 2015 Electronic Theatre Controls, http://www.etcconnect.com
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -18,37 +18,21 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#ifndef UNIVERSEDISPLAY_H
-#define UNIVERSEDISPLAY_H
+#ifndef CONSTS_H
+#define CONSTS_H
 
-#include "deftypes.h"
-#include "sacnlistener.h"
-#include <QWidget>
+#define MAX_SACN_UNIVERSE 63999
+#define MAX_DMX_ADDRESS 512
+#define PRESET_COUNT 8
 
-class UniverseDisplay : public QWidget
-{
-    Q_OBJECT
-public:
-    explicit UniverseDisplay(QWidget *parent = 0);
+#define MIN_SACN_PRIORITY 0
+#define MAX_SACN_PRIORITY 200
 
-public slots:
-    void setUniverse(int universe);
-    void levelsChanged();
-signals:
-    // The user changed the selected address. -1 means no selected address
-    void selectedAddressChanged(int address);
-protected:
-    virtual void paintEvent(QPaintEvent *event);
-    virtual QSize minimumSizeHint() const;
-    virtual QSize sizeHint() const;
-    virtual void mousePressEvent(QMouseEvent *event);
-    virtual void mouseMoveEvent(QMouseEvent *event);
-private:
-    // Returns the cell under point, -1 for none
-    int cellHitTest(const QPoint &point);
-    sACNMergedSourceList m_sources;
-    sACNListener *m_listener;
-    int m_selectedAddress;
-};
+#define MIN_SACN_LEVEL 0
+#define MAX_SACN_LEVEL 255
 
-#endif // UNIVERSEDISPLAY_H
+#define DEFAULT_SOURCE_NAME "sACNView"
+
+
+#endif // CONSTS_H
+

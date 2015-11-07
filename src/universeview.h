@@ -23,6 +23,8 @@
 
 #include <QWidget>
 
+class sACNListener;
+
 namespace Ui {
 class UniverseView;
 }
@@ -66,6 +68,7 @@ private:
     Ui::UniverseView *ui;
     QHash<sACNSource *, int> m_sourceToTableRow;
     int m_selectedAddress;
+    sACNListener *m_listener;
 };
 
 #endif // UNIVERSEVIEW_H

@@ -26,6 +26,8 @@
 #define FIRST_COL_WIDTH 60
 #define ROW_COUNT 16
 #define COL_COUNT 32
+#define CELL_HEIGHT 18
+#define CELL_WIDTH 25
 
 static const QColor gridLineColor = QColor::fromRgb(0xc0, 0xc0, 0xc0);
 static const QColor textColor = QColor::fromRgb(0x0, 0x0, 0x0);
@@ -54,24 +56,43 @@ void UniverseDisplay::levelsChanged()
     }
 }
 
+QSize UniverseDisplay::minimumSizeHint() const
+{
+    return sizeHint();
+}
+
+QSize UniverseDisplay::sizeHint() const
+{
+    return QSize( FIRST_COL_WIDTH + CELL_WIDTH * COL_COUNT, CELL_HEIGHT * (ROW_COUNT + 1));
+}
+
 void UniverseDisplay::paintEvent(QPaintEvent *event)
 {
+    QElapsedTimer t;
+    t.start();
     Q_UNUSED(event);
     QPainter painter(this);
 
+    qreal wantedHeight = CELL_HEIGHT * (ROW_COUNT + 1);
+    qreal wantedWidth = FIRST_COL_WIDTH + CELL_WIDTH * COL_COUNT;
 
-    painter.fillRect(this->rect(), QBrush(QColor("#FFF")));
+    qreal scaleWidth = width()/wantedWidth;
+    qreal scaleHeight = height()/ wantedHeight;
+    qreal minScale = qMin(scaleWidth, scaleHeight);
 
-    int cellWidth = (this->width() - FIRST_COL_WIDTH) / COL_COUNT;
-    int firstColWidth = this->width() - COL_COUNT * cellWidth; // Use any leftover space to expand col 0
-    int cellHeight = this->height() / (ROW_COUNT + 1);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.translate((width()-minScale*wantedWidth) /2,0);
+    painter.scale(minScale,minScale);
 
+
+
+    painter.fillRect(QRectF(0,0, wantedWidth, wantedHeight), QBrush(QColor("#FFF")));
 
     painter.setPen(textColor);
     painter.setFont(QFont("Segoe UI", 8));
     for(int row=1; row<ROW_COUNT+1; row++)
     {
-        QRect textRect(0, row*cellHeight, firstColWidth, cellHeight);
+        QRect textRect(0, row*CELL_HEIGHT, FIRST_COL_WIDTH, CELL_HEIGHT);
         QString rowLabel = QString("%1 - %2")
                 .arg(1+(row-1)*32)
                 .arg((row)*32);
@@ -79,7 +100,7 @@ void UniverseDisplay::paintEvent(QPaintEvent *event)
     }
     for(int col=0; col<COL_COUNT; col++)
     {
-        QRect textRect(firstColWidth + col*cellWidth, 0, cellWidth, cellHeight);
+        QRect textRect(FIRST_COL_WIDTH + col*CELL_WIDTH, 0, CELL_WIDTH, CELL_HEIGHT);
         QString rowLabel = QString("%1")
                 .arg(col+1);
         painter.drawText(textRect, rowLabel, QTextOption(Qt::AlignHCenter | Qt::AlignVCenter));
@@ -88,7 +109,7 @@ void UniverseDisplay::paintEvent(QPaintEvent *event)
         for(int col=0; col<COL_COUNT; col++)
         {
             int address = row*COL_COUNT + col;
-            QRect textRect(firstColWidth + col*cellWidth, (row+1)*cellHeight, cellWidth, cellHeight);
+            QRect textRect(FIRST_COL_WIDTH + col*CELL_WIDTH, (row+1)*CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
             sACNMergedAddress addressInfo = m_sources[address];
 
             if(addressInfo.winningSource)
@@ -107,14 +128,14 @@ void UniverseDisplay::paintEvent(QPaintEvent *event)
 
     for(int row=0; row<ROW_COUNT + 1; row++)
     {
-        QPoint start(0, row*cellHeight);
-        QPoint end(this->width(), row*cellHeight);
+        QPoint start(0, row*CELL_HEIGHT);
+        QPoint end(wantedWidth, row*CELL_HEIGHT);
         painter.drawLine(start, end);
     }
     for(int col=0; col<COL_COUNT + 1; col++)
     {
-        QPoint start(firstColWidth + col*cellWidth, 0);
-        QPoint end(firstColWidth + col*cellWidth, this->height());
+        QPoint start(FIRST_COL_WIDTH + col*CELL_WIDTH, 0);
+        QPoint end(FIRST_COL_WIDTH + col*CELL_WIDTH, wantedHeight);
         painter.drawLine(start, end);
     }
 
@@ -123,39 +144,53 @@ void UniverseDisplay::paintEvent(QPaintEvent *event)
     {
         int col = m_selectedAddress % 32;
         int row = m_selectedAddress / 32;
-        QRect textRect(firstColWidth + col*cellWidth, (row+1)*cellHeight, cellWidth, cellHeight);
+        QRect textRect(FIRST_COL_WIDTH + col*CELL_WIDTH, (row+1)*CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
         painter.setPen(QColor("black"));
         painter.drawRect(textRect);
-
-
     }
+    qDebug() << "Painter took " << t.elapsed();
 }
 
+int UniverseDisplay::cellHitTest(const QPoint &point)
+{
+    qreal wantedHeight = CELL_HEIGHT * (ROW_COUNT + 1);
+    qreal wantedWidth = FIRST_COL_WIDTH + CELL_WIDTH * COL_COUNT;
+
+    qreal scaleWidth = width()/wantedWidth;
+    qreal scaleHeight = height()/ wantedHeight;
+    qreal minScale = qMin(scaleWidth, scaleHeight);
+
+    QRectF drawnRect(0, 0, wantedWidth*minScale, wantedHeight*minScale);
+    drawnRect.moveCenter(this->rect().center());
+    drawnRect.moveTop(0);
+
+    if(!drawnRect.contains(point))
+        return -1;
+
+
+    qreal cellWidth = (drawnRect.width() - FIRST_COL_WIDTH * minScale) / COL_COUNT;
+    qreal firstColWidth = drawnRect.width() - (COL_COUNT * cellWidth);
+    qreal cellHeight = drawnRect.height() / (ROW_COUNT + 1);
+
+    int col = (point.x() - drawnRect.left() - firstColWidth) / cellWidth;
+    int row = (point.y() - drawnRect.top() - cellHeight) / cellHeight;
+
+    if(col<0)  return -1;
+    if(row<0)  return -1;
+
+    int address = (row * 32) + col;
+    if(address>511 || address<0) return -1;
+    return address;
+
+}
 
 void UniverseDisplay::mousePressEvent(QMouseEvent *event)
 {
-    QWidget::mouseMoveEvent(event);
+    QWidget::mousePressEvent(event);
 
     if(event->buttons() & Qt::LeftButton)
     {
-        QPoint pos = event->pos();
-
-        int cellWidth = (this->width() - FIRST_COL_WIDTH) / COL_COUNT;
-        int firstColWidth = this->width() - COL_COUNT * cellWidth; // Use any leftover space to expand col 0
-        int cellHeight = this->height() / (ROW_COUNT + 1);
-
-        if(pos.x() < firstColWidth || pos.y() < cellHeight)
-        {
-            // We are in the top row or left column - clear selection
-            m_selectedAddress = -1;
-            update();
-            return;
-        }
-
-        int col = (pos.x() - firstColWidth) / cellWidth;
-        int row = (pos.y() - cellHeight) / cellHeight;
-
-        int address = (row * 32) + col;
+        int address = cellHitTest(event->pos());
         if(m_selectedAddress!=address)
         {
             m_selectedAddress = address;
@@ -171,24 +206,7 @@ void UniverseDisplay::mouseMoveEvent(QMouseEvent *event)
     QWidget::mouseMoveEvent(event);
     if(event->buttons() & Qt::LeftButton)
     {
-        QPoint pos = event->pos();
-
-        int cellWidth = (this->width() - FIRST_COL_WIDTH) / COL_COUNT;
-        int firstColWidth = this->width() - COL_COUNT * cellWidth; // Use any leftover space to expand col 0
-        int cellHeight = this->height() / (ROW_COUNT + 1);
-
-        if(pos.x() < firstColWidth || pos.y() < cellHeight)
-        {
-            // We are in the top row or left column - clear selection
-            m_selectedAddress = -1;
-            update();
-            return;
-        }
-
-        int col = (pos.x() - firstColWidth) / cellWidth;
-        int row = (pos.y() - cellHeight) / cellHeight;
-
-        int address = (row * 32) + col;
+        int address = cellHitTest(event->pos());
         if(m_selectedAddress!=address)
         {
             m_selectedAddress = address;
