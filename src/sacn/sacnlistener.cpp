@@ -382,15 +382,8 @@ void sACNListener::readPendingDatagrams()
       if(start_code == STARTCODE_DMX)
       {
             //use DMX
-            // Check if any levels changed
+            memcpy(ps->level_array, pdata, slot_count);
 
-            int result = memcmp(ps->level_array, pdata, slot_count);
-            if(result!=0)
-            {
-                // Levels have changed
-                memcpy(ps->level_array, pdata, slot_count);
-                emit levelsChanged();
-            }
             // Increment the frame counter - we count only DMX frames
             ps->fpsCounter++;
       }

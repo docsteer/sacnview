@@ -6,20 +6,32 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1119</width>
-    <height>475</height>
+    <width>690</width>
+    <height>484</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
-    <widget class="QSplitter" name="splitter">
+    <widget class="QSplitter" name="splitter_2">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
-     <widget class="QWidget" name="horizontalLayoutWidget">
+     <widget class="QWidget" name="widget" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>200</height>
+       </size>
+      </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
@@ -34,6 +46,12 @@
            </item>
            <item>
             <widget class="QSpinBox" name="sbUniverse">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="minimum">
               <number>1</number>
              </property>
@@ -44,6 +62,12 @@
            </item>
            <item>
             <widget class="QPushButton" name="btnGo">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>Go</string>
              </property>
@@ -53,6 +77,18 @@
          </item>
          <item>
           <widget class="QPushButton" name="pushButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>30</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="text">
             <string>Pause</string>
            </property>
@@ -60,6 +96,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="pushButton_2">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>Start Flicker Finder</string>
            </property>
@@ -67,6 +109,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="pushButton_3">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>Start Log to File</string>
            </property>
@@ -74,6 +122,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="pushButton_4">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>Open Log Window</string>
            </property>
@@ -82,100 +136,138 @@
         </layout>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
-         <item>
-          <widget class="QTableWidget" name="twSources">
-           <property name="editTriggers">
-            <set>QAbstractItemView::NoEditTriggers</set>
+        <widget class="QSplitter" name="splitter">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <widget class="QTableWidget" name="twSources">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <property name="tabKeyNavigation">
+           <bool>false</bool>
+          </property>
+          <property name="showDropIndicator" stdset="0">
+           <bool>false</bool>
+          </property>
+          <property name="dragDropOverwriteMode">
+           <bool>false</bool>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::SingleSelection</enum>
+          </property>
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <attribute name="verticalHeaderVisible">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="verticalHeaderDefaultSectionSize">
+           <number>20</number>
+          </attribute>
+          <row>
+           <property name="text">
+            <string>New Row</string>
            </property>
-           <property name="tabKeyNavigation">
-            <bool>false</bool>
+          </row>
+          <column>
+           <property name="text">
+            <string>Name</string>
            </property>
-           <property name="showDropIndicator" stdset="0">
-            <bool>false</bool>
+          </column>
+          <column>
+           <property name="text">
+            <string>CID</string>
            </property>
-           <property name="dragDropOverwriteMode">
-            <bool>false</bool>
+          </column>
+          <column>
+           <property name="text">
+            <string>Priority</string>
            </property>
-           <property name="selectionMode">
-            <enum>QAbstractItemView::SingleSelection</enum>
+          </column>
+          <column>
+           <property name="text">
+            <string>IP Address</string>
            </property>
-           <property name="selectionBehavior">
-            <enum>QAbstractItemView::SelectRows</enum>
+          </column>
+          <column>
+           <property name="text">
+            <string>FPS</string>
            </property>
-           <attribute name="verticalHeaderVisible">
-            <bool>false</bool>
-           </attribute>
-           <attribute name="verticalHeaderDefaultSectionSize">
-            <number>20</number>
-           </attribute>
-           <row>
-            <property name="text">
-             <string>New Row</string>
-            </property>
-           </row>
-           <column>
-            <property name="text">
-             <string>Name</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>CID</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>Priority</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>IP Address</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>FPS</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>SeqErr</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>Jumps</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>Online</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>Ver</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>DD</string>
-            </property>
-           </column>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPlainTextEdit" name="teInfo"/>
-         </item>
-        </layout>
+          </column>
+          <column>
+           <property name="text">
+            <string>SeqErr</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Jumps</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Online</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Ver</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>DD</string>
+           </property>
+          </column>
+         </widget>
+         <widget class="QPlainTextEdit" name="teInfo">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Courier New</family>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+         </widget>
+        </widget>
        </item>
       </layout>
      </widget>
-     <widget class="UniverseDisplay" name="widget" native="true">
+     <widget class="UniverseDisplay" name="universeDisplay" native="true">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -185,6 +277,15 @@
         <width>0</width>
         <height>300</height>
        </size>
+      </property>
+      <property name="baseSize">
+       <size>
+        <width>0</width>
+        <height>300</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background: blue;</string>
       </property>
      </widget>
     </widget>

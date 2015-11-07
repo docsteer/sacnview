@@ -22,6 +22,7 @@
 #include "ui_mdimainwindow.h"
 #include "scopewindow.h"
 #include "universeview.h"
+#include "transmitwindow.h"
 
 MDIMainWindow::MDIMainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -49,4 +50,12 @@ void MDIMainWindow::on_actionRecieve_triggered(bool checked)
     UniverseView *uniView = new UniverseView(this);
     ui->mdiArea->addSubWindow(uniView);
     uniView->show();
+}
+
+void MDIMainWindow::on_actionTranmsit_triggered(bool checked)
+{
+    Q_UNUSED(checked);
+    transmitwindow *trView = new transmitwindow();
+    ui->mdiArea->addSubWindow(trView);
+    trView->show();
 }

@@ -49,8 +49,9 @@ UniverseView::UniverseView(QWidget *parent) :
     ui(new Ui::UniverseView)
 {
     m_selectedAddress = -1;
+    m_listener = NULL;
     ui->setupUi(this);
-    connect(ui->widget, SIGNAL(selectedAddressChanged(int)), this, SLOT(selectedAddressChanged(int)));
+    connect(ui->universeDisplay, SIGNAL(selectedAddressChanged(int)), this, SLOT(selectedAddressChanged(int)));
 }
 
 UniverseView::~UniverseView()
@@ -61,12 +62,12 @@ UniverseView::~UniverseView()
 void UniverseView::on_btnGo_pressed()
 {
     ui->twSources->setRowCount(0);
-    sACNListener *listener = sACNManager::getInstance()->getListener(ui->sbUniverse->value());
-    ui->widget->setUniverse(ui->sbUniverse->value());
-    connect(listener, SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
-    connect(listener, SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
-    connect(listener, SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
-    connect(listener, SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
+    m_listener = sACNManager::getInstance()->getListener(ui->sbUniverse->value());
+    ui->universeDisplay->setUniverse(ui->sbUniverse->value());
+    connect(m_listener, SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
+    connect(m_listener, SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
+    connect(m_listener, SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
+    connect(m_listener, SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
 }
 
 void UniverseView::sourceChanged(sACNSource *source)
@@ -166,16 +167,27 @@ void UniverseView::selectedAddressChanged(int address)
 {
     ui->teInfo->clear();
     m_selectedAddress = address;
+    ui->teInfo->clear();
     if(address<0) return;
 
-    sACNListener *listener = sACNManager::getInstance()->getListener(ui->sbUniverse->value());
-    sACNMergedSourceList list = listener->mergedLevels();
+    if(!m_listener) return;
+    sACNMergedSourceList list = m_listener->mergedLevels();
 
     QString info;
 
-    info.append(tr("Winning Source : %1 @ %2")
-                .arg(list[address].winningSource->name)
-                .arg(list[address].level));
+    info.append(tr("Address : %1\n")
+                .arg(address+1));
+
+    if(list[address].winningSource)
+    {
+            info.append(tr("Winning Source : %1 @ %2")
+                        .arg(list[address].winningSource->name)
+                        .arg(list[address].level));
+    }
+    if(!list[address].winningSource)
+    {
+        info.append(tr("No Sources"));
+    }
 
     ui->teInfo->setPlainText(info);
 }

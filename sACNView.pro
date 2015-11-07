@@ -27,7 +27,8 @@ SOURCES += src/main.cpp\
     src/preferencesdialog.cpp \
     src/preferences.cpp \
     src/sacn/sacnlistener.cpp \
-    src/universedisplay.cpp
+    src/universedisplay.cpp \
+    src/transmitwindow.cpp
 
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -44,13 +45,16 @@ HEADERS  += src/mdimainwindow.h \
     src/preferencesdialog.h \
     src/preferences.h \
     src/sacn/sacnlistener.h \
-    src/universedisplay.h
+    src/universedisplay.h \
+    src/transmitwindow.h \
+    src/consts.h
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
     ui/universeview.ui \
     ui/nicselectdialog.ui \
-    ui/preferencesdialog.ui
+    ui/preferencesdialog.ui \
+    ui/transmitwindow.ui
 
 RESOURCES += \
     res/resources.qrc

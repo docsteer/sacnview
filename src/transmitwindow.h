@@ -18,37 +18,33 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#ifndef UNIVERSEDISPLAY_H
-#define UNIVERSEDISPLAY_H
+#ifndef TRANSMITWINDOW_H
+#define TRANSMITWINDOW_H
 
-#include "deftypes.h"
-#include "sacnlistener.h"
 #include <QWidget>
+#include <QtGui>
+#include <QLabel>
+#include <QSlider>
 
-class UniverseDisplay : public QWidget
+namespace Ui {
+class transmitwindow;
+}
+
+class transmitwindow : public QWidget
 {
     Q_OBJECT
-public:
-    explicit UniverseDisplay(QWidget *parent = 0);
 
-public slots:
-    void setUniverse(int universe);
-    void levelsChanged();
-signals:
-    // The user changed the selected address. -1 means no selected address
-    void selectedAddressChanged(int address);
-protected:
-    virtual void paintEvent(QPaintEvent *event);
-    virtual QSize minimumSizeHint() const;
-    virtual QSize sizeHint() const;
-    virtual void mousePressEvent(QMouseEvent *event);
-    virtual void mouseMoveEvent(QMouseEvent *event);
+public:
+    explicit transmitwindow(QWidget *parent = 0);
+    ~transmitwindow();
+
+protected slots:
+    void on_sbUniverse_valueChanged(int value);
+    void on_sliderMoved(int value);
 private:
-    // Returns the cell under point, -1 for none
-    int cellHitTest(const QPoint &point);
-    sACNMergedSourceList m_sources;
-    sACNListener *m_listener;
-    int m_selectedAddress;
+    Ui::transmitwindow *ui;
+    QList<QSlider *> m_sliders;
+    QList<QLabel *> m_sliderLabels;
 };
 
-#endif // UNIVERSEDISPLAY_H
+#endif // TRANSMITWINDOW_H

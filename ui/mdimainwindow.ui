@@ -64,7 +64,7 @@
   </widget>
   <action name="actionScopeView">
    <property name="icon">
-    <iconset resource="res/resources.qrc">
+    <iconset resource="../res/resources.qrc">
      <normaloff>:/icons/scope.png</normaloff>:/icons/scope.png</iconset>
    </property>
    <property name="text">
@@ -76,7 +76,7 @@
   </action>
   <action name="actionSnapshot">
    <property name="icon">
-    <iconset resource="res/resources.qrc">
+    <iconset resource="../res/resources.qrc">
      <normaloff>:/icons/snapshot.png</normaloff>:/icons/snapshot.png</iconset>
    </property>
    <property name="text">
@@ -88,7 +88,7 @@
   </action>
   <action name="actionTranmsit">
    <property name="icon">
-    <iconset resource="res/resources.qrc">
+    <iconset resource="../res/resources.qrc">
      <normaloff>:/icons/transmit.png</normaloff>:/icons/transmit.png</iconset>
    </property>
    <property name="text">
@@ -100,7 +100,7 @@
   </action>
   <action name="actionRecieve">
    <property name="icon">
-    <iconset resource="res/resources.qrc">
+    <iconset resource="../res/resources.qrc">
      <normaloff>:/icons/univ_view.png</normaloff>:/icons/univ_view.png</iconset>
    </property>
    <property name="text">
@@ -112,7 +112,7 @@
   </action>
   <action name="actionSettings">
    <property name="icon">
-    <iconset resource="res/resources.qrc">
+    <iconset resource="../res/resources.qrc">
      <normaloff>:/icons/settings.png</normaloff>:/icons/settings.png</iconset>
    </property>
    <property name="text">
@@ -124,7 +124,7 @@
   </action>
   <action name="actionAbout">
    <property name="icon">
-    <iconset resource="res/resources.qrc">
+    <iconset resource="../res/resources.qrc">
      <normaloff>:/icons/info.png</normaloff>:/icons/info.png</iconset>
    </property>
    <property name="text">
@@ -137,7 +137,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="res/resources.qrc"/>
+  <include location="../res/resources.qrc"/>
  </resources>
  <connections/>
 </ui>
