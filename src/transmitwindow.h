@@ -26,6 +26,8 @@
 #include <QLabel>
 #include <QSlider>
 
+class sACNSentUniverse;
+
 namespace Ui {
 class transmitwindow;
 }
@@ -38,13 +40,25 @@ public:
     explicit transmitwindow(QWidget *parent = 0);
     ~transmitwindow();
 
+    enum PriorityModeComboIndex
+    {
+        PMCI_PER_SOURCE,
+        PMCI_PER_ADDRESS
+    };
+
 protected slots:
+    void on_btnStart_pressed();
     void on_sbUniverse_valueChanged(int value);
     void on_sliderMoved(int value);
+    void on_btnEditPerChan_pressed();
+    void on_cbPriorityMode_currentIndexChanged(int index);
 private:
+    void setUniverseOptsEnabled(bool enabled);
+
     Ui::transmitwindow *ui;
     QList<QSlider *> m_sliders;
     QList<QLabel *> m_sliderLabels;
+    sACNSentUniverse *m_sender;
 };
 
 #endif // TRANSMITWINDOW_H

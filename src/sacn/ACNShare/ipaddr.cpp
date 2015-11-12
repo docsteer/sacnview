@@ -264,3 +264,11 @@ void CIPAddr::AddrIntoString(const CIPAddr& addr, char* ptxt, bool showport, boo
 					UpackB2(addrb + 12), UpackB2(addrb + 14));
 	}
 }
+
+
+QHostAddress CIPAddr::ToQHostAddress() const
+{
+    if(IsV4Address())
+        return QHostAddress(this->GetV4Address());
+    return QHostAddress();
+}

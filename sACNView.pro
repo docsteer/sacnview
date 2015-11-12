@@ -28,7 +28,11 @@ SOURCES += src/main.cpp\
     src/preferences.cpp \
     src/sacn/sacnlistener.cpp \
     src/universedisplay.cpp \
-    src/transmitwindow.cpp
+    src/transmitwindow.cpp \
+    src/sacn/sacnsender.cpp \
+    src/configureperchanpriodlg.cpp \
+    src/gridwidget.cpp \
+    src/priorityeditwidget.cpp
 
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -47,14 +51,20 @@ HEADERS  += src/mdimainwindow.h \
     src/sacn/sacnlistener.h \
     src/universedisplay.h \
     src/transmitwindow.h \
-    src/consts.h
+    src/consts.h \
+    src/sacn/sacnsender.h \
+    src/configureperchanpriodlg.h \
+    src/gridwidget.h \
+    src/priorityeditwidget.h
+
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
     ui/universeview.ui \
     ui/nicselectdialog.ui \
     ui/preferencesdialog.ui \
-    ui/transmitwindow.ui
+    ui/transmitwindow.ui \
+    ui/configureperchanpriodlg.ui
 
 RESOURCES += \
     res/resources.qrc

@@ -34,7 +34,7 @@ struct sACNMergedAddress
         level = -1;
         winningSource = NULL;
     }
-    uint1 level;
+    int level;
     sACNSource *winningSource;
     QList<sACNSource *> otherSources;
 };

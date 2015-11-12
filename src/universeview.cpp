@@ -51,7 +51,7 @@ UniverseView::UniverseView(QWidget *parent) :
     m_selectedAddress = -1;
     m_listener = NULL;
     ui->setupUi(this);
-    connect(ui->universeDisplay, SIGNAL(selectedAddressChanged(int)), this, SLOT(selectedAddressChanged(int)));
+    connect(ui->universeDisplay, SIGNAL(selectedCellChanged(int)), this, SLOT(selectedAddressChanged(int)));
 }
 
 UniverseView::~UniverseView()

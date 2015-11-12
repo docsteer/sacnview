@@ -64,6 +64,11 @@ public:
 	//Translates a cid to a preallocated text string of 37 bytes, including the terminating NULL
 	static void CIDIntoString(const CID& cid, char* ptxt);
 
+    // Create a CID using the platforms UUID methods
+    static CID CreateCid();
+
+    // Is the CID null?
+    bool isNull() const;
 private:
 	uint1 m_cid [CIDBYTES];
 };

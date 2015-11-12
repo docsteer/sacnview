@@ -27,6 +27,8 @@
 #include "CID.h"
 #include <stdio.h>
 
+#include <QUuid>
+
 ////////////////////////////////////////////////////////////////////////////////////////
 // Non-static functions
 CID::CID()
@@ -79,6 +81,16 @@ bool operator==(const CID& c1, const CID& c2)
 bool operator!=(const CID& c1, const CID& c2) 
 {
 	return 0 != memcmp(c1.m_cid, c2.m_cid, CID::CIDBYTES);
+}
+
+bool CID::isNull() const
+{
+    char null_data[CIDBYTES];
+    memset(null_data, 0, CIDBYTES);
+    int result = memcmp(m_cid, null_data, CIDBYTES);
+    if(result==0) return true;
+
+    return false;
 }
 
 
@@ -150,6 +162,17 @@ void CID::CIDIntoString(const CID& cid, char* ptxt)
 			cid.m_cid[5], cid.m_cid[6],	cid.m_cid[7], cid.m_cid[8],	cid.m_cid[9],
 			cid.m_cid[10], cid.m_cid[11], cid.m_cid[12], cid.m_cid[13], cid.m_cid[14],
 			cid.m_cid[15]);
+}
+
+// Create a CID
+CID CID::CreateCid()
+{
+    QUuid uuid = QUuid::createUuid();
+    QByteArray bits = uuid.toByteArray();
+
+    CID result;
+    memcpy(result.m_cid, bits.data(), CIDBYTES);
+    return result;
 }
 
 DCID DCID::StringToDCID(const char* ptext)  
