@@ -21,6 +21,10 @@
 #ifndef CONSTS_H
 #define CONSTS_H
 
+#define nNumOfSecPerHour 3600
+#define nNumberOfSecPerMin 60
+#define nNumOfMinPerHour 60
+
 #define MAX_SACN_UNIVERSE 63999
 #define MAX_DMX_ADDRESS 512
 #define PRESET_COUNT 8
@@ -31,6 +35,8 @@
 
 #define MIN_SACN_LEVEL 0
 #define MAX_SACN_LEVEL 255
+
+#define MAX_SACN_TRANSMIT_TIME_SEC  1000000
 
 #define DEFAULT_SOURCE_NAME "sACNView"
 

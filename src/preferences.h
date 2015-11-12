@@ -30,7 +30,7 @@
 
 
 
-#define MAX_SACN_TRANSMIT_TIME_SEC  1000000
+
 
 enum DisplayFormats
     {
