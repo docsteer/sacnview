@@ -38,6 +38,9 @@ public:
 protected slots:
     void on_actionScopeView_triggered(bool checked);
     void on_actionRecieve_triggered(bool checked);
+    void on_actionSettings_triggered(bool checked);
+private slots:
+
 private:
     Ui::MDIMainWindow *ui;
 };

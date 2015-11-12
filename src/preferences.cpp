@@ -20,6 +20,7 @@
 
 #include <Qt>
 #include "preferences.h"
+#include <cassert>
 
 // The base color to generate pastel shades for sources
 static const QColor mixColor = QColor("coral");
@@ -40,7 +41,6 @@ Preferences *Preferences::getInstance()
 
     return m_instance;
 }
-
 
 QNetworkInterface Preferences::networkInterface() const
 {
@@ -72,4 +72,55 @@ QColor Preferences::colorForCID(const CID &cid)
     QColor newColor = QColor::fromRgb(red, green, blue);
     m_cidToColor[cid] = newColor;
     return newColor;
+}
+
+
+void Preferences::SetDisplayFormat(unsigned int nDisplayFormat)
+{
+    assert (nDisplayFormat >= 0 && nDisplayFormat < TOTAL_NUM_OF_FORMATS);
+    m_nDisplayFormat = nDisplayFormat;
+    return;
+}
+
+void Preferences::SetBlindVisualizer (bool bBlindVisualizer)
+{
+    assert (bBlindVisualizer == 0 || bBlindVisualizer == 1);
+    m_bBlindVisualizer = bBlindVisualizer;
+    return;
+}
+
+void Preferences::SetNumSecondsOfSacn (int nNumSecondsOfSacn)
+{
+    assert (nNumSecondsOfSacn >= 0 && nNumSecondsOfSacn <= MAX_SACN_TRANSMIT_TIME_SEC);
+    m_nNumSecondsOfSacn = nNumSecondsOfSacn;
+    return;
+}
+
+unsigned int Preferences::GetDisplayFormat()
+{
+    return m_nDisplayFormat;
+}
+
+bool Preferences::GetBlindVisualizer()
+{
+    return m_bBlindVisualizer;
+}
+
+unsigned int Preferences::GetNumSecondsOfSacn()
+{
+   return m_nNumSecondsOfSacn;
+}
+
+void initializePreferences()
+{
+
+    Preferences *p = Preferences::getInstance();
+    // load preferences from file
+    // Tom suggests using QPreferences class
+
+    // These are test values:
+    p->SetNumSecondsOfSacn(300);
+    p->SetBlindVisualizer(false);
+    p->SetDisplayFormat(DECIMAL);
+
 }
