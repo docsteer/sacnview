@@ -20,7 +20,7 @@ GridWidget::GridWidget(QWidget *parent) : QWidget(parent)
     for(int i=0; i<CELL_COUNT; i++)
     {
         m_colors << QColor(Qt::white);
-        m_values << -1;
+        m_values << QString();
     }
 
 }
@@ -75,14 +75,13 @@ void GridWidget::paintEvent(QPaintEvent *event)
         {
             int address = row*COL_COUNT + col;
             QRect textRect(FIRST_COL_WIDTH + col*CELL_WIDTH, (row+1)*CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
-            int value = m_values[address];
+            QString value = m_values[address];
 
-            if(value>-1)
+            if(!value.isEmpty())
             {
                 QColor fillColor = m_colors[address];
 
-                QString rowLabel = QString("%1")
-                        .arg(value);
+                QString rowLabel = value;
                 painter.fillRect(textRect, fillColor);
                 painter.drawText(textRect, rowLabel, QTextOption(Qt::AlignHCenter | Qt::AlignVCenter));
             }
@@ -185,12 +184,12 @@ void GridWidget::setCellColor(int cell, const QColor &color)
     m_colors[cell] = color;
 }
 
-void GridWidget::setCellValue(int cell, int value)
+void GridWidget::setCellValue(int cell, const QString &value)
 {
     m_values[cell] = value;
 }
 
-int GridWidget::cellValue(int cell)
+QString GridWidget::cellValue(int cell)
 {
     return m_values[cell];
 }

@@ -37,15 +37,15 @@ public:
     /**
      * @brief setCellValue - sets the value for a cell
      * @param cell - The cell number to set, 0-511
-     * @param value - The value to set. Values <0 are shown as blank
+     * @param value - The string value to set
      */
-    void setCellValue(int cell, int value);
+    void setCellValue(int cell, const QString &value);
     /**
      * @brief cellValue returns the value of the specified cell
      * @param cell - which cell, 0-511
      * @return the value
      */
-    int cellValue(int cell);
+    QString cellValue(int cell);
     /**
      * @brief selectedCell returns the currently selected cell, or -1 if no cell is selected
      * @return the selected cell, or -1 if no cell selected
@@ -68,7 +68,7 @@ protected:
 private:
     int m_selectedAddress;
     QList<QColor> m_colors;
-    QList<int> m_values;
+    QStringList m_values;
 };
 
 #endif // GRIDWIDGET_H
