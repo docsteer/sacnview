@@ -39,6 +39,9 @@ int main(int argc, char *argv[])
         }
     }
 
+    initializePreferences();    //<=== [MAK] I added this function call to load stored preferences from a file.
+                                // Currently it just loads test settings
+
     MDIMainWindow w;
     w.show();
 

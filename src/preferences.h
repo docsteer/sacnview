@@ -28,6 +28,20 @@
 #include "deftypes.h"
 #include "CID.h"
 
+
+
+#define MAX_SACN_TRANSMIT_TIME_SEC  1000000
+
+enum DisplayFormats
+    {
+        DECIMAL = 0,
+        PERCENT = 1,
+        HEXADECIMAL = 2,
+        TOTAL_NUM_OF_FORMATS = 3
+    };
+
+void initializePreferences();
+
 class Preferences
 {
 public:
@@ -37,6 +51,18 @@ public:
     QNetworkInterface networkInterface() const;
 
     QColor colorForCID(const CID &cid);
+
+    // Preferences access functions here:
+    void SetDisplayFormat(unsigned int nDisplayFormat);
+    void SetBlindVisualizer (bool bBlindVisualizer);
+    void SetNumSecondsOfSacn (int nNumSecondsOfSacn);
+
+    unsigned int GetDisplayFormat();
+    bool GetBlindVisualizer();
+    unsigned int GetNumSecondsOfSacn();
+
+
+
 public slots:
     void setNetworkInterface(const QNetworkInterface &value);
 private:
@@ -44,6 +70,12 @@ private:
     static Preferences *m_instance;
     QNetworkInterface m_interface;
     QHash<CID, QColor> m_cidToColor;
+
+    unsigned int m_nDisplayFormat;
+    bool m_bBlindVisualizer;
+    unsigned int m_nNumSecondsOfSacn;
+
+
 };
 
 #endif // PREFERENCES_H

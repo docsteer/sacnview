@@ -23,6 +23,10 @@
 
 #include <QDialog>
 
+#define nNumOfSecPerHour 3600
+#define nNumberOfSecPerMin 60
+#define nNumOfMinPerHour 60
+
 namespace Ui {
 class PreferencesDialog;
 }
@@ -35,8 +39,32 @@ public:
     explicit PreferencesDialog(QWidget *parent = 0);
     ~PreferencesDialog();
 
+private slots:
+
+    void on_DecimalDisplayFormat_toggled(bool checked);
+
+    void on_PercentDisplayFormat_toggled(bool checked);
+
+    void on_HexDisplayFormat_toggled(bool checked);
+
+    void on_checkBox_toggled(bool checked);
+
+    void on_NumOfSecOfSacn_valueChanged(int arg1);
+
+    void on_NumOfMinOfSacn_valueChanged(int arg1);
+
+    void on_NumOfHoursOfSacn_valueChanged(int arg1);
+
 private:
     Ui::PreferencesDialog *ui;
+
+    void SetFieldsToCurrentState();
+    void ConvertHourMinSecToSec();
+    void refreshTransmitTimeFields();
+
+    int m_nHour;
+    int m_nMin;
+    int m_nSec;
 };
 
 #endif // PREFERENCESDIALOG_H

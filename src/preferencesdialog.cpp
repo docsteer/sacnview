@@ -20,15 +20,111 @@
 
 #include "preferencesdialog.h"
 #include "ui_preferencesdialog.h"
+#include "preferences.h"
+#include <sstream>
 
 PreferencesDialog::PreferencesDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::PreferencesDialog)
 {
     ui->setupUi(this);
+    SetFieldsToCurrentState();
 }
 
 PreferencesDialog::~PreferencesDialog()
 {
     delete ui;
 }
+
+void PreferencesDialog::on_DecimalDisplayFormat_toggled(bool checked)
+{
+    Preferences *p  = Preferences::getInstance();
+    p->SetDisplayFormat(DECIMAL);
+    return;
+}
+
+void PreferencesDialog::on_PercentDisplayFormat_toggled(bool checked)
+{
+    Preferences *p = Preferences::getInstance();
+    p->SetDisplayFormat(PERCENT);
+    return;
+}
+
+void PreferencesDialog::on_HexDisplayFormat_toggled(bool checked)
+{
+    Preferences *p = Preferences::getInstance();
+    p->SetDisplayFormat(HEXADECIMAL);
+    return;
+}
+
+void PreferencesDialog::on_checkBox_toggled(bool checked)
+{
+    Preferences *p = Preferences::getInstance();
+    p->SetBlindVisualizer(checked);
+    return;
+}
+
+void PreferencesDialog::on_NumOfSecOfSacn_valueChanged(int arg1)
+{
+    m_nSec = arg1;
+    ConvertHourMinSecToSec();
+    refreshTransmitTimeFields();
+    return;
+}
+
+void PreferencesDialog::on_NumOfMinOfSacn_valueChanged(int arg1)
+{
+    m_nMin = arg1;
+    ConvertHourMinSecToSec();
+    refreshTransmitTimeFields();
+}
+
+void PreferencesDialog::on_NumOfHoursOfSacn_valueChanged(int arg1)
+{
+    m_nHour = arg1;
+    ConvertHourMinSecToSec();
+    refreshTransmitTimeFields();
+}
+
+void PreferencesDialog::ConvertHourMinSecToSec()
+{
+    Preferences *p = Preferences::getInstance();
+    int nTotalNumOfSec = ((m_nHour*nNumOfSecPerHour) + (m_nMin*nNumberOfSecPerMin) + m_nSec);
+    p->SetNumSecondsOfSacn(nTotalNumOfSec);
+}
+
+void PreferencesDialog::refreshTransmitTimeFields()
+{
+    Preferences *p = Preferences::getInstance();
+    int nTotalNumOfSec = p->GetNumSecondsOfSacn();
+
+    m_nHour = (nTotalNumOfSec/nNumOfSecPerHour);
+    m_nMin = ((nTotalNumOfSec/nNumberOfSecPerMin)-(m_nHour*nNumOfMinPerHour));
+    m_nSec = (nTotalNumOfSec - (m_nHour*nNumOfSecPerHour) - (m_nMin*nNumberOfSecPerMin) );
+
+    ui->NumOfHoursOfSacn->setValue(m_nHour);
+    ui->NumOfMinOfSacn->setValue(m_nMin);
+    ui->NumOfSecOfSacn->setValue(m_nSec);
+}
+
+void PreferencesDialog::SetFieldsToCurrentState()
+{
+    Preferences *p = Preferences::getInstance();
+    switch (p->GetDisplayFormat())
+    {
+        case DECIMAL:       ui->DecimalDisplayFormat->setChecked (true); break;
+        case PERCENT:       ui->PercentDisplayFormat->setChecked(true); break;
+        case HEXADECIMAL:   ui->HexDisplayFormat->setChecked(true); break;
+    }
+
+    if (p->GetBlindVisualizer())
+        ui->checkBox->setChecked(true);
+    else
+        ui->checkBox->setChecked(false);
+
+    refreshTransmitTimeFields();
+
+}
+
+
+
