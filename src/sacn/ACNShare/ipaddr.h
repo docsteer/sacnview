@@ -36,6 +36,8 @@
 #error "#include error: ipaddr.h requires deftypes.h"
 #endif
 
+#include <QHostAddress>
+
 //The run-time identifier of a NIC interface, used wherever a NIC needs to be identified.  
 typedef int netintid;
 const netintid NETID_INVALID = -1;
@@ -90,7 +92,8 @@ public:
 	//Note that if showint is true, showport is assumed to be true
 	static void AddrIntoString(const CIPAddr& addr, char* ptxt, bool showport, bool showint);
 
-
+    // Converts the address to a QHostAddress
+    QHostAddress ToQHostAddress() const;
 private:
 	netintid m_netid;
 	IPPort m_port;

@@ -23,9 +23,9 @@
 
 #include "deftypes.h"
 #include "sacnlistener.h"
-#include <QWidget>
+#include "gridwidget.h"
 
-class UniverseDisplay : public QWidget
+class UniverseDisplay : public GridWidget
 {
     Q_OBJECT
 public:
@@ -34,21 +34,9 @@ public:
 public slots:
     void setUniverse(int universe);
     void levelsChanged();
-signals:
-    // The user changed the selected address. -1 means no selected address
-    void selectedAddressChanged(int address);
-protected:
-    virtual void paintEvent(QPaintEvent *event);
-    virtual QSize minimumSizeHint() const;
-    virtual QSize sizeHint() const;
-    virtual void mousePressEvent(QMouseEvent *event);
-    virtual void mouseMoveEvent(QMouseEvent *event);
 private:
-    // Returns the cell under point, -1 for none
-    int cellHitTest(const QPoint &point);
     sACNMergedSourceList m_sources;
     sACNListener *m_listener;
-    int m_selectedAddress;
 };
 
 #endif // UNIVERSEDISPLAY_H

@@ -24,6 +24,8 @@
 #include "sacn/ACNShare/deftypes.h"
 #include "sacn/ACNShare/ipaddr.h"
 #include "sacn/streamcommon.h"
+#include "sacn/sacnsender.h"
+#include "configureperchanpriodlg.h"
 #include <QToolButton>
 
 transmitwindow::transmitwindow(QWidget *parent) :
@@ -31,12 +33,14 @@ transmitwindow::transmitwindow(QWidget *parent) :
     ui(new Ui::transmitwindow)
 {
     ui->setupUi(this);
+    on_cbPriorityMode_currentIndexChanged(ui->cbPriorityMode->currentIndex());
 
     ui->sbUniverse->setMinimum(1);
     ui->sbUniverse->setMaximum(MAX_SACN_UNIVERSE);
 
     ui->sbPriority->setMinimum(MIN_SACN_PRIORITY);
     ui->sbPriority->setMaximum(MAX_SACN_PRIORITY);
+    ui->sbPriority->setValue(DEFAULT_SACN_PRIORITY);
 
     ui->leSourceName->setText(DEFAULT_SOURCE_NAME);
 
@@ -62,7 +66,7 @@ transmitwindow::transmitwindow(QWidget *parent) :
             m_sliders << slider;
             slider->setMinimum(MIN_SACN_LEVEL);
             slider->setMaximum(MAX_SACN_LEVEL);
-            connect(slider, SIGNAL(sliderMoved(int)), this, SLOT(on_sliderMoved(int)));
+            connect(slider, SIGNAL(valueChanged(int)), this, SLOT(on_sliderMoved(int)));
             QLabel *label = new QLabel(this);
             m_sliderLabels << label;
             label->setText(QString("%1\r\n%2")
@@ -76,10 +80,16 @@ transmitwindow::transmitwindow(QWidget *parent) :
         mainLayout->addLayout(rowLayout);
     }
     ui->gbFaders->setLayout(mainLayout);
+
+    adjustSize();
+
+    m_sender = 0;
 }
 
 transmitwindow::~transmitwindow()
 {
+    if(m_sender)
+        delete m_sender;
     delete ui;
 }
 
@@ -106,4 +116,62 @@ void transmitwindow::on_sliderMoved(int value)
     .arg(value)
     );
 
+    if(m_sender)
+        m_sender->setLevel(index, value);
+}
+
+void transmitwindow::setUniverseOptsEnabled(bool enabled)
+{
+    ui->leSourceName->setEnabled(enabled);
+    ui->sbUniverse->setEnabled(enabled);
+    ui->sbPriority->setEnabled(enabled);
+    ui->btnEditPerChan->setEnabled(enabled);
+    ui->cbPriorityMode->setEnabled(enabled);
+    ui->gbProtocolMode->setEnabled(enabled);
+    ui->gbProtocolVersion->setEnabled(enabled);
+
+    if(enabled)
+        ui->btnStart->setText(tr("Start"));
+    else
+        ui->btnStart->setText(tr("Stop"));
+
+}
+
+void transmitwindow::on_btnStart_pressed()
+{
+    if(!m_sender)
+        m_sender = new sACNSentUniverse(ui->sbUniverse->value());
+
+    if(m_sender->isSending())
+    {
+        m_sender->stopSending();
+        setUniverseOptsEnabled(true);
+    }
+    else
+    {
+        m_sender->setName(ui->leSourceName->text());
+        m_sender->startSending();
+        setUniverseOptsEnabled(false);
+    }
+
+}
+
+void transmitwindow::on_btnEditPerChan_pressed()
+{
+    ConfigurePerChanPrioDlg dlg;
+    dlg.exec();
+}
+
+void transmitwindow::on_cbPriorityMode_currentIndexChanged(int index)
+{
+    if(index==PMCI_PER_ADDRESS)
+    {
+        ui->sbPriority->setEnabled(false);
+        ui->btnEditPerChan->setEnabled(true);
+    }
+    else
+    {
+        ui->sbPriority->setEnabled(true);
+        ui->btnEditPerChan->setEnabled(false);
+    }
 }
