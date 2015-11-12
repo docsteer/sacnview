@@ -6,7 +6,7 @@ PriorityEditWidget::PriorityEditWidget(QWidget *parent) : GridWidget(parent)
 {
     for(int i=0; i<512; i++)
     {
-        setCellValue(i, 100);
+        setCellValue(i, QString::number(DEFAULT_SACN_PRIORITY));
     }
 }
 
@@ -18,12 +18,12 @@ void PriorityEditWidget::wheelEvent(QWheelEvent *event)
 
     if(selectedCell()<0) return;
 
-    int value = cellValue(selectedCell());
+    int value = cellValue(selectedCell()).toInt();
     value += numSteps;
 
     if(value<MIN_SACN_PRIORITY || value>MAX_SACN_PRIORITY) return;
 
-    setCellValue(selectedCell(), value);
+    setCellValue(selectedCell(), QString::number(value));
     update();
 
     event->accept();

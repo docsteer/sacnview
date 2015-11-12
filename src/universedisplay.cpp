@@ -43,12 +43,12 @@ void UniverseDisplay::levelsChanged()
         {
             if(m_sources[i].winningSource)
             {
-                setCellValue(i, m_sources[i].level);
+                setCellValue(i, QString::number(m_sources[i].level));
 
                 setCellColor(i, Preferences::getInstance()->colorForCID(m_sources[i].winningSource->src_cid));
             }
             else
-                setCellValue(i, -1);
+                setCellValue(i, QString());
         }
         update();
     }
