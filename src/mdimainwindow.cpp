@@ -23,6 +23,7 @@
 #include "scopewindow.h"
 #include "universeview.h"
 #include "transmitwindow.h"
+#include "preferencesdialog.h"
 
 MDIMainWindow::MDIMainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -58,4 +59,14 @@ void MDIMainWindow::on_actionTranmsit_triggered(bool checked)
     transmitwindow *trView = new transmitwindow();
     ui->mdiArea->addSubWindow(trView);
     trView->show();
+}
+
+void MDIMainWindow::on_actionSettings_triggered(bool checked)
+{
+    Q_UNUSED(checked);
+    PreferencesDialog *prefDialog = new PreferencesDialog(this);
+    prefDialog->exec();
+    //PreferencesDialog *PrefDialog = new PreferencesDialog(this);
+    //ui->mdiArea->addSubWindow(PrefDialog);
+    //PrefDialog->show();
 }
