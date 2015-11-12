@@ -21,6 +21,7 @@
 #include "preferencesdialog.h"
 #include "ui_preferencesdialog.h"
 #include "preferences.h"
+#include "consts.h"
 #include <sstream>
 
 PreferencesDialog::PreferencesDialog(QWidget *parent) :

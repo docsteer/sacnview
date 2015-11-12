@@ -23,9 +23,7 @@
 
 #include <QDialog>
 
-#define nNumOfSecPerHour 3600
-#define nNumberOfSecPerMin 60
-#define nNumOfMinPerHour 60
+
 
 namespace Ui {
 class PreferencesDialog;

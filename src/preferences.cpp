@@ -20,6 +20,7 @@
 
 #include <Qt>
 #include "preferences.h"
+#include "consts.h"
 #include <cassert>
 
 // The base color to generate pastel shades for sources
