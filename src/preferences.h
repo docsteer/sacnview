@@ -61,6 +61,7 @@ public:
     bool GetBlindVisualizer();
     unsigned int GetNumSecondsOfSacn();
 
+    QString GetFormattedValue(unsigned int nLevelInDecimal);
 
 
 public slots:
