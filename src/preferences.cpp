@@ -82,6 +82,19 @@ void Preferences::SetDisplayFormat(unsigned int nDisplayFormat)
     m_nDisplayFormat = nDisplayFormat;
     return;
 }
+QString Preferences::GetFormattedValue(unsigned int nLevelInDecimal)
+{
+    assert(nLevelInDecimal>=0&&nLevelInDecimal<=255);
+    if (m_nDisplayFormat == DECIMAL)
+        return QString::number(nLevelInDecimal, 10);
+    else if (m_nDisplayFormat == PERCENT)
+        return QString::number(HTOPT[nLevelInDecimal], 10);
+    else if (m_nDisplayFormat == HEXADECIMAL)
+        return QString::number(nLevelInDecimal, 16);
+    else
+        return QString ("Err");
+
+}
 
 void Preferences::SetBlindVisualizer (bool bBlindVisualizer)
 {

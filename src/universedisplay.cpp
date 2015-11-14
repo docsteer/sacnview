@@ -38,12 +38,13 @@ void UniverseDisplay::levelsChanged()
 {
     if(m_listener)
     {
+        Preferences *p = Preferences::getInstance();
         m_sources = m_listener->mergedLevels();
         for(int i=0; i<m_sources.count(); i++)
         {
             if(m_sources[i].winningSource)
             {
-                setCellValue(i, QString::number(m_sources[i].level));
+                setCellValue(i, p->GetFormattedValue(m_sources[i].level));
 
                 setCellColor(i, Preferences::getInstance()->colorForCID(m_sources[i].winningSource->src_cid));
             }
