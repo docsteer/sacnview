@@ -78,12 +78,25 @@ transmitwindow::transmitwindow(QWidget *parent) :
             rowLayout->addLayout(faderVb);
         }
         mainLayout->addLayout(rowLayout);
+        rowLayout->update();
     }
     ui->gbFaders->setLayout(mainLayout);
-
+    mainLayout->update();
+    ui->gbFaders->adjustSize();
     adjustSize();
 
+
     m_sender = 0;
+    for(int i=0; i<MAX_DMX_ADDRESS; i++)
+        m_perAddressPriorities[i] = DEFAULT_SACN_PRIORITY;
+
+    QTimer::singleShot(30, Qt::CoarseTimer, this, SLOT(fixSize()));
+}
+
+void transmitwindow::fixSize()
+{
+    // Update the window size
+    resize(sizeHint());
 }
 
 transmitwindow::~transmitwindow()
@@ -150,6 +163,11 @@ void transmitwindow::on_btnStart_pressed()
     else
     {
         m_sender->setName(ui->leSourceName->text());
+        if(ui->cbPriorityMode->currentIndex() == pmPER_ADDRESS_PRIORITY)
+        {
+            m_sender->setPriorityMode(pmPER_ADDRESS_PRIORITY);
+            m_sender->setPerChannelPriorities(m_perAddressPriorities);
+        }
         m_sender->startSending();
         setUniverseOptsEnabled(false);
     }
@@ -159,12 +177,17 @@ void transmitwindow::on_btnStart_pressed()
 void transmitwindow::on_btnEditPerChan_pressed()
 {
     ConfigurePerChanPrioDlg dlg;
-    dlg.exec();
+    dlg.setData(m_perAddressPriorities);
+    int result = dlg.exec();
+    if(result==QDialog::Accepted)
+    {
+        memcpy(m_perAddressPriorities, dlg.data(), MAX_DMX_ADDRESS);
+    }
 }
 
 void transmitwindow::on_cbPriorityMode_currentIndexChanged(int index)
 {
-    if(index==PMCI_PER_ADDRESS)
+    if(index==pmPER_ADDRESS_PRIORITY)
     {
         ui->sbPriority->setEnabled(false);
         ui->btnEditPerChan->setEnabled(true);

@@ -6,6 +6,8 @@
 
 QT       += core gui network
 
+QMAKE_CXXFLAGS += -std=gnu++0x
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = sACNView

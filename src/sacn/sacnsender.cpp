@@ -18,6 +18,7 @@ sACNSentUniverse::sACNSentUniverse(int universe)
     m_universe = universe;
     m_handle = 0;
     m_isSending = false;
+    m_priorityMode = pmPER_SOURCE_PRIORITY;
 }
 
 sACNSentUniverse::~sACNSentUniverse()
@@ -34,6 +35,14 @@ void sACNSentUniverse::startSending()
 
     streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, 0, 0, m_universe, 512, m_slotData, m_handle);
     streamServer->SetUniverseDirty(m_handle);
+
+    if(m_priorityMode == pmPER_ADDRESS_PRIORITY)
+    {
+        uint1 *pslots;
+        streamServer->CreateUniverse(m_cid, qPrintable(m_name), 0, 0, 0, 0xDD, m_universe, 512, pslots, m_priorityHandle);
+        memcpy(pslots, m_perChannelPriorities, sizeof(m_perChannelPriorities));
+        streamServer->SetUniverseDirty(m_priorityHandle);
+    }
     m_isSending = true;
 }
 
@@ -43,6 +52,12 @@ void sACNSentUniverse::stopSending()
     CStreamServer::getInstance()->DestroyUniverse(m_handle);
     m_handle = 0;
     m_isSending = false;
+
+    if(m_priorityMode == pmPER_ADDRESS_PRIORITY)
+    {
+        CStreamServer::getInstance()->DestroyUniverse(m_priorityHandle);
+        m_priorityHandle = 0;
+    }
 }
 
 void sACNSentUniverse::setFxMode(sACNUniverseEffect mode)
@@ -75,6 +90,15 @@ void sACNSentUniverse::setName(const QString &name)
     m_name = name;
 }
 
+void sACNSentUniverse::setPriorityMode(PriorityMode mode)
+{
+    m_priorityMode = mode;
+}
+
+void sACNSentUniverse::setPerChannelPriorities(uint1 *priorities)
+{
+    memcpy(m_perChannelPriorities, priorities, sizeof(m_perChannelPriorities));
+}
 
 
 CStreamServer *CStreamServer::m_instance = 0;
@@ -207,7 +231,6 @@ void CStreamServer::Tick()
 //  send_intervalms intervals (again defaulted for DMX).  Note that even if you are not using the
 //  inactivity logic, send_intervalms expiry will trigger a resend of the current universe packet.
 //Data on this universe will not be initially sent until marked dirty.
-//NOT THREAD SAFE
 bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_name, uint1 priority, uint2 reserved, uint1 options, uint1 start_code,
                                      uint2 universe, uint2 slot_count, uint1*& pslots, uint& handle,
                                         bool ignore_inactivity_logic, uint send_intervalms)
@@ -269,9 +292,9 @@ bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_nam
 //After you add data to the data buffer, call this to trigger the data send on
 //the next Tick boundary.
 //Otherwise, the data won't be sent until the inactivity or send_interval time.
-//NOT THREAD SAFE
 void CStreamServer::SetUniverseDirty(uint handle)
 {
+    QMutexLocker locker(&m_writeMutex);
     m_multiverse[handle].isdirty = true;
     m_multiverse[handle].waited_for_dirty = true;
 }
@@ -314,16 +337,8 @@ void CStreamServer::DEBUG_DESTROY_PRIORITY_UNIVERSE(uint handle)
 //Not Thread Safe -- Don't call when Tick is called
 void CStreamServer::DestroyUniverse(uint handle)
 {
+    QMutexLocker locker(&m_writeMutex);
   SetStreamTerminated(m_multiverse[handle].psend, true);
-  /*
-    if(m_multiverse[handle].psend)
-    {
-        delete [] m_multiverse[handle].psend;
-        m_multiverse[handle].psend = NULL;
-
-        RemovePSeq(m_multiverse[handle].number);
-    }
-  */
 }
 
 //Perform the logical destruction and cleanup of a universe and its related

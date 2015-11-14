@@ -21,6 +21,21 @@ ConfigurePerChanPrioDlg::~ConfigurePerChanPrioDlg()
 }
 
 
+void ConfigurePerChanPrioDlg::setData(uint1 *data)
+{
+    memcpy(m_data, data, MAX_DMX_ADDRESS);
+    for(int i=0; i<MAX_DMX_ADDRESS; i++)
+        ui->widget->setCellValue(i, QString::number(m_data[i]));
+}
+
+uint1 *ConfigurePerChanPrioDlg::data()
+{
+    for(int i=0; i<MAX_DMX_ADDRESS; i++)
+        m_data[i] = ui->widget->cellValue(i).toInt();
+    return m_data;
+}
+
+
 void ConfigurePerChanPrioDlg::on_sbPriority_valueChanged(int value)
 {
     int currentCell = ui->widget->selectedCell();

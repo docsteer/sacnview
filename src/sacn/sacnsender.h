@@ -9,6 +9,7 @@
 #include "streamcommon.h"
 #include "tock.h"
 #include "deftypes.h"
+#include "consts.h"
 
 class QTimer;
 
@@ -61,6 +62,16 @@ public slots:
      */
     void setName(const QString &name);
     /**
+     * @brief setPriorityMode - sets the priority mode of sACN to transmit, per-universe or per-address
+     * @param mode - the mode to use
+     */
+    void setPriorityMode(PriorityMode mode);
+    /**
+     * @brief setPerChannelPriorities - sets the per-channel priority data for the source
+     * @param priorities - a pointer to an array of priority values, must be 512 bytes
+     */
+    void setPerChannelPriorities(uint1 *priorities);
+    /**
      * @brief startSending - starts sending for the selected universe
      */
     void startSending();
@@ -73,8 +84,10 @@ signals:
     void fxLevelChanged(int level);
 private:
     bool m_isSending;
-    // The handle for the CStreamServer
+    // The handle for the CStreamServer universe
     uint m_handle;
+    // The handle for the CStreamServer universe of priority data
+    uint m_priorityHandle;
     // The pointer to the data
     uint1 *m_slotData;
     // The priority
@@ -87,6 +100,10 @@ private:
     int m_fx_speed;
     // The CID
     CID m_cid;
+    // Priority mode
+    PriorityMode m_priorityMode;
+    // Per-channel priorities
+    uint1 m_perChannelPriorities[MAX_DMX_ADDRESS];
 };
 
 
