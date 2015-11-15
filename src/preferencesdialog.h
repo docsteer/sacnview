@@ -40,18 +40,16 @@ public:
 private slots:
 
     void on_DecimalDisplayFormat_toggled(bool checked);
-
     void on_PercentDisplayFormat_toggled(bool checked);
-
     void on_HexDisplayFormat_toggled(bool checked);
 
     void on_checkBox_toggled(bool checked);
 
     void on_NumOfSecOfSacn_valueChanged(int arg1);
-
     void on_NumOfMinOfSacn_valueChanged(int arg1);
-
     void on_NumOfHoursOfSacn_valueChanged(int arg1);
+
+    void on_buttonBox_accepted();
 
 private:
     Ui::PreferencesDialog *ui;
@@ -60,9 +58,19 @@ private:
     void ConvertHourMinSecToSec();
     void refreshTransmitTimeFields();
 
+    void SetMemberVariablesFromPreferences();
+    void SaveMemberVariablesToPreferences();
+
     int m_nHour;
     int m_nMin;
     int m_nSec;
+
+    int m_PrefDialog_nTotalNumOfSec;
+    unsigned int m_PrefDialog_nDisplayFormat;
+    bool m_PrefDialog_bBlindVisualizer;
+
+
+
 };
 
 #endif // PREFERENCESDIALOG_H
