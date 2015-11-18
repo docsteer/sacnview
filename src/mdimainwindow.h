@@ -42,6 +42,10 @@ protected slots:
     void on_actionSettings_triggered(bool checked);
 private slots:
 
+
+
+    void on_actionAbout_triggered(bool checked);
+
 private:
     Ui::MDIMainWindow *ui;
 };
