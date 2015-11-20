@@ -35,8 +35,9 @@ SOURCES += src/main.cpp\
     src/configureperchanpriodlg.cpp \
     src/gridwidget.cpp \
     src/priorityeditwidget.cpp \
-    src/scopewidget.cpp
-
+    src/scopewidget.cpp \
+    src/aboutdialog.cpp
+	
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
     src/universeview.h \
@@ -59,8 +60,8 @@ HEADERS  += src/mdimainwindow.h \
     src/configureperchanpriodlg.h \
     src/gridwidget.h \
     src/priorityeditwidget.h \
-    src/scopewidget.h
-
+    src/scopewidget.h \
+    src/aboutdialog.h
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
@@ -68,7 +69,11 @@ FORMS    += ui/mdimainwindow.ui \
     ui/nicselectdialog.ui \
     ui/preferencesdialog.ui \
     ui/transmitwindow.ui \
-    ui/configureperchanpriodlg.ui
+    ui/configureperchanpriodlg.ui \
+    ui/aboutdialog.ui
 
 RESOURCES += \
     res/resources.qrc
+
+DISTFILES += \
+    res/codemess.png

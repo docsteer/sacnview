@@ -21,6 +21,13 @@
 #ifndef CONSTS_H
 #define CONSTS_H
 
+
+#define VERSION "2.0 alpha testbuilds"
+#define PUBLISHED_DATE "November 17, 2015"
+#define AUTHOR "The amazing Tom"
+
+
+
 #define nNumOfSecPerHour 3600
 #define nNumberOfSecPerMin 60
 #define nNumOfMinPerHour 60
