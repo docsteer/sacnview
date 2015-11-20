@@ -48,6 +48,7 @@ protected slots:
     void selectedAddressChanged(int address);
 protected:
     virtual void resizeEvent(QResizeEvent *event);
+    virtual void showEvent(QShowEvent *event);
 private:
     // The column order in the source table
     enum m_SC_ROWS

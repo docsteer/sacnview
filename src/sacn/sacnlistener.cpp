@@ -337,34 +337,13 @@ void sACNListener::readPendingDatagrams()
     {
         bool changed = false;
         QString name = QString::fromUtf8(source_name);
-        if(ps->name!=name)
-        {
-            ps->name = name;
-            changed = true;
-        }
-        if(ps->isPreview != preview)
-        {
-            ps->isPreview = preview;
-            changed = true;
-        }
+
         if(ps->ip != sender)
         {
             ps->ip = sender;
             changed = true;
         }
-        if(ps->priority != priority)
-        {
-            ps->priority = priority;
-            changed = true;
-        }
-        if(ps->fpsTimer.elapsed() >= 1000)
-        {
-            // Calculate the FPS rate
-            ps->fpsTimer.restart();
-            ps->fps = ps->fpsCounter;
-            ps->fpsCounter = 0;
-            changed = true;
-        }
+
         StreamingACNProtocolVersion protocolVersion = sACNProtocolUnknown;
         if(root_vect==ROOT_VECTOR) protocolVersion = sACNProtocolRelease;
         if(root_vect==DRAFT_ROOT_VECTOR) protocolVersion = sACNProtocolDraft;
@@ -373,23 +352,47 @@ void sACNListener::readPendingDatagrams()
             ps->protocol_version = protocolVersion;
             changed = true;
         }
-        if(changed)
-        {
-            qDebug() << "Source Parameters Changed";
-            emit sourceChanged(ps);
-        }
 
-      if(start_code == STARTCODE_DMX)
-      {
+        if(start_code == STARTCODE_DMX)
+        {
+            if(ps->name!=name)
+            {
+                ps->name = name;
+                changed = true;
+            }
+            if(ps->isPreview != preview)
+            {
+                ps->isPreview = preview;
+                changed = true;
+            }
+            if(ps->priority != priority)
+            {
+                ps->priority = priority;
+                changed = true;
+            }
+            if(ps->fpsTimer.elapsed() >= 1000)
+            {
+                // Calculate the FPS rate
+                ps->fpsTimer.restart();
+                ps->fps = ps->fpsCounter;
+                ps->fpsCounter = 0;
+                changed = true;
+            }
             //use DMX
             memcpy(ps->level_array, pdata, slot_count);
 
             // Increment the frame counter - we count only DMX frames
             ps->fpsCounter++;
-      }
+        }
         else if(start_code == STARTCODE_PRIORITY)
         {
             memcpy(ps->priority_array, pdata, slot_count);
+        }
+
+        if(changed)
+        {
+            qDebug() << "Source Parameters Changed";
+            emit sourceChanged(ps);
         }
     }
     }
@@ -405,36 +408,39 @@ void sACNListener::performMerge()
 
     QMultiMap<int, sACNSource*> addressToSourceMap;
 
-
+    for(int i=0; i<512; i++)
+    {
+        sACNMergedAddress *pAddr = &m_merged_levels[i];
+        pAddr->otherSources.clear();
+    }
     // First step : find the highest priority for every address
     for(std::vector<sACNSource *>::iterator it = m_sources.begin(); it != m_sources.end(); ++it)
     {
         sACNSource *ps = *it;
+
+        // Find the highest priority for the address, ignoring priorities of zero
+        if(ps->src_valid && !ps->active.Expired() && !ps->doing_per_channel)
+        {
+            // Set the priority array for sources which are not doing per-channel
+            memset(ps->priority_array, ps->priority, sizeof(ps->priority_array));
+        }
+
         for(int i=0; i<512; i++)
         {
             sACNMergedAddress *pAddr = &m_merged_levels[i];
-            pAddr->otherSources.clear();
 
-
-            // Find the highest priority for the address, ignoring priorities of zero
-            if(ps->src_valid && !ps->active.Expired() && !ps->doing_per_channel)
-            {
-                // Set the priority array for sources which are not doing per-channel
-                memset(ps->priority_array, ps->priority, sizeof(ps->priority_array));
-            }
             if (ps->src_valid  && !ps->active.Expired() && ps->priority_array[i] > priorities[i] && ps->priority_array[i]>0)
             {
                 // Sources of higher priority
                 priorities[i] = ps->priority_array[i];
                 addressToSourceMap.remove(i);
                 addressToSourceMap.insert(i, ps);
-                pAddr->otherSources.append(ps);
             }
             if (ps->src_valid  && !ps->active.Expired() && ps->priority_array[i] == priorities[i])
             {
                 addressToSourceMap.insert(i, ps);
-                pAddr->otherSources.append(ps);
             }
+            pAddr->otherSources << ps;
         }
     }
 

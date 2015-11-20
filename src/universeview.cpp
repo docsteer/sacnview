@@ -62,12 +62,15 @@ UniverseView::~UniverseView()
 void UniverseView::on_btnGo_pressed()
 {
     ui->twSources->setRowCount(0);
-    m_listener = sACNManager::getInstance()->getListener(ui->sbUniverse->value());
-    ui->universeDisplay->setUniverse(ui->sbUniverse->value());
-    connect(m_listener, SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
-    connect(m_listener, SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
-    connect(m_listener, SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
-    connect(m_listener, SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
+    if(!m_listener)
+    {
+        m_listener = sACNManager::getInstance()->getListener(ui->sbUniverse->value());
+        ui->universeDisplay->setUniverse(ui->sbUniverse->value());
+        connect(m_listener, SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
+        connect(m_listener, SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
+        connect(m_listener, SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
+        connect(m_listener, SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
+    }
 }
 
 void UniverseView::sourceChanged(sACNSource *source)
@@ -162,6 +165,45 @@ void UniverseView::resizeEvent(QResizeEvent *event)
     ui->twSources->setColumnWidth(COL_NAME, width-used-5);
 }
 
+void UniverseView::showEvent(QShowEvent *event)
+{
+    QWidget::showEvent(event);
+
+    // Attempt to resize so all columns fit
+    // 7 small columns, 1 large column (CID), 1 IP, 1 sized to fill remainig space (Name)
+    // CID is around 4x width of small columns
+    // IP is 2x width of small columns
+    // Name is around 2x width of small columns
+
+    int width = ui->twSources->width();
+
+    int widthUnit = width/15;
+
+    int used = 0;
+    for(int i=COL_NAME; i<COL_END; i++)
+    {
+        switch(i)
+        {
+        case COL_NAME:
+            break;
+        case COL_CID:
+            ui->twSources->setColumnWidth(i, 4*widthUnit);
+            used += 4*widthUnit;
+            break;
+        case COL_IP:
+            ui->twSources->setColumnWidth(i, 2*widthUnit);
+            used += 2*widthUnit;
+            break;
+        default:
+            ui->twSources->setColumnWidth(i, widthUnit);
+            used += widthUnit;
+            break;
+        }
+    }
+
+    ui->twSources->setColumnWidth(COL_NAME, width-used-5);
+
+}
 
 void UniverseView::selectedAddressChanged(int address)
 {
@@ -183,6 +225,21 @@ void UniverseView::selectedAddressChanged(int address)
             info.append(tr("Winning Source : %1 @ %2")
                         .arg(list[address].winningSource->name)
                         .arg(list[address].level));
+            if(list[address].otherSources.count()>0)
+            {
+                foreach(sACNSource *source, list[address].otherSources)
+                {
+                    int prio;
+                    if(source->doing_per_channel)
+                        prio = source->priority_array[address];
+                    else
+                        prio = source->priority;
+                    info.append(tr("\nOther Source : %1 @ %2 (Priority %3)")
+                                .arg(source->name)
+                                .arg(source->level_array[address])
+                                .arg(prio));
+                }
+            }
     }
     if(!list[address].winningSource)
     {

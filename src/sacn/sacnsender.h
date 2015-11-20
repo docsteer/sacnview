@@ -1,3 +1,23 @@
+// Copyright (c) 2015 Electronic Theatre Controls, http://www.etcconnect.com
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 #ifndef SACNSENDER_H
 #define SACNSENDER_H
 
@@ -9,6 +29,7 @@
 #include "streamcommon.h"
 #include "tock.h"
 #include "deftypes.h"
+#include "consts.h"
 
 class QTimer;
 
@@ -61,6 +82,16 @@ public slots:
      */
     void setName(const QString &name);
     /**
+     * @brief setPriorityMode - sets the priority mode of sACN to transmit, per-universe or per-address
+     * @param mode - the mode to use
+     */
+    void setPriorityMode(PriorityMode mode);
+    /**
+     * @brief setPerChannelPriorities - sets the per-channel priority data for the source
+     * @param priorities - a pointer to an array of priority values, must be 512 bytes
+     */
+    void setPerChannelPriorities(uint1 *priorities);
+    /**
      * @brief startSending - starts sending for the selected universe
      */
     void startSending();
@@ -73,8 +104,10 @@ signals:
     void fxLevelChanged(int level);
 private:
     bool m_isSending;
-    // The handle for the CStreamServer
+    // The handle for the CStreamServer universe
     uint m_handle;
+    // The handle for the CStreamServer universe of priority data
+    uint m_priorityHandle;
     // The pointer to the data
     uint1 *m_slotData;
     // The priority
@@ -87,6 +120,10 @@ private:
     int m_fx_speed;
     // The CID
     CID m_cid;
+    // Priority mode
+    PriorityMode m_priorityMode;
+    // Per-channel priorities
+    uint1 m_perChannelPriorities[MAX_DMX_ADDRESS];
 };
 
 

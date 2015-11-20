@@ -14,7 +14,6 @@ static const QColor textColor = QColor::fromRgb(0x0, 0x0, 0x0);
 
 GridWidget::GridWidget(QWidget *parent) : QWidget(parent)
 {
-    setMinimumWidth(FIRST_COL_WIDTH + COL_COUNT * 12);
     m_selectedAddress = -1;
 
     for(int i=0; i<CELL_COUNT; i++)
@@ -27,12 +26,13 @@ GridWidget::GridWidget(QWidget *parent) : QWidget(parent)
 
 QSize GridWidget::minimumSizeHint() const
 {
-    return sizeHint();
+    return QWidget::minimumSizeHint(); //sizeHint();
 }
 
 QSize GridWidget::sizeHint() const
 {
-    return QSize( FIRST_COL_WIDTH + CELL_WIDTH * COL_COUNT, CELL_HEIGHT * (ROW_COUNT + 1));
+    return QWidget::sizeHint();
+    //return QSize( FIRST_COL_WIDTH + CELL_WIDTH * COL_COUNT, CELL_HEIGHT * (ROW_COUNT + 1));
 }
 
 void GridWidget::paintEvent(QPaintEvent *event)

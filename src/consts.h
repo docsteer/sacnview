@@ -47,6 +47,15 @@
 
 #define DEFAULT_SOURCE_NAME "sACNView"
 
+
+enum PriorityMode
+{
+    pmPER_SOURCE_PRIORITY,
+    pmPER_ADDRESS_PRIORITY
+};
+
+static const QStringList PriorityModeStrings = { "Per-Source", "Per-Address" };
+
 // A table of values to draw a 0-255 sinewave
 static const unsigned char sinetable[] = {
     127,130,133,136,140,143,146,149,152,155,158,161,164,167,170,173,176,179,182,185,187,190,193,

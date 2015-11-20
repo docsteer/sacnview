@@ -61,7 +61,6 @@ protected:
     virtual void mousePressEvent(QMouseEvent *event);
     virtual void mouseMoveEvent(QMouseEvent *event);
 
-
     // Returns the cell under point, -1 for none
     int cellHitTest(const QPoint &point);
 

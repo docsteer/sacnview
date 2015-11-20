@@ -6,6 +6,8 @@
 
 QT       += core gui network
 
+QMAKE_CXXFLAGS += -std=gnu++0x
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = sACNView
@@ -33,8 +35,9 @@ SOURCES += src/main.cpp\
     src/configureperchanpriodlg.cpp \
     src/gridwidget.cpp \
     src/priorityeditwidget.cpp \
+    src/scopewidget.cpp \
     src/aboutdialog.cpp
-
+	
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
     src/universeview.h \
@@ -57,8 +60,8 @@ HEADERS  += src/mdimainwindow.h \
     src/configureperchanpriodlg.h \
     src/gridwidget.h \
     src/priorityeditwidget.h \
+    src/scopewidget.h \
     src/aboutdialog.h
-
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
