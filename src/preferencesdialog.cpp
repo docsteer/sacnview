@@ -29,6 +29,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui(new Ui::PreferencesDialog)
 {
     ui->setupUi(this);
+    SetMemberVariablesFromPreferences();
     SetFieldsToCurrentState();
 }
 
@@ -39,29 +40,23 @@ PreferencesDialog::~PreferencesDialog()
 
 void PreferencesDialog::on_DecimalDisplayFormat_toggled(bool checked)
 {
-    Preferences *p  = Preferences::getInstance();
-    p->SetDisplayFormat(DECIMAL);
+    m_PrefDialog_nDisplayFormat = DECIMAL;
     return;
 }
-
 void PreferencesDialog::on_PercentDisplayFormat_toggled(bool checked)
 {
-    Preferences *p = Preferences::getInstance();
-    p->SetDisplayFormat(PERCENT);
+    m_PrefDialog_nDisplayFormat = PERCENT;
     return;
 }
-
 void PreferencesDialog::on_HexDisplayFormat_toggled(bool checked)
 {
-    Preferences *p = Preferences::getInstance();
-    p->SetDisplayFormat(HEXADECIMAL);
+    m_PrefDialog_nDisplayFormat = HEXADECIMAL;
     return;
 }
 
 void PreferencesDialog::on_checkBox_toggled(bool checked)
 {
-    Preferences *p = Preferences::getInstance();
-    p->SetBlindVisualizer(checked);
+    m_PrefDialog_bBlindVisualizer = checked;
     return;
 }
 
@@ -72,14 +67,12 @@ void PreferencesDialog::on_NumOfSecOfSacn_valueChanged(int arg1)
     refreshTransmitTimeFields();
     return;
 }
-
 void PreferencesDialog::on_NumOfMinOfSacn_valueChanged(int arg1)
 {
     m_nMin = arg1;
     ConvertHourMinSecToSec();
     refreshTransmitTimeFields();
 }
-
 void PreferencesDialog::on_NumOfHoursOfSacn_valueChanged(int arg1)
 {
     m_nHour = arg1;
@@ -89,19 +82,13 @@ void PreferencesDialog::on_NumOfHoursOfSacn_valueChanged(int arg1)
 
 void PreferencesDialog::ConvertHourMinSecToSec()
 {
-    Preferences *p = Preferences::getInstance();
-    int nTotalNumOfSec = ((m_nHour*nNumOfSecPerHour) + (m_nMin*nNumberOfSecPerMin) + m_nSec);
-    p->SetNumSecondsOfSacn(nTotalNumOfSec);
+    m_PrefDialog_nTotalNumOfSec = ((m_nHour*nNumOfSecPerHour) + (m_nMin*nNumberOfSecPerMin) + m_nSec);
 }
-
 void PreferencesDialog::refreshTransmitTimeFields()
 {
-    Preferences *p = Preferences::getInstance();
-    int nTotalNumOfSec = p->GetNumSecondsOfSacn();
-
-    m_nHour = (nTotalNumOfSec/nNumOfSecPerHour);
-    m_nMin = ((nTotalNumOfSec/nNumberOfSecPerMin)-(m_nHour*nNumOfMinPerHour));
-    m_nSec = (nTotalNumOfSec - (m_nHour*nNumOfSecPerHour) - (m_nMin*nNumberOfSecPerMin) );
+    m_nHour = (m_PrefDialog_nTotalNumOfSec/nNumOfSecPerHour);
+    m_nMin = ((m_PrefDialog_nTotalNumOfSec/nNumberOfSecPerMin)-(m_nHour*nNumOfMinPerHour));
+    m_nSec = (m_PrefDialog_nTotalNumOfSec - (m_nHour*nNumOfSecPerHour) - (m_nMin*nNumberOfSecPerMin) );
 
     ui->NumOfHoursOfSacn->setValue(m_nHour);
     ui->NumOfMinOfSacn->setValue(m_nMin);
@@ -110,22 +97,38 @@ void PreferencesDialog::refreshTransmitTimeFields()
 
 void PreferencesDialog::SetFieldsToCurrentState()
 {
-    Preferences *p = Preferences::getInstance();
-    switch (p->GetDisplayFormat())
+    switch (m_PrefDialog_nDisplayFormat)
     {
         case DECIMAL:       ui->DecimalDisplayFormat->setChecked (true); break;
         case PERCENT:       ui->PercentDisplayFormat->setChecked(true); break;
         case HEXADECIMAL:   ui->HexDisplayFormat->setChecked(true); break;
     }
 
-    if (p->GetBlindVisualizer())
+    if (m_PrefDialog_bBlindVisualizer)
         ui->checkBox->setChecked(true);
     else
         ui->checkBox->setChecked(false);
 
     refreshTransmitTimeFields();
+}
 
+void PreferencesDialog::SetMemberVariablesFromPreferences()
+{
+    Preferences *p = Preferences::getInstance();
+    m_PrefDialog_nTotalNumOfSec = p->GetNumSecondsOfSacn();
+    m_PrefDialog_nDisplayFormat = p->GetDisplayFormat();
+    m_PrefDialog_bBlindVisualizer = p->GetBlindVisualizer();
+}
+void PreferencesDialog::SaveMemberVariablesToPreferences()
+{
+    Preferences *p = Preferences::getInstance();
+    p->SetDisplayFormat(m_PrefDialog_nDisplayFormat);
+    p->SetBlindVisualizer(m_PrefDialog_bBlindVisualizer);
+    p->SetNumSecondsOfSacn(m_PrefDialog_nTotalNumOfSec);
 }
 
 
-
+void PreferencesDialog::on_buttonBox_accepted()
+{
+    SaveMemberVariablesToPreferences();
+}
