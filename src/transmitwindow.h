@@ -49,7 +49,24 @@ protected slots:
     void on_sliderMoved(int value);
     void on_btnEditPerChan_pressed();
     void on_cbPriorityMode_currentIndexChanged(int index);
+    void on_sbFadersStart_valueChanged(int value);
+    void on_btnCcPrev_pressed();
+    void on_btnCcNext_pressed();
+    void on_tabWidget_currentChanged(int index);
+
+protected:
+    virtual void keyPressEvent(QKeyEvent *event);
 private:
+    enum TABS
+    {
+        tabSliders,
+        tabChannelCheck,
+        tabFadeRange,
+        tabChase,
+        tabText,
+        tabDate
+    };
+
     void setUniverseOptsEnabled(bool enabled);
 
     Ui::transmitwindow *ui;
@@ -57,6 +74,7 @@ private:
     QList<QLabel *> m_sliderLabels;
     sACNSentUniverse *m_sender;
     uint1 m_perAddressPriorities[MAX_DMX_ADDRESS];
+    uint1 m_levels[MAX_DMX_ADDRESS];
 };
 
 #endif // TRANSMITWINDOW_H

@@ -30,9 +30,10 @@
 
 transmitwindow::transmitwindow(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::transmitwindow)
+    ui(new Ui::transmitwindow), m_sender(0)
 {
     ui->setupUi(this);
+    memset(m_levels, 0, sizeof(m_levels));
     on_cbPriorityMode_currentIndexChanged(ui->cbPriorityMode->currentIndex());
 
     ui->sbUniverse->setMinimum(1);
@@ -81,14 +82,24 @@ transmitwindow::transmitwindow(QWidget *parent) :
         rowLayout->update();
     }
     ui->gbFaders->setLayout(mainLayout);
+
+    // Set up fader start spinbox
+    ui->sbFadersStart->setMinimum(1);
+    ui->sbFadersStart->setMaximum(MAX_DMX_ADDRESS - 48 + 1);
+
+
     mainLayout->update();
     ui->gbFaders->adjustSize();
     adjustSize();
 
 
-    m_sender = 0;
     for(int i=0; i<MAX_DMX_ADDRESS; i++)
         m_perAddressPriorities[i] = DEFAULT_SACN_PRIORITY;
+
+    // Set up slider for channel check
+    ui->slChannelCheck->setMinimum(0);
+    ui->slChannelCheck->setMaximum(MAX_SACN_LEVEL);
+    ui->slChannelCheck->setValue(MAX_SACN_LEVEL);
 
     QTimer::singleShot(30, Qt::CoarseTimer, this, SLOT(fixSize()));
 }
@@ -122,15 +133,36 @@ void transmitwindow::on_sliderMoved(int value)
     int index = m_sliders.indexOf(qobject_cast<QSlider*>(sender()));
     if(index<0) return;
 
+    int address = index + ui->sbFadersStart->value() - 1; // 0-based address
+
     QLabel *label = m_sliderLabels[index];
 
     label->setText(QString("%1\r\n%2")
-    .arg(index+1)
+    .arg(address+1)
     .arg(value)
     );
 
+    m_levels[address] = value;
+
     if(m_sender)
-        m_sender->setLevel(index, value);
+        m_sender->setLevel(address, value);
+}
+
+void transmitwindow::on_sbFadersStart_valueChanged(int value)
+{
+    for(int i=0; i<m_sliders.count(); i++)
+    {
+        QSlider *slider = m_sliders[i];
+        QLabel *label = m_sliderLabels[i];
+
+        slider->blockSignals(true);
+        slider->setValue(m_levels[value + i - 1]);
+        slider->blockSignals(false);
+        label->setText(QString("%1\r\n%2")
+                   .arg(i + value)
+                   .arg(m_levels[i + value - 1])
+                   );
+    }
 }
 
 void transmitwindow::setUniverseOptsEnabled(bool enabled)
@@ -170,6 +202,8 @@ void transmitwindow::on_btnStart_pressed()
         }
         m_sender->startSending();
         setUniverseOptsEnabled(false);
+        for(int i=0; i<sizeof(m_levels); i++)
+            m_sender->setLevel(i, m_levels[i]);
     }
 
 }
@@ -197,4 +231,76 @@ void transmitwindow::on_cbPriorityMode_currentIndexChanged(int index)
         ui->sbPriority->setEnabled(true);
         ui->btnEditPerChan->setEnabled(false);
     }
+}
+
+void transmitwindow::on_btnCcNext_pressed()
+{
+    int value = ui->lcdNumber->value();
+
+    value++;
+    if(value>MAX_DMX_ADDRESS) return;
+
+    ui->lcdNumber->display(value);
+    if(m_sender)
+    {
+        m_sender->setLevel(value, ui->slChannelCheck->value());
+        m_sender->setLevel(value-1, 0);
+    }
+}
+
+void transmitwindow::on_btnCcPrev_pressed()
+{
+    int value = ui->lcdNumber->value();
+
+    value--;
+    if(value<1) return;
+    value--;
+
+    ui->lcdNumber->display(value+1);
+
+    if(m_sender)
+    {
+        m_sender->setLevel(value, ui->slChannelCheck->value());
+        m_sender->setLevel(value+1, 0);
+    }
+}
+
+void transmitwindow::on_tabWidget_currentChanged(int index)
+{
+    if(index==tabChannelCheck)
+    {
+        if(m_sender)
+        {
+            int value = ui->lcdNumber->value();
+            m_sender->setLevel(0, MAX_DMX_ADDRESS-1, 0);
+            m_sender->setLevel(value, ui->slChannelCheck->value());
+        }
+    }
+
+    if(index==tabSliders)
+    {
+        if(m_sender)
+        {
+            m_sender->setLevel(0, MAX_DMX_ADDRESS-1, 0);
+        }
+    }
+}
+
+
+void transmitwindow::keyPressEvent(QKeyEvent *event)
+{
+    switch(event->key())
+    {
+    case Qt::Key_PageDown:
+        if(ui->tabWidget->currentIndex()==tabChannelCheck)
+            on_btnCcPrev_pressed();
+        event->accept();
+        break;
+    case Qt::Key_PageUp:
+        if(ui->tabWidget->currentIndex()==tabChannelCheck)
+            on_btnCcNext_pressed();
+        event->accept();
+        break;
+    }
+    QWidget::keyPressEvent(event);
 }

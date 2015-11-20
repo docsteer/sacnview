@@ -34,7 +34,8 @@ SOURCES += src/main.cpp\
     src/sacn/sacnsender.cpp \
     src/configureperchanpriodlg.cpp \
     src/gridwidget.cpp \
-    src/priorityeditwidget.cpp
+    src/priorityeditwidget.cpp \
+    src/scopewidget.cpp
 
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -57,7 +58,8 @@ HEADERS  += src/mdimainwindow.h \
     src/sacn/sacnsender.h \
     src/configureperchanpriodlg.h \
     src/gridwidget.h \
-    src/priorityeditwidget.h
+    src/priorityeditwidget.h \
+    src/scopewidget.h
 
 
 FORMS    += ui/mdimainwindow.ui \

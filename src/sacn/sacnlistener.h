@@ -36,7 +36,7 @@ struct sACNMergedAddress
     }
     int level;
     sACNSource *winningSource;
-    QList<sACNSource *> otherSources;
+    QSet<sACNSource *> otherSources;
 };
 
 typedef QList<sACNMergedAddress> sACNMergedSourceList;
@@ -57,7 +57,7 @@ signals:
     void sourceLost(sACNSource *source);
     void sourceChanged(sACNSource *source);
     void levelsChanged();
-protected slots:
+private slots:
     void readPendingDatagrams();
     void performMerge();
     void checkSourceExpiration();

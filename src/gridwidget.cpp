@@ -40,8 +40,6 @@ void GridWidget::paintEvent(QPaintEvent *event)
     Q_UNUSED(event);
     QPainter painter(this);
 
-    painter.fillRect(this->rect(), QBrush(QColor("#0F0")));
-
     qreal wantedHeight = CELL_HEIGHT * (ROW_COUNT + 1);
     qreal wantedWidth = FIRST_COL_WIDTH + CELL_WIDTH * COL_COUNT;
 

@@ -18,23 +18,26 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#ifndef PRIORITYEDITWIDGET_H
-#define PRIORITYEDITWIDGET_H
+#ifndef SCOPEWIDGET_H
+#define SCOPEWIDGET_H
 
-#include <QObject>
 #include <QWidget>
-#include "gridwidget.h"
+#include "deftypes.h"
 
-/**
- * @brief The PriorityEditWidget class provides a widget, based on the grid widget, which allows
- * editing of per channel priority values
- */
-class PriorityEditWidget : public GridWidget
+class ScopeWidget : public QWidget
 {
+    Q_OBJECT
 public:
-    PriorityEditWidget(QWidget *parent = 0);
+    explicit ScopeWidget(QWidget *parent = 0);
+
+signals:
+
+public slots:
+
 protected:
-    virtual void wheelEvent(QWheelEvent *event);
+    virtual void paintEvent(QPaintEvent *event);
+private:
+    QList<uint1> m_points;
 };
 
-#endif // PRIORITYEDITWIDGET_H
+#endif // SCOPEWIDGET_H

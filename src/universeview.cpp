@@ -62,12 +62,15 @@ UniverseView::~UniverseView()
 void UniverseView::on_btnGo_pressed()
 {
     ui->twSources->setRowCount(0);
-    m_listener = sACNManager::getInstance()->getListener(ui->sbUniverse->value());
-    ui->universeDisplay->setUniverse(ui->sbUniverse->value());
-    connect(m_listener, SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
-    connect(m_listener, SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
-    connect(m_listener, SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
-    connect(m_listener, SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
+    if(!m_listener)
+    {
+        m_listener = sACNManager::getInstance()->getListener(ui->sbUniverse->value());
+        ui->universeDisplay->setUniverse(ui->sbUniverse->value());
+        connect(m_listener, SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
+        connect(m_listener, SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
+        connect(m_listener, SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
+        connect(m_listener, SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
+    }
 }
 
 void UniverseView::sourceChanged(sACNSource *source)
@@ -222,6 +225,21 @@ void UniverseView::selectedAddressChanged(int address)
             info.append(tr("Winning Source : %1 @ %2")
                         .arg(list[address].winningSource->name)
                         .arg(list[address].level));
+            if(list[address].otherSources.count()>0)
+            {
+                foreach(sACNSource *source, list[address].otherSources)
+                {
+                    int prio;
+                    if(source->doing_per_channel)
+                        prio = source->priority_array[address];
+                    else
+                        prio = source->priority;
+                    info.append(tr("\nOther Source : %1 @ %2 (Priority %3)")
+                                .arg(source->name)
+                                .arg(source->level_array[address])
+                                .arg(prio));
+                }
+            }
     }
     if(!list[address].winningSource)
     {

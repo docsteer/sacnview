@@ -408,36 +408,39 @@ void sACNListener::performMerge()
 
     QMultiMap<int, sACNSource*> addressToSourceMap;
 
-
+    for(int i=0; i<512; i++)
+    {
+        sACNMergedAddress *pAddr = &m_merged_levels[i];
+        pAddr->otherSources.clear();
+    }
     // First step : find the highest priority for every address
     for(std::vector<sACNSource *>::iterator it = m_sources.begin(); it != m_sources.end(); ++it)
     {
         sACNSource *ps = *it;
+
+        // Find the highest priority for the address, ignoring priorities of zero
+        if(ps->src_valid && !ps->active.Expired() && !ps->doing_per_channel)
+        {
+            // Set the priority array for sources which are not doing per-channel
+            memset(ps->priority_array, ps->priority, sizeof(ps->priority_array));
+        }
+
         for(int i=0; i<512; i++)
         {
             sACNMergedAddress *pAddr = &m_merged_levels[i];
-            pAddr->otherSources.clear();
 
-
-            // Find the highest priority for the address, ignoring priorities of zero
-            if(ps->src_valid && !ps->active.Expired() && !ps->doing_per_channel)
-            {
-                // Set the priority array for sources which are not doing per-channel
-                memset(ps->priority_array, ps->priority, sizeof(ps->priority_array));
-            }
             if (ps->src_valid  && !ps->active.Expired() && ps->priority_array[i] > priorities[i] && ps->priority_array[i]>0)
             {
                 // Sources of higher priority
                 priorities[i] = ps->priority_array[i];
                 addressToSourceMap.remove(i);
                 addressToSourceMap.insert(i, ps);
-                pAddr->otherSources.append(ps);
             }
             if (ps->src_valid  && !ps->active.Expired() && ps->priority_array[i] == priorities[i])
             {
                 addressToSourceMap.insert(i, ps);
-                pAddr->otherSources.append(ps);
             }
+            pAddr->otherSources << ps;
         }
     }
 
