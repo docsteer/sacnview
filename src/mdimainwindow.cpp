@@ -24,6 +24,7 @@
 #include "universeview.h"
 #include "transmitwindow.h"
 #include "preferencesdialog.h"
+#include "aboutdialog.h"
 
 MDIMainWindow::MDIMainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -66,7 +67,12 @@ void MDIMainWindow::on_actionSettings_triggered(bool checked)
     Q_UNUSED(checked);
     PreferencesDialog *prefDialog = new PreferencesDialog(this);
     prefDialog->exec();
-    //PreferencesDialog *PrefDialog = new PreferencesDialog(this);
-    //ui->mdiArea->addSubWindow(PrefDialog);
-    //PrefDialog->show();
+
+}
+
+void MDIMainWindow::on_actionAbout_triggered(bool checked)
+{
+    Q_UNUSED(checked);
+    aboutDialog *about =new aboutDialog(this);
+    about->exec();
 }
