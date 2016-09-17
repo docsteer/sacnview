@@ -28,10 +28,6 @@
 #include "deftypes.h"
 #include "CID.h"
 
-
-
-
-
 enum DisplayFormats
     {
         DECIMAL = 0,
@@ -40,15 +36,35 @@ enum DisplayFormats
         TOTAL_NUM_OF_FORMATS = 3
     };
 
-void initializePreferences();
+// Strings for storing settings
+static const QString S_MAC_ADDRESS("MacAddress");
+static const QString S_DISPLAY_FORMAT("Display Format");
+static const QString S_BLIND_VISUALIZER("Show Blind");
+static const QString S_TIMEOUT("Timeout");
+
 
 class Preferences
 {
 public:
+    /**
+     * @brief getInstance - returns the instance of the Preferences class
+     * @return the instance
+     */
     static Preferences *getInstance();
-   // Q_PROPERTY(QNetworkInterface networkInterface READ networkInterface WRITE setNetworkInterface NOTIFY networkInterfaceChanged);
 
+    /**
+     * @brief networkInterface returns the user preferred network interface for multicast
+     * @return the network interface to use
+     */
     QNetworkInterface networkInterface() const;
+
+    /**
+     * @brief defaultInterfaceAvailable - returns whether the default interface selected by the user
+     * is available
+     * @return
+     */
+    bool defaultInterfaceAvailable();
+
 
     QColor colorForCID(const CID &cid);
 
@@ -63,11 +79,12 @@ public:
 
     QString GetFormattedValue(unsigned int nLevelInDecimal);
 
-
+    void savePreferences();
 public slots:
     void setNetworkInterface(const QNetworkInterface &value);
 private:
     Preferences();
+    ~Preferences();
     static Preferences *m_instance;
     QNetworkInterface m_interface;
     QHash<CID, QColor> m_cidToColor;
@@ -76,6 +93,7 @@ private:
     bool m_bBlindVisualizer;
     unsigned int m_nNumSecondsOfSacn;
 
+    void loadPreferences();
 
 };
 

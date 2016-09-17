@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Scope</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../res/resources.qrc">
@@ -47,49 +47,81 @@
          <property name="title">
           <string>Scope</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <layout class="QVBoxLayout" name="verticalLayout">
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
-             <widget class="QPushButton" name="pushButton_2">
+             <widget class="QPushButton" name="btnStop">
               <property name="text">
                <string>Stop</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton">
+             <widget class="QPushButton" name="btnStart">
               <property name="text">
-               <string>Run</string>
+               <string>Start</string>
               </property>
              </widget>
             </item>
            </layout>
           </item>
           <item>
-           <widget class="QWidget" name="widget_2" native="true">
-            <layout class="QVBoxLayout" name="verticalLayout">
-             <item>
-              <widget class="QLabel" name="label_2">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Timebase</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDial" name="dlTimebase"/>
+          </item>
+          <item>
+           <widget class="QLabel" name="lbTimebase">
+            <property name="text">
+             <string>1000 ms/div</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_3">
+            <property name="title">
+             <string>Trigger</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout">
+             <item row="1" column="0">
+              <widget class="QLabel" name="label">
                <property name="text">
-                <string>Timebase</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
+                <string>Trigger Level:</string>
                </property>
               </widget>
              </item>
-             <item>
-              <widget class="QDial" name="dial"/>
+             <item row="1" column="2">
+              <widget class="QSpinBox" name="spinBox"/>
              </item>
-             <item>
-              <widget class="QLabel" name="label">
-               <property name="text">
-                <string>1000 ms/div</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
+             <item row="0" column="0" colspan="3">
+              <widget class="QComboBox" name="comboBox">
+               <item>
+                <property name="text">
+                 <string>Free Run</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Rising Edge</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Falling Edge</string>
+                </property>
+               </item>
               </widget>
              </item>
             </layout>
@@ -148,6 +180,11 @@
             <column>
              <property name="text">
               <string>Colour</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Trigger</string>
              </property>
             </column>
             <item row="0" column="0">
@@ -215,14 +252,14 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
-             <widget class="QPushButton" name="pushButton_3">
+             <widget class="QPushButton" name="btnAddChannel">
               <property name="text">
                <string>Add</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_4">
+             <widget class="QPushButton" name="btnRemoveChannel">
               <property name="text">
                <string>Remove</string>
               </property>

@@ -25,6 +25,8 @@
 #include <QUdpSocket>
 #include <vector>
 #include <QTimer>
+#include <QElapsedTimer>
+#include <QPoint>
 #include "streamingacn.h"
 
 
@@ -41,6 +43,11 @@ struct sACNMergedAddress
 
 typedef QList<sACNMergedAddress> sACNMergedSourceList;
 
+/**
+ * @brief The sACNListener class is used to listen to  a universe of sACN.
+ * The class should not be instantiated directly; instead, instead use sACNManager to get the listener for a universe - this
+ * allows reuse of listeners
+ */
 class sACNListener : public QObject
 {
     Q_OBJECT
@@ -48,20 +55,36 @@ public:
     sACNListener(QObject *parent = 0);
     ~sACNListener();
 
-    int universe();
+    /**
+     * @brief universe
+     * @return the universe which this listener is listening for
+     */
+    int universe() {return m_universe;};
+    /**
+     * @brief mergedLevels
+     * @return an sACNMergerdSourceList, a list of merged address structures, allowing you to see
+     * the result of the merge algorithm together with all the sub-sources, by address
+     */
     sACNMergedSourceList mergedLevels() { return m_merged_levels;}
 public slots:
     void startReception(int universe);
+
+    void monitorAddress(int address) { m_monitoredChannels.insert(address);};
+    void unMonitorAddress(int address) { m_monitoredChannels.remove(address);};
+    void setMonitorTimer(int milliseconds);
+    void stopMonitorTimer();
 signals:
     void sourceFound(sACNSource *source);
     void sourceLost(sACNSource *source);
     void sourceChanged(sACNSource *source);
     void levelsChanged();
+    void dataReady(int address, QPoint data);
 private slots:
     void readPendingDatagrams();
     void performMerge();
     void checkSourceExpiration();
     void checkSampleExpiration();
+    void monitorTimerExpired();
 private:
     QUdpSocket *m_socket;
     std::vector<sACNSource *> m_sources;
@@ -76,6 +99,10 @@ private:
     ttimer m_sampleTimer;
     QTimer *m_initalSampleTimer;
     QTimer *m_mergeTimer;
+    QTimer *m_monitorTimer;
+    QElapsedTimer m_elapsedTime;
+    int m_predictableTimerValue;
+    QSet<int> m_monitoredChannels;
 };
 
 

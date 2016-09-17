@@ -22,7 +22,7 @@
 #define PREFERENCESDIALOG_H
 
 #include <QDialog>
-
+#include <QNetworkInterface>
 
 
 namespace Ui {
@@ -38,38 +38,11 @@ public:
     ~PreferencesDialog();
 
 private slots:
-
-    void on_DecimalDisplayFormat_toggled(bool checked);
-    void on_PercentDisplayFormat_toggled(bool checked);
-    void on_HexDisplayFormat_toggled(bool checked);
-
-    void on_checkBox_toggled(bool checked);
-
-    void on_NumOfSecOfSacn_valueChanged(int arg1);
-    void on_NumOfMinOfSacn_valueChanged(int arg1);
-    void on_NumOfHoursOfSacn_valueChanged(int arg1);
-
     void on_buttonBox_accepted();
 
 private:
     Ui::PreferencesDialog *ui;
-
-    void SetFieldsToCurrentState();
-    void ConvertHourMinSecToSec();
-    void refreshTransmitTimeFields();
-
-    void SetMemberVariablesFromPreferences();
-    void SaveMemberVariablesToPreferences();
-
-    int m_nHour;
-    int m_nMin;
-    int m_nSec;
-
-    int m_PrefDialog_nTotalNumOfSec;
-    unsigned int m_PrefDialog_nDisplayFormat;
-    bool m_PrefDialog_bBlindVisualizer;
-
-
+    QList<QNetworkInterface> m_interfaceList;
 
 };
 

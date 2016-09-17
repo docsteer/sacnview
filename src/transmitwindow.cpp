@@ -100,6 +100,11 @@ transmitwindow::transmitwindow(QWidget *parent) :
     ui->slChannelCheck->setMinimum(0);
     ui->slChannelCheck->setMaximum(MAX_SACN_LEVEL);
     ui->slChannelCheck->setValue(MAX_SACN_LEVEL);
+    ui->lcdNumber->display(1);
+
+    m_blinkTimer = new QTimer(this);
+    m_blinkTimer->setInterval(BLINK_TIME);
+    connect(m_blinkTimer, SIGNAL(timeout()), this, SLOT(doBlink()));
 
     QTimer::singleShot(30, Qt::CoarseTimer, this, SLOT(fixSize()));
 }
@@ -202,7 +207,7 @@ void transmitwindow::on_btnStart_pressed()
         }
         m_sender->startSending();
         setUniverseOptsEnabled(false);
-        for(int i=0; i<sizeof(m_levels); i++)
+        for(unsigned int i=0; i<sizeof(m_levels); i++)
             m_sender->setLevel(i, m_levels[i]);
     }
 
@@ -241,6 +246,7 @@ void transmitwindow::on_btnCcNext_pressed()
     if(value>MAX_DMX_ADDRESS) return;
 
     ui->lcdNumber->display(value);
+    value--;
     if(m_sender)
     {
         m_sender->setLevel(value, ui->slChannelCheck->value());
@@ -265,13 +271,55 @@ void transmitwindow::on_btnCcPrev_pressed()
     }
 }
 
+void transmitwindow::on_slChannelCheck_valueChanged(int value)
+{
+    int address = ui->lcdNumber->value();
+
+    if(m_sender)
+    {
+        m_sender->setLevel(address-1, value);
+    }
+}
+
+void transmitwindow::on_btnCcBlink_pressed()
+{
+    if(m_blinkTimer->isActive())
+    {
+        m_blinkTimer->stop();
+    }
+    else
+    {
+        m_blinkTimer->start();
+    }
+}
+
+void transmitwindow::doBlink()
+{
+    int address = ui->lcdNumber->value();
+    m_blink = !m_blink;
+
+    QPalette buttonPal = ui->btnCcBlink->palette();
+    buttonPal.setColor(QPalette::Button, (m_blink) ? QColor(Qt::red) : QColor(Qt::white));
+    ui->btnCcBlink->setPalette(buttonPal);
+    if(m_blink)
+    {
+        if(m_sender)
+            m_sender->setLevel(address-1, ui->slChannelCheck->value());
+    }
+    else
+    {
+        if(m_sender)
+                m_sender->setLevel(address-1, 0);
+    }
+}
+
 void transmitwindow::on_tabWidget_currentChanged(int index)
 {
     if(index==tabChannelCheck)
     {
         if(m_sender)
         {
-            int value = ui->lcdNumber->value();
+            int value = ui->lcdNumber->value() - 1;
             m_sender->setLevel(0, MAX_DMX_ADDRESS-1, 0);
             m_sender->setLevel(value, ui->slChannelCheck->value());
         }

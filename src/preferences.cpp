@@ -1,3 +1,4 @@
+
 // Copyright (c) 2015 Tom Barthel-Steer, http://www.tomsteer.net
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,9 +20,9 @@
 // THE SOFTWARE.
 
 #include <Qt>
+#include <QSettings>
 #include "preferences.h"
 #include "consts.h"
-#include <cassert>
 
 // The base color to generate pastel shades for sources
 static const QColor mixColor = QColor("coral");
@@ -30,7 +31,12 @@ Preferences *Preferences::m_instance = NULL;
 
 Preferences::Preferences()
 {
+    loadPreferences();
+}
 
+Preferences::~Preferences()
+{
+    savePreferences();
 }
 
 Preferences *Preferences::getInstance()
@@ -78,13 +84,14 @@ QColor Preferences::colorForCID(const CID &cid)
 
 void Preferences::SetDisplayFormat(unsigned int nDisplayFormat)
 {
-    assert (nDisplayFormat >= 0 && nDisplayFormat < TOTAL_NUM_OF_FORMATS);
+    Q_ASSERT(nDisplayFormat < TOTAL_NUM_OF_FORMATS);
     m_nDisplayFormat = nDisplayFormat;
     return;
 }
+
 QString Preferences::GetFormattedValue(unsigned int nLevelInDecimal)
 {
-    assert(nLevelInDecimal>=0&&nLevelInDecimal<=255);
+    Q_ASSERT(nLevelInDecimal<=255);
     if (m_nDisplayFormat == DECIMAL)
         return QString::number(nLevelInDecimal, 10);
     else if (m_nDisplayFormat == PERCENT)
@@ -98,14 +105,14 @@ QString Preferences::GetFormattedValue(unsigned int nLevelInDecimal)
 
 void Preferences::SetBlindVisualizer (bool bBlindVisualizer)
 {
-    assert (bBlindVisualizer == 0 || bBlindVisualizer == 1);
+    Q_ASSERT(bBlindVisualizer == 0 || bBlindVisualizer == 1);
     m_bBlindVisualizer = bBlindVisualizer;
     return;
 }
 
 void Preferences::SetNumSecondsOfSacn (int nNumSecondsOfSacn)
 {
-    assert (nNumSecondsOfSacn >= 0 && nNumSecondsOfSacn <= MAX_SACN_TRANSMIT_TIME_SEC);
+    Q_ASSERT(nNumSecondsOfSacn >= 0 && nNumSecondsOfSacn <= MAX_SACN_TRANSMIT_TIME_SEC);
     m_nNumSecondsOfSacn = nNumSecondsOfSacn;
     return;
 }
@@ -125,16 +132,36 @@ unsigned int Preferences::GetNumSecondsOfSacn()
    return m_nNumSecondsOfSacn;
 }
 
-void initializePreferences()
+bool Preferences::defaultInterfaceAvailable()
 {
+    return m_interface.isValid();
+}
 
-    Preferences *p = Preferences::getInstance();
-    // load preferences from file
-    // Tom suggests using QPreferences class
+void Preferences::savePreferences()
+{
+    QSettings settings;
 
-    // These are test values:
-    p->SetNumSecondsOfSacn(300);
-    p->SetBlindVisualizer(false);
-    p->SetDisplayFormat(DECIMAL);
+    if(m_interface.isValid())
+        settings.setValue(S_MAC_ADDRESS, m_interface.hardwareAddress());
+    settings.setValue(S_DISPLAY_FORMAT, QVariant(m_nDisplayFormat));
+    settings.setValue(S_BLIND_VISUALIZER, QVariant(m_bBlindVisualizer));
+    settings.setValue(S_TIMEOUT, QVariant(m_nNumSecondsOfSacn));
+}
 
+void Preferences::loadPreferences()
+{
+    QSettings settings;
+
+    if(settings.contains(S_MAC_ADDRESS))
+    {
+        QString mac = settings.value(S_MAC_ADDRESS).toString();
+        QList<QNetworkInterface> ifaceList = QNetworkInterface::allInterfaces();
+        foreach(QNetworkInterface i, ifaceList)
+            if(i.hardwareAddress() == mac)
+                m_interface = i;
+    }
+
+    m_nDisplayFormat = settings.value(S_DISPLAY_FORMAT, QVariant(DECIMAL)).toInt();
+    m_bBlindVisualizer = settings.value(S_BLIND_VISUALIZER, QVariant(false)).toBool();
+    m_nNumSecondsOfSacn = settings.value(S_TIMEOUT, QVariant(0)).toInt();
 }

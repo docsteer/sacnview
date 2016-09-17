@@ -21,6 +21,8 @@
 #ifndef SCOPEWINDOW_H
 #define SCOPEWINDOW_H
 
+class ScopeChannel;
+
 #include <QWidget>
 
 namespace Ui {
@@ -34,9 +36,15 @@ class ScopeWindow : public QWidget
 public:
     explicit ScopeWindow(QWidget *parent = 0);
     ~ScopeWindow();
-
+private slots:
+    void timebaseChanged(int value);
+    void on_btnStart_pressed();
+    void on_btnStop_pressed();
+    void on_btnAddChannel_pressed();
+    void on_btnRemoveChannel_pressed();
 private:
     Ui::ScopeWindow *ui;
+    QList<ScopeChannel *> m_channels;
 };
 
 #endif // SCOPEWINDOW_H

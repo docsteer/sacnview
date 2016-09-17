@@ -67,7 +67,7 @@ sACNListener *sACNManager::getListener(int universe)
     if(!m_listenerHash.contains(universe))
     {
         listener = new sACNListener();
-        listener->startReception(universe);
+        QMetaObject::invokeMethod(listener,"startReception", Q_ARG(int,universe));
         m_listenerHash[universe] = listener;
     }
     else

@@ -24,6 +24,8 @@
 #include "deftypes.h"
 #include "defpack.h"
 #include <QDebug>
+#include <QThread>
+#include <QPoint>
 
 
 //The amount of ms to wait before a source is considered offline or
@@ -38,24 +40,30 @@
 
 sACNListener::sACNListener(QObject *parent) : QObject(parent)
 {
-    m_socket = new QUdpSocket;
+    // Move to our own thread
+    QThread *myThread = new QThread();
+    this->moveToThread((myThread));
+    myThread->start(QThread::HighPriority);
+    m_socket = 0;
     m_versionSpec = sACNProtocolDraft | sACNProtocolRelease;
     m_ssHLL = 1000;
     m_merged_levels.reserve(512);
     for(int i=0; i<512; i++)
         m_merged_levels << sACNMergedAddress();
-    connect(m_socket, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
+    m_monitorTimer = 0;
+    m_elapsedTime.start();
 }
 
 sACNListener::~sACNListener()
 {
-    delete m_socket;
 }
 
 void sACNListener::startReception(int universe)
 {
     m_universe = universe;
     m_isSampling = true;
+    m_socket = new QUdpSocket(this);
+    connect(m_socket, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
     // Clear the levels array
     memset(&m_last_levels, -1, 512);
     CIPAddr addr;
@@ -76,7 +84,7 @@ void sACNListener::startReception(int universe)
     m_initalSampleTimer->start();
 
     m_mergeTimer = new QTimer(this);
-    m_mergeTimer->setInterval(100);
+    m_mergeTimer->setInterval(10);
     connect(m_mergeTimer, SIGNAL(timeout()), this, SLOT(performMerge()));
     connect(m_mergeTimer, SIGNAL(timeout()), this, SLOT(checkSourceExpiration()));
     m_mergeTimer->start();
@@ -391,7 +399,6 @@ void sACNListener::readPendingDatagrams()
 
         if(changed)
         {
-            qDebug() << "Source Parameters Changed";
             emit sourceChanged(ps);
         }
     }
@@ -400,6 +407,7 @@ void sACNListener::readPendingDatagrams()
 
 void sACNListener::performMerge()
 {
+
     int levels[512];
     memset(&levels, -1, sizeof(levels));
 
@@ -477,3 +485,33 @@ void sACNListener::performMerge()
     }
 }
 
+
+void sACNListener::setMonitorTimer(int milliseconds)
+{
+    if(m_monitorTimer)
+        delete m_monitorTimer;
+    m_monitorTimer = new QTimer(this);
+    m_monitorTimer->setInterval(milliseconds);
+    connect(m_monitorTimer, SIGNAL(timeout()), this, SLOT(monitorTimerExpired()));
+    m_monitorTimer->start();
+}
+
+void sACNListener::stopMonitorTimer()
+{
+    if(m_monitorTimer)
+    {
+        delete m_monitorTimer;
+        m_monitorTimer = 0;
+    }
+}
+
+void sACNListener::monitorTimerExpired()
+{
+    foreach(int chan, m_monitoredChannels)
+    {
+        QPoint data;
+        data.setX(m_elapsedTime.elapsed());
+        data.setY(mergedLevels().at(chan).level);
+        emit dataReady(chan, data);
+    }
+}

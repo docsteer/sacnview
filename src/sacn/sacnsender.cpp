@@ -1,5 +1,6 @@
 #include "sacnsender.h"
 #include <vector>
+#include <set>
 
 #include "deftypes.h"
 #include "cid.h"
@@ -75,8 +76,8 @@ void sACNSentUniverse::setLevel(uint2 start, uint2 end, uint1 value)
 {
     Q_ASSERT(start<512);
     Q_ASSERT(end<512);
-    Q_ASSERT(start>end);
-    memset(m_slotData + start, value, start-end);
+    Q_ASSERT(start<end);
+    memset(m_slotData + start, value, end-start);
     CStreamServer::getInstance()->SetUniverseDirty(m_handle);
 }
 
@@ -171,6 +172,8 @@ void CStreamServer::Tick()
 {
     QMutexLocker locker(&m_writeMutex);
 
+    std::set<uint2> updated_universes;
+
     int valid_count = 0;
     for(verseiter it = m_multiverse.begin(); it != m_multiverse.end(); ++it)
     {
@@ -201,10 +204,16 @@ void CStreamServer::Tick()
             if(pseq)
             {
                 SetStreamHeaderSequence(it->psend, *pseq);
-                ++*pseq;
             }
             else
                 SetStreamHeaderSequence(it->psend, 0);
+
+            if(updated_universes.count(it->number)==0)
+            {
+                // Only increment the value once for each universe
+                ++*pseq;
+                updated_universes.insert(it->number);
+            }
 
             m_sendsock->writeDatagram( (char*)it->psend, it->sendsize, it->sendaddr, STREAM_IP_PORT);
 
@@ -218,7 +227,9 @@ void CStreamServer::Tick()
             it->send_interval.Reset();
         }
     }
+
 }
+
 
 //Use this to create a universe for a source cid, startcode, etc.
 //If it returns true, two parameters are filled in: The data buffer for the values that can
