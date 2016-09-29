@@ -43,7 +43,7 @@ public:
     void clear();
     int count();
     QPoint getPoint(int index);
-    int latestTime;
+    quint64 m_highestTime;
 private:
     int m_universe;
     int m_address;

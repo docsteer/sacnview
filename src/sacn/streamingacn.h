@@ -62,6 +62,12 @@ public:
                                   //used to time out the 0xdd packets to see if we lost per-channel priority
     uint1 level_array[512];
     uint1 priority_array[512];
+    uint1 last_level_array[512];
+    uint1 last_priority_array[512];
+    bool dirty_array[512]; // Set if an individual level or priority has changed
+    bool source_params_change; // Set if any parameter of the source changes between packets
+    bool source_levels_change;
+
     uint1 priority;
     QString name;
     QString cid_string();
@@ -86,9 +92,13 @@ public:
     static sACNManager *getInstance();
 
     sACNListener *getListener(int universe);
+
+    const QHash<int, sACNListener*> getListenerList() { return m_listenerHash;};
+
 private:
     sACNManager();
     QHash<int, sACNListener*> m_listenerHash;
+    QHash<int, QThread *> m_listenerThreads;
     static sACNManager *m_instance;
 };
 

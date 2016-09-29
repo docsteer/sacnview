@@ -66,13 +66,13 @@ public:
      * the result of the merge algorithm together with all the sub-sources, by address
      */
     sACNMergedSourceList mergedLevels() { return m_merged_levels;}
+
+    // Diagnostic - the number of merge operations per second
+    int mergesPerSecond() { return m_mergesPerSecond;};
 public slots:
     void startReception(int universe);
-
     void monitorAddress(int address) { m_monitoredChannels.insert(address);};
     void unMonitorAddress(int address) { m_monitoredChannels.remove(address);};
-    void setMonitorTimer(int milliseconds);
-    void stopMonitorTimer();
 signals:
     void sourceFound(sACNSource *source);
     void sourceLost(sACNSource *source);
@@ -84,13 +84,11 @@ private slots:
     void performMerge();
     void checkSourceExpiration();
     void checkSampleExpiration();
-    void monitorTimerExpired();
 private:
     QUdpSocket *m_socket;
     std::vector<sACNSource *> m_sources;
     int m_last_levels[512];
     sACNMergedSourceList m_merged_levels;
-    int m_versionSpec;
     int m_universe;
     // The per-source hold last look time
     int m_ssHLL;
@@ -99,10 +97,13 @@ private:
     ttimer m_sampleTimer;
     QTimer *m_initalSampleTimer;
     QTimer *m_mergeTimer;
-    QTimer *m_monitorTimer;
     QElapsedTimer m_elapsedTime;
     int m_predictableTimerValue;
     QSet<int> m_monitoredChannels;
+    bool m_mergeAll; // A flag to initiate a complete remerge of everything
+    int m_mergesPerSecond;
+    int m_mergeCounter;
+    QElapsedTimer m_mergesPerSecondTimer;
 };
 
 

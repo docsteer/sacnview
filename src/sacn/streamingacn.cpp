@@ -21,6 +21,8 @@
 #include "streamingacn.h"
 #include "sacnlistener.h"
 
+#include <QThread>
+
 sACNSource::sACNSource()
 {
     src_valid = false;  //We're ignoring thread issues, so to reuse a slot in the source array we'll flag it valid or invalid
@@ -29,8 +31,8 @@ sACNSource::sACNSource()
     doing_dmx = false; //if true, we are processing dmx data from this source
     doing_per_channel = false;  //If true, we are tracking per-channel priority messages for this source
     isPreview = false;
-    memset(level_array, 0, 512);
-    memset(priority_array, 0, 512);
+    memset(level_array, -1, 512);
+    memset(priority_array, -1, 512);
     priority = 0;
     fpsTimer.start();
     fpsCounter = 0;
@@ -67,6 +69,11 @@ sACNListener *sACNManager::getListener(int universe)
     if(!m_listenerHash.contains(universe))
     {
         listener = new sACNListener();
+        QThread *newThread = new QThread();
+        newThread->setObjectName(QString("Universe %1 RX").arg(universe));
+        listener->moveToThread(newThread);
+        newThread->start(QThread::HighPriority);
+        m_listenerThreads[universe]  = newThread;
         QMetaObject::invokeMethod(listener,"startReception", Q_ARG(int,universe));
         m_listenerHash[universe] = listener;
     }

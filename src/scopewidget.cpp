@@ -29,6 +29,7 @@ void ScopeChannel::addPoint(QPoint point)
     m_points[m_last] = point;
     m_last = (m_last+1) % RING_BUF_SIZE;
     if(m_size<RING_BUF_SIZE) m_size++;
+    m_highestTime = point.x();
 }
 
 void ScopeChannel::clear()
@@ -138,10 +139,6 @@ void ScopeWidget::paintEvent(QPaintEvent *event)
     painter.resetTransform();
     painter.setRenderHint(QPainter::Antialiasing, false);
 
-    int latestTime = 0;
-    if(m_channels.count()>0)
-        latestTime = m_channels[0]->latestTime;
-
     painter.translate(scopeWindow.topLeft().x() , scopeWindow.topLeft().y());
     // Scale by the timebase, which is units per division, 10 divisions per window
     double scale = m_timebase * 10;
@@ -158,9 +155,10 @@ void ScopeWidget::paintEvent(QPaintEvent *event)
         for(int i=0; i<ch->count(); i++)
         {
             QPoint p = ch->getPoint(i);
-            int x = p.x() - latestTime + scale;
+            int x = (ch->m_highestTime - p.x()) / scale;
             int y = 255 - p.y();
-            path.lineTo(x, y);
+            painter.drawPoint(x, y);
+            //path.lineTo(x, y);
         }
         /*
         path.moveTo(0,255-ch->getPoint(0));
@@ -170,7 +168,7 @@ void ScopeWidget::paintEvent(QPaintEvent *event)
             if(value>=0)
                 path.lineTo(x, 255-ch->getPoint(x));
         }*/
-        painter.drawPath(path);
+        //painter.drawPath(path);
     }
 
 }
@@ -203,6 +201,9 @@ void ScopeWidget::dataReady(int address, QPoint p)
     Q_ASSERT(m_channels.count()>address);
 
     ScopeChannel *ch  = m_channels[address];
+
+    if(p.x() - ch->m_highestTime < m_timebase)
+            return;
     ch->addPoint(p);
     update();
 }
@@ -213,7 +214,6 @@ void ScopeWidget::start()
     {
         ch->clear();
         sACNListener *listener = sACNManager::getInstance()->getListener(ch->universe());
-        listener->setMonitorTimer(5);
         connect(listener, SIGNAL(dataReady(int, QPoint)), this, SLOT(dataReady(int, QPoint)));
     }
     update();

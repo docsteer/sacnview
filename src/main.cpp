@@ -21,6 +21,7 @@
 #include "mdimainwindow.h"
 #include "nicselectdialog.h"
 #include "preferences.h"
+#include "consts.h"
 #include <QApplication>
 #include <QNetworkInterface>
 
@@ -28,9 +29,9 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    a.setApplicationName("sACNView");
-    a.setApplicationVersion("1.0.0.1");
-    a.setOrganizationName("Tom Steer");
+    a.setApplicationName(APP_NAME);
+    a.setApplicationVersion(VERSION);
+    a.setOrganizationName(AUTHOR);
     a.setOrganizationDomain("tomsteer.net");
 
     if(!Preferences::getInstance()->defaultInterfaceAvailable())
