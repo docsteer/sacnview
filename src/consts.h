@@ -22,11 +22,10 @@
 #define CONSTS_H
 
 
-#define VERSION "2.0 alpha testbuilds"
-#define PUBLISHED_DATE "November 17, 2015"
-#define AUTHOR "The amazing Tom"
-
-
+#define APP_NAME        "sACNView"
+#define VERSION         "2.0.0 Development"
+#define PUBLISHED_DATE  "November 17, 2015"
+#define AUTHOR          "Tom Barthel-Steer"
 
 #define nNumOfSecPerHour 3600
 #define nNumberOfSecPerMin 60

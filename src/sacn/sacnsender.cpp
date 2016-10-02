@@ -1,5 +1,6 @@
 #include "sacnsender.h"
 #include <vector>
+#include <set>
 
 #include "deftypes.h"
 #include "cid.h"
@@ -75,8 +76,8 @@ void sACNSentUniverse::setLevel(uint2 start, uint2 end, uint1 value)
 {
     Q_ASSERT(start<512);
     Q_ASSERT(end<512);
-    Q_ASSERT(start>end);
-    memset(m_slotData + start, value, start-end);
+    Q_ASSERT(start<end);
+    memset(m_slotData + start, value, end-start);
     CStreamServer::getInstance()->SetUniverseDirty(m_handle);
 }
 
@@ -197,14 +198,8 @@ void CStreamServer::Tick()
                 ++it->inactive_count;
 
             //Add the sequence number and send
-            uint1* pseq = it->pseq;
-            if(pseq)
-            {
-                SetStreamHeaderSequence(it->psend, *pseq);
-                ++*pseq;
-            }
-            else
-                SetStreamHeaderSequence(it->psend, 0);
+            SetStreamHeaderSequence(it->psend, it->seq);
+            it->seq++;
 
             m_sendsock->writeDatagram( (char*)it->psend, it->sendsize, it->sendaddr, STREAM_IP_PORT);
 
@@ -218,7 +213,9 @@ void CStreamServer::Tick()
             it->send_interval.Reset();
         }
     }
+
 }
+
 
 //Use this to create a universe for a source cid, startcode, etc.
 //If it returns true, two parameters are filled in: The data buffer for the values that can
@@ -276,7 +273,6 @@ bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_nam
     m_multiverse[handle].ignore_inactivity = ignore_inactivity_logic;
     m_multiverse[handle].inactive_count = 0;
     m_multiverse[handle].send_interval.SetInterval(send_intervalms);
-    m_multiverse[handle].pseq = GetPSeq(universe);
 
     CIPAddr addr;
     GetUniverseAddress(universe, addr);
@@ -309,18 +305,8 @@ void CStreamServer::SendUniverseNow(uint handle)
     //Basically, a copy of the sending part of Tick
 
     universe* puni = &m_multiverse[handle];
-    uint1* pseq = puni->pseq;
-    if(pseq)
-    {
-        SetStreamHeaderSequence(puni->psend, *pseq);
-
-        ++*pseq;
-        //Never use a 0 sequence number after the first time
-        if(0 == *pseq)
-            ++*pseq;
-    }
-    else
-        SetStreamHeaderSequence(puni->psend, 0);
+    SetStreamHeaderSequence(puni->psend, puni->seq);
+    puni->seq++;
 
     m_sendsock->writeDatagram((char*) puni->psend, puni->sendsize, puni->sendaddr, STREAM_IP_PORT);
 }
@@ -350,18 +336,9 @@ void CStreamServer::DoDestruction(uint handle)
       m_multiverse[handle].num_terminates = 0;
       delete [] m_multiverse[handle].psend;
       m_multiverse[handle].psend = NULL;
-      //      m_multiverse[handle].wheretosend.clear();
-
-      RemovePSeq(m_multiverse[handle].number);
-      m_multiverse[handle].pseq = NULL;
     }
 }
 
-/*DEBUG USAGE ONLY --causes packets to be "dropped" on a particular universe*/
-void CStreamServer::DEBUG_DROP_PACKET(uint handle, uint1 decrement)
-{
-    *(m_multiverse[handle].pseq) = *(m_multiverse[handle].pseq) - decrement;  //-= causes size problem
-}
 
 //sets the preview_data bit of the options field
 void CStreamServer::OptionsPreviewData(uint handle, bool preview)

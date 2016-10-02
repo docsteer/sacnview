@@ -19,6 +19,13 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_4">
    <item>
+    <widget class="QGroupBox" name="gbNetworkInterface">
+     <property name="title">
+      <string>Network Interface</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string>Display Format</string>
@@ -58,7 +65,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QCheckBox" name="checkBox">
+       <widget class="QCheckBox" name="cbDisplayBlind">
         <property name="text">
          <string>Display Blind/Visualizer Data</string>
         </property>
@@ -68,18 +75,14 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_3">
+    <widget class="QGroupBox" name="gbTransmitTimeout">
      <property name="title">
-      <string>Transmit Options</string>
+      <string>Stop transmitting sACN after</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Stop Transmitting sACN after :</string>
-        </property>
-       </widget>
-      </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <property name="sizeConstraint">

@@ -15,8 +15,13 @@ public:
     explicit aboutDialog(QWidget *parent = 0);
     ~aboutDialog();
 
+private slots:
+    void updateDisplay();
+
 private:
     Ui::aboutDialog *ui;
+    QTimer *m_displayTimer;
+
 };
 
 #endif // ABOUTDIALOG_H

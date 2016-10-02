@@ -21,6 +21,7 @@
 #include "mdimainwindow.h"
 #include "nicselectdialog.h"
 #include "preferences.h"
+#include "consts.h"
 #include <QApplication>
 #include <QNetworkInterface>
 
@@ -28,7 +29,12 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    if(QNetworkInterface::allInterfaces().count()>1)
+    a.setApplicationName(APP_NAME);
+    a.setApplicationVersion(VERSION);
+    a.setOrganizationName(AUTHOR);
+    a.setOrganizationDomain("tomsteer.net");
+
+    if(!Preferences::getInstance()->defaultInterfaceAvailable())
     {
         NICSelectDialog d;
         int result = d.exec();
@@ -39,11 +45,13 @@ int main(int argc, char *argv[])
         }
     }
 
-    initializePreferences();    //<=== [MAK] I added this function call to load stored preferences from a file.
-                                // Currently it just loads test settings
 
     MDIMainWindow w;
-    w.show();
+    w.showMaximized();
 
-    return a.exec();
+    int result = a.exec();
+
+    Preferences::getInstance()->savePreferences();
+
+    return result;
 }

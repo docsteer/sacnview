@@ -29,8 +29,65 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui(new Ui::PreferencesDialog)
 {
     ui->setupUi(this);
-    SetMemberVariablesFromPreferences();
-    SetFieldsToCurrentState();
+
+
+    QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
+    QVBoxLayout *nicLayout = new QVBoxLayout;
+
+    foreach(QNetworkInterface interface, interfaces)
+    {
+        bool ok = false;
+        // We want interfaces which are IPv4 and can multicast
+        QString ipString;
+        foreach (QNetworkAddressEntry e, interface.addressEntries()) {
+            if(!ipString.isEmpty())
+                ipString.append(",");
+            ipString.append(e.ip().toString());
+            if(e.ip().protocol() == QAbstractSocket::IPv4Protocol)
+               ok = true;
+        }
+        ok = ok & (interface.flags() | QNetworkInterface::CanMulticast);
+
+        if(ok)
+        {
+            QRadioButton *radio  = new QRadioButton(ui->gbNetworkInterface);
+            radio->setText(QString("%1 (%2)")
+                           .arg(interface.humanReadableName())
+                           .arg(ipString));
+
+            radio->setChecked(Preferences::getInstance()->networkInterface().hardwareAddress() == interface.hardwareAddress());
+
+            nicLayout->addWidget(radio);
+            m_interfaceList << interface;
+        }
+    }
+    ui->gbNetworkInterface->setLayout(nicLayout);
+
+    switch (Preferences::getInstance()->GetDisplayFormat())
+    {
+        case DECIMAL:       ui->DecimalDisplayFormat->setChecked (true); break;
+        case PERCENT:       ui->PercentDisplayFormat->setChecked(true); break;
+        case HEXADECIMAL:   ui->HexDisplayFormat->setChecked(true); break;
+    }
+
+    ui->cbDisplayBlind->setChecked(Preferences::getInstance()->GetBlindVisualizer());
+
+    int timeout = Preferences::getInstance()->GetNumSecondsOfSacn();
+    if(timeout>0)
+    {
+        ui->gbTransmitTimeout->setChecked(true);
+        int hour = (timeout/(60*60));
+        int min = ((timeout/60)-(hour*60));
+        int sec = (timeout - (hour*60*60) - (min*60) );
+        ui->NumOfHoursOfSacn->setValue(hour);
+        ui->NumOfMinOfSacn->setValue(min);
+        ui->NumOfSecOfSacn->setValue(sec);
+    }
+    else
+    {
+        ui->gbTransmitTimeout->setChecked(false);
+    }
+
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -38,97 +95,23 @@ PreferencesDialog::~PreferencesDialog()
     delete ui;
 }
 
-void PreferencesDialog::on_DecimalDisplayFormat_toggled(bool checked)
-{
-    m_PrefDialog_nDisplayFormat = DECIMAL;
-    return;
-}
-void PreferencesDialog::on_PercentDisplayFormat_toggled(bool checked)
-{
-    m_PrefDialog_nDisplayFormat = PERCENT;
-    return;
-}
-void PreferencesDialog::on_HexDisplayFormat_toggled(bool checked)
-{
-    m_PrefDialog_nDisplayFormat = HEXADECIMAL;
-    return;
-}
-
-void PreferencesDialog::on_checkBox_toggled(bool checked)
-{
-    m_PrefDialog_bBlindVisualizer = checked;
-    return;
-}
-
-void PreferencesDialog::on_NumOfSecOfSacn_valueChanged(int arg1)
-{
-    m_nSec = arg1;
-    ConvertHourMinSecToSec();
-    refreshTransmitTimeFields();
-    return;
-}
-void PreferencesDialog::on_NumOfMinOfSacn_valueChanged(int arg1)
-{
-    m_nMin = arg1;
-    ConvertHourMinSecToSec();
-    refreshTransmitTimeFields();
-}
-void PreferencesDialog::on_NumOfHoursOfSacn_valueChanged(int arg1)
-{
-    m_nHour = arg1;
-    ConvertHourMinSecToSec();
-    refreshTransmitTimeFields();
-}
-
-void PreferencesDialog::ConvertHourMinSecToSec()
-{
-    m_PrefDialog_nTotalNumOfSec = ((m_nHour*nNumOfSecPerHour) + (m_nMin*nNumberOfSecPerMin) + m_nSec);
-}
-void PreferencesDialog::refreshTransmitTimeFields()
-{
-    m_nHour = (m_PrefDialog_nTotalNumOfSec/nNumOfSecPerHour);
-    m_nMin = ((m_PrefDialog_nTotalNumOfSec/nNumberOfSecPerMin)-(m_nHour*nNumOfMinPerHour));
-    m_nSec = (m_PrefDialog_nTotalNumOfSec - (m_nHour*nNumOfSecPerHour) - (m_nMin*nNumberOfSecPerMin) );
-
-    ui->NumOfHoursOfSacn->setValue(m_nHour);
-    ui->NumOfMinOfSacn->setValue(m_nMin);
-    ui->NumOfSecOfSacn->setValue(m_nSec);
-}
-
-void PreferencesDialog::SetFieldsToCurrentState()
-{
-    switch (m_PrefDialog_nDisplayFormat)
-    {
-        case DECIMAL:       ui->DecimalDisplayFormat->setChecked (true); break;
-        case PERCENT:       ui->PercentDisplayFormat->setChecked(true); break;
-        case HEXADECIMAL:   ui->HexDisplayFormat->setChecked(true); break;
-    }
-
-    if (m_PrefDialog_bBlindVisualizer)
-        ui->checkBox->setChecked(true);
-    else
-        ui->checkBox->setChecked(false);
-
-    refreshTransmitTimeFields();
-}
-
-void PreferencesDialog::SetMemberVariablesFromPreferences()
-{
-    Preferences *p = Preferences::getInstance();
-    m_PrefDialog_nTotalNumOfSec = p->GetNumSecondsOfSacn();
-    m_PrefDialog_nDisplayFormat = p->GetDisplayFormat();
-    m_PrefDialog_bBlindVisualizer = p->GetBlindVisualizer();
-}
-void PreferencesDialog::SaveMemberVariablesToPreferences()
-{
-    Preferences *p = Preferences::getInstance();
-    p->SetDisplayFormat(m_PrefDialog_nDisplayFormat);
-    p->SetBlindVisualizer(m_PrefDialog_bBlindVisualizer);
-    p->SetNumSecondsOfSacn(m_PrefDialog_nTotalNumOfSec);
-}
-
 
 void PreferencesDialog::on_buttonBox_accepted()
 {
-    SaveMemberVariablesToPreferences();
+    Preferences *p = Preferences::getInstance();
+    int displayFormat=0;
+    if(ui->DecimalDisplayFormat->isChecked())
+        displayFormat = DECIMAL;
+    if(ui->HexDisplayFormat->isChecked())
+        displayFormat = HEXADECIMAL;
+    if(ui->PercentDisplayFormat->isChecked())
+        displayFormat = PERCENT;
+
+    p->SetDisplayFormat(displayFormat);
+    p->SetBlindVisualizer(ui->cbDisplayBlind->isChecked());
+
+    int seconds = ui->NumOfHoursOfSacn->value()*60*60 + ui->NumOfMinOfSacn->value()*60 + ui->NumOfSecOfSacn->value();
+    if(!ui->gbTransmitTimeout->isChecked())
+        seconds = 0;
+    p->SetNumSecondsOfSacn(seconds);
 }

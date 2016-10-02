@@ -25,6 +25,8 @@
 #include <QUdpSocket>
 #include <vector>
 #include <QTimer>
+#include <QElapsedTimer>
+#include <QPoint>
 #include "streamingacn.h"
 
 
@@ -41,6 +43,11 @@ struct sACNMergedAddress
 
 typedef QList<sACNMergedAddress> sACNMergedSourceList;
 
+/**
+ * @brief The sACNListener class is used to listen to  a universe of sACN.
+ * The class should not be instantiated directly; instead, instead use sACNManager to get the listener for a universe - this
+ * allows reuse of listeners
+ */
 class sACNListener : public QObject
 {
     Q_OBJECT
@@ -48,15 +55,33 @@ public:
     sACNListener(QObject *parent = 0);
     ~sACNListener();
 
-    int universe();
+    /**
+     * @brief universe
+     * @return the universe which this listener is listening for
+     */
+    int universe() {return m_universe;};
+    /**
+     * @brief mergedLevels
+     * @return an sACNMergerdSourceList, a list of merged address structures, allowing you to see
+     * the result of the merge algorithm together with all the sub-sources, by address
+     */
     sACNMergedSourceList mergedLevels() { return m_merged_levels;}
+
+    int sourceCount() { return m_sources.size();};
+    sACNSource *source(int index) { return m_sources[index];};
+
+    // Diagnostic - the number of merge operations per second
+    int mergesPerSecond() { return m_mergesPerSecond;};
 public slots:
     void startReception(int universe);
+    void monitorAddress(int address) { m_monitoredChannels.insert(address);};
+    void unMonitorAddress(int address) { m_monitoredChannels.remove(address);};
 signals:
     void sourceFound(sACNSource *source);
     void sourceLost(sACNSource *source);
     void sourceChanged(sACNSource *source);
     void levelsChanged();
+    void dataReady(int address, QPointF data);
 private slots:
     void readPendingDatagrams();
     void performMerge();
@@ -67,7 +92,6 @@ private:
     std::vector<sACNSource *> m_sources;
     int m_last_levels[512];
     sACNMergedSourceList m_merged_levels;
-    int m_versionSpec;
     int m_universe;
     // The per-source hold last look time
     int m_ssHLL;
@@ -76,6 +100,13 @@ private:
     ttimer m_sampleTimer;
     QTimer *m_initalSampleTimer;
     QTimer *m_mergeTimer;
+    QElapsedTimer m_elapsedTime;
+    int m_predictableTimerValue;
+    QSet<int> m_monitoredChannels;
+    bool m_mergeAll; // A flag to initiate a complete remerge of everything
+    int m_mergesPerSecond;
+    int m_mergeCounter;
+    QElapsedTimer m_mergesPerSecondTimer;
 };
 
 

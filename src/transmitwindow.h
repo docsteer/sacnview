@@ -41,7 +41,7 @@ class transmitwindow : public QWidget
 public:
     explicit transmitwindow(QWidget *parent = 0);
     ~transmitwindow();
-
+    static const int BLINK_TIME = 1000;
 protected slots:
     void fixSize();
     void on_btnStart_pressed();
@@ -53,7 +53,9 @@ protected slots:
     void on_btnCcPrev_pressed();
     void on_btnCcNext_pressed();
     void on_tabWidget_currentChanged(int index);
-
+    void on_slChannelCheck_valueChanged(int value);
+    void on_btnCcBlink_pressed();
+    void doBlink();
 protected:
     virtual void keyPressEvent(QKeyEvent *event);
 private:
@@ -75,6 +77,8 @@ private:
     sACNSentUniverse *m_sender;
     uint1 m_perAddressPriorities[MAX_DMX_ADDRESS];
     uint1 m_levels[MAX_DMX_ADDRESS];
+    QTimer *m_blinkTimer;
+    bool m_blink;
 };
 
 #endif // TRANSMITWINDOW_H

@@ -34,6 +34,12 @@ void UniverseDisplay::setUniverse(int universe)
     connect(m_listener, SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
 }
 
+void UniverseDisplay::pause()
+{
+    m_listener->disconnect(this);
+    m_listener = NULL;
+}
+
 void UniverseDisplay::levelsChanged()
 {
     if(m_listener)

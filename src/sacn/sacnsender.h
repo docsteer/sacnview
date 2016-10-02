@@ -252,11 +252,11 @@ private:
         bool ignore_inactivity;     //If true, we don't bother looking at inactive_count
         uint inactive_count;		//After 3 of these, we start sending at send_interval
         ttimer send_interval;       //Whether or not it's time to send a non-dirty packet
-        uint1* pseq;				//The storage location of the universe sequence number
+        uint1 seq;                  //The universe sequence number
         QHostAddress sendaddr;      //The multicast address we're sending to
 
         //and the constructor
-      universe():number(0),handle(0), num_terminates(0), psend(NULL),isdirty(false),waited_for_dirty(false),inactive_count(0),pseq(NULL) {}
+      universe():number(0),handle(0), num_terminates(0), psend(NULL),isdirty(false),waited_for_dirty(false),inactive_count(0),seq(0) {}
     };
 
     //The handle is the vector index
