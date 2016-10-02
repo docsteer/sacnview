@@ -67,6 +67,9 @@ public:
      */
     sACNMergedSourceList mergedLevels() { return m_merged_levels;}
 
+    int sourceCount() { return m_sources.size();};
+    sACNSource *source(int index) { return m_sources[index];};
+
     // Diagnostic - the number of merge operations per second
     int mergesPerSecond() { return m_mergesPerSecond;};
 public slots:
@@ -78,7 +81,7 @@ signals:
     void sourceLost(sACNSource *source);
     void sourceChanged(sACNSource *source);
     void levelsChanged();
-    void dataReady(int address, QPoint data);
+    void dataReady(int address, QPointF data);
 private slots:
     void readPendingDatagrams();
     void performMerge();

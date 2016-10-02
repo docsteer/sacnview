@@ -52,6 +52,11 @@ UniverseView::UniverseView(QWidget *parent) :
     m_listener = NULL;
     ui->setupUi(this);
     connect(ui->universeDisplay, SIGNAL(selectedCellChanged(int)), this, SLOT(selectedAddressChanged(int)));
+
+
+    ui->btnGo->setEnabled(true);
+    ui->btnPause->setEnabled(false);
+    ui->sbUniverse->setEnabled(true);
 }
 
 UniverseView::~UniverseView()
@@ -62,19 +67,27 @@ UniverseView::~UniverseView()
 void UniverseView::on_btnGo_pressed()
 {
     ui->twSources->setRowCount(0);
-    if(!m_listener)
+    ui->btnGo->setEnabled(false);
+    ui->btnPause->setEnabled(true);
+    ui->sbUniverse->setEnabled(false);
+    m_listener = sACNManager::getInstance()->getListener(ui->sbUniverse->value());
+    ui->universeDisplay->setUniverse(ui->sbUniverse->value());
+
+    // Add the existing sources
+    for(int i=0; i<m_listener->sourceCount(); i++)
     {
-        m_listener = sACNManager::getInstance()->getListener(ui->sbUniverse->value());
-        ui->universeDisplay->setUniverse(ui->sbUniverse->value());
-        connect(m_listener, SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
-        connect(m_listener, SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
-        connect(m_listener, SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
-        connect(m_listener, SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
+        sourceOnline(m_listener->source(i));
     }
+
+    connect(m_listener, SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
+    connect(m_listener, SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
+    connect(m_listener, SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
+    connect(m_listener, SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
 }
 
 void UniverseView::sourceChanged(sACNSource *source)
 {
+    if(!m_listener) return;
     if(!m_sourceToTableRow.contains(source))
     {
         return;
@@ -96,6 +109,7 @@ void UniverseView::sourceChanged(sACNSource *source)
 
 void UniverseView::sourceOnline(sACNSource *source)
 {
+    if(!m_listener) return;
     int row = ui->twSources->rowCount();
     ui->twSources->setRowCount(row+1);
     m_sourceToTableRow[source] = row;
@@ -117,11 +131,13 @@ void UniverseView::sourceOnline(sACNSource *source)
 
 void UniverseView::sourceOffline(sACNSource *source)
 {
+    if(!m_listener) return;
     sourceChanged(source);
 }
 
 void UniverseView::levelsChanged()
 {
+    if(!m_listener) return;
     if(m_selectedAddress>-1)
         selectedAddressChanged(m_selectedAddress);
 }
@@ -249,3 +265,12 @@ void UniverseView::selectedAddressChanged(int address)
     ui->teInfo->setPlainText(info);
 }
 
+void UniverseView::on_btnPause_pressed()
+{
+    ui->universeDisplay->pause();
+    this->disconnect(m_listener);
+    m_listener = NULL;
+    ui->btnGo->setEnabled(true);
+    ui->btnPause->setEnabled(false);
+    ui->sbUniverse->setEnabled(true);
+}

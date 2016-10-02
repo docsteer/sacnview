@@ -34,25 +34,35 @@ public:
     ScopeChannel(int universe, int address);
 
     int universe() { return m_universe;};
+    void setUniverse(int value);
+
     int address() { return m_address;};
+    void setAddress(int value);
+
     bool enabled() { return m_enabled;};
+    void setEnabled(bool value) { m_enabled = value;};
+
     QColor color() {return m_color;};
     void setColor(const QColor &color) { m_color = color;};
 
-    void addPoint(QPoint point);
+    bool sixteenBit(){ return m_sixteenBit;};
+    void setSixteenBit(bool value) { m_sixteenBit = value;};
+
+    void addPoint(QPointF point);
     void clear();
     int count();
-    QPoint getPoint(int index);
-    quint64 m_highestTime;
+    QPointF getPoint(int index);
+    qreal m_highestTime;
 private:
     int m_universe;
     int m_address;
     bool m_enabled;
     QColor m_color;
 
-    QPoint m_points[RING_BUF_SIZE];
+    QPointF m_points[RING_BUF_SIZE];
     int m_size;
     int m_last;
+    bool m_sixteenBit;
 };
 
 
@@ -63,6 +73,8 @@ public:
     explicit ScopeWidget(QWidget *parent = 0);
     int timebase() const { return m_timebase;};
     void addChannel(ScopeChannel *channel);
+    void removeChannel(ScopeChannel *channel);
+    bool running() { return m_running;};
 signals:
 
 public slots:
@@ -70,7 +82,7 @@ public slots:
     void start();
     void stop();
 private slots:
-    void dataReady(int address, QPoint p);
+    void dataReady(int address, QPointF p);
 protected:
     virtual void paintEvent(QPaintEvent *event);
 private:
@@ -78,6 +90,7 @@ private:
     QList<ScopeChannel *> m_channels;
     // The timebase in ms
     int m_timebase;
+    bool m_running;
 };
 
 #endif // SCOPEWIDGET_H

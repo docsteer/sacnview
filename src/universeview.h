@@ -41,6 +41,7 @@ public:
 
 protected slots:
     void on_btnGo_pressed();
+    void on_btnPause_pressed();
     void sourceOnline(sACNSource *source);
     void sourceOffline(sACNSource *source);
     void sourceChanged(sACNSource *source);

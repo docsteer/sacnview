@@ -440,8 +440,8 @@ void sACNListener::performMerge()
 
     foreach(int chan, m_monitoredChannels)
     {
-        QPoint data;
-        data.setX(m_elapsedTime.elapsed());
+        QPointF data;
+        data.setX(m_elapsedTime.nsecsElapsed()/1000000.0);
         data.setY(mergedLevels().at(chan).level);
         emit dataReady(chan, data);
     }
