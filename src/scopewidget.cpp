@@ -99,8 +99,14 @@ void ScopeChannel::setAddress(int value)
 
 ScopeWidget::ScopeWidget(QWidget *parent) : QWidget(parent)
 {
-    m_timebase = 10;
-    m_running = false;
+    m_timebase          = 10;
+    m_running           = false;
+    m_triggered         = false;
+    m_triggerMode       = tmNormal;
+    m_triggerUniverse   = -1;
+    m_triggerChannel    = -1;
+    m_triggerLevel      = 0;
+    m_triggerDelay      = 0;
 }
 
 
@@ -188,6 +194,7 @@ void ScopeWidget::paintEvent(QPaintEvent *event)
 
     }
 
+
     // Plot the points
     painter.resetTransform();
     painter.setRenderHint(QPainter::Antialiasing, false);
@@ -201,37 +208,52 @@ void ScopeWidget::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing);
 
     int maxTime = m_timebase * 10; // The X-axis size of the display, in milliseconds
-    foreach(ScopeChannel *ch, m_channels)
+
+    if(m_triggerMode==tmNormal || (m_triggerMode!=tmNormal && m_triggered))
     {
-        if(!ch->enabled())
-            continue;
-
-        QPen pen;
-        pen.setColor(ch->color());
-        pen.setWidth(2);
-        painter.setPen(pen);
-        QPainterPath path;
-        bool first = true;
-
-        for(int i=0; i<ch->count()-1; i++)
+        foreach(ScopeChannel *ch, m_channels)
         {
-            QPointF p = ch->getPoint(i);
-            qreal normalizedTime = ch->m_highestTime - p.x();
+            if(!ch->enabled())
+                continue;
 
-            qreal x = x_scale * (maxTime - normalizedTime);
-            qreal y = y_scale * (65535 - p.y());
-            if(x>=0)
+            QPen pen;
+            pen.setColor(ch->color());
+            pen.setWidth(2);
+            painter.setPen(pen);
+            QPainterPath path;
+            bool first = true;
+
+            for(int i=0; i<ch->count()-1; i++)
             {
-                if(first)
+                QPointF p = ch->getPoint(i);
+                qreal normalizedTime = ch->m_highestTime - p.x();
+
+                qreal x = x_scale * (maxTime - normalizedTime);
+                qreal y = y_scale * (65535 - p.y());
+                if(x>=0)
                 {
-                    path.moveTo(x,y);
-                    first = false;
+                    if(first)
+                    {
+                        path.moveTo(x,y);
+                        first = false;
+                    }
+                    else
+                        path.lineTo(x, y);
                 }
-                else
-                    path.lineTo(x, y);
             }
+            painter.drawPath(path);
         }
-        painter.drawPath(path);
+    }
+
+    // Draw the trigger line
+    if(m_triggerMode!=tmNormal)
+    {
+        QPen pen;
+        pen.setColor(QColor(Qt::yellow));
+
+        pen.setStyle(Qt::DashDotLine);
+        painter.setPen(pen);
+        painter.drawLine(x_scale * m_triggerDelay, 0, x_scale * m_triggerDelay, 65535 * y_scale);
     }
 
 }
@@ -262,7 +284,41 @@ void ScopeWidget::dataReady(int address, QPointF p)
 {
     if(!m_running) return;
 
+
     sACNListener *listener = static_cast<sACNListener *>(sender());
+
+    if(m_triggerMode != tmNormal && !m_triggered)
+    {
+        // Waiting for trigger
+        if(listener->universe()==m_triggerUniverse && address==m_triggerChannel)
+        {
+            int value = p.y();
+            if(m_triggerMode==tmRisingEdge && value>m_triggerLevel)
+            {
+                // Triggered by rising edge
+                m_triggered = true;
+                m_endTriggerTime = p.x() + m_timebase*10 - m_triggerDelay;
+            }
+            if(m_triggerMode==tmFallingEdge && value<m_triggerLevel)
+            {
+                // Triggered by rising edge
+                m_triggered = true;
+                m_endTriggerTime = p.x() + m_timebase*10 - m_triggerDelay;
+            }
+        }
+    }
+
+    if(m_triggerMode!=tmNormal && m_triggered)
+    {
+        if(p.x() > m_endTriggerTime)
+        {
+            // Trigger delay time is done - stop running
+            m_running = false;
+            emit stopped();
+            return;
+        }
+    }
+
 
     ScopeChannel *ch = NULL;
     for(int i=0; i<m_channels.count(); i++)
@@ -293,6 +349,7 @@ void ScopeWidget::dataReady(int address, QPointF p)
 void ScopeWidget::start()
 {
     m_running = true;
+    m_triggered = false;
     foreach(ScopeChannel *ch, m_channels)
     {
         ch->clear();
@@ -306,4 +363,28 @@ void ScopeWidget::start()
 void ScopeWidget::stop()
 {
     m_running = false;
+}
+
+void ScopeWidget::setTriggerMode(TriggerMode mode)
+{
+    m_triggerMode = mode;
+    m_triggered = false;
+    update();
+}
+
+void ScopeWidget::setTriggerAddress(int universe, int channel)
+{
+    m_triggerChannel = channel;
+    m_triggerUniverse = universe;
+}
+
+void ScopeWidget::setTriggerThreshold(int value)
+{
+    m_triggerLevel = value;
+}
+
+void ScopeWidget::setTriggerDelay(int triggerDelay)
+{
+    m_triggerDelay = triggerDelay;
+    update();
 }

@@ -22,6 +22,7 @@
 #include "ui_scopewindow.h"
 #include "consts.h"
 #include "sacnlistener.h"
+#include "preferences.h"
 #include <QRadioButton>
 #include <QColorDialog>
 #include <QDebug>
@@ -67,8 +68,27 @@ ScopeWindow::ScopeWindow(QWidget *parent) :
     ui->btnStop->setEnabled(false);
 
     m_radioGroup = new QButtonGroup(this);
+    connect(m_radioGroup, SIGNAL(buttonPressed(int)), this, SLOT(on_buttonGroup_buttonPressed(int)));
+    connect(ui->sbTriggerDelay, SIGNAL(valueChanged(int)), ui->widget, SLOT(setTriggerDelay(int)));
+    connect(ui->widget, SIGNAL(stopped()), this, SLOT(on_scopeWidget_stopped()));
+
     // Set initial value
     ui->dlTimebase->setValue(2);
+
+    // Setup trigger spinbox
+    if(Preferences::getInstance()->GetDisplayFormat() == Preferences::PERCENT)
+    {
+        ui->sbTriggerLevel->setMinimum(0);
+        ui->sbTriggerLevel->setMaximum(100);
+        ui->sbTriggerLevel->setValue(50);
+    }
+    else
+    {
+        ui->sbTriggerLevel->setMinimum(0);
+        ui->sbTriggerLevel->setMaximum(MAX_SACN_LEVEL);
+        ui->sbTriggerLevel->setValue(MAX_SACN_LEVEL/2);
+    }
+
 }
 
 ScopeWindow::~ScopeWindow()
@@ -128,7 +148,7 @@ void ScopeWindow::on_btnAddChannel_pressed()
 
     QWidget *containerWidget = new QWidget(this);
     QRadioButton *radio = new QRadioButton(containerWidget);
-    m_radioGroup->addButton(radio);
+    m_radioGroup->addButton(radio, m_channels.count()-1);
     QHBoxLayout *layout = new QHBoxLayout;
     layout->setMargin(0);
     layout->addStretch();
@@ -154,8 +174,9 @@ void ScopeWindow::on_btnRemoveChannel_pressed()
 
     ScopeChannel *channel = m_channels[index];
     ui->widget->removeChannel(channel);
-
     ui->tableWidget->removeRow(index);
+    m_channels.removeAt(index);
+
     if(ui->tableWidget->rowCount() == 0)
     {
         ui->widget->stop();
@@ -251,4 +272,30 @@ void ScopeWindow::on_tableWidget_itemChanged(QTableWidgetItem * item)
         }
         break;
     }
+}
+
+void ScopeWindow::on_buttonGroup_buttonPressed(int id)
+{
+    int row = id;
+
+    int universe = ui->tableWidget->item(row, COL_UNIVERSE)->text().toInt();
+    int address = ui->tableWidget->item(row, COL_ADDRESS)->text().toInt()-1;
+
+    ui->widget->setTriggerAddress(universe, address);
+}
+
+void ScopeWindow::on_cbTriggerMode_currentIndexChanged(int index)
+{
+    ui->widget->setTriggerMode((ScopeWidget::TriggerMode)index);
+}
+
+void ScopeWindow::on_sbTriggerLevel_valueChanged(int value)
+{
+    ui->widget->setTriggerThreshold(value);
+}
+
+void ScopeWindow::on_scopeWidget_stopped()
+{
+    ui->btnStart->setEnabled(true);
+    ui->btnStop->setEnabled(false);
 }
