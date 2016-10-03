@@ -65,9 +65,9 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 
     switch (Preferences::getInstance()->GetDisplayFormat())
     {
-        case DECIMAL:       ui->DecimalDisplayFormat->setChecked (true); break;
-        case PERCENT:       ui->PercentDisplayFormat->setChecked(true); break;
-        case HEXADECIMAL:   ui->HexDisplayFormat->setChecked(true); break;
+        case Preferences::DECIMAL:       ui->DecimalDisplayFormat->setChecked (true); break;
+        case Preferences::PERCENT:       ui->PercentDisplayFormat->setChecked(true); break;
+        case Preferences::HEXADECIMAL:   ui->HexDisplayFormat->setChecked(true); break;
     }
 
     ui->cbDisplayBlind->setChecked(Preferences::getInstance()->GetBlindVisualizer());
@@ -101,11 +101,11 @@ void PreferencesDialog::on_buttonBox_accepted()
     Preferences *p = Preferences::getInstance();
     int displayFormat=0;
     if(ui->DecimalDisplayFormat->isChecked())
-        displayFormat = DECIMAL;
+        displayFormat = Preferences::DECIMAL;
     if(ui->HexDisplayFormat->isChecked())
-        displayFormat = HEXADECIMAL;
+        displayFormat = Preferences::HEXADECIMAL;
     if(ui->PercentDisplayFormat->isChecked())
-        displayFormat = PERCENT;
+        displayFormat = Preferences::PERCENT;
 
     p->SetDisplayFormat(displayFormat);
     p->SetBlindVisualizer(ui->cbDisplayBlind->isChecked());
