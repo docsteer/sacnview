@@ -25,6 +25,7 @@
 #include "sacnlistener.h"
 
 #include <QTimer>
+#include <QDesktopServices>
 
 aboutDialog::aboutDialog(QWidget *parent) :
     QDialog(parent),
@@ -35,6 +36,15 @@ aboutDialog::aboutDialog(QWidget *parent) :
     ui->DisplayVer->setText(VERSION);
     ui->displayDate->setText(PUBLISHED_DATE);
     ui->DisplayName->setText(AUTHOR);
+
+    ui->lblLicense->setText(
+                tr("This application is provided under the <a href=\"http://www.apache.org/licenses/LICENSE-2.0\">Apache License, version 2.0</a>")
+    );
+    ui->lblQtInfo->setText(tr("This application uses the Qt Library, version %1, licensed under the <a href=\"http://www.gnu.org/licenses/lgpl.html\">GNU LGPL</a>")
+                           .arg(qVersion()));
+
+    connect(ui->lblLicense, SIGNAL(linkActivated(QString)), this, SLOT(openLink(QString)));
+    connect(ui->lblQtInfo, SIGNAL(linkActivated(QString)), this, SLOT(openLink(QString)));
 
     m_displayTimer = new QTimer(this);
     connect(m_displayTimer, SIGNAL(timeout()), this, SLOT(updateDisplay()));
@@ -66,4 +76,9 @@ void aboutDialog::updateDisplay()
     }
 
     ui->teDiag->setPlainText(data);
+}
+
+void aboutDialog::openLink(QString link)
+{
+    QDesktopServices::openUrl(QUrl(link));
 }
