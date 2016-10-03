@@ -109,10 +109,10 @@
               </widget>
              </item>
              <item row="1" column="2">
-              <widget class="QSpinBox" name="spinBox"/>
+              <widget class="QSpinBox" name="sbTriggerLevel"/>
              </item>
              <item row="0" column="0" colspan="3">
-              <widget class="QComboBox" name="comboBox">
+              <widget class="QComboBox" name="cbTriggerMode">
                <item>
                 <property name="text">
                  <string>Free Run</string>
@@ -128,6 +128,23 @@
                  <string>Falling Edge</string>
                 </property>
                </item>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_3">
+               <property name="text">
+                <string>Trigger Delay:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="2">
+              <widget class="QSpinBox" name="sbTriggerDelay">
+               <property name="suffix">
+                <string>ms</string>
+               </property>
+               <property name="maximum">
+                <number>3000</number>
+               </property>
               </widget>
              </item>
             </layout>

@@ -17,7 +17,7 @@ public:
 
 private slots:
     void updateDisplay();
-
+    void openLink(QString link);
 private:
     Ui::aboutDialog *ui;
     QTimer *m_displayTimer;

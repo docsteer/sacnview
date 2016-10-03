@@ -55,6 +55,10 @@ private slots:
     void on_btnRemoveChannel_pressed();
     void on_tableWidget_cellDoubleClicked(int row, int col);
     void on_tableWidget_itemChanged(QTableWidgetItem * item);
+    void on_buttonGroup_buttonPressed(int id);
+    void on_cbTriggerMode_currentIndexChanged(int index);
+    void on_sbTriggerLevel_valueChanged(int value);
+    void on_scopeWidget_stopped();
 private:
     Ui::ScopeWindow *ui;
     QList<ScopeChannel *> m_channels;

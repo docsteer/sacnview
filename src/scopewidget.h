@@ -27,6 +27,7 @@
 
 #define RING_BUF_SIZE 1000
 
+
 class ScopeChannel
 {
 public:
@@ -70,19 +71,34 @@ class ScopeWidget : public QWidget
 {
     Q_OBJECT
 public:
+
+    enum TriggerMode
+    {
+        tmNormal,
+        tmRisingEdge,
+        tmFallingEdge
+    };
+
     explicit ScopeWidget(QWidget *parent = 0);
     int timebase() const { return m_timebase;};
     void addChannel(ScopeChannel *channel);
     void removeChannel(ScopeChannel *channel);
     bool running() { return m_running;};
+
+    void setTriggerMode(TriggerMode mode);
+    void setTriggerAddress(int universe, int channel);
+    void setTriggerThreshold(int value);
 signals:
 
 public slots:
     void setTimebase(int timebase);
+    void setTriggerDelay(int triggerDelay);
     void start();
     void stop();
 private slots:
     void dataReady(int address, QPointF p);
+signals:
+    void stopped();
 protected:
     virtual void paintEvent(QPaintEvent *event);
 private:
@@ -91,6 +107,12 @@ private:
     // The timebase in ms
     int m_timebase;
     bool m_running;
+    bool m_triggered;
+    TriggerMode m_triggerMode;
+    int m_triggerUniverse, m_triggerChannel;
+    int m_triggerLevel;
+    int m_triggerDelay;
+    int m_endTriggerTime;
 };
 
 #endif // SCOPEWIDGET_H

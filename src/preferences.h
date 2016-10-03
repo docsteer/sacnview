@@ -28,13 +28,7 @@
 #include "deftypes.h"
 #include "CID.h"
 
-enum DisplayFormats
-    {
-        DECIMAL = 0,
-        PERCENT = 1,
-        HEXADECIMAL = 2,
-        TOTAL_NUM_OF_FORMATS = 3
-    };
+
 
 // Strings for storing settings
 static const QString S_MAC_ADDRESS("MacAddress");
@@ -45,7 +39,16 @@ static const QString S_TIMEOUT("Timeout");
 
 class Preferences
 {
+
 public:
+    enum DisplayFormats
+        {
+            DECIMAL = 0,
+            PERCENT = 1,
+            HEXADECIMAL = 2,
+            TOTAL_NUM_OF_FORMATS = 3
+        };
+
     /**
      * @brief getInstance - returns the instance of the Preferences class
      * @return the instance

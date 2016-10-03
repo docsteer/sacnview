@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>767</width>
+    <width>575</width>
     <height>207</height>
    </rect>
   </property>
@@ -101,9 +101,9 @@
       </layout>
      </item>
      <item>
-      <widget class="QLabel" name="label_2">
+      <widget class="QLabel" name="lblLicense">
        <property name="text">
-        <string>This software is licensed under the MIT Software License</string>
+        <string>license-info</string>
        </property>
        <property name="wordWrap">
         <bool>true</bool>
@@ -111,7 +111,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label_4">
+      <widget class="QLabel" name="lblQtInfo">
        <property name="text">
         <string>qt-info</string>
        </property>
