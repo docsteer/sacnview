@@ -30,25 +30,44 @@
 
 
 
+// Strings for storing settings
+static const QString S_MAC_ADDRESS("MacAddress");
+static const QString S_DISPLAY_FORMAT("Display Format");
+static const QString S_BLIND_VISUALIZER("Show Blind");
+static const QString S_TIMEOUT("Timeout");
 
-
-enum DisplayFormats
-    {
-        DECIMAL = 0,
-        PERCENT = 1,
-        HEXADECIMAL = 2,
-        TOTAL_NUM_OF_FORMATS = 3
-    };
-
-void initializePreferences();
 
 class Preferences
 {
-public:
-    static Preferences *getInstance();
-   // Q_PROPERTY(QNetworkInterface networkInterface READ networkInterface WRITE setNetworkInterface NOTIFY networkInterfaceChanged);
 
+public:
+    enum DisplayFormats
+        {
+            DECIMAL = 0,
+            PERCENT = 1,
+            HEXADECIMAL = 2,
+            TOTAL_NUM_OF_FORMATS = 3
+        };
+
+    /**
+     * @brief getInstance - returns the instance of the Preferences class
+     * @return the instance
+     */
+    static Preferences *getInstance();
+
+    /**
+     * @brief networkInterface returns the user preferred network interface for multicast
+     * @return the network interface to use
+     */
     QNetworkInterface networkInterface() const;
+
+    /**
+     * @brief defaultInterfaceAvailable - returns whether the default interface selected by the user
+     * is available
+     * @return
+     */
+    bool defaultInterfaceAvailable();
+
 
     QColor colorForCID(const CID &cid);
 
@@ -63,11 +82,12 @@ public:
 
     QString GetFormattedValue(unsigned int nLevelInDecimal);
 
-
+    void savePreferences();
 public slots:
     void setNetworkInterface(const QNetworkInterface &value);
 private:
     Preferences();
+    ~Preferences();
     static Preferences *m_instance;
     QNetworkInterface m_interface;
     QHash<CID, QColor> m_cidToColor;
@@ -76,6 +96,7 @@ private:
     bool m_bBlindVisualizer;
     unsigned int m_nNumSecondsOfSacn;
 
+    void loadPreferences();
 
 };
 

@@ -34,6 +34,7 @@ public:
 public slots:
     void setUniverse(int universe);
     void levelsChanged();
+    void pause();
 private:
     sACNMergedSourceList m_sources;
     sACNListener *m_listener;

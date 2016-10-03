@@ -83,38 +83,34 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="btnGo">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
+            <widget class="QToolButton" name="btnGo">
+             <property name="toolTip">
+              <string>Start reception of sACN</string>
              </property>
              <property name="text">
-              <string>Go</string>
+              <string>...</string>
+             </property>
+             <property name="icon">
+              <iconset resource="../res/resources.qrc">
+               <normaloff>:/icons/play.png</normaloff>:/icons/play.png</iconset>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="btnPause">
+             <property name="toolTip">
+              <string>Pause reception of sACN</string>
+             </property>
+             <property name="text">
+              <string>...</string>
+             </property>
+             <property name="icon">
+              <iconset resource="../res/resources.qrc">
+               <normaloff>:/icons/pause.png</normaloff>:/icons/pause.png</iconset>
              </property>
             </widget>
            </item>
           </layout>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>30</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Pause</string>
-           </property>
-          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="pushButton_2">

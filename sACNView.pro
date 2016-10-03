@@ -75,5 +75,30 @@ FORMS    += ui/mdimainwindow.ui \
 RESOURCES += \
     res/resources.qrc
 
+RC_FILE = res/sacnview.rc
+
 DISTFILES += \
     res/codemess.png
+
+isEmpty(TARGET_EXT) {
+    win32 {
+        TARGET_CUSTOM_EXT = .exe
+    }
+    macx {
+        TARGET_CUSTOM_EXT = .app
+    }
+} else {
+    TARGET_CUSTOM_EXT = $${TARGET_EXT}
+}
+
+win32 {
+    DEPLOY_COMMAND = windeployqt
+}
+macx {
+    DEPLOY_COMMAND = macdeployqt
+}
+
+CONFIG( release ) {
+    DEPLOY_TARGET = ($$shell_path($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT}))
+    QMAKE_POST_LINK += $${DEPLOY_COMMAND} $${DEPLOY_TARGET}
+}
