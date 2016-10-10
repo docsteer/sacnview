@@ -13,32 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PREFERENCESDIALOG_H
-#define PREFERENCESDIALOG_H
+#include "sacneffectengine.h"
 
-#include <QDialog>
-#include <QNetworkInterface>
+sACNEffectEngine::sACNEffectEngine(QObject *parent) : QObject(parent)
+{
 
-
-namespace Ui {
-class PreferencesDialog;
 }
 
-class PreferencesDialog : public QDialog
-{
-    Q_OBJECT
-
-public:
-    explicit PreferencesDialog(QWidget *parent = 0);
-    ~PreferencesDialog();
-
-private slots:
-    void on_buttonBox_accepted();
-
-private:
-    Ui::PreferencesDialog *ui;
-    QList<QNetworkInterface> m_interfaceList;
-
-};
-
-#endif // PREFERENCESDIALOG_H

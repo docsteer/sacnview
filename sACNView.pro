@@ -15,8 +15,12 @@ TEMPLATE = app
 
 INCLUDEPATH += src src/sacn src/sacn/ACNShare
 
+GIT_VERSION = $$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --always --tags)
+
+DEFINES += GIT_CURRENT_SHA1=\\\"$$GIT_VERSION\\\"
+
 SOURCES += src/main.cpp\
-        src/mdimainwindow.cpp \
+    src/mdimainwindow.cpp \
     src/scopewindow.cpp \
     src/universeview.cpp \
     src/sacn/ACNShare/CID.cpp \
@@ -36,7 +40,8 @@ SOURCES += src/main.cpp\
     src/gridwidget.cpp \
     src/priorityeditwidget.cpp \
     src/scopewidget.cpp \
-    src/aboutdialog.cpp
+    src/aboutdialog.cpp \
+    src/sacn/sacneffectengine.cpp
 	
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -61,7 +66,8 @@ HEADERS  += src/mdimainwindow.h \
     src/gridwidget.h \
     src/priorityeditwidget.h \
     src/scopewidget.h \
-    src/aboutdialog.h
+    src/aboutdialog.h \
+    src/sacn/sacneffectengine.h
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \

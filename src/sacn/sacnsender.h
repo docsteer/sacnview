@@ -1,22 +1,17 @@
-// Copyright (c) 2015 Electronic Theatre Controls, http://www.etcconnect.com
+// Copyright 2016 Tom Barthel-Steer
+// http://www.tomsteer.net
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+// http://www.apache.org/licenses/LICENSE-2.0
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #ifndef SACNSENDER_H
 #define SACNSENDER_H
@@ -41,23 +36,7 @@ public:
     sACNSentUniverse(int universe);
     virtual ~sACNSentUniverse();
 
-    enum sACNUniverseEffect{
-        FxNone,
-        FxFadeRangeRamp,
-        FxFadeRangeSinewave,
-        FxChaseRange,
-        FxText,
-        FxDateTime
-    };
-
-
-    void getFxSpeed(int speed) const;
 public slots:
-    /**
-     * @brief setFxMode sets the effect mode for the universe
-     * @param mode - the mode to apply
-     */
-    void setFxMode(sACNUniverseEffect mode);
     /**
      * @brief setLevel sets a single level in the universe
      * @param address - the address to set, 0-based (0-511)
@@ -71,11 +50,6 @@ public slots:
      * @param value - level to set (0-255)
      */
     void setLevel(uint2 start, uint2 end, uint1 value);
-    /**
-     * @brief setFxSpeed sets the effect speed, which is based on a clock of 10ms.
-     * @param speed. Speed in Hz, in increments of 1/10ms. So 1 is max speed (100Hz), 2 is divide by 2 (50Hz), 3 is 33Hz, etc.
-     */
-    void setFxSpeed(int speed);
     /**
      * @brief setName sets the universe name
      * @param name the name to set
@@ -100,8 +74,6 @@ public slots:
      */
     void stopSending();
     bool isSending() const { return m_isSending;};
-signals:
-    void fxLevelChanged(int level);
 private:
     bool m_isSending;
     // The handle for the CStreamServer universe
