@@ -23,6 +23,10 @@
 #include "streamingacn.h"
 #include "sacnlistener.h"
 #include "preferences.h"
+#include "consts.h"
+
+#include <qfiledialog.h>
+#include <iostream>
 
 QString onlineToString(bool value)
 {
@@ -50,6 +54,7 @@ UniverseView::UniverseView(QWidget *parent) :
 {
     m_selectedAddress = -1;
     m_listener = NULL;
+    m_logger = NULL;
     ui->setupUi(this);
     connect(ui->universeDisplay, SIGNAL(selectedCellChanged(int)), this, SLOT(selectedAddressChanged(int)));
 
@@ -57,6 +62,7 @@ UniverseView::UniverseView(QWidget *parent) :
     ui->btnGo->setEnabled(true);
     ui->btnPause->setEnabled(false);
     ui->sbUniverse->setEnabled(true);
+    setUiForLoggingState(NOT_LOGGING);
 }
 
 UniverseView::~UniverseView()
@@ -221,6 +227,21 @@ void UniverseView::showEvent(QShowEvent *event)
 
 }
 
+void UniverseView::setUiForLoggingState(UniverseView::LOG_STATE state)
+{
+    switch(state)
+    {
+    case LOGGING:
+        ui->btnLogToFile->setText(tr("Stop Log to File"));
+        break;
+
+    default:
+    case NOT_LOGGING:
+        ui->btnLogToFile->setText(tr("Start Log to File"));
+        break;
+    }
+}
+
 void UniverseView::selectedAddressChanged(int address)
 {
     ui->teInfo->clear();
@@ -273,4 +294,25 @@ void UniverseView::on_btnPause_pressed()
     ui->btnGo->setEnabled(true);
     ui->btnPause->setEnabled(false);
     ui->sbUniverse->setEnabled(true);
+}
+
+void UniverseView::on_btnLogToFile_pressed()
+{
+    if(!m_logger)
+    {
+        QString saveName = QFileDialog::getSaveFileName(this, APP_NAME, QString(), "CSV Files (.csv)");
+
+        m_logger = new MergedUniverseLogger();
+        m_logger->start(saveName, m_listener);
+        setUiForLoggingState(LOGGING);
+    }
+    else
+    {
+        m_logger->stop();
+        m_logger->deleteLater();
+        m_logger = nullptr;
+
+        setUiForLoggingState(NOT_LOGGING);
+    }
+
 }
