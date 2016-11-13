@@ -5,7 +5,7 @@
 MergedUniverseLogger::MergedUniverseLogger() :
     m_file(nullptr), QObject(nullptr)
 {
-
+    m_stringBuffer.reserve(3000);
 }
 
 void MergedUniverseLogger::start(QString fileName, sACNListener *listener)
@@ -28,15 +28,16 @@ void MergedUniverseLogger::levelsChanged()
 {
     //MM/DD/YYYY HH:mm:SS AP,0.0000,0x512
     //log levels to file
-    //header
-    *m_stream << QDateTime::currentDateTime().toString("M/d/yyyy h:mm:ss AP,")
-             << QString::number((double)m_elapsedTimer.elapsed()/1000, 'f', 4);
-    //levels
     auto levels = m_listener->mergedLevels();
+    m_stringBuffer.clear();
+    m_stringBuffer.append(QDateTime::currentDateTime().toString("M/d/yyyy h:mm:ss AP,"));
+    m_stringBuffer.append(QString::number((double)m_elapsedTimer.elapsed()/1000, 'f', 4));
     for(auto level : levels) {
-        *m_stream << ',' << level.level;
+        m_stringBuffer.append(',');
+        m_stringBuffer.append(QString::number(level.level));
     }
-    *m_stream << '\n';
+    m_stringBuffer.append('\n');
+    *m_stream << m_stringBuffer;
 }
 
 void MergedUniverseLogger::setUpFile(QString fileName)
