@@ -25,8 +25,9 @@
 #include "preferences.h"
 #include "consts.h"
 
-#include <qfiledialog.h>
-#include <iostream>
+#include <QFileDialog>
+#include <QStandardPaths>
+#include <QMessageBox>
 
 QString onlineToString(bool value)
 {
@@ -300,11 +301,25 @@ void UniverseView::on_btnLogToFile_pressed()
 {
     if(!m_logger)
     {
-        QString saveName = QFileDialog::getSaveFileName(this, APP_NAME, QString(), "CSV Files (.csv)");
+        //Setup dialog box
+        QFileDialog dialog(this);
+        dialog.setWindowTitle(APP_NAME);
+        dialog.setDirectory(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
+        dialog.setNameFilter("CSV Files (*.csv)");
+        dialog.setDefaultSuffix("csv");
+        dialog.setFileMode(QFileDialog::AnyFile);
+        dialog.setViewMode(QFileDialog::Detail);
+        dialog.setAcceptMode(QFileDialog::AcceptSave);
+        if(dialog.exec()) {
+            QString saveName = dialog.selectedFiles().at(0);
+            if(saveName.isEmpty()) {
+                return;
+            }
+            m_logger = new MergedUniverseLogger();
+            m_logger->start(saveName, m_listener);
+            setUiForLoggingState(LOGGING);
+        }
 
-        m_logger = new MergedUniverseLogger();
-        m_logger->start(saveName, m_listener);
-        setUiForLoggingState(LOGGING);
     }
     else
     {
