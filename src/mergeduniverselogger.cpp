@@ -5,6 +5,7 @@
 MergedUniverseLogger::MergedUniverseLogger() :
     m_file(nullptr), QObject(nullptr)
 {
+    //reserve a bit more than max length for sACNView1 format - see levelsChanged()
     m_stringBuffer.reserve(3000);
 }
 
@@ -19,14 +20,21 @@ void MergedUniverseLogger::start(QString fileName, sACNListener *listener)
 
 void MergedUniverseLogger::stop()
 {
-    disconnect(m_listener);
-
-    m_file->close();
+    disconnect(m_listener, 0, this, 0);
+    closeFile();
 }
 
 void MergedUniverseLogger::levelsChanged()
 {
-    //MM/DD/YYYY HH:mm:SS AP,0.0000,0x512
+    //Must have valid stream and listener set up via start()
+    //Also possible that this is getting called as we're wrapping up in stop()
+    if(!m_stream || !m_listener) {
+        return;
+    }
+
+    //Following sACNView1 format
+    //MM/DD/YYYY HH:mm:SS AP,0.0000,[0,]x512
+
     //log levels to file
     auto levels = m_listener->mergedLevels();
     m_stringBuffer.clear();
@@ -51,6 +59,9 @@ void MergedUniverseLogger::setUpFile(QString fileName)
 
 void MergedUniverseLogger::closeFile()
 {
+    //finish out
+    m_stream->flush();
+
     if(m_file->isOpen()) {
         m_file->close();
     }
