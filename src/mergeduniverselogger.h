@@ -33,6 +33,7 @@ class MergedUniverseLogger : public QObject
 
 public:
     MergedUniverseLogger();
+    ~MergedUniverseLogger();
 
 public slots:
     void start(QString fileName, sACNListener *listener);
@@ -42,6 +43,9 @@ private slots:
     void levelsChanged();
 
 private:
+    MergedUniverseLogger(MergedUniverseLogger & other) = delete;
+    MergedUniverseLogger & operator=(MergedUniverseLogger & other) = delete;
+
     void setUpFile(QString fileName);
     void closeFile();
 

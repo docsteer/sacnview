@@ -9,6 +9,12 @@ MergedUniverseLogger::MergedUniverseLogger() :
     m_stringBuffer.reserve(3000);
 }
 
+MergedUniverseLogger::~MergedUniverseLogger()
+{
+    //listener memory is dealt with externally
+    closeFile();
+}
+
 void MergedUniverseLogger::start(QString fileName, sACNListener *listener)
 {
     m_elapsedTimer.start();
