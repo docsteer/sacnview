@@ -175,7 +175,7 @@
      </widget>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -486,10 +486,17 @@ color: rgb(255, 85, 0);</string>
               </widget>
              </item>
              <item>
-              <widget class="QDial" name="dial"/>
+              <widget class="QDial" name="dlFadeRate">
+               <property name="wrapping">
+                <bool>false</bool>
+               </property>
+               <property name="notchesVisible">
+                <bool>true</bool>
+               </property>
+              </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_8">
+              <widget class="QLabel" name="lblFadeSpeed">
                <property name="text">
                 <string>Speed - 1Hz</string>
                </property>

@@ -104,5 +104,17 @@ static const unsigned char PTOHT[] =
     0xff
 };
 
+
+// Fade rates for the fade fx
+static const QList<qreal> FX_FADE_RATES({
+                                         0.5,
+                                         1,
+                                         2,
+                                         5,
+                                         10,
+                                         100,
+                                         500
+                                     });
+
 #endif // CONSTS_H
 

@@ -15,11 +15,13 @@
 
 #include "transmitwindow.h"
 #include "ui_transmitwindow.h"
+
 #include "consts.h"
 #include "sacn/ACNShare/deftypes.h"
 #include "sacn/ACNShare/ipaddr.h"
 #include "sacn/streamcommon.h"
 #include "sacn/sacnsender.h"
+#include "sacn/sacneffectengine.h"
 #include "configureperchanpriodlg.h"
 #include <QToolButton>
 
@@ -28,6 +30,9 @@ transmitwindow::transmitwindow(QWidget *parent) :
     ui(new Ui::transmitwindow), m_sender(0)
 {
     ui->setupUi(this);
+
+    m_fxEngine = NULL;
+
     memset(m_levels, 0, sizeof(m_levels));
     on_cbPriorityMode_currentIndexChanged(ui->cbPriorityMode->currentIndex());
 
@@ -39,6 +44,10 @@ transmitwindow::transmitwindow(QWidget *parent) :
     ui->sbPriority->setValue(DEFAULT_SACN_PRIORITY);
 
     ui->leSourceName->setText(DEFAULT_SOURCE_NAME);
+
+    ui->dlFadeRate->setMinimum(0);
+    ui->dlFadeRate->setMaximum(FX_FADE_RATES.count()-1);
+    ui->dlFadeRate->setValue(0);
 
     // Create preset buttons
     QHBoxLayout *layout = new QHBoxLayout();
@@ -190,6 +199,9 @@ void transmitwindow::on_btnStart_pressed()
     if(m_sender->isSending())
     {
         m_sender->stopSending();
+        if(m_fxEngine)
+            m_fxEngine->deleteLater();
+        m_fxEngine = NULL;
         setUniverseOptsEnabled(true);
     }
     else
@@ -204,8 +216,9 @@ void transmitwindow::on_btnStart_pressed()
         setUniverseOptsEnabled(false);
         for(unsigned int i=0; i<sizeof(m_levels); i++)
             m_sender->setLevel(i, m_levels[i]);
+        m_fxEngine = new sACNEffectEngine();
+        m_fxEngine->setSender(m_sender);
     }
-
 }
 
 void transmitwindow::on_btnEditPerChan_pressed()
@@ -310,22 +323,36 @@ void transmitwindow::doBlink()
 
 void transmitwindow::on_tabWidget_currentChanged(int index)
 {
+    // Don't do anything if we aren't actively sending
+    if(!m_sender)
+        return;
+
     if(index==tabChannelCheck)
     {
-        if(m_sender)
-        {
-            int value = ui->lcdNumber->value() - 1;
-            m_sender->setLevel(0, MAX_DMX_ADDRESS-1, 0);
-            m_sender->setLevel(value, ui->slChannelCheck->value());
-        }
+        int value = ui->lcdNumber->value() - 1;
+        m_sender->setLevel(0, MAX_DMX_ADDRESS-1, 0);
+        m_sender->setLevel(value, ui->slChannelCheck->value());
     }
 
     if(index==tabSliders)
     {
-        if(m_sender)
-        {
-            m_sender->setLevel(0, MAX_DMX_ADDRESS-1, 0);
-        }
+        m_sender->setLevel(0, MAX_DMX_ADDRESS-1, 0);
+    }
+
+    if(index==tabFadeRange)
+    {
+        QMetaObject::invokeMethod(
+                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxFadeRamp));
+        QMetaObject::invokeMethod(
+                    m_fxEngine,"start");
+    }
+
+    if(index==tabChase)
+    {
+        QMetaObject::invokeMethod(
+                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxChase));
+        QMetaObject::invokeMethod(
+                    m_fxEngine,"start");
     }
 }
 
@@ -346,4 +373,13 @@ void transmitwindow::keyPressEvent(QKeyEvent *event)
         break;
     }
     QWidget::keyPressEvent(event);
+}
+
+void transmitwindow::on_dlFadeRate_valueChanged(int value)
+{
+    qreal rate = FX_FADE_RATES[value];
+    ui->lblFadeSpeed->setText(tr("Fade Rate %1 Hz").arg(rate));
+
+    if(m_fxEngine)
+        m_fxEngine->setRate(rate);
 }

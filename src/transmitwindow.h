@@ -24,6 +24,7 @@
 #include "consts.h"
 
 class sACNSentUniverse;
+class sACNEffectEngine;
 
 namespace Ui {
 class transmitwindow;
@@ -50,6 +51,7 @@ protected slots:
     void on_tabWidget_currentChanged(int index);
     void on_slChannelCheck_valueChanged(int value);
     void on_btnCcBlink_pressed();
+    void on_dlFadeRate_valueChanged(int value);
     void doBlink();
 protected:
     virtual void keyPressEvent(QKeyEvent *event);
@@ -74,6 +76,7 @@ private:
     uint1 m_levels[MAX_DMX_ADDRESS];
     QTimer *m_blinkTimer;
     bool m_blink;
+    sACNEffectEngine *m_fxEngine;
 };
 
 #endif // TRANSMITWINDOW_H

@@ -76,10 +76,6 @@ void sACNSentUniverse::stopSending()
     }
 }
 
-void sACNSentUniverse::setFxMode(sACNUniverseEffect mode)
-{
-}
-
 void sACNSentUniverse::setLevel(uint2 address, uint1 value)
 {
     Q_ASSERT(address<512);
@@ -94,11 +90,6 @@ void sACNSentUniverse::setLevel(uint2 start, uint2 end, uint1 value)
     Q_ASSERT(start<end);
     memset(m_slotData + start, value, end-start);
     CStreamServer::getInstance()->SetUniverseDirty(m_handle);
-}
-
-void sACNSentUniverse::setFxSpeed(int speed)
-{
-
 }
 
 void sACNSentUniverse::setName(const QString &name)
