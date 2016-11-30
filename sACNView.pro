@@ -50,7 +50,8 @@ SOURCES += src/main.cpp\
     src/priorityeditwidget.cpp \
     src/scopewidget.cpp \
     src/aboutdialog.cpp \
-    src/sacn/sacneffectengine.cpp
+    src/sacn/sacneffectengine.cpp \
+    src/mergeduniverselogger.cpp
 	
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -76,7 +77,8 @@ HEADERS  += src/mdimainwindow.h \
     src/priorityeditwidget.h \
     src/scopewidget.h \
     src/aboutdialog.h \
-    src/sacn/sacneffectengine.h
+    src/sacn/sacneffectengine.h \
+    src/mergeduniverselogger.h
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
