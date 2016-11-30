@@ -36,7 +36,8 @@ SOURCES += src/main.cpp\
     src/gridwidget.cpp \
     src/priorityeditwidget.cpp \
     src/scopewidget.cpp \
-    src/aboutdialog.cpp
+    src/aboutdialog.cpp \
+    src/mergeduniverselogger.cpp
 	
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -61,7 +62,8 @@ HEADERS  += src/mdimainwindow.h \
     src/gridwidget.h \
     src/priorityeditwidget.h \
     src/scopewidget.h \
-    src/aboutdialog.h
+    src/aboutdialog.h \
+    src/mergeduniverselogger.h
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \

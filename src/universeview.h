@@ -23,6 +23,8 @@
 
 #include <QWidget>
 
+#include "mergeduniverselogger.h"
+
 class sACNListener;
 
 namespace Ui {
@@ -42,6 +44,7 @@ public:
 protected slots:
     void on_btnGo_pressed();
     void on_btnPause_pressed();
+    void on_btnLogToFile_pressed();
     void sourceOnline(sACNSource *source);
     void sourceOffline(sACNSource *source);
     void sourceChanged(sACNSource *source);
@@ -67,10 +70,19 @@ private:
     COL_END
     };
 
+    enum LOG_STATE
+    {
+        NOT_LOGGING = 0,
+        LOGGING
+    };
+
+    void setUiForLoggingState(LOG_STATE state);
+
     Ui::UniverseView *ui;
     QHash<sACNSource *, int> m_sourceToTableRow;
     int m_selectedAddress;
     sACNListener *m_listener;
+    MergedUniverseLogger *m_logger;
 };
 
 #endif // UNIVERSEVIEW_H
