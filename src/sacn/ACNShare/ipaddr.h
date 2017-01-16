@@ -57,6 +57,7 @@ public:
 	CIPAddr(netintid id, IPPort port, IPv4 addr);  //Construct from a port, v4 address, and interface
 	CIPAddr(netintid id, IPPort port, const uint1* addr);  //Construct from a port, v6 address, and interface
 	CIPAddr(const CIPAddr& addr);
+    CIPAddr(const QHostAddress &address); // Construct from a QHostAddress
 	virtual ~CIPAddr();
 
 	CIPAddr& operator=(const CIPAddr& addr);

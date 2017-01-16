@@ -3,7 +3,8 @@
 #include <QDateTime>
 
 MergedUniverseLogger::MergedUniverseLogger() :
-    m_file(nullptr), QObject(nullptr)
+    QObject(nullptr),
+    m_file(nullptr)
 {
     //reserve a bit more than max length for sACNView1 format - see levelsChanged()
     m_stringBuffer.reserve(3000);

@@ -54,6 +54,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 
             nicLayout->addWidget(radio);
             m_interfaceList << interface;
+            m_interfaceButtons << radio;
         }
     }
     ui->gbNetworkInterface->setLayout(nicLayout);
@@ -109,4 +110,12 @@ void PreferencesDialog::on_buttonBox_accepted()
     if(!ui->gbTransmitTimeout->isChecked())
         seconds = 0;
     p->SetNumSecondsOfSacn(seconds);
+
+    for(int i=0; i<m_interfaceButtons.count(); i++)
+    {
+        if(m_interfaceButtons[i]->isChecked())
+        {
+            p->setNetworkInterface(m_interfaceList[i]);
+        }
+    }
 }

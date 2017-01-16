@@ -1,4 +1,4 @@
-// Copyright 2016 Tom Barthel-Steer
+﻿// Copyright 2016 Tom Barthel-Steer
 // http://www.tomsteer.net
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,11 +20,12 @@
 
 sACNEffectEngine::sACNEffectEngine() : QObject(NULL)
 {
+    qRegisterMetaType<sACNEffectEngine::FxMode>("sACNEffectEngine::FxMode");
     m_sender = NULL;
     m_start = 0;
     m_end = 511;
     m_dateStyle = dsEU;
-    m_mode = FxFadeRamp;
+    m_mode = FxRamp;
 
     m_timer = new QTimer(this);
     m_timer->setInterval(1000);
@@ -35,30 +36,40 @@ sACNEffectEngine::sACNEffectEngine() : QObject(NULL)
     m_thread->start();
 }
 
-void sACNEffectEngine::setSender(sACNSentUniverse *sender)
+sACNEffectEngine::~sACNEffectEngine()
 {
-    if(m_sender)
-        disconnect(m_sender, 0, this, 0);
-
-    m_sender = sender;
-    connect(this, SIGNAL(setLevel(uint2,uint1)), sender, SLOT(setLevel(uint2, uint1)));
-    connect(this, SIGNAL(setLevel(uint2,uint2,uint1)), sender, SLOT(setLevel(uint2,uint2,uint1)));
-
+    m_thread->deleteLater();
+    m_thread->wait();
 }
 
-void sACNEffectEngine::setMode(FxMode mode)
+void sACNEffectEngine::setSender(sACNSentUniverse *sender)
 {
+    m_sender = sender;
+}
+
+void sACNEffectEngine::setMode(sACNEffectEngine::FxMode mode)
+{
+    Q_ASSERT(QThread::currentThread()==this->thread());
     m_mode = mode;
 }
 
 void sACNEffectEngine::start()
 {
-    m_timer->start();
+    // Make this method thread-safe
+    if(QThread::currentThread()!=this->thread())
+        QMetaObject::invokeMethod(
+                    this,"start");
+    else
+        m_timer->start();
 }
 
 void sACNEffectEngine::pause()
 {
-    m_timer->stop();
+    if(QThread::currentThread()!=this->thread())
+        QMetaObject::invokeMethod(
+                    this,"pause");
+    else
+        m_timer->stop();
 }
 
 void sACNEffectEngine::clear()
@@ -66,31 +77,76 @@ void sACNEffectEngine::clear()
 
 }
 
-void sACNEffectEngine::setStartAddress(uint2 start)
+void sACNEffectEngine::setStartAddress(quint16 start)
 {
-    m_start = start;
+    // Make this method thread-safe
+    if(QThread::currentThread()!=this->thread())
+        QMetaObject::invokeMethod(
+                    this,"setStartAddress", Q_ARG(quint16, start));
+    else
+    {
+        // Set unused values to 0
+        if(start > m_start)
+        {
+            QMetaObject::invokeMethod(m_sender, "setLevel", Q_ARG(quint16, 0),
+                                      Q_ARG(quint16, start),
+                                      Q_ARG(quint8, 0));
+        }
+        m_start = start;
+        if(m_start > m_end)
+            m_end = m_start;
+    }
 }
 
-void sACNEffectEngine::setEndAddress(uint2 end)
+void sACNEffectEngine::setEndAddress(quint16 end)
 {
-    m_end = end;
+    // Make this method thread-safe
+    if(QThread::currentThread()!=this->thread())
+        QMetaObject::invokeMethod(
+                    this,"setEndAddress", Q_ARG(quint16, end));
+    else
+    {
+        // Set unused values to 0
+        if(end < m_end)
+        {
+            QMetaObject::invokeMethod(m_sender, "setLevel", Q_ARG(quint16, end),
+                                      Q_ARG(quint16, MAX_DMX_ADDRESS-1),
+                                      Q_ARG(quint8, 0));
+        }
+        m_end = end;
+        if(m_end < m_start)
+            m_start = m_end;
+    }
 }
 
 void sACNEffectEngine::setText(QString text)
 {
+    // Make this method thread-safe
+    if(QThread::currentThread()!=this->thread())
+        QMetaObject::invokeMethod(
+            this,"setText", Q_ARG(QString, text));
+    else
     m_text = text;
 
 }
 
 void sACNEffectEngine::setDateStyle(DateStyle style)
 {
+    Q_ASSERT(QThread::currentThread()==this->thread());
     m_dateStyle = style;
 }
 
 void sACNEffectEngine::setRate(qreal hz)
 {
-    int msTime = 1000 / hz;
-    m_timer->setInterval(msTime);
+    // Make this method thread-safe
+    if(QThread::currentThread()!=this->thread())
+            QMetaObject::invokeMethod(
+                        this,"setRate", Q_ARG(qreal, hz));
+    else
+    {
+        int msTime = 1000 / hz;
+        m_timer->setInterval(msTime);
+    }
 }
 
 void sACNEffectEngine::timerTick()
@@ -99,17 +155,22 @@ void sACNEffectEngine::timerTick()
 
     switch(m_mode)
     {
-    case FxFadeRamp:
-        if(m_index > m_end)
-            m_index = m_start;
+    case FxRamp:
         m_data++;
-        emit setLevel(m_start, m_end, m_data);
+        QMetaObject::invokeMethod(m_sender, "setLevel", Q_ARG(quint16, m_start),
+                                  Q_ARG(quint16, m_end),
+                                  Q_ARG(quint8, m_data));
+        emit fxLevelChange(m_data);
         break;
-    case FxFadeSinewave:
-        if(m_index > m_end)
-            m_index = m_start;
+    case FxSinewave:
+        if(m_index >= sizeof(sinetable))
+            m_index = 0;
         m_data = sinetable[m_index];
-        emit setLevel(m_start, m_end, m_data);
+        QMetaObject::invokeMethod(m_sender, "setLevel", Q_ARG(quint16, m_start),
+                                  Q_ARG(quint16, m_end),
+                                  Q_ARG(quint8, m_data));
+        emit fxLevelChange(m_data);
+        break;
     case FxChase:
         if(m_index > m_end)
             m_index = m_start;
@@ -117,8 +178,21 @@ void sACNEffectEngine::timerTick()
         if(m_index>m_start)
             emit setLevel(m_index-1, m_index-1, 0);
         break;
+
+    case FxManual:
+        QMetaObject::invokeMethod(m_sender, "setLevel", Q_ARG(quint16, m_start),
+                                  Q_ARG(quint16, m_end),
+                                  Q_ARG(quint8, m_manualLevel));
+        break;
     case FxText:
     case FxDate:
         break;
     }
+}
+
+
+
+void sACNEffectEngine::setManualLevel(int level)
+{
+    m_manualLevel = level;
 }

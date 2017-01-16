@@ -25,8 +25,9 @@ class sACNEffectEngine : public QObject
     Q_OBJECT
 public:
     enum FxMode {
-        FxFadeRamp,
-        FxFadeSinewave,
+        FxManual,
+        FxRamp,
+        FxSinewave,
         FxChase,
         FxText,
         FxDate
@@ -38,27 +39,29 @@ public:
     };
 
     explicit sACNEffectEngine();
-
+    virtual ~sACNEffectEngine();
     void setSender(sACNSentUniverse *sender);
 signals:
     void setLevel(uint2 address, uint1 value);
     void setLevel(uint2 start, uint2 end, uint1 value);
-
+    void fxLevelChange(int level);
 public slots:
-    void setMode(FxMode mode);
+    void setMode(sACNEffectEngine::FxMode mode);
 
     void start();
     void pause();
     void clear();
 
-    void setStartAddress(uint2 start);
-    void setEndAddress(uint2 end);
+    void setStartAddress(quint16 start);
+    void setEndAddress(quint16 end);
 
     void setText(QString text);
 
     void setDateStyle(DateStyle style);
 
     void setRate(qreal hz);
+
+    void setManualLevel(int level);
 private slots:
     void timerTick();
 
@@ -74,6 +77,9 @@ private:
     uint2 m_end;
     uint2 m_index;
     uint1 m_data;
+    uint1 m_manualLevel;
 };
+
+Q_DECLARE_METATYPE(sACNEffectEngine::FxMode)
 
 #endif // SACNEFFECTENGINE_H

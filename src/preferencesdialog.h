@@ -19,6 +19,8 @@
 #include <QDialog>
 #include <QNetworkInterface>
 
+class QRadioButton;
+
 
 namespace Ui {
 class PreferencesDialog;
@@ -38,6 +40,7 @@ private slots:
 private:
     Ui::PreferencesDialog *ui;
     QList<QNetworkInterface> m_interfaceList;
+    QList<QRadioButton*> m_interfaceButtons;
 
 };
 

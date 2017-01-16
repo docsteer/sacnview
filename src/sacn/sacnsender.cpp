@@ -18,7 +18,7 @@
 #include <set>
 
 #include "deftypes.h"
-#include "cid.h"
+#include "CID.h"
 #include "ipaddr.h"
 #include "tock.h"
 #include "streamcommon.h"
@@ -26,6 +26,9 @@
 #include <QUuid>
 #include <QThread>
 #include <QTimer>
+#include <QDebug>
+
+#include "preferences.h"
 
 sACNSentUniverse::sACNSentUniverse(int universe)
 {
@@ -49,7 +52,12 @@ void sACNSentUniverse::startSending()
     if(m_cid.isNull())
         m_cid = CID::CreateCid();
 
-    streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, 0, 0, m_universe, 512, m_slotData, m_handle);
+    if(m_unicastAddress.isNull())
+        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, 0, 0, m_universe, 512, m_slotData, m_handle );
+    else
+        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, 0, 0, m_universe,
+             512, m_slotData, m_handle, false, 850, CIPAddr(m_unicastAddress));
+
     streamServer->SetUniverseDirty(m_handle);
 
     if(m_priorityMode == pmPER_ADDRESS_PRIORITY)
@@ -76,19 +84,19 @@ void sACNSentUniverse::stopSending()
     }
 }
 
-void sACNSentUniverse::setLevel(uint2 address, uint1 value)
+void sACNSentUniverse::setLevel(quint16 address, quint8 value)
 {
     Q_ASSERT(address<512);
     m_slotData[address] =  value;
     CStreamServer::getInstance()->SetUniverseDirty(m_handle);
 }
 
-void sACNSentUniverse::setLevel(uint2 start, uint2 end, uint1 value)
+void sACNSentUniverse::setLevel(quint16 start, quint16 end, quint8 value)
 {
     Q_ASSERT(start<512);
     Q_ASSERT(end<512);
-    Q_ASSERT(start<end);
-    memset(m_slotData + start, value, end-start);
+    Q_ASSERT(start<=end);
+    memset(m_slotData + start, value, end-start+1);
     CStreamServer::getInstance()->SetUniverseDirty(m_handle);
 }
 
@@ -120,6 +128,21 @@ CStreamServer *CStreamServer::getInstance()
 CStreamServer::CStreamServer()
 {
     m_sendsock = new QUdpSocket();
+    QNetworkInterface iface = Preferences::getInstance()->networkInterface();
+    QHostAddress a;
+    for(int i=0; i<iface.allAddresses().count(); i++)
+    {
+        quint32 v4addr = iface.allAddresses()[i].toIPv4Address();
+        if(v4addr!=0)
+        {
+            a.setAddress(v4addr);
+        }
+    }
+    bool ok = m_sendsock->bind(a);
+    if(!ok)
+        qDebug() << "Failed to bind RX socket";
+    m_sendsock->setSocketOption(QAbstractSocket::MulticastLoopbackOption, QVariant(1));
+    m_sendsock->setMulticastInterface(iface);
     m_thread = new QThread();
     m_tickTimer = new QTimer(this);
     m_tickTimer->setInterval(10);
@@ -236,7 +259,7 @@ void CStreamServer::Tick()
 //Data on this universe will not be initially sent until marked dirty.
 bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_name, uint1 priority, uint2 reserved, uint1 options, uint1 start_code,
                                      uint2 universe, uint2 slot_count, uint1*& pslots, uint& handle,
-                                        bool ignore_inactivity_logic, uint send_intervalms)
+                                        bool ignore_inactivity_logic, uint send_intervalms, CIPAddr unicastAddress)
 {
     QMutexLocker locker(&m_writeMutex);
     if(universe == 0)
@@ -282,6 +305,12 @@ bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_nam
 
     CIPAddr addr;
     GetUniverseAddress(universe, addr);
+
+    if(unicastAddress != CIPAddr())
+    {
+        addr = unicastAddress;
+    }
+
     m_multiverse[handle].sendaddr = addr.ToQHostAddress();
 
     InitStreamHeader(pbuf, source_cid, source_name, priority, reserved, options, start_code, universe, slot_count);

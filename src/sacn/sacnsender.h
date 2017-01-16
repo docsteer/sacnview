@@ -42,14 +42,14 @@ public slots:
      * @param address - the address to set, 0-based (0-511)
      * @param value - the value to set (0-255)
      */
-    void setLevel(uint2 address, uint1 value);
+    void setLevel(quint16 address, quint8 value);
     /**
      * @brief setLevel sets a level range
      * @param start - start address, 0-based (0-511)
      * @param end - end address, 0-based (0-511)
      * @param value - level to set (0-255)
      */
-    void setLevel(uint2 start, uint2 end, uint1 value);
+    void setLevel(quint16 start, quint16 end, quint8 value);
     /**
      * @brief setName sets the universe name
      * @param name the name to set
@@ -74,6 +74,12 @@ public slots:
      */
     void stopSending();
     bool isSending() const { return m_isSending;};
+    /**
+     * @brief setUnicastAddress - sets the address to unicast data to
+     * @param Address - a QHostAddress, default QHostAddress means multicast
+     */
+    void setUnicastAddress(const QHostAddress &address) { m_unicastAddress = address;};
+
 private:
     bool m_isSending;
     // The handle for the CStreamServer universe
@@ -96,6 +102,8 @@ private:
     PriorityMode m_priorityMode;
     // Per-channel priorities
     uint1 m_perChannelPriorities[MAX_DMX_ADDRESS];
+    // Unicast
+    QHostAddress m_unicastAddress;
 };
 
 
@@ -140,7 +148,7 @@ public:
                        uint2 reserved, uint1 options, uint1 start_code,
                               uint2 universe, uint2 slot_count, uint1*& pslots, uint& handle,
                               bool ignore_inactivity_logic = IGNORE_INACTIVE_DMX,
-                              uint send_intervalms = SEND_INTERVAL_DMX);
+                              uint send_intervalms = SEND_INTERVAL_DMX, CIPAddr unicastAddress = CIPAddr());
 
   //After you add data to the data buffer, call this to trigger the data send
   //on the next Tick boundary.
@@ -244,17 +252,5 @@ private:
    QMutex m_writeMutex;
 };
 
-
-class sACNSender
-{
-public:
-    static sACNSender getInstance();
-
-    sACNSentUniverse *createUniverse(uint2 universe);
-
-private:
-    static sACNSender *m_instance;
-    sACNSender();
-};
 
 #endif // SACNSENDER_H

@@ -27,6 +27,7 @@
 #define nNumOfMinPerHour 60
 
 #define MAX_SACN_UNIVERSE 63999
+#define MIN_DMX_ADDRESS 1
 #define MAX_DMX_ADDRESS 512
 #define PRESET_COUNT 8
 
