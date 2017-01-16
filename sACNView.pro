@@ -78,7 +78,8 @@ HEADERS  += src/mdimainwindow.h \
     src/scopewidget.h \
     src/aboutdialog.h \
     src/sacn/sacneffectengine.h \
-    src/mergeduniverselogger.h
+    src/mergeduniverselogger.h \
+    src/vincent.h
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \

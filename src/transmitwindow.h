@@ -61,6 +61,7 @@ protected slots:
     void on_slFadeLevel_valueChanged(int value);
     void on_btnFxPause_pressed();
     void on_btnFxStart_pressed();
+    void on_leScrollText_textChanged(const QString & text);
 protected:
     virtual void keyPressEvent(QKeyEvent *event);
 private:
@@ -69,7 +70,6 @@ private:
         tabSliders,
         tabChannelCheck,
         tabFadeRange,
-        tabChase,
         tabText,
         tabDate
     };

@@ -17,15 +17,18 @@
 
 #include <QTimer>
 #include <QThread>
+#include <QPainter>
+#include "vincent.h"
 
 sACNEffectEngine::sACNEffectEngine() : QObject(NULL)
 {
     qRegisterMetaType<sACNEffectEngine::FxMode>("sACNEffectEngine::FxMode");
     m_sender = NULL;
     m_start = 0;
-    m_end = 511;
+    m_end = 0;
     m_dateStyle = dsEU;
     m_mode = FxRamp;
+    m_renderedImage = QImage(32, 16, QImage::Format_Grayscale8);
 
     m_timer = new QTimer(this);
     m_timer->setInterval(1000);
@@ -126,7 +129,15 @@ void sACNEffectEngine::setText(QString text)
         QMetaObject::invokeMethod(
             this,"setText", Q_ARG(QString, text));
     else
-    m_text = text;
+    {
+        m_text = text;
+        for(int i=0; i<text.length(); i++)
+        {
+            QChar c = text[i];
+            char character = c.toLatin1();
+            char *fontPtr = vincent_data[character];
+        }
+    }
 
 }
 
@@ -185,6 +196,8 @@ void sACNEffectEngine::timerTick()
                                   Q_ARG(quint8, m_manualLevel));
         break;
     case FxText:
+
+        break;
     case FxDate:
         break;
     }

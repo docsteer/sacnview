@@ -439,11 +439,10 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
         QMetaObject::invokeMethod(
                     m_fxEngine,"start");
     }
-
-    if(index==tabChase)
+    if(index==tabText)
     {
         QMetaObject::invokeMethod(
-                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxChase));
+                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxText));
         QMetaObject::invokeMethod(
                     m_fxEngine,"start");
     }
@@ -527,4 +526,9 @@ void transmitwindow::on_radioFadeMode_toggled(bool checked)
         QMetaObject::invokeMethod(
                     m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxSinewave));
     }
+}
+
+void transmitwindow::on_leScrollText_textChanged(const QString & text)
+{
+    m_fxEngine->setText(text);
 }

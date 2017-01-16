@@ -51,6 +51,11 @@ public slots:
      */
     void setLevel(quint16 start, quint16 end, quint8 value);
     /**
+     * @brief setLevel sets a level range
+     * @param data - pointer to a data array
+     */
+    void setLevel(const quint8 *data, int len);
+    /**
      * @brief setName sets the universe name
      * @param name the name to set
      */

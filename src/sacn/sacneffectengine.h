@@ -17,6 +17,7 @@
 #define SACNEFFECTENGINE_H
 
 #include <QObject>
+#include <QImage>
 #include "sacnsender.h"
 #include "sacn/ACNShare/deftypes.h"
 
@@ -78,6 +79,7 @@ private:
     uint2 m_index;
     uint1 m_data;
     uint1 m_manualLevel;
+    QImage m_renderedImage;
 };
 
 Q_DECLARE_METATYPE(sACNEffectEngine::FxMode)

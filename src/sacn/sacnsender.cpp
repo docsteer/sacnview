@@ -100,6 +100,12 @@ void sACNSentUniverse::setLevel(quint16 start, quint16 end, quint8 value)
     CStreamServer::getInstance()->SetUniverseDirty(m_handle);
 }
 
+void sACNSentUniverse::setLevel(const quint8 *data, int len)
+{
+    memcpy(m_slotData, data, len);
+    CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+}
+
 void sACNSentUniverse::setName(const QString &name)
 {
     m_name = name;
