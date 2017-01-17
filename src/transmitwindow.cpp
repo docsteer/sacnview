@@ -137,9 +137,9 @@ transmitwindow::transmitwindow(QWidget *parent) :
     QTimer::singleShot(30, Qt::CoarseTimer, this, SLOT(fixSize()));
 
     // Set up effect combo boxes
-    connect(ui->rbFadeManual, SIGNAL(toggled(bool)), this, SLOT(on_radioFadeMode_toggled(bool)));
-    connect(ui->rbFadeRamp, SIGNAL(toggled(bool)), this, SLOT(on_radioFadeMode_toggled(bool)));
-    connect(ui->rbFadeSine, SIGNAL(toggled(bool)), this, SLOT(on_radioFadeMode_toggled(bool)));
+    connect(ui->rbFadeManual, SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
+    connect(ui->rbFadeRamp, SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
+    connect(ui->rbFadeSine, SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
 
     setUniverseOptsEnabled(true);
 }
@@ -507,7 +507,7 @@ void transmitwindow::on_sbFadeRangeEnd_editingFinished()
     }
 }
 
-void transmitwindow::on_radioFadeMode_toggled(bool checked)
+void transmitwindow::radioFadeMode_toggled(bool checked)
 {
     Q_UNUSED(checked);
 

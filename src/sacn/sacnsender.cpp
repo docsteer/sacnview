@@ -136,7 +136,7 @@ CStreamServer::CStreamServer()
     m_sendsock = new QUdpSocket();
     QNetworkInterface iface = Preferences::getInstance()->networkInterface();
     QHostAddress a;
-    for(int i=0; i<iface.allAddresses().count(); i++)
+    for(int i=0; i<iface.addressEntries().count(); i++)
     {
         quint32 v4addr = iface.allAddresses()[i].toIPv4Address();
         if(v4addr!=0)
@@ -236,7 +236,11 @@ void CStreamServer::Tick()
             SetStreamHeaderSequence(it->psend, it->seq);
             it->seq++;
 
-            m_sendsock->writeDatagram( (char*)it->psend, it->sendsize, it->sendaddr, STREAM_IP_PORT);
+            quint64 result = m_sendsock->writeDatagram( (char*)it->psend, it->sendsize, it->sendaddr, STREAM_IP_PORT);
+            if(result!=it->sendsize)
+            {
+                qDebug() << "Error sending datagram : " << m_sendsock->errorString();
+            }
 
             if(GetStreamTerminated(it->psend))
             {

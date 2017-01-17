@@ -42,7 +42,6 @@ sACNEffectEngine::sACNEffectEngine() : QObject(NULL)
 sACNEffectEngine::~sACNEffectEngine()
 {
     m_thread->deleteLater();
-    m_thread->wait();
 }
 
 void sACNEffectEngine::setSender(sACNSentUniverse *sender)
@@ -135,7 +134,7 @@ void sACNEffectEngine::setText(QString text)
         {
             QChar c = text[i];
             char character = c.toLatin1();
-            char *fontPtr = vincent_data[character];
+            char *fontPtr = (char *)vincent_data[character];
         }
     }
 
