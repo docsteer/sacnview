@@ -16,43 +16,91 @@
 #include "universedisplay.h"
 #include "preferences.h"
 
+
+static const QColor flickerHigherColor  = QColor::fromRgb(0x8d, 0x32, 0xfd);
+static const QColor flickerLowerColor   = QColor::fromRgb(0x04, 0xfd, 0x44);
+static const QColor flickerChangedColor = QColor::fromRgb(0xfb, 0x09, 0x09);
+
 UniverseDisplay::UniverseDisplay(QWidget *parent) : GridWidget(parent)
 {
-    m_listener = 0;
     for(int i=0; i<512; i++)
         m_sources << sACNMergedAddress();
+    memset(m_flickerFinderLevels, 0, MAX_DMX_ADDRESS);
+    memset(m_flickerFinderHasChanged, 0, MAX_DMX_ADDRESS);
+    m_flickerFinder = false;
 }
 
 void UniverseDisplay::setUniverse(int universe)
 {
     m_listener = sACNManager::getInstance()->getListener(universe);
-    connect(m_listener, SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
+    connect(m_listener.data(), SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
 }
 
 void UniverseDisplay::pause()
 {
     m_listener->disconnect(this);
-    m_listener = NULL;
 }
 
 void UniverseDisplay::levelsChanged()
 {
-    if(m_listener)
-    {
-        Preferences *p = Preferences::getInstance();
-        m_sources = m_listener->mergedLevels();
-        for(int i=0; i<m_sources.count(); i++)
-        {
-            if(m_sources[i].winningSource)
-            {
-                setCellValue(i, p->GetFormattedValue(m_sources[i].level));
+    if(!m_listener)
+        return;
 
-                setCellColor(i, Preferences::getInstance()->colorForCID(m_sources[i].winningSource->src_cid));
+    Preferences *p = Preferences::getInstance();
+    m_sources = m_listener->mergedLevels();
+    for(int i=0; i<m_sources.count(); i++)
+    {
+        if(m_sources[i].winningSource)
+        {
+            setCellValue(i, p->GetFormattedValue(m_sources[i].level));
+
+            if(m_flickerFinder)
+            {
+                if(m_sources[i].level > m_flickerFinderLevels[i])
+                {
+                    setCellColor(i, flickerHigherColor);
+                    m_flickerFinderHasChanged[i] = true;
+                }
+                else if( m_sources[i].level < m_flickerFinderLevels[i])
+                {
+                    setCellColor(i, flickerLowerColor);
+                    m_flickerFinderHasChanged[i] = true;
+                }
+                else if(m_flickerFinderHasChanged[i])
+                {
+                    setCellColor(i, flickerChangedColor);
+                }
+                else
+                {
+                    setCellColor(i, Qt::white);
+                }
             }
             else
-                setCellValue(i, QString());
+            {
+                setCellColor(i, Preferences::getInstance()->colorForCID(m_sources[i].winningSource->src_cid));
+            }
         }
-        update();
+        else
+            setCellValue(i, QString());
     }
+    update();
 }
 
+void UniverseDisplay::setFlickerFinder(bool on)
+{
+    m_flickerFinder = on;
+    if(on)
+    {
+        for(int i=0; i<MAX_DMX_ADDRESS; i++)
+        {
+            m_flickerFinderLevels[i] = m_listener->mergedLevels().at(i).level;
+            m_flickerFinderHasChanged[i] = false;
+            setCellColor(i, Qt::white);
+        }
+    }
+    else
+    {
+        levelsChanged();
+    }
+    update();
+}

@@ -13,7 +13,7 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 
-QT       += core gui network
+QT       += core gui network multimedia
 
 QMAKE_CXXFLAGS += -std=gnu++0x
 
@@ -26,7 +26,7 @@ INCLUDEPATH += src src/sacn src/sacn/ACNShare
 
 GIT_VERSION = $$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --always --tags)
 
-DEFINES += GIT_CURRENT_SHA1=\\\"$$GIT_VERSION\\\"
+DEFINES += QT_SHAREDPOINTER_TRACK_POINTERS=1 GIT_CURRENT_SHA1=\\\"$$GIT_VERSION\\\"
 
 SOURCES += src/main.cpp\
     src/mdimainwindow.cpp \
@@ -51,7 +51,10 @@ SOURCES += src/main.cpp\
     src/scopewidget.cpp \
     src/aboutdialog.cpp \
     src/sacn/sacneffectengine.cpp \
-    src/mergeduniverselogger.cpp
+    src/mergeduniverselogger.cpp \
+    src/sacn/sacnuniverselistmodel.cpp \
+    src/snapshot.cpp \
+    src/commandline.cpp
 	
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -79,7 +82,10 @@ HEADERS  += src/mdimainwindow.h \
     src/aboutdialog.h \
     src/sacn/sacneffectengine.h \
     src/mergeduniverselogger.h \
-    src/vincent.h
+    src/sacn/sacnuniverselistmodel.h \
+    src/snapshot.h \
+    src/commandline.h \
+    src/fontdata.h
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
@@ -88,7 +94,8 @@ FORMS    += ui/mdimainwindow.ui \
     ui/preferencesdialog.ui \
     ui/transmitwindow.ui \
     ui/configureperchanpriodlg.ui \
-    ui/aboutdialog.ui
+    ui/aboutdialog.ui \
+    ui/snapshot.ui
 
 RESOURCES += \
     res/resources.qrc

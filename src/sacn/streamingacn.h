@@ -33,7 +33,7 @@
 
 // Forward Declarations
 class sACNListener;
-class sACNTransmitter;
+class sACNSentUniverse;
 
 enum StreamingACNProtocolVersion
 {
@@ -86,19 +86,22 @@ public:
 
 
 // The sACNManager class is a singleton that manages the lifespan of sACNTransmitters and sACNListeners.
-class sACNManager
+class sACNManager : public QObject
 {
+    Q_OBJECT;
 public:
     static sACNManager *getInstance();
 
-    sACNListener *getListener(int universe);
+    QSharedPointer<sACNListener> getListener(int universe);
 
-    const QHash<int, sACNListener*> getListenerList() { return m_listenerHash;};
-
+    const QHash<int, QWeakPointer<sACNListener> > getListenerList() { return m_listenerHash;};
+private slots:
+    void listenerDeleted(QObject *obj = Q_NULLPTR);
 private:
     sACNManager();
-    QHash<int, sACNListener*> m_listenerHash;
+    QHash<int, QWeakPointer<sACNListener> > m_listenerHash;
     QHash<int, QThread *> m_listenerThreads;
+    QHash<QObject*, int> m_objToUniverse;
     static sACNManager *m_instance;
 };
 

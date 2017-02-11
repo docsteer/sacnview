@@ -36,7 +36,7 @@ public:
     ~MergedUniverseLogger();
 
 public slots:
-    void start(QString fileName, sACNListener *listener);
+    void start(QString fileName, QSharedPointer<sACNListener> listener);
     void stop();
 
 private slots:
@@ -53,7 +53,7 @@ private:
     QElapsedTimer m_elapsedTimer;
     QFile * m_file;
     QTextStream * m_stream;
-    sACNListener * m_listener;
+    QSharedPointer<sACNListener> m_listener;
 };
 
 #endif // MERGEDUNIVERSELOGGER_H

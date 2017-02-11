@@ -18,12 +18,22 @@
 #include <QTimer>
 #include <QThread>
 #include <QPainter>
-#include "vincent.h"
+#include <QFont>
+#include "fontdata.h"
+#include <QDateTime>
+
+void GetCharacterCoord(unsigned char ch, int *x, int *y)
+{
+    *y = ch / 32;
+    *x = ch % 32;
+}
 
 sACNEffectEngine::sACNEffectEngine() : QObject(NULL)
 {
     qRegisterMetaType<sACNEffectEngine::FxMode>("sACNEffectEngine::FxMode");
+    qRegisterMetaType<sACNEffectEngine::DateStyle>("sACNEffectEngine::DateStyle");
     m_sender = NULL;
+    m_image = NULL;
     m_start = 0;
     m_end = 0;
     m_dateStyle = dsEU;
@@ -90,7 +100,7 @@ void sACNEffectEngine::setStartAddress(quint16 start)
         // Set unused values to 0
         if(start > m_start)
         {
-            QMetaObject::invokeMethod(m_sender, "setLevel", Q_ARG(quint16, 0),
+            QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, 0),
                                       Q_ARG(quint16, start),
                                       Q_ARG(quint8, 0));
         }
@@ -111,7 +121,7 @@ void sACNEffectEngine::setEndAddress(quint16 end)
         // Set unused values to 0
         if(end < m_end)
         {
-            QMetaObject::invokeMethod(m_sender, "setLevel", Q_ARG(quint16, end),
+            QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, end),
                                       Q_ARG(quint16, MAX_DMX_ADDRESS-1),
                                       Q_ARG(quint8, 0));
         }
@@ -119,6 +129,81 @@ void sACNEffectEngine::setEndAddress(quint16 end)
         if(m_end < m_start)
             m_start = m_end;
     }
+}
+
+
+void sACNEffectEngine::renderText(QString text)
+{
+    if(m_image)
+        delete m_image;
+    m_imageWidth = 8 * text.length();
+    int img_size = 16 * m_imageWidth;
+    m_image = new uint1[img_size];
+
+    memset(m_image, 0, img_size);
+    renderText(text, 0, true);
+}
+
+
+void sACNEffectEngine::renderText(QString top, QString bottom)
+{
+    if(m_image)
+        delete m_image;
+    m_imageWidth = 32;
+    int img_size = 16 * m_imageWidth;
+    m_image = new uint1[img_size];
+    memset(m_image, 0, img_size);
+
+    renderText(top, 1, false);
+    renderText(bottom, 9, false);
+}
+
+void sACNEffectEngine::renderText(QString text, int yStart, bool big)
+{
+    Q_ASSERT(m_image);
+    int char_width = big ? 8 : 4;
+    int char_height = big  ? 8 : 5;
+
+    int width = char_width * text.length();
+    int height = 16;
+
+    int img_size = width * height;
+
+
+    for (int i = 0 ; i < text.length() ; i++)
+    {
+        char c = text.at(i).toLatin1();
+        unsigned char *character_font;
+        if(big)
+            character_font = vincent_data[c];
+        else
+            character_font = minifont_data[c];
+
+        int base_x = 0 + i * char_width;
+        int base_y = yStart;
+
+
+        for (int y = 0 ; y < char_height ; y++)
+        {
+            char character_scanline = character_font[y];
+            for (int x = 0 ; x < char_width ; x++)
+            {
+                int raw_pixel = (1 << (8 - 1 - x)) & character_scanline;
+                bool pixel = raw_pixel > 0 ? true : false;
+                int pixel_index = (base_x + x) + (base_y + y)*width;
+
+                if(pixel == true && pixel_index < img_size) {
+                    m_image[pixel_index] = 255;
+                }
+            }
+        }
+    }
+
+
+
+    m_renderedImage = QImage(m_image, width, height, QImage::Format_Grayscale8);
+
+    emit textImageChanged(QPixmap::fromImage(m_renderedImage.scaledToHeight(100)));
 }
 
 void sACNEffectEngine::setText(QString text)
@@ -130,17 +215,13 @@ void sACNEffectEngine::setText(QString text)
     else
     {
         m_text = text;
-        for(int i=0; i<text.length(); i++)
-        {
-            QChar c = text[i];
-            char character = c.toLatin1();
-            char *fontPtr = (char *)vincent_data[character];
-        }
+
+        renderText(text);
     }
 
 }
 
-void sACNEffectEngine::setDateStyle(DateStyle style)
+void sACNEffectEngine::setDateStyle(sACNEffectEngine::DateStyle style)
 {
     Q_ASSERT(QThread::currentThread()==this->thread());
     m_dateStyle = style;
@@ -162,12 +243,13 @@ void sACNEffectEngine::setRate(qreal hz)
 void sACNEffectEngine::timerTick()
 {
     m_index++;
+    char line[32];
 
     switch(m_mode)
     {
     case FxRamp:
         m_data++;
-        QMetaObject::invokeMethod(m_sender, "setLevel", Q_ARG(quint16, m_start),
+        QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, m_start),
                                   Q_ARG(quint16, m_end),
                                   Q_ARG(quint8, m_data));
         emit fxLevelChange(m_data);
@@ -176,7 +258,7 @@ void sACNEffectEngine::timerTick()
         if(m_index >= sizeof(sinetable))
             m_index = 0;
         m_data = sinetable[m_index];
-        QMetaObject::invokeMethod(m_sender, "setLevel", Q_ARG(quint16, m_start),
+        QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, m_start),
                                   Q_ARG(quint16, m_end),
                                   Q_ARG(quint8, m_data));
         emit fxLevelChange(m_data);
@@ -190,14 +272,42 @@ void sACNEffectEngine::timerTick()
         break;
 
     case FxManual:
-        QMetaObject::invokeMethod(m_sender, "setLevel", Q_ARG(quint16, m_start),
+        QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, m_start),
                                   Q_ARG(quint16, m_end),
                                   Q_ARG(quint8, m_manualLevel));
         break;
     case FxText:
+        if(m_image)
+        {
+            if(m_index > m_imageWidth) m_index=0;
 
+            for(int i=0; i<16; i++)
+            {
+                // Rolling window on to the image
+                quint8 *scanline = m_image + (i*m_imageWidth);
+                memset(line, 0, 32);
+                for(int j=0; j<32; j++)
+                {
+                    if(m_imageWidth>0) // Protect against empty text
+                        line[j] = scanline[(m_index + j) % m_imageWidth  ];
+                }
+
+                m_sender->setLevel((quint8*)&line, 32, i*32);
+            }
+        }
         break;
     case FxDate:
+        if(m_dateStyle==dsEU)
+            renderText(QDateTime::currentDateTime().toString("hh:mm:ss"),
+                   QDateTime::currentDateTime().toString("dd/MM/yy"));
+        else
+            renderText(QDateTime::currentDateTime().toString("hh:mm:ss"),
+                   QDateTime::currentDateTime().toString("MM/dd/yy"));
+        for(int i=0; i<16; i++)
+        {
+            quint8 *scanline = m_image + (i*32);
+            m_sender->setLevel(scanline, 32, i*32);
+        }
         break;
     }
 }

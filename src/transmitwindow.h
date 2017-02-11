@@ -20,6 +20,7 @@
 #include <QtGui>
 #include <QLabel>
 #include <QSlider>
+#include <QToolButton>
 #include "deftypes.h"
 #include "consts.h"
 
@@ -38,6 +39,7 @@ public:
     explicit transmitwindow(QWidget *parent = 0);
     ~transmitwindow();
     static const int BLINK_TIME = 1000;
+    static const int NUM_SLIDERS = 24;
 protected slots:
     void fixSize();
     void on_btnStart_pressed();
@@ -62,6 +64,10 @@ protected slots:
     void on_btnFxPause_pressed();
     void on_btnFxStart_pressed();
     void on_leScrollText_textChanged(const QString & text);
+    void presetButtonPressed();
+    void recordButtonPressed(bool on);
+    void setLevels(QSet<int> addresses, int level);
+    void dateMode_toggled(bool checked);
 protected:
     virtual void keyPressEvent(QKeyEvent *event);
 private:
@@ -69,9 +75,7 @@ private:
     {
         tabSliders,
         tabChannelCheck,
-        tabFadeRange,
-        tabText,
-        tabDate
+        tabEffects,
     };
 
     void setUniverseOptsEnabled(bool enabled);
@@ -79,6 +83,7 @@ private:
     Ui::transmitwindow *ui;
     QList<QSlider *> m_sliders;
     QList<QLabel *> m_sliderLabels;
+    QList<QToolButton *> m_presetButtons;
     sACNSentUniverse *m_sender;
     uint1 m_perAddressPriorities[MAX_DMX_ADDRESS];
     uint1 m_levels[MAX_DMX_ADDRESS];
@@ -86,6 +91,9 @@ private:
     bool m_blink;
     sACNEffectEngine *m_fxEngine;
     QColor m_buttonBgColor;
+    bool m_recordMode;
+
+    quint8 m_presetData[PRESET_COUNT][MAX_DMX_ADDRESS];
 };
 
 #endif // TRANSMITWINDOW_H

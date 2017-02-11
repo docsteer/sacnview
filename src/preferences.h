@@ -72,6 +72,7 @@ public:
     void SetNumSecondsOfSacn (int nNumSecondsOfSacn);
 
     unsigned int GetDisplayFormat();
+    unsigned int GetMaxLevel();
     bool GetBlindVisualizer();
     unsigned int GetNumSecondsOfSacn();
 

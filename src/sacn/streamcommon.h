@@ -146,14 +146,13 @@ void InitStreamHeader(uint1* pbuf, const CID &source_cid,
  * This function is included to support legacy code from before 
  * ratification of the standard.
  */
-void InitStreamHeaderForDraft(uint1* pbuf, const CID &source_cid, 
-			      const char* source_name, uint1 priority, 
-			      uint1 start_code, uint2 universe, 
-			      uint2 slot_count);
+void InitStreamHeaderForDraft(uint1* pbuf, const CID &source_cid,
+                              const char* source_name, uint1 priority, uint2 reserved,
+                              uint1 options, uint1 start_code, uint2 universe,
+                              uint2 slot_count);
 
 /* Given an initialized buffer, change the sequence number to... */
-void SetStreamHeaderSequence(uint1* pbuf, uint1 seq);
-void SetStreamHeaderSequenceForDraft(uint1* pbuf, uint1 seq);
+void SetStreamHeaderSequence(uint1* pbuf, uint1 seq, bool draft);
 
 /*
  * Given a buffer, validate that the stream header is correct.  If this returns

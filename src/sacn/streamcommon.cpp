@@ -159,7 +159,7 @@ void InitStreamHeader(uint1* pbuf, const CID &source_cid,
  */
 void InitStreamHeaderForDraft(uint1* pbuf, const CID &source_cid, 
 			      const char* source_name, uint1 priority, 
-			      uint2 /*reserved*/, uint1 /*options*/, uint1 start_code, 
+                  uint2 /*reserved*/, uint1 /*options*/, uint1 start_code,
 			      uint2 universe, uint2 slot_count) 
 {
   if(!pbuf)
@@ -252,22 +252,19 @@ void InitStreamHeaderForDraft(uint1* pbuf, const CID &source_cid,
 
 /* 
  * Given an initialized buffer, change the sequence number to... 
- */
-void SetStreamHeaderSequenceForDraft(uint1* pbuf, uint1 seq)
-{
-  if(pbuf)
-    PackB1(pbuf + DRAFT_SEQ_NUM_ADDR, seq);
-}
-
-/* 
- * Given an initialized buffer, change the sequence number to... 
  * This function is included to support legacy code from before 
  * ratification of the standard.
  */
-void SetStreamHeaderSequence(uint1* pbuf, uint1 seq)
+void SetStreamHeaderSequence(uint1* pbuf, uint1 seq, bool draft)
 {
-  if(pbuf)
-    PackB1(pbuf + SEQ_NUM_ADDR, seq);
+    if(draft && pbuf)
+    {
+          PackB1(pbuf + DRAFT_SEQ_NUM_ADDR, seq);
+    }
+    else if (pbuf)
+    {
+        PackB1(pbuf + SEQ_NUM_ADDR, seq);
+    }
 }
 
 /*

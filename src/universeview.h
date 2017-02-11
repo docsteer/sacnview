@@ -45,6 +45,7 @@ protected slots:
     void sourceChanged(sACNSource *source);
     void levelsChanged();
     void selectedAddressChanged(int address);
+    void on_btnStartFlickerFinder_pressed();
 protected:
     virtual void resizeEvent(QResizeEvent *event);
     virtual void showEvent(QShowEvent *event);
@@ -76,7 +77,7 @@ private:
     Ui::UniverseView *ui;
     QHash<sACNSource *, int> m_sourceToTableRow;
     int m_selectedAddress;
-    sACNListener *m_listener;
+    QSharedPointer<sACNListener> m_listener;
     MergedUniverseLogger *m_logger;
 };
 

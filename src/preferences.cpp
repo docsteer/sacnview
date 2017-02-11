@@ -116,6 +116,13 @@ unsigned int Preferences::GetDisplayFormat()
     return m_nDisplayFormat;
 }
 
+unsigned int Preferences::GetMaxLevel()
+{
+    if(m_nDisplayFormat==PERCENT)
+        return 100;
+    return MAX_SACN_LEVEL;
+}
+
 bool Preferences::GetBlindVisualizer()
 {
     return m_bBlindVisualizer;

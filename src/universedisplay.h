@@ -19,20 +19,26 @@
 #include "deftypes.h"
 #include "sacnlistener.h"
 #include "gridwidget.h"
+#include "consts.h"
 
 class UniverseDisplay : public GridWidget
 {
     Q_OBJECT
 public:
     explicit UniverseDisplay(QWidget *parent = 0);
-
+    virtual ~UniverseDisplay() {};
+    bool flickerFinder() { return m_flickerFinder;};
 public slots:
     void setUniverse(int universe);
     void levelsChanged();
     void pause();
+    void setFlickerFinder(bool on);
 private:
     sACNMergedSourceList m_sources;
-    sACNListener *m_listener;
+    QSharedPointer<sACNListener>m_listener;
+    quint8 m_flickerFinderLevels[MAX_DMX_ADDRESS];
+    bool m_flickerFinderHasChanged[MAX_DMX_ADDRESS];
+    bool m_flickerFinder;
 };
 
 #endif // UNIVERSEDISPLAY_H

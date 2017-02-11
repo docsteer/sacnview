@@ -56,18 +56,20 @@ void aboutDialog::updateDisplay()
 {
     ui->teDiag->clear();
 
-    const QHash<int, sACNListener*> listenerList =
+    const QHash<int, QWeakPointer<sACNListener> > listenerList =
             sACNManager::getInstance()->getListenerList();
 
     QString data;
     data.append(QString("Reciever Threads : %1\n").arg(listenerList.count()));
 
-    QHashIterator<int, sACNListener*> i(listenerList);
+    QHashIterator<int, QWeakPointer<sACNListener> > i(listenerList);
     while (i.hasNext()) {
         i.next();
+        QSharedPointer<sACNListener> listener = i.value().toStrongRef();
+
         data.append(QString("Universe %1\tMerges per second %2\n")
                     .arg(i.key())
-                    .arg(i.value()->mergesPerSecond()));
+                    .arg(listener->mergesPerSecond()));
     }
 
     ui->teDiag->setPlainText(data);

@@ -35,6 +35,8 @@
 
 sACNListener::sACNListener(QObject *parent) : QObject(parent)
 {
+    m_mergeTimer = 0;
+    m_initalSampleTimer = 0;
     m_socket = 0;
     m_ssHLL = 1000;
     m_merged_levels.reserve(512);
@@ -48,6 +50,21 @@ sACNListener::sACNListener(QObject *parent) : QObject(parent)
 
 sACNListener::~sACNListener()
 {
+    if(m_socket)
+    {
+        delete m_socket;
+        m_socket = 0;
+    }
+    if(m_mergeTimer)
+    {
+        delete m_mergeTimer;
+        m_mergeTimer = 0;
+    }
+    if(m_initalSampleTimer)
+    {
+        delete m_initalSampleTimer;
+        m_initalSampleTimer = 0;
+    }
 }
 
 void sACNListener::startReception(int universe)
@@ -94,6 +111,7 @@ void sACNListener::checkSampleExpiration()
         qDebug() << "Sampling has ended";
         m_initalSampleTimer->stop();
         m_initalSampleTimer->deleteLater();
+        m_initalSampleTimer = 0;
     }
 }
 
@@ -524,14 +542,14 @@ void sACNListener::performMerge()
             sACNMergedAddress *pAddr = &m_merged_levels[addresses_to_merge[i]];
             int address = addresses_to_merge[i];
 
-            if (ps->src_valid  && !ps->active.Expired() && ps->priority_array[i] > priorities[i] && ps->priority_array[i]>0)
+            if (ps->src_valid  && !ps->active.Expired() && ps->priority_array[address] > priorities[address] && ps->priority_array[address]>0)
             {
                 // Sources of higher priority
-                priorities[i] = ps->priority_array[i];
+                priorities[address] = ps->priority_array[address];
                 addressToSourceMap.remove(address);
                 addressToSourceMap.insert(address, ps);
             }
-            if (ps->src_valid  && !ps->active.Expired() && ps->priority_array[i] == priorities[i])
+            if (ps->src_valid  && !ps->active.Expired() && ps->priority_array[address] == priorities[address] && ps->priority_array[address]>0)
             {
                 addressToSourceMap.insert(address, ps);
             }

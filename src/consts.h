@@ -26,6 +26,7 @@
 #define nNumberOfSecPerMin 60
 #define nNumOfMinPerHour 60
 
+#define MIN_SACN_UNIVERSE 1
 #define MAX_SACN_UNIVERSE 63999
 #define MIN_DMX_ADDRESS 1
 #define MAX_DMX_ADDRESS 512

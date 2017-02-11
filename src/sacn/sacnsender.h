@@ -21,6 +21,7 @@
 #include <QMutex>
 #include <vector>
 #include <map>
+#include "streamingacn.h"
 #include "streamcommon.h"
 #include "tock.h"
 #include "deftypes.h"
@@ -44,17 +45,17 @@ public slots:
      */
     void setLevel(quint16 address, quint8 value);
     /**
-     * @brief setLevel sets a level range
+     * @brief setLevelRange sets a level range
      * @param start - start address, 0-based (0-511)
      * @param end - end address, 0-based (0-511)
      * @param value - level to set (0-255)
      */
-    void setLevel(quint16 start, quint16 end, quint8 value);
+    void setLevelRange(quint16 start, quint16 end, quint8 value);
     /**
      * @brief setLevel sets a level range
      * @param data - pointer to a data array
      */
-    void setLevel(const quint8 *data, int len);
+    void setLevel(const quint8 *data, int len, int start=0);
     /**
      * @brief setName sets the universe name
      * @param name the name to set
@@ -71,6 +72,11 @@ public slots:
      */
     void setPerChannelPriorities(uint1 *priorities);
     /**
+     * @brief setPerSourcePriority - sets the per-source priority for the source
+     * @param priority - the priority value
+     */
+    void setPerSourcePriority(uint1 priority);
+    /**
      * @brief startSending - starts sending for the selected universe
      */
     void startSending();
@@ -84,7 +90,16 @@ public slots:
      * @param Address - a QHostAddress, default QHostAddress means multicast
      */
     void setUnicastAddress(const QHostAddress &address) { m_unicastAddress = address;};
-
+    /**
+     * @brief setProtocolVersion - sets the protocol version
+     * @param version - draft or release
+     */
+    void setProtocolVersion(StreamingACNProtocolVersion version);
+    /**
+     * @brief copyLevels - copies the current output levels
+     * @param dest - destination to copy to, uint8 array, must be 512 long
+     */
+    void copyLevels(quint8 *dest);
 private:
     bool m_isSending;
     // The handle for the CStreamServer universe
@@ -109,6 +124,8 @@ private:
     uint1 m_perChannelPriorities[MAX_DMX_ADDRESS];
     // Unicast
     QHostAddress m_unicastAddress;
+    // Protocol Version
+    StreamingACNProtocolVersion m_version;
 };
 
 
@@ -153,7 +170,7 @@ public:
                        uint2 reserved, uint1 options, uint1 start_code,
                               uint2 universe, uint2 slot_count, uint1*& pslots, uint& handle,
                               bool ignore_inactivity_logic = IGNORE_INACTIVE_DMX,
-                              uint send_intervalms = SEND_INTERVAL_DMX, CIPAddr unicastAddress = CIPAddr());
+                              uint send_intervalms = SEND_INTERVAL_DMX, CIPAddr unicastAddress = CIPAddr(), bool draft = false);
 
   //After you add data to the data buffer, call this to trigger the data send
   //on the next Tick boundary.
@@ -237,11 +254,11 @@ private:
         bool ignore_inactivity;     //If true, we don't bother looking at inactive_count
         uint inactive_count;		//After 3 of these, we start sending at send_interval
         ttimer send_interval;       //Whether or not it's time to send a non-dirty packet
-        uint1 seq;                  //The universe sequence number
         QHostAddress sendaddr;      //The multicast address we're sending to
+        bool draft;                 //Draft or released sACN
 
         //and the constructor
-      universe():number(0),handle(0), num_terminates(0), psend(NULL),isdirty(false),waited_for_dirty(false),inactive_count(0),seq(0) {}
+      universe():number(0),handle(0), num_terminates(0), psend(NULL),isdirty(false),waited_for_dirty(false),inactive_count(0),draft(false) {}
     };
 
     //The handle is the vector index

@@ -18,6 +18,7 @@
 
 #include <QObject>
 #include <QImage>
+#include <QPixmap>
 #include "sacnsender.h"
 #include "sacn/ACNShare/deftypes.h"
 
@@ -46,6 +47,7 @@ signals:
     void setLevel(uint2 address, uint1 value);
     void setLevel(uint2 start, uint2 end, uint1 value);
     void fxLevelChange(int level);
+    void textImageChanged(QPixmap pixmap);
 public slots:
     void setMode(sACNEffectEngine::FxMode mode);
 
@@ -58,7 +60,7 @@ public slots:
 
     void setText(QString text);
 
-    void setDateStyle(DateStyle style);
+    void setDateStyle(sACNEffectEngine::DateStyle style);
 
     void setRate(qreal hz);
 
@@ -80,6 +82,14 @@ private:
     uint1 m_data;
     uint1 m_manualLevel;
     QImage m_renderedImage;
+    uint1 *m_image;
+    int m_imageWidth;
+
+    // Render a single line of variable width text
+    void renderText(QString text);
+    // Render a two-line text, larger top smaller bottom (for date/time)
+    void renderText(QString top, QString bottom);
+    void renderText(QString text, int yStart, bool big);
 };
 
 Q_DECLARE_METATYPE(sACNEffectEngine::FxMode)

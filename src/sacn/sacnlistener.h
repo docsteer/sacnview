@@ -48,7 +48,7 @@ class sACNListener : public QObject
     Q_OBJECT
 public:
     sACNListener(QObject *parent = 0);
-    ~sACNListener();
+    virtual ~sACNListener();
 
     /**
      * @brief universe

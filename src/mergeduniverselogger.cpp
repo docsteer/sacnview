@@ -16,18 +16,18 @@ MergedUniverseLogger::~MergedUniverseLogger()
     closeFile();
 }
 
-void MergedUniverseLogger::start(QString fileName, sACNListener *listener)
+void MergedUniverseLogger::start(QString fileName, QSharedPointer<sACNListener>listener)
 {
     m_elapsedTimer.start();
     setUpFile(fileName);
     m_listener = listener;
-    connect(m_listener, &sACNListener::levelsChanged,
+    connect(m_listener.data(), &sACNListener::levelsChanged,
             this, &MergedUniverseLogger::levelsChanged);
 }
 
 void MergedUniverseLogger::stop()
 {
-    disconnect(m_listener, 0, this, 0);
+    disconnect(m_listener.data(), 0, this, 0);
     closeFile();
 }
 

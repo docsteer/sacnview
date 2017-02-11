@@ -262,16 +262,11 @@ void ScopeWidget::setTimebase(int timebase)
 void ScopeWidget::addChannel(ScopeChannel *channel)
 {
     m_channels << channel;
-    sACNListener *listener = sACNManager::getInstance()->getListener(channel->universe());
-    listener->monitorAddress(channel->address());
-
 }
 
 void ScopeWidget::removeChannel(ScopeChannel *channel)
 {
     m_channels.removeAll(channel);
-    sACNListener *listener = sACNManager::getInstance()->getListener(channel->universe());
-    listener->unMonitorAddress(channel->address());
 }
 
 void ScopeWidget::dataReady(int address, QPointF p)
@@ -280,6 +275,8 @@ void ScopeWidget::dataReady(int address, QPointF p)
 
 
     sACNListener *listener = static_cast<sACNListener *>(sender());
+
+    if(!listener) return; // Check for deletion
 
     if(m_triggerMode != tmNormal && !m_triggered)
     {
@@ -347,8 +344,8 @@ void ScopeWidget::start()
     foreach(ScopeChannel *ch, m_channels)
     {
         ch->clear();
-        sACNListener *listener = sACNManager::getInstance()->getListener(ch->universe());
-        connect(listener, SIGNAL(dataReady(int, QPointF)), this, SLOT(dataReady(int, QPointF)));
+        QSharedPointer<sACNListener>listener = sACNManager::getInstance()->getListener(ch->universe());
+        connect(listener.data(), SIGNAL(dataReady(int, QPointF)), this, SLOT(dataReady(int, QPointF)));
     }
     update();
 

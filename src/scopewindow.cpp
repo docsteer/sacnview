@@ -207,7 +207,14 @@ void ScopeWindow::on_tableWidget_itemChanged(QTableWidgetItem * item)
         address = item->text().toInt(&ok);
         if(address>=1 && address<=512 && ok)
         {
-            sACNListener *listener = sACNManager::getInstance()->getListener(ch->universe());
+            QSharedPointer<sACNListener> listener;
+            if(!m_universes.contains(ch->universe()))
+            {
+                m_universes[ch->universe()] = sACNManager::getInstance()->getListener(ch->universe());
+            }
+
+            listener = m_universes[ch->universe()];
+
             listener->unMonitorAddress(ch->address());
             ch->setAddress(address-1);
             listener->monitorAddress(ch->address());
@@ -223,14 +230,20 @@ void ScopeWindow::on_tableWidget_itemChanged(QTableWidgetItem * item)
 
     case COL_UNIVERSE:
         universe = item->text().toInt(&ok);
-        if(universe>=1 && universe<=MAX_SACN_UNIVERSE && ok)
+        if(universe>=1 && universe<=MAX_SACN_UNIVERSE && ok && ch->universe()!=universe)
         {
-            sACNListener *listener = sACNManager::getInstance()->getListener(ch->universe());
-            listener->unMonitorAddress(ch->address());
-            listener = sACNManager::getInstance()->getListener(universe);
+            // Changing universe
+            QSharedPointer<sACNListener> listener;
+            if(!m_universes.contains(universe))
+            {
+                m_universes[ch->universe()] = sACNManager::getInstance()->getListener(universe);
+            }
+
+            listener = m_universes[ch->universe()];
+
             ch->setUniverse(universe);
-            listener->disconnect(this->ui->widget);
-            connect(listener, SIGNAL(dataReady(int, QPointF)), this->ui->widget, SLOT(dataReady(int, QPointF)));
+            disconnect(listener.data(), 0, this->ui->widget, 0);
+            connect(listener.data(), SIGNAL(dataReady(int, QPointF)), this->ui->widget, SLOT(dataReady(int, QPointF)));
             listener->monitorAddress(ch->address());
             ch->clear();
         }

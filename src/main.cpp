@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#define QT_SHAREDPOINTER_TRACK_POINTERS 1
 
 #include "mdimainwindow.h"
 #include "nicselectdialog.h"

@@ -18,6 +18,8 @@
 
 #include <QMainWindow>
 
+class sACNUniverseListModel;
+
 namespace Ui {
 class MDIMainWindow;
 }
@@ -35,14 +37,16 @@ protected slots:
     void on_actionRecieve_triggered(bool checked);
     void on_actionTranmsit_triggered(bool checked);
     void on_actionSettings_triggered(bool checked);
+    void on_actionSnapshot_triggered(bool checked);
+    void on_btnUnivListBack_pressed();
+    void on_btnUnivListForward_pressed();
+    void on_sbUniverseList_valueChanged(int value);
 private slots:
-
-
-
     void on_actionAbout_triggered(bool checked);
 
 private:
     Ui::MDIMainWindow *ui;
+    sACNUniverseListModel *m_model;
 };
 
 #endif // MDIMAINWINDOW_H

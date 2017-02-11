@@ -9,8 +9,14 @@
         <file>pause.png</file>
         <file>play.png</file>
         <file>record.png</file>
+        <file>back.png</file>
+        <file>forward.png</file>
     </qresource>
     <qresource prefix="/">
         <file>Logo.png</file>
+    </qresource>
+    <qresource prefix="/sound">
+        <file>camera.wav</file>
+        <file>beep.wav</file>
     </qresource>
 </RCC>

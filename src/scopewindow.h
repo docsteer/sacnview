@@ -30,6 +30,7 @@ class QTableWidgetItem;
 #include <QtGui>
 #include <QWidget>
 #include <QButtonGroup>
+#include "sacnlistener.h"
 
 namespace Ui {
 class ScopeWindow;
@@ -58,6 +59,7 @@ private:
     Ui::ScopeWindow *ui;
     QList<ScopeChannel *> m_channels;
     QButtonGroup *m_radioGroup;
+    QHash<int, QSharedPointer<sACNListener> > m_universes;
 };
 
 #endif // SCOPEWINDOW_H

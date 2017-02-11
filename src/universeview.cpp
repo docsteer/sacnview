@@ -49,7 +49,6 @@ UniverseView::UniverseView(QWidget *parent) :
     ui(new Ui::UniverseView)
 {
     m_selectedAddress = -1;
-    m_listener = NULL;
     m_logger = NULL;
     ui->setupUi(this);
     connect(ui->universeDisplay, SIGNAL(selectedCellChanged(int)), this, SLOT(selectedAddressChanged(int)));
@@ -81,10 +80,10 @@ void UniverseView::on_btnGo_pressed()
         sourceOnline(m_listener->source(i));
     }
 
-    connect(m_listener, SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
-    connect(m_listener, SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
-    connect(m_listener, SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
-    connect(m_listener, SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
+    connect(m_listener.data(), SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
+    connect(m_listener.data(), SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
+    connect(m_listener.data(), SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
+    connect(m_listener.data(), SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
 }
 
 void UniverseView::sourceChanged(sACNSource *source)
@@ -285,8 +284,7 @@ void UniverseView::selectedAddressChanged(int address)
 void UniverseView::on_btnPause_pressed()
 {
     ui->universeDisplay->pause();
-    this->disconnect(m_listener);
-    m_listener = NULL;
+    this->disconnect(m_listener.data());
     ui->btnGo->setEnabled(true);
     ui->btnPause->setEnabled(false);
     ui->sbUniverse->setEnabled(true);
@@ -325,4 +323,24 @@ void UniverseView::on_btnLogToFile_pressed()
         setUiForLoggingState(NOT_LOGGING);
     }
 
+}
+
+void UniverseView::on_btnStartFlickerFinder_pressed()
+{
+    if(ui->universeDisplay->flickerFinder())
+    {
+        ui->universeDisplay->setFlickerFinder(false);
+        ui->btnStartFlickerFinder->setText(tr("Start Flicker Finder"));
+    }
+    else
+    {
+        int result = QMessageBox::information(this, tr("Flicker Finder"),
+            tr("Flicker finder color codes addresses which change over time.\nAddresses which have increased in level are highlighted in blue"
+               ", those which decrease in level show green, and those which changed but returned to their original level are shown in red. "
+               "\nDo you want to enable flicker finder?"), QMessageBox::Yes, QMessageBox::No);
+
+        if(result==QMessageBox::No) return;
+        ui->universeDisplay->setFlickerFinder(true);
+        ui->btnStartFlickerFinder->setText(tr("Stop Flicker Finder"));
+    }
 }

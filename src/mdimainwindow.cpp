@@ -20,12 +20,21 @@
 #include "transmitwindow.h"
 #include "preferencesdialog.h"
 #include "aboutdialog.h"
+#include "sacnuniverselistmodel.h"
+#include "snapshot.h"
 
 MDIMainWindow::MDIMainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MDIMainWindow)
+    ui(new Ui::MDIMainWindow), m_model(NULL)
 {
     ui->setupUi(this);
+    ui->sbUniverseList->setMinimum(MIN_SACN_UNIVERSE);
+    ui->sbUniverseList->setMaximum(MAX_SACN_UNIVERSE - NUM_UNIVERSES_LISTED);
+
+
+    m_model = new sACNUniverseListModel(this);
+    ui->treeView->setModel(m_model);
+    ui->treeView->expandAll();
 }
 
 MDIMainWindow::~MDIMainWindow()
@@ -57,6 +66,14 @@ void MDIMainWindow::on_actionTranmsit_triggered(bool checked)
     trView->show();
 }
 
+void MDIMainWindow::on_actionSnapshot_triggered(bool checked)
+{
+    Q_UNUSED(checked);
+    Snapshot *snapView = new Snapshot();
+    ui->mdiArea->addSubWindow(snapView);
+    snapView->show();
+}
+
 void MDIMainWindow::on_actionSettings_triggered(bool checked)
 {
     Q_UNUSED(checked);
@@ -70,4 +87,21 @@ void MDIMainWindow::on_actionAbout_triggered(bool checked)
     Q_UNUSED(checked);
     aboutDialog *about =new aboutDialog(this);
     about->exec();
+}
+
+void MDIMainWindow::on_btnUnivListBack_pressed()
+{
+    ui->sbUniverseList->setValue(ui->sbUniverseList->value() - NUM_UNIVERSES_LISTED);
+}
+
+void MDIMainWindow::on_btnUnivListForward_pressed()
+{
+
+    ui->sbUniverseList->setValue(ui->sbUniverseList->value() + NUM_UNIVERSES_LISTED);
+}
+
+void MDIMainWindow::on_sbUniverseList_valueChanged(int value)
+{
+    if(m_model)
+        m_model->setStartUniverse(value);
 }
