@@ -18,8 +18,8 @@
 
 
 #define APP_NAME        "sACNView"
-#define VERSION         "2.0.0 Development"
-#define PUBLISHED_DATE  "November 17, 2015"
+#define VERSION         "2.0.0 Beta 1"
+#define PUBLISHED_DATE  "Feb 2, 2017"
 #define AUTHOR          "Tom Barthel-Steer"
 
 #define nNumOfSecPerHour 3600

@@ -125,5 +125,8 @@ macx {
 
 CONFIG( release , debug | release) {
     DEPLOY_TARGET = $${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT}
-    QMAKE_POST_LINK += $${DEPLOY_COMMAND} $${DEPLOY_TARGET}
+    DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/deploy
+    QMAKE_POST_LINK += $${DEPLOY_COMMAND} --dir $${DEPLOY_DIR}  $${DEPLOY_TARGET}
+    QMAKE_POST_LINK += $$escape_expand(\\n\\t) $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR}
+
 }
