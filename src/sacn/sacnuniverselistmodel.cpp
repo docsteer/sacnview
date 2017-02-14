@@ -249,3 +249,21 @@ void sACNUniverseListModel::checkTimeouts()
         }
     }
 }
+
+int sACNUniverseListModel::indexToUniverse(const QModelIndex &index)
+{
+    if(!index.isValid())
+        return 0;
+
+    if(index.internalPointer()==NULL)
+    {
+        // root item
+        return m_start + index.row();
+    }
+
+    sACNBasicSourceInfo *i = static_cast<sACNBasicSourceInfo *>(index.internalPointer());
+    if(i)
+    {
+        return i->parent->universe;
+    }
+}

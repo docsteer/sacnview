@@ -65,14 +65,14 @@ UniverseView::~UniverseView()
     delete ui;
 }
 
-void UniverseView::on_btnGo_pressed()
+void UniverseView::startListening(int universe)
 {
     ui->twSources->setRowCount(0);
     ui->btnGo->setEnabled(false);
     ui->btnPause->setEnabled(true);
     ui->sbUniverse->setEnabled(false);
-    m_listener = sACNManager::getInstance()->getListener(ui->sbUniverse->value());
-    ui->universeDisplay->setUniverse(ui->sbUniverse->value());
+    m_listener = sACNManager::getInstance()->getListener(universe);
+    ui->universeDisplay->setUniverse(universe);
 
     // Add the existing sources
     for(int i=0; i<m_listener->sourceCount(); i++)
@@ -84,6 +84,14 @@ void UniverseView::on_btnGo_pressed()
     connect(m_listener.data(), SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
     connect(m_listener.data(), SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
     connect(m_listener.data(), SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
+
+    if(ui->sbUniverse->value()!=universe)
+        ui->sbUniverse->setValue(universe);
+}
+
+void UniverseView::on_btnGo_pressed()
+{
+    startListening(ui->sbUniverse->value());
 }
 
 void UniverseView::sourceChanged(sACNSource *source)

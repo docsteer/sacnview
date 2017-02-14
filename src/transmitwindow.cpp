@@ -65,8 +65,6 @@ transmitwindow::transmitwindow(QWidget *parent) :
 
     ui->btnFxStart->setEnabled(false);
 
-    m_buttonBgColor = ui->btnCcBlink->palette().background().color();
-
     // Create preset buttons
     QHBoxLayout *layout = new QHBoxLayout();
     for(int i=0; i<PRESET_COUNT; i++)
@@ -434,10 +432,10 @@ void transmitwindow::on_btnCcBlink_pressed()
     if(m_blinkTimer->isActive())
     {
         m_blinkTimer->stop();
-
-        QPalette buttonPal = ui->btnCcBlink->palette();
-        buttonPal.setColor(QPalette::Button, m_buttonBgColor );
-        ui->btnCcBlink->setPalette(buttonPal);
+        int address = ui->lcdNumber->value();
+        ui->blinkIndicator->setPixmap(QPixmap());
+        if(m_sender)
+                m_sender->setLevel(address-1, 0);
     }
     else
     {
@@ -450,16 +448,15 @@ void transmitwindow::doBlink()
     int address = ui->lcdNumber->value();
     m_blink = !m_blink;
 
-    QPalette buttonPal = ui->btnCcBlink->palette();
-    buttonPal.setColor(QPalette::Button, (m_blink) ? QColor(Qt::red) : m_buttonBgColor );
-    ui->btnCcBlink->setPalette(buttonPal);
     if(m_blink)
     {
+        ui->blinkIndicator->setPixmap(QPixmap(":/icons/record.png"));
         if(m_sender)
             m_sender->setLevel(address-1, ui->slChannelCheck->value());
     }
     else
     {
+        ui->blinkIndicator->setPixmap(QPixmap());
         if(m_sender)
                 m_sender->setLevel(address-1, 0);
     }

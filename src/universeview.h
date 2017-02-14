@@ -35,7 +35,7 @@ class UniverseView : public QWidget
 public:
     explicit UniverseView(QWidget *parent = 0);
     ~UniverseView();
-
+    void startListening(int universe);
 protected slots:
     void on_btnGo_pressed();
     void on_btnPause_pressed();

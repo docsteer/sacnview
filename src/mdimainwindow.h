@@ -41,6 +41,7 @@ protected slots:
     void on_btnUnivListBack_pressed();
     void on_btnUnivListForward_pressed();
     void on_sbUniverseList_valueChanged(int value);
+    void universeDoubleClick(const QModelIndex &index);
 private slots:
     void on_actionAbout_triggered(bool checked);
 

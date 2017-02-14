@@ -35,6 +35,7 @@ MDIMainWindow::MDIMainWindow(QWidget *parent) :
     m_model = new sACNUniverseListModel(this);
     ui->treeView->setModel(m_model);
     ui->treeView->expandAll();
+    connect(ui->treeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(universeDoubleClick(QModelIndex)));
 }
 
 MDIMainWindow::~MDIMainWindow()
@@ -104,4 +105,21 @@ void MDIMainWindow::on_sbUniverseList_valueChanged(int value)
 {
     if(m_model)
         m_model->setStartUniverse(value);
+}
+
+
+void MDIMainWindow::universeDoubleClick(const QModelIndex &index)
+{
+    if(!m_model) return;
+
+    int universe = m_model->indexToUniverse(index);
+
+    if(universe>0)
+    {
+        UniverseView *uniView = new UniverseView(this);
+        ui->mdiArea->addSubWindow(uniView);
+        uniView->show();
+        uniView->startListening(universe);
+    }
+
 }

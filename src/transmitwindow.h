@@ -90,7 +90,6 @@ private:
     QTimer *m_blinkTimer;
     bool m_blink;
     sACNEffectEngine *m_fxEngine;
-    QColor m_buttonBgColor;
     bool m_recordMode;
 
     quint8 m_presetData[PRESET_COUNT][MAX_DMX_ADDRESS];

@@ -141,7 +141,7 @@ void sACNEffectEngine::renderText(QString text)
     m_image = new uint1[img_size];
 
     memset(m_image, 0, img_size);
-    renderText(text, 0, true);
+    renderText(text, 4, true);
 }
 
 
