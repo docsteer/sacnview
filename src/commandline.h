@@ -20,9 +20,7 @@ public:
         K7,
         K8,
         K9,
-        NEXT,
         THRU,
-        LAST,
         AT,
         FULL,
         CLEAR,
@@ -64,9 +62,7 @@ public slots:
     void key8();
     void key9();
     void key0();
-    void keyNext();
     void keyThru();
-    void keyLast();
     void keyAt();
     void keyFull();
     void keyClear();

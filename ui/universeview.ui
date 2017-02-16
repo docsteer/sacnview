@@ -253,7 +253,7 @@
           </column>
           <column>
            <property name="text">
-            <string>DD</string>
+            <string>Per-Address</string>
            </property>
           </column>
          </widget>

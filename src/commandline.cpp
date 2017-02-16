@@ -298,21 +298,9 @@ void CommandLineWidget::key0()
     displayText();
 }
 
-void CommandLineWidget::keyNext()
-{
-    m_commandLine.processKey(CommandLine::NEXT);
-    displayText();
-}
-
 void CommandLineWidget::keyThru()
 {
     m_commandLine.processKey(CommandLine::THRU);
-    displayText();
-}
-
-void CommandLineWidget::keyLast()
-{
-    m_commandLine.processKey(CommandLine::LAST);
     displayText();
 }
 

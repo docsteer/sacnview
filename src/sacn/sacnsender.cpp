@@ -187,9 +187,11 @@ CStreamServer::~CStreamServer()
 //Returns a pointer to the storage location for the universe, adding if
 //need be.
 //The newly-added location contains sequence number 0.
-uint1* CStreamServer::GetPSeq(uint2 universe)
+uint1* CStreamServer::GetPSeq(const CID &cid, uint2 universe)
 {
-    seqiter it = m_seqmap.find(universe);
+    cidanduniverse identifier(cid, universe);
+
+    seqiter it = m_seqmap.find(identifier);
     if(it != m_seqmap.end())
     {
         ++it->second.first;
@@ -199,15 +201,18 @@ uint1* CStreamServer::GetPSeq(uint2 universe)
     if(!p)
         return NULL;
     *p = 0;
-    m_seqmap.insert(std::pair<uint2, seqref>(universe, seqref(1, p)));
+    m_seqmap.insert(std::pair<cidanduniverse, seqref>(identifier, seqref(1, p)));
     return p;
 }
 
 //Removes a reference to the storage location for the universe, removing
 //completely if need be.
-void CStreamServer::RemovePSeq(uint2 universe)
+void CStreamServer::RemovePSeq(const CID &cid, uint2 universe)
 {
-    seqiter it = m_seqmap.find(universe);
+    cidanduniverse identifier(cid, universe);
+
+    seqiter it = m_seqmap.find(identifier);
+
     if(it != m_seqmap.end())
     {
         --it->second.first;
@@ -250,7 +255,7 @@ void CStreamServer::Tick()
                 ++it->inactive_count;
 
             //Add the sequence number and send
-            uint1 *pseq = GetPSeq(it->number);
+            uint1 *pseq = GetPSeq(it->cid, it->number);
             SetStreamHeaderSequence(it->psend, *pseq, it->draft);
             (*pseq)++;
 
@@ -336,6 +341,7 @@ bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_nam
     m_multiverse[handle].inactive_count = 0;
     m_multiverse[handle].send_interval.SetInterval(send_intervalms);
     m_multiverse[handle].draft = draft;
+    m_multiverse[handle].cid = source_cid;
 
     CIPAddr addr;
     GetUniverseAddress(universe, addr);
@@ -381,7 +387,7 @@ void CStreamServer::SendUniverseNow(uint handle)
     //Basically, a copy of the sending part of Tick
 
     universe* puni = &m_multiverse[handle];
-    uint1 *pseq = GetPSeq(puni->number);
+    uint1 *pseq = GetPSeq(puni->cid, puni->number);
     SetStreamHeaderSequence(puni->psend, *pseq, puni->draft);
     (*pseq)++;
 
@@ -401,7 +407,7 @@ void CStreamServer::DEBUG_DESTROY_PRIORITY_UNIVERSE(uint handle)
 void CStreamServer::DestroyUniverse(uint handle)
 {
     QMutexLocker locker(&m_writeMutex);
-  SetStreamTerminated(m_multiverse[handle].psend, true);
+    SetStreamTerminated(m_multiverse[handle].psend, true);
 }
 
 //Perform the logical destruction and cleanup of a universe and its related

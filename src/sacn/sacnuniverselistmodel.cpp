@@ -206,12 +206,6 @@ void sACNUniverseListModel::readPendingDatagrams()
             info->timeout.restart();
         }
 
-        bool changed = false;
-        if(info->address != sender)
-            changed = true;
-        if(info->name != source_name)
-            changed = true;
-
         info->address = sender;
         info->name = source_name;
 
@@ -266,4 +260,6 @@ int sACNUniverseListModel::indexToUniverse(const QModelIndex &index)
     {
         return i->parent->universe;
     }
+
+    return 0;
 }

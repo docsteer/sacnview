@@ -115,6 +115,7 @@ void Snapshot::on_btnPlay_pressed()
 
 void Snapshot::on_sbUniverse_valueChanged(int value)
 {
+    Q_UNUSED(value);
     setState(stSetup);
 }
 

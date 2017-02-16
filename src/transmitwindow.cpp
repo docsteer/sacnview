@@ -668,6 +668,7 @@ void transmitwindow::setLevels(QSet<int> addresses, int level)
 
 void transmitwindow::dateMode_toggled(bool checked)
 {
+    Q_UNUSED(checked);
     if(ui->rbEuDate->isChecked())
     {
         QMetaObject::invokeMethod(

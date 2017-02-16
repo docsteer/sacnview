@@ -113,7 +113,7 @@ void UniverseView::sourceChanged(sACNSource *source)
     ui->twSources->item(row,COL_JUMPS)->setText(QString::number(source->jumps));
     ui->twSources->item(row,COL_ONLINE)->setText(onlineToString(source->src_valid));
     ui->twSources->item(row,COL_VER)->setText(protocolVerToString(source->protocol_version));
-    ui->twSources->item(row,COL_DD)->setText(QString::number(source->doing_per_channel));
+    ui->twSources->item(row,COL_DD)->setText(source->doing_per_channel ? tr("Yes") : tr("No"));
 }
 
 void UniverseView::sourceOnline(sACNSource *source)

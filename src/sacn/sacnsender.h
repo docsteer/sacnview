@@ -225,18 +225,19 @@ private:
     QThread *m_thread;
 
 
+    typedef std::pair<CID, uint2> cidanduniverse;
     //Each universe shares its sequence numbers across start codes.
     //This is the central storage location, along with a refcount
     typedef std::pair<int, uint1*> seqref;
-    std::map<uint2, seqref > m_seqmap;
-    typedef std::map<uint2, seqref >::iterator seqiter;
+    std::map<cidanduniverse, seqref > m_seqmap;
+    typedef std::map<cidanduniverse, seqref >::iterator seqiter;
 
     //Returns a pointer to the storage location for the universe, adding if need be.
     //The newly-added location contains sequence number 0.
-    uint1* GetPSeq(uint2 universe);
+    uint1* GetPSeq(const CID &cid, uint2 universe);
 
     //Removes a reference to the storage location for the universe, removing completely if need be.
-    void RemovePSeq(uint2 universe);
+    void RemovePSeq(const CID &cid, uint2 universe);
 
     //Each universe is just the full buffer and some state
     struct universe
@@ -256,9 +257,11 @@ private:
         ttimer send_interval;       //Whether or not it's time to send a non-dirty packet
         QHostAddress sendaddr;      //The multicast address we're sending to
         bool draft;                 //Draft or released sACN
+        CID cid;                    // The CID
 
         //and the constructor
-      universe():number(0),handle(0), num_terminates(0), psend(NULL),isdirty(false),waited_for_dirty(false),inactive_count(0),draft(false) {}
+      universe():number(0),handle(0), num_terminates(0), psend(NULL),isdirty(false),
+          waited_for_dirty(false),inactive_count(0),draft(false), cid() {}
     };
 
     //The handle is the vector index

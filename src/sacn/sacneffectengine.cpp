@@ -172,7 +172,7 @@ void sACNEffectEngine::renderText(QString text, int yStart, bool big)
 
     for (int i = 0 ; i < text.length() ; i++)
     {
-        char c = text.at(i).toLatin1();
+        unsigned char c = text.at(i).toLatin1();
         unsigned char *character_font;
         if(big)
             character_font = vincent_data[c];
