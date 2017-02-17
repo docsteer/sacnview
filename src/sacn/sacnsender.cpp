@@ -1,9 +1,24 @@
+ // Copyright 2016 Tom Barthel-Steer
+// http://www.tomsteer.net
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "sacnsender.h"
 #include <vector>
 #include <set>
 
 #include "deftypes.h"
-#include "cid.h"
+#include "CID.h"
 #include "ipaddr.h"
 #include "tock.h"
 #include "streamcommon.h"
@@ -11,6 +26,9 @@
 #include <QUuid>
 #include <QThread>
 #include <QTimer>
+#include <QDebug>
+
+#include "preferences.h"
 
 sACNSentUniverse::sACNSentUniverse(int universe)
 {
@@ -34,7 +52,13 @@ void sACNSentUniverse::startSending()
     if(m_cid.isNull())
         m_cid = CID::CreateCid();
 
-    streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, 0, 0, m_universe, 512, m_slotData, m_handle);
+    if(m_unicastAddress.isNull())
+        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, 0, 0,
+           m_universe, 512, m_slotData, m_handle, false, 850, CIPAddr(), m_version==StreamingACNProtocolVersion::sACNProtocolDraft );
+    else
+        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, 0, 0, m_universe,
+             512, m_slotData, m_handle, false, 850, CIPAddr(m_unicastAddress), m_version==StreamingACNProtocolVersion::sACNProtocolDraft );
+
     streamServer->SetUniverseDirty(m_handle);
 
     if(m_priorityMode == pmPER_ADDRESS_PRIORITY)
@@ -61,29 +85,26 @@ void sACNSentUniverse::stopSending()
     }
 }
 
-void sACNSentUniverse::setFxMode(sACNUniverseEffect mode)
-{
-}
-
-void sACNSentUniverse::setLevel(uint2 address, uint1 value)
+void sACNSentUniverse::setLevel(quint16 address, quint8 value)
 {
     Q_ASSERT(address<512);
     m_slotData[address] =  value;
     CStreamServer::getInstance()->SetUniverseDirty(m_handle);
 }
 
-void sACNSentUniverse::setLevel(uint2 start, uint2 end, uint1 value)
+void sACNSentUniverse::setLevelRange(quint16 start, quint16 end, quint8 value)
 {
     Q_ASSERT(start<512);
     Q_ASSERT(end<512);
-    Q_ASSERT(start<end);
-    memset(m_slotData + start, value, end-start);
+    Q_ASSERT(start<=end);
+    memset(m_slotData + start, value, end-start+1);
     CStreamServer::getInstance()->SetUniverseDirty(m_handle);
 }
 
-void sACNSentUniverse::setFxSpeed(int speed)
+void sACNSentUniverse::setLevel(const quint8 *data, int len, int start)
 {
-
+    memcpy(m_slotData + start, data, len);
+    CStreamServer::getInstance()->SetUniverseDirty(m_handle);
 }
 
 void sACNSentUniverse::setName(const QString &name)
@@ -101,6 +122,20 @@ void sACNSentUniverse::setPerChannelPriorities(uint1 *priorities)
     memcpy(m_perChannelPriorities, priorities, sizeof(m_perChannelPriorities));
 }
 
+void sACNSentUniverse::setPerSourcePriority(uint1 priority)
+{
+    m_priority = priority;
+}
+
+void sACNSentUniverse::setProtocolVersion(StreamingACNProtocolVersion version)
+{
+    m_version = version;
+}
+
+void sACNSentUniverse::copyLevels(quint8 *dest)
+{
+    memcpy(dest, m_slotData, MAX_DMX_ADDRESS);
+}
 
 CStreamServer *CStreamServer::m_instance = 0;
 
@@ -114,6 +149,21 @@ CStreamServer *CStreamServer::getInstance()
 CStreamServer::CStreamServer()
 {
     m_sendsock = new QUdpSocket();
+    QNetworkInterface iface = Preferences::getInstance()->networkInterface();
+    QHostAddress a;
+    QList<QNetworkAddressEntry> addressEntries = iface.addressEntries();
+    for(int i=0; i<addressEntries.count(); i++)
+    {
+        if(addressEntries[i].ip().protocol() == QAbstractSocket::IPv4Protocol)
+        {
+            a = addressEntries[i].ip();
+        }
+    }
+    bool ok = m_sendsock->bind(a);
+    if(!ok)
+        qDebug() << "Failed to bind RX socket";
+    m_sendsock->setSocketOption(QAbstractSocket::MulticastLoopbackOption, QVariant(1));
+    m_sendsock->setMulticastInterface(iface);
     m_thread = new QThread();
     m_tickTimer = new QTimer(this);
     m_tickTimer->setInterval(10);
@@ -129,15 +179,19 @@ CStreamServer::~CStreamServer()
     for(seqiter it3 = m_seqmap.begin(); it3 != m_seqmap.end(); ++it3)
         if(it3->second.second)
             delete it3->second.second;
+    m_thread->wait();
+    delete m_thread;
 }
 
 
 //Returns a pointer to the storage location for the universe, adding if
 //need be.
 //The newly-added location contains sequence number 0.
-uint1* CStreamServer::GetPSeq(uint2 universe)
+uint1* CStreamServer::GetPSeq(const CID &cid, uint2 universe)
 {
-    seqiter it = m_seqmap.find(universe);
+    cidanduniverse identifier(cid, universe);
+
+    seqiter it = m_seqmap.find(identifier);
     if(it != m_seqmap.end())
     {
         ++it->second.first;
@@ -147,15 +201,18 @@ uint1* CStreamServer::GetPSeq(uint2 universe)
     if(!p)
         return NULL;
     *p = 0;
-    m_seqmap.insert(std::pair<uint2, seqref>(universe, seqref(1, p)));
+    m_seqmap.insert(std::pair<cidanduniverse, seqref>(identifier, seqref(1, p)));
     return p;
 }
 
 //Removes a reference to the storage location for the universe, removing
 //completely if need be.
-void CStreamServer::RemovePSeq(uint2 universe)
+void CStreamServer::RemovePSeq(const CID &cid, uint2 universe)
 {
-    seqiter it = m_seqmap.find(universe);
+    cidanduniverse identifier(cid, universe);
+
+    seqiter it = m_seqmap.find(identifier);
+
     if(it != m_seqmap.end())
     {
         --it->second.first;
@@ -198,10 +255,15 @@ void CStreamServer::Tick()
                 ++it->inactive_count;
 
             //Add the sequence number and send
-            SetStreamHeaderSequence(it->psend, it->seq);
-            it->seq++;
+            uint1 *pseq = GetPSeq(it->cid, it->number);
+            SetStreamHeaderSequence(it->psend, *pseq, it->draft);
+            (*pseq)++;
 
-            m_sendsock->writeDatagram( (char*)it->psend, it->sendsize, it->sendaddr, STREAM_IP_PORT);
+            quint64 result = m_sendsock->writeDatagram( (char*)it->psend, it->sendsize, it->sendaddr, STREAM_IP_PORT);
+            if(result!=it->sendsize)
+            {
+                qDebug() << "Error sending datagram : " << m_sendsock->errorString();
+            }
 
             if(GetStreamTerminated(it->psend))
             {
@@ -230,14 +292,19 @@ void CStreamServer::Tick()
 //Data on this universe will not be initially sent until marked dirty.
 bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_name, uint1 priority, uint2 reserved, uint1 options, uint1 start_code,
                                      uint2 universe, uint2 slot_count, uint1*& pslots, uint& handle,
-                                        bool ignore_inactivity_logic, uint send_intervalms)
+                                        bool ignore_inactivity_logic, uint send_intervalms, CIPAddr unicastAddress, bool draft)
 {
     QMutexLocker locker(&m_writeMutex);
     if(universe == 0)
         return false;
 
    //Before we attempt to create the universe, make sure we can create the buffer.
-    uint sendsize = STREAM_HEADER_SIZE + slot_count;
+    uint sendsize = slot_count;
+    if(draft)
+        sendsize += DRAFT_STREAM_HEADER_SIZE;
+    else
+        sendsize += STREAM_HEADER_SIZE;
+
     uint1* pbuf = new uint1 [sendsize];
     if(!pbuf)
         return false;
@@ -273,15 +340,30 @@ bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_nam
     m_multiverse[handle].ignore_inactivity = ignore_inactivity_logic;
     m_multiverse[handle].inactive_count = 0;
     m_multiverse[handle].send_interval.SetInterval(send_intervalms);
+    m_multiverse[handle].draft = draft;
+    m_multiverse[handle].cid = source_cid;
 
     CIPAddr addr;
     GetUniverseAddress(universe, addr);
+
+    if(unicastAddress != CIPAddr())
+    {
+        addr = unicastAddress;
+    }
+
     m_multiverse[handle].sendaddr = addr.ToQHostAddress();
 
-    InitStreamHeader(pbuf, source_cid, source_name, priority, reserved, options, start_code, universe, slot_count);
+    if(draft)
+        InitStreamHeaderForDraft(pbuf, source_cid, source_name, priority, reserved, options, start_code, universe, slot_count);
+    else
+        InitStreamHeader(pbuf, source_cid, source_name, priority, reserved, options, start_code, universe, slot_count);
+
     m_multiverse[handle].psend = pbuf;
     m_multiverse[handle].sendsize = sendsize;
-    pslots = pbuf + STREAM_HEADER_SIZE;
+    if(draft)
+        pslots = pbuf + DRAFT_STREAM_HEADER_SIZE;
+    else
+        pslots = pbuf + STREAM_HEADER_SIZE;
     return true;
 }
 
@@ -305,8 +387,9 @@ void CStreamServer::SendUniverseNow(uint handle)
     //Basically, a copy of the sending part of Tick
 
     universe* puni = &m_multiverse[handle];
-    SetStreamHeaderSequence(puni->psend, puni->seq);
-    puni->seq++;
+    uint1 *pseq = GetPSeq(puni->cid, puni->number);
+    SetStreamHeaderSequence(puni->psend, *pseq, puni->draft);
+    (*pseq)++;
 
     m_sendsock->writeDatagram((char*) puni->psend, puni->sendsize, puni->sendaddr, STREAM_IP_PORT);
 }
@@ -324,7 +407,7 @@ void CStreamServer::DEBUG_DESTROY_PRIORITY_UNIVERSE(uint handle)
 void CStreamServer::DestroyUniverse(uint handle)
 {
     QMutexLocker locker(&m_writeMutex);
-  SetStreamTerminated(m_multiverse[handle].psend, true);
+    SetStreamTerminated(m_multiverse[handle].psend, true);
 }
 
 //Perform the logical destruction and cleanup of a universe and its related

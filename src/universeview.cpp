@@ -1,22 +1,17 @@
-// Copyright (c) 2015 Tom Barthel-Steer, http://www.tomsteer.net
+// Copyright 2016 Tom Barthel-Steer
+// http://www.tomsteer.net
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+// http://www.apache.org/licenses/LICENSE-2.0
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "universeview.h"
 #include "ui_universeview.h"
@@ -54,7 +49,6 @@ UniverseView::UniverseView(QWidget *parent) :
     ui(new Ui::UniverseView)
 {
     m_selectedAddress = -1;
-    m_listener = NULL;
     m_logger = NULL;
     ui->setupUi(this);
     connect(ui->universeDisplay, SIGNAL(selectedCellChanged(int)), this, SLOT(selectedAddressChanged(int)));
@@ -71,14 +65,14 @@ UniverseView::~UniverseView()
     delete ui;
 }
 
-void UniverseView::on_btnGo_pressed()
+void UniverseView::startListening(int universe)
 {
     ui->twSources->setRowCount(0);
     ui->btnGo->setEnabled(false);
     ui->btnPause->setEnabled(true);
     ui->sbUniverse->setEnabled(false);
-    m_listener = sACNManager::getInstance()->getListener(ui->sbUniverse->value());
-    ui->universeDisplay->setUniverse(ui->sbUniverse->value());
+    m_listener = sACNManager::getInstance()->getListener(universe);
+    ui->universeDisplay->setUniverse(universe);
 
     // Add the existing sources
     for(int i=0; i<m_listener->sourceCount(); i++)
@@ -86,10 +80,18 @@ void UniverseView::on_btnGo_pressed()
         sourceOnline(m_listener->source(i));
     }
 
-    connect(m_listener, SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
-    connect(m_listener, SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
-    connect(m_listener, SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
-    connect(m_listener, SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
+    connect(m_listener.data(), SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
+    connect(m_listener.data(), SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
+    connect(m_listener.data(), SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
+    connect(m_listener.data(), SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
+
+    if(ui->sbUniverse->value()!=universe)
+        ui->sbUniverse->setValue(universe);
+}
+
+void UniverseView::on_btnGo_pressed()
+{
+    startListening(ui->sbUniverse->value());
 }
 
 void UniverseView::sourceChanged(sACNSource *source)
@@ -111,7 +113,7 @@ void UniverseView::sourceChanged(sACNSource *source)
     ui->twSources->item(row,COL_JUMPS)->setText(QString::number(source->jumps));
     ui->twSources->item(row,COL_ONLINE)->setText(onlineToString(source->src_valid));
     ui->twSources->item(row,COL_VER)->setText(protocolVerToString(source->protocol_version));
-    ui->twSources->item(row,COL_DD)->setText(QString::number(source->doing_per_channel));
+    ui->twSources->item(row,COL_DD)->setText(source->doing_per_channel ? tr("Yes") : tr("No"));
 }
 
 void UniverseView::sourceOnline(sACNSource *source)
@@ -290,8 +292,7 @@ void UniverseView::selectedAddressChanged(int address)
 void UniverseView::on_btnPause_pressed()
 {
     ui->universeDisplay->pause();
-    this->disconnect(m_listener);
-    m_listener = NULL;
+    this->disconnect(m_listener.data());
     ui->btnGo->setEnabled(true);
     ui->btnPause->setEnabled(false);
     ui->sbUniverse->setEnabled(true);
@@ -330,4 +331,24 @@ void UniverseView::on_btnLogToFile_pressed()
         setUiForLoggingState(NOT_LOGGING);
     }
 
+}
+
+void UniverseView::on_btnStartFlickerFinder_pressed()
+{
+    if(ui->universeDisplay->flickerFinder())
+    {
+        ui->universeDisplay->setFlickerFinder(false);
+        ui->btnStartFlickerFinder->setText(tr("Start Flicker Finder"));
+    }
+    else
+    {
+        int result = QMessageBox::information(this, tr("Flicker Finder"),
+            tr("Flicker finder color codes addresses which change over time.\nAddresses which have increased in level are highlighted in blue"
+               ", those which decrease in level show green, and those which changed but returned to their original level are shown in red. "
+               "\nDo you want to enable flicker finder?"), QMessageBox::Yes, QMessageBox::No);
+
+        if(result==QMessageBox::No) return;
+        ui->universeDisplay->setFlickerFinder(true);
+        ui->btnStartFlickerFinder->setText(tr("Stop Flicker Finder"));
+    }
 }

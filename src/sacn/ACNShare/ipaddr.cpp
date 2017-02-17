@@ -60,6 +60,14 @@ CIPAddr::CIPAddr(const CIPAddr& addr)
 	memcpy(m_addr, addr.m_addr, ADDRBYTES);
 }
 
+CIPAddr::CIPAddr(const QHostAddress &address)
+{
+    m_port = 0;
+    m_netid = 0;
+    memset(m_addr, 0, ADDRBYTES - sizeof(IPv4));
+    PackB4(m_addr + ADDRBYTES - sizeof(IPv4), address.toIPv4Address());
+}
+
 CIPAddr::~CIPAddr()
 {
 

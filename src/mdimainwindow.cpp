@@ -1,22 +1,17 @@
-// Copyright (c) 2015 Tom Barthel-Steer, http://www.tomsteer.net
+// Copyright 2016 Tom Barthel-Steer
+// http://www.tomsteer.net
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+// http://www.apache.org/licenses/LICENSE-2.0
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "mdimainwindow.h"
 #include "ui_mdimainwindow.h"
@@ -25,12 +20,22 @@
 #include "transmitwindow.h"
 #include "preferencesdialog.h"
 #include "aboutdialog.h"
+#include "sacnuniverselistmodel.h"
+#include "snapshot.h"
 
 MDIMainWindow::MDIMainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MDIMainWindow)
+    ui(new Ui::MDIMainWindow), m_model(NULL)
 {
     ui->setupUi(this);
+    ui->sbUniverseList->setMinimum(MIN_SACN_UNIVERSE);
+    ui->sbUniverseList->setMaximum(MAX_SACN_UNIVERSE - NUM_UNIVERSES_LISTED);
+
+
+    m_model = new sACNUniverseListModel(this);
+    ui->treeView->setModel(m_model);
+    ui->treeView->expandAll();
+    connect(ui->treeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(universeDoubleClick(QModelIndex)));
 }
 
 MDIMainWindow::~MDIMainWindow()
@@ -62,6 +67,14 @@ void MDIMainWindow::on_actionTranmsit_triggered(bool checked)
     trView->show();
 }
 
+void MDIMainWindow::on_actionSnapshot_triggered(bool checked)
+{
+    Q_UNUSED(checked);
+    Snapshot *snapView = new Snapshot();
+    ui->mdiArea->addSubWindow(snapView);
+    snapView->show();
+}
+
 void MDIMainWindow::on_actionSettings_triggered(bool checked)
 {
     Q_UNUSED(checked);
@@ -75,4 +88,38 @@ void MDIMainWindow::on_actionAbout_triggered(bool checked)
     Q_UNUSED(checked);
     aboutDialog *about =new aboutDialog(this);
     about->exec();
+}
+
+void MDIMainWindow::on_btnUnivListBack_pressed()
+{
+    ui->sbUniverseList->setValue(ui->sbUniverseList->value() - NUM_UNIVERSES_LISTED);
+}
+
+void MDIMainWindow::on_btnUnivListForward_pressed()
+{
+
+    ui->sbUniverseList->setValue(ui->sbUniverseList->value() + NUM_UNIVERSES_LISTED);
+}
+
+void MDIMainWindow::on_sbUniverseList_valueChanged(int value)
+{
+    if(m_model)
+        m_model->setStartUniverse(value);
+}
+
+
+void MDIMainWindow::universeDoubleClick(const QModelIndex &index)
+{
+    if(!m_model) return;
+
+    int universe = m_model->indexToUniverse(index);
+
+    if(universe>0)
+    {
+        UniverseView *uniView = new UniverseView(this);
+        ui->mdiArea->addSubWindow(uniView);
+        uniView->show();
+        uniView->startListening(universe);
+    }
+
 }

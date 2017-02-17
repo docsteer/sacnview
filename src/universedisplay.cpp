@@ -1,63 +1,106 @@
-// Copyright (c) 2015 Tom Barthel-Steer, http://www.tomsteer.net
+// Copyright 2016 Tom Barthel-Steer
+// http://www.tomsteer.net
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+// http://www.apache.org/licenses/LICENSE-2.0
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "universedisplay.h"
 #include "preferences.h"
 
+
+static const QColor flickerHigherColor  = QColor::fromRgb(0x8d, 0x32, 0xfd);
+static const QColor flickerLowerColor   = QColor::fromRgb(0x04, 0xfd, 0x44);
+static const QColor flickerChangedColor = QColor::fromRgb(0xfb, 0x09, 0x09);
+
 UniverseDisplay::UniverseDisplay(QWidget *parent) : GridWidget(parent)
 {
-    m_listener = 0;
     for(int i=0; i<512; i++)
         m_sources << sACNMergedAddress();
+    memset(m_flickerFinderLevels, 0, MAX_DMX_ADDRESS);
+    memset(m_flickerFinderHasChanged, 0, MAX_DMX_ADDRESS);
+    m_flickerFinder = false;
 }
 
 void UniverseDisplay::setUniverse(int universe)
 {
     m_listener = sACNManager::getInstance()->getListener(universe);
-    connect(m_listener, SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
+    connect(m_listener.data(), SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
 }
 
 void UniverseDisplay::pause()
 {
     m_listener->disconnect(this);
-    m_listener = NULL;
 }
 
 void UniverseDisplay::levelsChanged()
 {
-    if(m_listener)
-    {
-        Preferences *p = Preferences::getInstance();
-        m_sources = m_listener->mergedLevels();
-        for(int i=0; i<m_sources.count(); i++)
-        {
-            if(m_sources[i].winningSource)
-            {
-                setCellValue(i, p->GetFormattedValue(m_sources[i].level));
+    if(!m_listener)
+        return;
 
-                setCellColor(i, Preferences::getInstance()->colorForCID(m_sources[i].winningSource->src_cid));
+    Preferences *p = Preferences::getInstance();
+    m_sources = m_listener->mergedLevels();
+    for(int i=0; i<m_sources.count(); i++)
+    {
+        if(m_sources[i].winningSource)
+        {
+            setCellValue(i, p->GetFormattedValue(m_sources[i].level));
+
+            if(m_flickerFinder)
+            {
+                if(m_sources[i].level > m_flickerFinderLevels[i])
+                {
+                    setCellColor(i, flickerHigherColor);
+                    m_flickerFinderHasChanged[i] = true;
+                }
+                else if( m_sources[i].level < m_flickerFinderLevels[i])
+                {
+                    setCellColor(i, flickerLowerColor);
+                    m_flickerFinderHasChanged[i] = true;
+                }
+                else if(m_flickerFinderHasChanged[i])
+                {
+                    setCellColor(i, flickerChangedColor);
+                }
+                else
+                {
+                    setCellColor(i, Qt::white);
+                }
             }
             else
-                setCellValue(i, QString());
+            {
+                setCellColor(i, Preferences::getInstance()->colorForCID(m_sources[i].winningSource->src_cid));
+            }
         }
-        update();
+        else
+            setCellValue(i, QString());
     }
+    update();
 }
 
+void UniverseDisplay::setFlickerFinder(bool on)
+{
+    m_flickerFinder = on;
+    if(on)
+    {
+        for(int i=0; i<MAX_DMX_ADDRESS; i++)
+        {
+            m_flickerFinderLevels[i] = m_listener->mergedLevels().at(i).level;
+            m_flickerFinderHasChanged[i] = false;
+            setCellColor(i, Qt::white);
+        }
+    }
+    else
+    {
+        levelsChanged();
+    }
+    update();
+}

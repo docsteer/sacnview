@@ -1,22 +1,17 @@
-// Copyright (c) 2015 Tom Barthel-Steer, http://www.tomsteer.net
+// Copyright 2016 Tom Barthel-Steer
+// http://www.tomsteer.net
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+// http://www.apache.org/licenses/LICENSE-2.0
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "scopewindow.h"
 #include "ui_scopewindow.h"
@@ -212,7 +207,14 @@ void ScopeWindow::on_tableWidget_itemChanged(QTableWidgetItem * item)
         address = item->text().toInt(&ok);
         if(address>=1 && address<=512 && ok)
         {
-            sACNListener *listener = sACNManager::getInstance()->getListener(ch->universe());
+            QSharedPointer<sACNListener> listener;
+            if(!m_universes.contains(ch->universe()))
+            {
+                m_universes[ch->universe()] = sACNManager::getInstance()->getListener(ch->universe());
+            }
+
+            listener = m_universes[ch->universe()];
+
             listener->unMonitorAddress(ch->address());
             ch->setAddress(address-1);
             listener->monitorAddress(ch->address());
@@ -228,14 +230,20 @@ void ScopeWindow::on_tableWidget_itemChanged(QTableWidgetItem * item)
 
     case COL_UNIVERSE:
         universe = item->text().toInt(&ok);
-        if(universe>=1 && universe<=MAX_SACN_UNIVERSE && ok)
+        if(universe>=1 && universe<=MAX_SACN_UNIVERSE && ok && ch->universe()!=universe)
         {
-            sACNListener *listener = sACNManager::getInstance()->getListener(ch->universe());
-            listener->unMonitorAddress(ch->address());
-            listener = sACNManager::getInstance()->getListener(universe);
+            // Changing universe
+            QSharedPointer<sACNListener> listener;
+            if(!m_universes.contains(universe))
+            {
+                m_universes[ch->universe()] = sACNManager::getInstance()->getListener(universe);
+            }
+
+            listener = m_universes[ch->universe()];
+
             ch->setUniverse(universe);
-            listener->disconnect(this->ui->widget);
-            connect(listener, SIGNAL(dataReady(int, QPointF)), this->ui->widget, SLOT(dataReady(int, QPointF)));
+            disconnect(listener.data(), 0, this->ui->widget, 0);
+            connect(listener.data(), SIGNAL(dataReady(int, QPointF)), this->ui->widget, SLOT(dataReady(int, QPointF)));
             listener->monitorAddress(ch->address());
             ch->clear();
         }

@@ -1,22 +1,17 @@
-// Copyright (c) 2015 Electronic Theatre Controls, http://www.etcconnect.com
+// Copyright 2016 Tom Barthel-Steer
+// http://www.tomsteer.net
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+// http://www.apache.org/licenses/LICENSE-2.0
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #ifndef SACNSENDER_H
 #define SACNSENDER_H
@@ -26,6 +21,7 @@
 #include <QMutex>
 #include <vector>
 #include <map>
+#include "streamingacn.h"
 #include "streamcommon.h"
 #include "tock.h"
 #include "deftypes.h"
@@ -41,41 +37,25 @@ public:
     sACNSentUniverse(int universe);
     virtual ~sACNSentUniverse();
 
-    enum sACNUniverseEffect{
-        FxNone,
-        FxFadeRangeRamp,
-        FxFadeRangeSinewave,
-        FxChaseRange,
-        FxText,
-        FxDateTime
-    };
-
-
-    void getFxSpeed(int speed) const;
 public slots:
-    /**
-     * @brief setFxMode sets the effect mode for the universe
-     * @param mode - the mode to apply
-     */
-    void setFxMode(sACNUniverseEffect mode);
     /**
      * @brief setLevel sets a single level in the universe
      * @param address - the address to set, 0-based (0-511)
      * @param value - the value to set (0-255)
      */
-    void setLevel(uint2 address, uint1 value);
+    void setLevel(quint16 address, quint8 value);
     /**
-     * @brief setLevel sets a level range
+     * @brief setLevelRange sets a level range
      * @param start - start address, 0-based (0-511)
      * @param end - end address, 0-based (0-511)
      * @param value - level to set (0-255)
      */
-    void setLevel(uint2 start, uint2 end, uint1 value);
+    void setLevelRange(quint16 start, quint16 end, quint8 value);
     /**
-     * @brief setFxSpeed sets the effect speed, which is based on a clock of 10ms.
-     * @param speed. Speed in Hz, in increments of 1/10ms. So 1 is max speed (100Hz), 2 is divide by 2 (50Hz), 3 is 33Hz, etc.
+     * @brief setLevel sets a level range
+     * @param data - pointer to a data array
      */
-    void setFxSpeed(int speed);
+    void setLevel(const quint8 *data, int len, int start=0);
     /**
      * @brief setName sets the universe name
      * @param name the name to set
@@ -92,6 +72,11 @@ public slots:
      */
     void setPerChannelPriorities(uint1 *priorities);
     /**
+     * @brief setPerSourcePriority - sets the per-source priority for the source
+     * @param priority - the priority value
+     */
+    void setPerSourcePriority(uint1 priority);
+    /**
      * @brief startSending - starts sending for the selected universe
      */
     void startSending();
@@ -100,8 +85,21 @@ public slots:
      */
     void stopSending();
     bool isSending() const { return m_isSending;};
-signals:
-    void fxLevelChanged(int level);
+    /**
+     * @brief setUnicastAddress - sets the address to unicast data to
+     * @param Address - a QHostAddress, default QHostAddress means multicast
+     */
+    void setUnicastAddress(const QHostAddress &address) { m_unicastAddress = address;};
+    /**
+     * @brief setProtocolVersion - sets the protocol version
+     * @param version - draft or release
+     */
+    void setProtocolVersion(StreamingACNProtocolVersion version);
+    /**
+     * @brief copyLevels - copies the current output levels
+     * @param dest - destination to copy to, uint8 array, must be 512 long
+     */
+    void copyLevels(quint8 *dest);
 private:
     bool m_isSending;
     // The handle for the CStreamServer universe
@@ -124,6 +122,10 @@ private:
     PriorityMode m_priorityMode;
     // Per-channel priorities
     uint1 m_perChannelPriorities[MAX_DMX_ADDRESS];
+    // Unicast
+    QHostAddress m_unicastAddress;
+    // Protocol Version
+    StreamingACNProtocolVersion m_version;
 };
 
 
@@ -168,7 +170,7 @@ public:
                        uint2 reserved, uint1 options, uint1 start_code,
                               uint2 universe, uint2 slot_count, uint1*& pslots, uint& handle,
                               bool ignore_inactivity_logic = IGNORE_INACTIVE_DMX,
-                              uint send_intervalms = SEND_INTERVAL_DMX);
+                              uint send_intervalms = SEND_INTERVAL_DMX, CIPAddr unicastAddress = CIPAddr(), bool draft = false);
 
   //After you add data to the data buffer, call this to trigger the data send
   //on the next Tick boundary.
@@ -223,18 +225,19 @@ private:
     QThread *m_thread;
 
 
+    typedef std::pair<CID, uint2> cidanduniverse;
     //Each universe shares its sequence numbers across start codes.
     //This is the central storage location, along with a refcount
     typedef std::pair<int, uint1*> seqref;
-    std::map<uint2, seqref > m_seqmap;
-    typedef std::map<uint2, seqref >::iterator seqiter;
+    std::map<cidanduniverse, seqref > m_seqmap;
+    typedef std::map<cidanduniverse, seqref >::iterator seqiter;
 
     //Returns a pointer to the storage location for the universe, adding if need be.
     //The newly-added location contains sequence number 0.
-    uint1* GetPSeq(uint2 universe);
+    uint1* GetPSeq(const CID &cid, uint2 universe);
 
     //Removes a reference to the storage location for the universe, removing completely if need be.
-    void RemovePSeq(uint2 universe);
+    void RemovePSeq(const CID &cid, uint2 universe);
 
     //Each universe is just the full buffer and some state
     struct universe
@@ -252,11 +255,13 @@ private:
         bool ignore_inactivity;     //If true, we don't bother looking at inactive_count
         uint inactive_count;		//After 3 of these, we start sending at send_interval
         ttimer send_interval;       //Whether or not it's time to send a non-dirty packet
-        uint1 seq;                  //The universe sequence number
         QHostAddress sendaddr;      //The multicast address we're sending to
+        bool draft;                 //Draft or released sACN
+        CID cid;                    // The CID
 
         //and the constructor
-      universe():number(0),handle(0), num_terminates(0), psend(NULL),isdirty(false),waited_for_dirty(false),inactive_count(0),seq(0) {}
+      universe():number(0),handle(0), num_terminates(0), psend(NULL),isdirty(false),
+          waited_for_dirty(false),inactive_count(0),draft(false), cid() {}
     };
 
     //The handle is the vector index
@@ -272,17 +277,5 @@ private:
    QMutex m_writeMutex;
 };
 
-
-class sACNSender
-{
-public:
-    static sACNSender getInstance();
-
-    sACNSentUniverse *createUniverse(uint2 universe);
-
-private:
-    static sACNSender *m_instance;
-    sACNSender();
-};
 
 #endif // SACNSENDER_H

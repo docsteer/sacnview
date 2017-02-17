@@ -1,3 +1,20 @@
+// Copyright 2016 Tom Barthel-Steer
+// http://www.tomsteer.net
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Parts of this file from Electronic Theatre Controls Inc, License info below
+//
 // Copyright (c) 2015 Electronic Theatre Controls, http://www.etcconnect.com
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -129,14 +146,13 @@ void InitStreamHeader(uint1* pbuf, const CID &source_cid,
  * This function is included to support legacy code from before 
  * ratification of the standard.
  */
-void InitStreamHeaderForDraft(uint1* pbuf, const CID &source_cid, 
-			      const char* source_name, uint1 priority, 
-			      uint1 start_code, uint2 universe, 
-			      uint2 slot_count);
+void InitStreamHeaderForDraft(uint1* pbuf, const CID &source_cid,
+                              const char* source_name, uint1 priority, uint2 reserved,
+                              uint1 options, uint1 start_code, uint2 universe,
+                              uint2 slot_count);
 
 /* Given an initialized buffer, change the sequence number to... */
-void SetStreamHeaderSequence(uint1* pbuf, uint1 seq);
-void SetStreamHeaderSequenceForDraft(uint1* pbuf, uint1 seq);
+void SetStreamHeaderSequence(uint1* pbuf, uint1 seq, bool draft);
 
 /*
  * Given a buffer, validate that the stream header is correct.  If this returns

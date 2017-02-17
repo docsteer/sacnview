@@ -1,3 +1,20 @@
+// Copyright 2016 Tom Barthel-Steer
+// http://www.tomsteer.net
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Parts of this file from Electronic Theatre Controls Inc, License info below
+//
 // Copyright (c) 2015 Electronic Theatre Controls, http://www.etcconnect.com
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,7 +42,7 @@
 
 sACNSource::sACNSource()
 {
-    src_valid = false;  //We're ignoring thread issues, so to reuse a slot in the source array we'll flag it valid or invalid
+    src_valid = false;
     lastseq = 0;
     waited_for_dd = false;
     doing_dmx = false; //if true, we are processing dmx data from this source
@@ -58,26 +75,53 @@ sACNManager *sACNManager::getInstance()
     return m_instance;
 }
 
-sACNManager::sACNManager()
+sACNManager::sACNManager() : QObject()
 {
 
 }
 
-sACNListener *sACNManager::getListener(int universe)
+QSharedPointer<sACNListener> sACNManager::getListener(int universe)
 {
+    // Notes on the memory management of sACNListeners :
+    // This function creates a QSharedPointer to the listener, which is handed to the classes that
+    // want to use it. It stores a QWeakPointer, which gets set to null when all instances of the shared
+    // pointer are gone
     sACNListener *listener = NULL;
+    QSharedPointer<sACNListener> strongPointer;
     if(!m_listenerHash.contains(universe))
     {
         listener = new sACNListener();
+        connect(listener, SIGNAL(destroyed(QObject*)), this, SLOT(listenerDeleted(QObject*)));
         QThread *newThread = new QThread();
         newThread->setObjectName(QString("Universe %1 RX").arg(universe));
         listener->moveToThread(newThread);
         newThread->start(QThread::HighPriority);
         m_listenerThreads[universe]  = newThread;
         QMetaObject::invokeMethod(listener,"startReception", Q_ARG(int,universe));
-        m_listenerHash[universe] = listener;
+        strongPointer = QSharedPointer<sACNListener>(listener, &QObject::deleteLater);
+        m_listenerHash[universe] = strongPointer.toWeakRef();
+        m_objToUniverse[listener] = universe;
+        qDebug() << "Creating Listener for universe " << universe;
     }
     else
-        listener = m_listenerHash[universe];
-    return listener;
+    {
+        strongPointer = m_listenerHash[universe].toStrongRef();
+    }
+    if(strongPointer.isNull())
+    {
+        qDebug() << "BAD!";
+    }
+    return strongPointer;
+}
+
+void sACNManager::listenerDeleted(QObject *obj)
+{
+    int universe = m_objToUniverse[obj];
+
+    qDebug() << "Destroying Listener for universe " << universe;
+    m_listenerThreads[universe]->exit();
+    m_listenerThreads[universe]->wait();
+    m_listenerHash.remove(universe);
+    m_listenerThreads.remove(universe);
+    m_objToUniverse.remove(obj);
 }

@@ -1,22 +1,17 @@
-// Copyright (c) 2015 Electronic Theatre Controls, http://www.etcconnect.com
+// Copyright 2016 Tom Barthel-Steer
+// http://www.tomsteer.net
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+// http://www.apache.org/licenses/LICENSE-2.0
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "sacnlistener.h"
 #include "streamcommon.h"
@@ -40,6 +35,8 @@
 
 sACNListener::sACNListener(QObject *parent) : QObject(parent)
 {
+    m_mergeTimer = 0;
+    m_initalSampleTimer = 0;
     m_socket = 0;
     m_ssHLL = 1000;
     m_merged_levels.reserve(512);
@@ -53,6 +50,21 @@ sACNListener::sACNListener(QObject *parent) : QObject(parent)
 
 sACNListener::~sACNListener()
 {
+    if(m_socket)
+    {
+        delete m_socket;
+        m_socket = 0;
+    }
+    if(m_mergeTimer)
+    {
+        delete m_mergeTimer;
+        m_mergeTimer = 0;
+    }
+    if(m_initalSampleTimer)
+    {
+        delete m_initalSampleTimer;
+        m_initalSampleTimer = 0;
+    }
 }
 
 void sACNListener::startReception(int universe)
@@ -99,6 +111,7 @@ void sACNListener::checkSampleExpiration()
         qDebug() << "Sampling has ended";
         m_initalSampleTimer->stop();
         m_initalSampleTimer->deleteLater();
+        m_initalSampleTimer = 0;
     }
 }
 
@@ -529,14 +542,14 @@ void sACNListener::performMerge()
             sACNMergedAddress *pAddr = &m_merged_levels[addresses_to_merge[i]];
             int address = addresses_to_merge[i];
 
-            if (ps->src_valid  && !ps->active.Expired() && ps->priority_array[i] > priorities[i] && ps->priority_array[i]>0)
+            if (ps->src_valid  && !ps->active.Expired() && ps->priority_array[address] > priorities[address] && ps->priority_array[address]>0)
             {
                 // Sources of higher priority
-                priorities[i] = ps->priority_array[i];
+                priorities[address] = ps->priority_array[address];
                 addressToSourceMap.remove(address);
                 addressToSourceMap.insert(address, ps);
             }
-            if (ps->src_valid  && !ps->active.Expired() && ps->priority_array[i] == priorities[i])
+            if (ps->src_valid  && !ps->active.Expired() && ps->priority_array[address] == priorities[address] && ps->priority_array[address]>0)
             {
                 addressToSourceMap.insert(address, ps);
             }

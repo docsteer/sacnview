@@ -1,10 +1,19 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2015-10-16T13:42:54
-#
-#-------------------------------------------------
+## Copyright 2016 Tom Barthel-Steer
+## http://www.tomsteer.net
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+## http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
 
-QT       += core gui network
+QT       += core gui network multimedia
 
 QMAKE_CXXFLAGS += -std=gnu++0x
 
@@ -15,8 +24,12 @@ TEMPLATE = app
 
 INCLUDEPATH += src src/sacn src/sacn/ACNShare
 
+GIT_VERSION = $$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --always --tags)
+
+DEFINES += QT_SHAREDPOINTER_TRACK_POINTERS=1 GIT_CURRENT_SHA1=\\\"$$GIT_VERSION\\\"
+
 SOURCES += src/main.cpp\
-        src/mdimainwindow.cpp \
+    src/mdimainwindow.cpp \
     src/scopewindow.cpp \
     src/universeview.cpp \
     src/sacn/ACNShare/CID.cpp \
@@ -37,7 +50,11 @@ SOURCES += src/main.cpp\
     src/priorityeditwidget.cpp \
     src/scopewidget.cpp \
     src/aboutdialog.cpp \
-    src/mergeduniverselogger.cpp
+    src/sacn/sacneffectengine.cpp \
+    src/mergeduniverselogger.cpp \
+    src/sacn/sacnuniverselistmodel.cpp \
+    src/snapshot.cpp \
+    src/commandline.cpp
 	
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -63,7 +80,12 @@ HEADERS  += src/mdimainwindow.h \
     src/priorityeditwidget.h \
     src/scopewidget.h \
     src/aboutdialog.h \
-    src/mergeduniverselogger.h
+    src/sacn/sacneffectengine.h \
+    src/mergeduniverselogger.h \
+    src/sacn/sacnuniverselistmodel.h \
+    src/snapshot.h \
+    src/commandline.h \
+    src/fontdata.h
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
@@ -72,7 +94,8 @@ FORMS    += ui/mdimainwindow.ui \
     ui/preferencesdialog.ui \
     ui/transmitwindow.ui \
     ui/configureperchanpriodlg.ui \
-    ui/aboutdialog.ui
+    ui/aboutdialog.ui \
+    ui/snapshot.ui
 
 RESOURCES += \
     res/resources.qrc
@@ -100,7 +123,10 @@ macx {
     DEPLOY_COMMAND = macdeployqt
 }
 
-CONFIG( release ) {
-    DEPLOY_TARGET = ($$shell_path($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT}))
-    QMAKE_POST_LINK += $${DEPLOY_COMMAND} $${DEPLOY_TARGET}
+CONFIG( release , debug | release) {
+    DEPLOY_TARGET = $${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT}
+    DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/deploy
+    QMAKE_POST_LINK += $${DEPLOY_COMMAND} --dir $${DEPLOY_DIR}  $${DEPLOY_TARGET}
+    QMAKE_POST_LINK += $$escape_expand(\\n\\t) $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR}
+
 }

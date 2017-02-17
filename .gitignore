@@ -1,5 +1,4 @@
 # C++ objects and libs
-
 *.slo
 *.lo
 *.o
@@ -10,8 +9,8 @@
 *.dll
 *.dylib
 
-# Qt-es
 
+# Qt-es
 /.qmake.cache
 /.qmake.stash
 *.pro.user
@@ -19,6 +18,7 @@
 *.qbs.user
 *.qbs.user.*
 *.moc
+*.qm
 moc_*.cpp
 qrc_*.cpp
 ui_*.h

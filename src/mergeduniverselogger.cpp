@@ -3,7 +3,8 @@
 #include <QDateTime>
 
 MergedUniverseLogger::MergedUniverseLogger() :
-    m_file(nullptr), QObject(nullptr)
+    QObject(nullptr),
+    m_file(nullptr)
 {
     //reserve a bit more than max length for sACNView1 format - see levelsChanged()
     m_stringBuffer.reserve(3000);
@@ -15,18 +16,18 @@ MergedUniverseLogger::~MergedUniverseLogger()
     closeFile();
 }
 
-void MergedUniverseLogger::start(QString fileName, sACNListener *listener)
+void MergedUniverseLogger::start(QString fileName, QSharedPointer<sACNListener>listener)
 {
     m_elapsedTimer.start();
     setUpFile(fileName);
     m_listener = listener;
-    connect(m_listener, &sACNListener::levelsChanged,
+    connect(m_listener.data(), &sACNListener::levelsChanged,
             this, &MergedUniverseLogger::levelsChanged);
 }
 
 void MergedUniverseLogger::stop()
 {
-    disconnect(m_listener, 0, this, 0);
+    disconnect(m_listener.data(), 0, this, 0);
     closeFile();
 }
 
