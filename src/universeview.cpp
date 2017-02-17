@@ -157,13 +157,13 @@ void UniverseView::resizeEvent(QResizeEvent *event)
 
     // Attempt to resize so all columns fit
     // 7 small columns, 1 large column (CID), 1 IP, 1 sized to fill remainig space (Name)
-    // CID is around 4x width of small columns
+    // CID is around 3x width of small columns
     // IP is 2x width of small columns
     // Name is around 2x width of small columns
 
     int width = ui->twSources->width();
 
-    int widthUnit = width/15;
+    int widthUnit = width/14;
 
     int used = 0;
     for(int i=COL_NAME; i<COL_END; i++)
@@ -173,8 +173,8 @@ void UniverseView::resizeEvent(QResizeEvent *event)
         case COL_NAME:
             break;
         case COL_CID:
-            ui->twSources->setColumnWidth(i, 4*widthUnit);
-            used += 4*widthUnit;
+            ui->twSources->setColumnWidth(i, 3*widthUnit);
+            used += 3*widthUnit;
             break;
         case COL_IP:
             ui->twSources->setColumnWidth(i, 2*widthUnit);
@@ -196,13 +196,13 @@ void UniverseView::showEvent(QShowEvent *event)
 
     // Attempt to resize so all columns fit
     // 7 small columns, 1 large column (CID), 1 IP, 1 sized to fill remainig space (Name)
-    // CID is around 4x width of small columns
+    // CID is around 3x width of small columns
     // IP is 2x width of small columns
     // Name is around 2x width of small columns
 
     int width = ui->twSources->width();
 
-    int widthUnit = width/15;
+    int widthUnit = width/14;
 
     int used = 0;
     for(int i=COL_NAME; i<COL_END; i++)
@@ -212,8 +212,8 @@ void UniverseView::showEvent(QShowEvent *event)
         case COL_NAME:
             break;
         case COL_CID:
-            ui->twSources->setColumnWidth(i, 4*widthUnit);
-            used += 4*widthUnit;
+            ui->twSources->setColumnWidth(i, 3*widthUnit);
+            used += 3*widthUnit;
             break;
         case COL_IP:
             ui->twSources->setColumnWidth(i, 2*widthUnit);
@@ -264,7 +264,7 @@ void UniverseView::selectedAddressChanged(int address)
     {
             info.append(tr("Winning Source : %1 @ %2")
                         .arg(list[address].winningSource->name)
-                        .arg(list[address].level));
+                        .arg(Preferences::getInstance()->GetFormattedValue(list[address].level)));
             if(list[address].otherSources.count()>0)
             {
                 foreach(sACNSource *source, list[address].otherSources)
@@ -276,7 +276,7 @@ void UniverseView::selectedAddressChanged(int address)
                         prio = source->priority;
                     info.append(tr("\nOther Source : %1 @ %2 (Priority %3)")
                                 .arg(source->name)
-                                .arg(source->level_array[address])
+                                .arg(Preferences::getInstance()->GetFormattedValue(source->level_array[address]))
                                 .arg(prio));
                 }
             }
