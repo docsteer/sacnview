@@ -34,6 +34,7 @@ void UniverseDisplay::setUniverse(int universe)
 {
     m_listener = sACNManager::getInstance()->getListener(universe);
     connect(m_listener.data(), SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
+    levelsChanged();
 }
 
 void UniverseDisplay::pause()
