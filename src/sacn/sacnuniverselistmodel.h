@@ -2,6 +2,8 @@
 #define SACNUNIVERSELISTMODEL_H
 
 #include <QObject>
+#include <QSharedPointer>
+#include <QWeakPointer>
 #include <QAbstractItemModel>
 #include <QUdpSocket>
 #include <QHostAddress>

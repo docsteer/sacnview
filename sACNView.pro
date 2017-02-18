@@ -15,6 +15,10 @@
 
 QT       += core gui network multimedia
 
+macx {
+QMAKE_MAC_SDK = macosx10.12
+}
+
 QMAKE_CXXFLAGS += -std=gnu++0x
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets

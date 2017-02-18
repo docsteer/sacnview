@@ -21,6 +21,8 @@
 #include <QMutex>
 #include <vector>
 #include <map>
+#include <QSharedPointer>
+#include <QWeakPointer>
 #include "streamingacn.h"
 #include "streamcommon.h"
 #include "tock.h"

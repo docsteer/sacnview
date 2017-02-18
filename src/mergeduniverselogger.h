@@ -26,6 +26,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QObject>
+#include <QSharedPointer>
 
 class MergedUniverseLogger : public QObject
 {

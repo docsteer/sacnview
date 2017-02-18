@@ -21,6 +21,8 @@
 #include <QDebug>
 #include <QThread>
 #include <QPoint>
+#include <QSharedPointer>
+#include <QWeakPointer>
 
 
 //The amount of ms to wait before a source is considered offline or
