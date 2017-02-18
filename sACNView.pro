@@ -17,6 +17,7 @@ QT       += core gui network multimedia
 
 macx {
 QMAKE_MAC_SDK = macosx10.12
+ICON = res/icon.icns
 }
 
 QMAKE_CXXFLAGS += -std=gnu++0x
@@ -122,15 +123,11 @@ isEmpty(TARGET_EXT) {
 
 win32 {
     DEPLOY_COMMAND = windeployqt
-}
-macx {
-    DEPLOY_COMMAND = macdeployqt
-}
-
 CONFIG( release , debug | release) {
     DEPLOY_TARGET = $${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT}
     DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/deploy
     QMAKE_POST_LINK += $${DEPLOY_COMMAND} --dir $${DEPLOY_DIR}  $${DEPLOY_TARGET}
     QMAKE_POST_LINK += $$escape_expand(\\n\\t) $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR}
-
+    }
 }
+
