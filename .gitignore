@@ -36,3 +36,4 @@ Makefile*
 #Binary Output
 *.exe
 *.zip
+*.dmg
