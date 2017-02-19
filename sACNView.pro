@@ -131,6 +131,7 @@ win32 {
 macx {
     DEPLOY_COMMAND = macdeployqt
     DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/
+    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${_PRO_FILE_PWD_}/install/mac/sACNView.dmg
     DEPLOY_TARGET = $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
     DEPLOY_CLEANUP = $${_PRO_FILE_PWD_}/install/mac/create-dmg --volname "sACNView_Installer" --volicon "$${_PRO_FILE_PWD_}/res/icon.icns"
     DEPLOY_CLEANUP += --background "$${_PRO_FILE_PWD_}/res/mac_install_bg.png" --window-pos 200 120 --window-size 800 400 --icon-size 100 --icon sACNView.app 200 190 --hide-extension sACNView.app --app-drop-link 600 185
@@ -138,6 +139,7 @@ macx {
 }
 
 CONFIG( release , debug | release) {
+    QMAKE_POST_LINK += $${PRE_DEPLOY_COMMAND} $$escape_expand(\\n\\t)
     QMAKE_POST_LINK += $${DEPLOY_COMMAND} $${DEPLOY_TARGET} $${DEPLOY_OPT}
     QMAKE_POST_LINK += $$escape_expand(\\n\\t) $${DEPLOY_CLEANUP}
 }
