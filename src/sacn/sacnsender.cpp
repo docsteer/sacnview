@@ -159,7 +159,11 @@ CStreamServer::CStreamServer()
             a = addressEntries[i].ip();
         }
     }
+#ifdef Q_OS_WIN
     bool ok = m_sendsock->bind(a);
+#else
+    bool ok = m_sendsock->bind();
+#endif
     if(!ok)
         qDebug() << "Failed to bind RX socket";
     m_sendsock->setSocketOption(QAbstractSocket::MulticastLoopbackOption, QVariant(1));

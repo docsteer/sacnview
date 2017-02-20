@@ -22,6 +22,8 @@
 #define STREAMINGACN_H
 
 #include <Qt>
+#include <QSharedPointer>
+#include <QWeakPointer>
 #include <QHash>
 #include <QString>
 #include <QHostAddress>

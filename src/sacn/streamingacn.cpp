@@ -39,6 +39,7 @@
 #include "sacnlistener.h"
 
 #include <QThread>
+#include <QSharedPointer>
 
 sACNSource::sACNSource()
 {
