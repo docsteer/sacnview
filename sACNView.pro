@@ -20,7 +20,9 @@ QMAKE_MAC_SDK = macosx10.12
 ICON = res/icon.icns
 }
 
-QMAKE_CXXFLAGS += -std=gnu++0x
+!msvc {
+        QMAKE_CXXFLAGS += -std=gnu++0x
+}
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
