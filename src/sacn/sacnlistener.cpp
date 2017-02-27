@@ -573,7 +573,6 @@ void sACNListener::performMerge()
 
 
     // Next, find highest level for the highest prioritized sources
-    QBitArray changes = QBitArray(512, false); //keep track of any changed addresses
     skipCounter = 0;
     for(int i=0; i < 512 && i<(number_of_addresses_to_merge + skipCounter); i++)
     {
