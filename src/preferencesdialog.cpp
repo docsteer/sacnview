@@ -41,7 +41,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
             if(e.ip().protocol() == QAbstractSocket::IPv4Protocol)
                ok = true;
         }
-        ok = ok & (interface.flags() | QNetworkInterface::CanMulticast);
+        ok = ok & (bool)(interface.flags() | QNetworkInterface::CanMulticast);
 
         if(ok)
         {
