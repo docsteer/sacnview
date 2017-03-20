@@ -2,7 +2,7 @@
 #define SNAPSHOT_H
 
 #include <QWidget>
-#include <QSound>
+#include <QtMultimedia/QSound>
 #include "streamingacn.h"
 #include "consts.h"
 

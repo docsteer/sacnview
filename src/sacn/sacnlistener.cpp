@@ -447,11 +447,13 @@ void sACNListener::readPendingDatagrams()
 
 void sACNListener::performMerge()
 {
-
+    //array of addresses to merge. to prevent duplicates and because you can have
+    //an odd collection of addresses, addresses[n] would be 'n' for the value in question
+    // and -1 if not required
     int addresses_to_merge[512];
     int number_of_addresses_to_merge = 0;
 
-    memset(addresses_to_merge, 0, 512);
+    memset(addresses_to_merge, -1, sizeof(int) * 512);
 
     foreach(int chan, m_monitoredChannels)
     {
@@ -496,7 +498,7 @@ void sACNListener::performMerge()
             {
                 if(ps->dirty_array[i])
                 {
-                    addresses_to_merge[number_of_addresses_to_merge] = i;
+                    addresses_to_merge[i] = i;
                     number_of_addresses_to_merge++;
                 }
             }
@@ -506,13 +508,17 @@ void sACNListener::performMerge()
         }
     }
 
-
     if(number_of_addresses_to_merge == 0) return; // Nothing to do
 
     // Clear out the sources list for all the affected channels, we'll be refreshing it
 
-    for(int i=0; i<number_of_addresses_to_merge; i++)
+    int skipCounter = 0;
+    for(int i=0; i < 512 && i<(number_of_addresses_to_merge + skipCounter); i++)
     {
+        if(addresses_to_merge[i] == -1) {
+            ++skipCounter;
+            continue;
+        }
         sACNMergedAddress *pAddr = &m_merged_levels[addresses_to_merge[i]];
         pAddr->otherSources.clear();
     }
@@ -539,8 +545,13 @@ void sACNListener::performMerge()
             memset(ps->priority_array, ps->priority, sizeof(ps->priority_array));
         }
 
-        for(int i=0; i<number_of_addresses_to_merge; i++)
+        skipCounter = 0;
+        for(int i=0; i < 512 && i<(number_of_addresses_to_merge + skipCounter); i++)
         {
+            if(addresses_to_merge[i] == -1) {
+               ++skipCounter;
+                continue;
+            }
             sACNMergedAddress *pAddr = &m_merged_levels[addresses_to_merge[i]];
             int address = addresses_to_merge[i];
 
@@ -562,9 +573,13 @@ void sACNListener::performMerge()
 
 
     // Next, find highest level for the highest prioritized sources
-
-    for(int i=0; i<number_of_addresses_to_merge; i++)
+    skipCounter = 0;
+    for(int i=0; i < 512 && i<(number_of_addresses_to_merge + skipCounter); i++)
     {
+        if(addresses_to_merge[i] == -1) {
+            ++skipCounter;
+            continue;
+        }
         int address = addresses_to_merge[i];
         QList<sACNSource*> sourceList = addressToSourceMap.values(address);
 
