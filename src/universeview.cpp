@@ -19,6 +19,7 @@
 #include "sacnlistener.h"
 #include "preferences.h"
 #include "consts.h"
+#include "flickerfinderinfoform.h"
 
 #include <QFileDialog>
 #include <QStandardPaths>
@@ -154,52 +155,19 @@ void UniverseView::levelsChanged()
 void UniverseView::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
-
-    // Attempt to resize so all columns fit
-    // 7 small columns, 1 large column (CID), 1 IP, 1 sized to fill remainig space (Name)
-    // CID is around 3x width of small columns
-    // IP is 2x width of small columns
-    // Name is around 2x width of small columns
-
-    int width = ui->twSources->width();
-
-    int widthUnit = width/14;
-
-    int used = 0;
-    for(int i=COL_NAME; i<COL_END; i++)
-    {
-        switch(i)
-        {
-        case COL_NAME:
-            break;
-        case COL_CID:
-            ui->twSources->setColumnWidth(i, 3*widthUnit);
-            used += 3*widthUnit;
-            break;
-        case COL_IP:
-            ui->twSources->setColumnWidth(i, 2*widthUnit);
-            used += 2*widthUnit;
-            break;
-        default:
-            ui->twSources->setColumnWidth(i, widthUnit);
-            used += widthUnit;
-            break;
-        }
-    }
-
-    ui->twSources->setColumnWidth(COL_NAME, width-used-5);
+    resizeColumns();
 }
 
 void UniverseView::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
 
-    // Attempt to resize so all columns fit
-    // 7 small columns, 1 large column (CID), 1 IP, 1 sized to fill remainig space (Name)
-    // CID is around 3x width of small columns
-    // IP is 2x width of small columns
-    // Name is around 2x width of small columns
+    resizeColumns();
+}
 
+void UniverseView::resizeColumns()
+{
+    // Attempt to resize so all columns fit
     int width = ui->twSources->width();
 
     int widthUnit = width/14;
@@ -212,10 +180,8 @@ void UniverseView::showEvent(QShowEvent *event)
         case COL_NAME:
             break;
         case COL_CID:
-            ui->twSources->setColumnWidth(i, 3*widthUnit);
-            used += 3*widthUnit;
-            break;
         case COL_IP:
+        case COL_DD:
             ui->twSources->setColumnWidth(i, 2*widthUnit);
             used += 2*widthUnit;
             break;
@@ -227,7 +193,6 @@ void UniverseView::showEvent(QShowEvent *event)
     }
 
     ui->twSources->setColumnWidth(COL_NAME, width-used-5);
-
 }
 
 void UniverseView::setUiForLoggingState(UniverseView::LOG_STATE state)
@@ -342,12 +307,12 @@ void UniverseView::on_btnStartFlickerFinder_pressed()
     }
     else
     {
-        int result = QMessageBox::information(this, tr("Flicker Finder"),
-            tr("Flicker finder color codes addresses which change over time.\nAddresses which have increased in level are highlighted in blue"
-               ", those which decrease in level show green, and those which changed but returned to their original level are shown in red. "
-               "\nDo you want to enable flicker finder?"), QMessageBox::Yes, QMessageBox::No);
-
-        if(result==QMessageBox::No) return;
+        if(Preferences::getInstance()->getFlickerFinderShowInfo())
+        {
+            FlickerFinderInfoForm form;
+            int result = form.exec();
+            if(!result) return;
+        }
         ui->universeDisplay->setFlickerFinder(true);
         ui->btnStartFlickerFinder->setText(tr("Stop Flicker Finder"));
     }
