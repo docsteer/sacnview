@@ -390,3 +390,63 @@ void CommandLineWidget::keyPressEvent(QKeyEvent *e)
 
     displayText();
 }
+
+
+EditableLCDNumber::EditableLCDNumber(QWidget *parent) : QLCDNumber(parent)
+{
+
+}
+
+void EditableLCDNumber::keyPressEvent(QKeyEvent *event)
+{
+    int buf = 0;
+
+    switch(event->key())
+    {
+    case Qt::Key_Backspace:
+        if(intValue()/10 > 0)
+        {
+            buf = intValue() / 10;
+            display(buf);
+            emit valueChanged(buf);
+        }
+        else
+            display(QString(" "));
+        break;
+    case Qt::Key_PageDown:
+        if(intValue()-1>0)
+        {
+            buf = intValue()-1;
+            display(buf);
+            emit valueChanged(buf);
+        }
+        break;
+    case Qt::Key_PageUp:
+        if(intValue()<MAX_DMX_ADDRESS)
+        {
+            buf = intValue()+1;
+            display(buf);
+            emit valueChanged(buf);
+        }
+        break;
+    case Qt::Key_0:
+    case Qt::Key_1:
+    case Qt::Key_2:
+    case Qt::Key_3:
+    case Qt::Key_4:
+    case Qt::Key_5:
+    case Qt::Key_6:
+    case Qt::Key_7:
+    case Qt::Key_8:
+    case Qt::Key_9:
+        buf = value()*10 + (event->key()-Qt::Key_0);
+        if(buf<=MAX_DMX_ADDRESS)
+        {
+            display(buf);
+            emit valueChanged(buf);
+        }
+        break;
+    default:
+        break;
+    }
+}
