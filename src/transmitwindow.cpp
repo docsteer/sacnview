@@ -153,6 +153,7 @@ transmitwindow::transmitwindow(QWidget *parent) :
     connect(ui->rbFadeSine, SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
     connect(ui->rbText,     SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
     connect(ui->rbDateTime, SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
+    connect(ui->rbChase,    SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
 
     connect(ui->rbEuDate, SIGNAL(toggled(bool)), this, SLOT(dateMode_toggled(bool)));
     connect(ui->rbUsDate, SIGNAL(toggled(bool)), this, SLOT(dateMode_toggled(bool)));
@@ -416,6 +417,14 @@ void transmitwindow::on_btnCcPrev_pressed()
     }
 }
 
+void transmitwindow::on_lcdNumber_valueChanged(int value)
+{
+    if(m_sender)
+    {
+        m_sender->setLevelRange(0, 511, 0);
+        m_sender->setLevel(value-1, ui->slChannelCheck->value());
+    }
+}
 
 void transmitwindow::on_slChannelCheck_valueChanged(int value)
 {
@@ -476,6 +485,7 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
 
         QMetaObject::invokeMethod(
                     m_fxEngine,"pause");
+        ui->lcdNumber->setFocus();
     }
 
     if(index==tabSliders)
@@ -494,25 +504,6 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
         ui->rbFadeManual->setChecked(true);
         ui->slFadeLevel->setValue(0);
     }
-}
-
-
-void transmitwindow::keyPressEvent(QKeyEvent *event)
-{
-    switch(event->key())
-    {
-    case Qt::Key_PageDown:
-        if(ui->tabWidget->currentIndex()==tabChannelCheck)
-            on_btnCcPrev_pressed();
-        event->accept();
-        break;
-    case Qt::Key_PageUp:
-        if(ui->tabWidget->currentIndex()==tabChannelCheck)
-            on_btnCcNext_pressed();
-        event->accept();
-        break;
-    }
-    QWidget::keyPressEvent(event);
 }
 
 void transmitwindow::on_dlFadeRate_valueChanged(int value)
@@ -590,6 +581,12 @@ void transmitwindow::radioFadeMode_toggled(bool checked)
         QMetaObject::invokeMethod(
                     m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxDate));
         ui->swFx->setCurrentIndex(2);
+    }
+    if(ui->rbChase->isChecked())
+    {
+        QMetaObject::invokeMethod(
+                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxChase));
+        ui->swFx->setCurrentIndex(0);
     }
 }
 

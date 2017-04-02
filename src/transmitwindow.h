@@ -50,6 +50,7 @@ protected slots:
     void on_sbFadersStart_valueChanged(int value);
     void on_btnCcPrev_pressed();
     void on_btnCcNext_pressed();
+    void on_lcdNumber_valueChanged(int value);
     void on_tabWidget_currentChanged(int index);
     void on_slChannelCheck_valueChanged(int value);
     void on_btnCcBlink_pressed();
@@ -68,8 +69,6 @@ protected slots:
     void recordButtonPressed(bool on);
     void setLevels(QSet<int> addresses, int level);
     void dateMode_toggled(bool checked);
-protected:
-    virtual void keyPressEvent(QKeyEvent *event);
 private:
     enum TABS
     {
