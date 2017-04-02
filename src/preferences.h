@@ -30,6 +30,7 @@ static const QString S_MAC_ADDRESS("MacAddress");
 static const QString S_DISPLAY_FORMAT("Display Format");
 static const QString S_BLIND_VISUALIZER("Show Blind");
 static const QString S_TIMEOUT("Timeout");
+static const QString S_FLICKERFINDERSHOWINFO("Flicker Finder Info");
 
 
 class Preferences
@@ -70,15 +71,20 @@ public:
     void SetDisplayFormat(unsigned int nDisplayFormat);
     void SetBlindVisualizer (bool bBlindVisualizer);
     void SetNumSecondsOfSacn (int nNumSecondsOfSacn);
+    void setFlickerFinderShowInfo(bool showIt);
 
     unsigned int GetDisplayFormat();
     unsigned int GetMaxLevel();
     bool GetBlindVisualizer();
     unsigned int GetNumSecondsOfSacn();
+    bool getFlickerFinderShowInfo();
 
     QString GetFormattedValue(unsigned int nLevelInDecimal);
 
     void savePreferences();
+
+
+    bool RESTART_APP;
 public slots:
     void setNetworkInterface(const QNetworkInterface &value);
 private:
@@ -91,6 +97,7 @@ private:
     unsigned int m_nDisplayFormat;
     bool m_bBlindVisualizer;
     unsigned int m_nNumSecondsOfSacn;
+    bool m_flickerFinderShowInfo;
 
     void loadPreferences();
 
