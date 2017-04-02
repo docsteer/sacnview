@@ -88,8 +88,11 @@ void sACNSentUniverse::stopSending()
 void sACNSentUniverse::setLevel(quint16 address, quint8 value)
 {
     Q_ASSERT(address<512);
-    m_slotData[address] =  value;
-    CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+    if(isSending())
+    {
+        m_slotData[address] =  value;
+        CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+    }
 }
 
 void sACNSentUniverse::setLevelRange(quint16 start, quint16 end, quint8 value)
@@ -97,19 +100,30 @@ void sACNSentUniverse::setLevelRange(quint16 start, quint16 end, quint8 value)
     Q_ASSERT(start<512);
     Q_ASSERT(end<512);
     Q_ASSERT(start<=end);
-    memset(m_slotData + start, value, end-start+1);
-    CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+    if(isSending())
+    {
+        memset(m_slotData + start, value, end-start+1);
+        CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+    }
 }
 
 void sACNSentUniverse::setLevel(const quint8 *data, int len, int start)
 {
-    memcpy(m_slotData + start, data, len);
-    CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+    if(isSending())
+    {
+        memcpy(m_slotData + start, data, len);
+        CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+    }
 }
 
 void sACNSentUniverse::setName(const QString &name)
 {
     m_name = name;
+    if(isSending())
+    {
+        QByteArray arr = name.toUtf8();
+        CStreamServer::getInstance()->setUniverseName(m_handle ,arr.constData());
+    }
 }
 
 void sACNSentUniverse::setPriorityMode(PriorityMode mode)
@@ -125,6 +139,10 @@ void sACNSentUniverse::setPerChannelPriorities(uint1 *priorities)
 void sACNSentUniverse::setPerSourcePriority(uint1 priority)
 {
     m_priority = priority;
+    if(m_isSending)
+    {
+         CStreamServer::getInstance()->setUniversePriority(m_handle, priority);
+    }
 }
 
 void sACNSentUniverse::setProtocolVersion(StreamingACNProtocolVersion version)
@@ -135,6 +153,17 @@ void sACNSentUniverse::setProtocolVersion(StreamingACNProtocolVersion version)
 void sACNSentUniverse::copyLevels(quint8 *dest)
 {
     memcpy(dest, m_slotData, MAX_DMX_ADDRESS);
+}
+
+void sACNSentUniverse::setUniverse(int universe)
+{
+    if(m_universe==universe) return;
+    m_universe = universe;
+    if(m_isSending)
+    {
+        stopSending();
+        startSending();
+    }
 }
 
 CStreamServer *CStreamServer::m_instance = 0;
@@ -411,7 +440,8 @@ void CStreamServer::DEBUG_DESTROY_PRIORITY_UNIVERSE(uint handle)
 void CStreamServer::DestroyUniverse(uint handle)
 {
     QMutexLocker locker(&m_writeMutex);
-    SetStreamTerminated(m_multiverse[handle].psend, true);
+    if(handle < m_multiverse.size())
+        SetStreamTerminated(m_multiverse[handle].psend, true);
 }
 
 //Perform the logical destruction and cleanup of a universe and its related
@@ -438,3 +468,27 @@ void CStreamServer::OptionsStreamTerminated(uint handle, bool terminated)
 {
   SetStreamTerminated(m_multiverse[handle].psend, terminated);
 }
+
+void CStreamServer::setUniverseName(uint handle, const char *name)
+{
+    if(m_multiverse[handle].psend)
+    {
+        strncpy((char *)m_multiverse[handle].psend + SOURCE_NAME_ADDR,
+                name,
+                DRAFT_SOURCE_NAME_SIZE);
+    }
+}
+
+
+void CStreamServer::setUniversePriority(uint handle, uint1 priority)
+{
+    if(m_multiverse[handle].psend && m_multiverse[handle].draft)
+    {
+        m_multiverse[handle].psend[DRAFT_PRIORITY_ADDR] = priority;
+    }
+    else if(m_multiverse[handle].psend)
+    {
+        m_multiverse[handle].psend[PRIORITY_ADDR] = priority;
+    }
+}
+

@@ -63,6 +63,8 @@ public slots:
      * @param name the name to set
      */
     void setName(const QString &name);
+    QString name() { return m_name;};
+
     /**
      * @brief setPriorityMode - sets the priority mode of sACN to transmit, per-universe or per-address
      * @param mode - the mode to use
@@ -78,6 +80,7 @@ public slots:
      * @param priority - the priority value
      */
     void setPerSourcePriority(uint1 priority);
+    uint1 perSourcePriority() { return m_priority;};
     /**
      * @brief startSending - starts sending for the selected universe
      */
@@ -102,6 +105,16 @@ public slots:
      * @param dest - destination to copy to, uint8 array, must be 512 long
      */
     void copyLevels(quint8 *dest);
+
+    /**
+     * @brief setUniverse - set the universe of this sender. If active this will stop
+     * and restart the source
+     * @param universe - new universe.
+     */
+    void setUniverse(int universe);
+
+    int universe() { return m_universe;};
+
 private:
     bool m_isSending;
     // The handle for the CStreamServer universe
@@ -199,6 +212,10 @@ public:
   //etc, and the tick will still operate normally when called.
   //This is not thread safe with Tick -- Don't call when Tick is called
   void SendUniverseNow(uint handle);
+
+
+  void setUniverseName(uint handle, const char *name);
+  void setUniversePriority(uint handle, uint1 priority);
 
   //Use this to destroy a priority universe.
   void DEBUG_DESTROY_PRIORITY_UNIVERSE(uint handle);
