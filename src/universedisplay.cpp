@@ -17,10 +17,6 @@
 #include "preferences.h"
 
 
-static const QColor flickerHigherColor  = QColor::fromRgb(0x8d, 0x32, 0xfd);
-static const QColor flickerLowerColor   = QColor::fromRgb(0x04, 0xfd, 0x44);
-static const QColor flickerChangedColor = QColor::fromRgb(0xfb, 0x09, 0x09);
-
 UniverseDisplay::UniverseDisplay(QWidget *parent) : GridWidget(parent)
 {
     for(int i=0; i<512; i++)
@@ -89,6 +85,7 @@ void UniverseDisplay::levelsChanged()
 
 void UniverseDisplay::setFlickerFinder(bool on)
 {
+    if(!m_listener) return;
     m_flickerFinder = on;
     if(on)
     {
