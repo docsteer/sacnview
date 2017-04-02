@@ -16,14 +16,6 @@
 #ifndef SCOPEWINDOW_H
 #define SCOPEWINDOW_H
 
-#define COL_UNIVERSE    0
-#define COL_ADDRESS     1
-#define COL_ENABLED     2
-#define COL_COLOUR      3
-#define COL_TRIGGER     4
-#define COL_16BIT       5
-
-
 class ScopeChannel;
 class QTableWidgetItem;
 
@@ -60,6 +52,15 @@ private:
     QList<ScopeChannel *> m_channels;
     QButtonGroup *m_radioGroup;
     QHash<int, QSharedPointer<sACNListener> > m_universes;
+
+    enum {
+        COL_UNIVERSE,
+        COL_ADDRESS,
+        COL_ENABLED,
+        COL_COLOUR,
+        COL_TRIGGER,
+        COL_16BIT
+    };
 };
 
 #endif // SCOPEWINDOW_H
