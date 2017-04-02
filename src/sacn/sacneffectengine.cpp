@@ -36,8 +36,10 @@ sACNEffectEngine::sACNEffectEngine() : QObject(NULL)
     m_image = NULL;
     m_start = 0;
     m_end = 0;
+    m_manualLevel = 0;
     m_dateStyle = dsEU;
     m_mode = FxRamp;
+    m_shutdown = false;
     m_renderedImage = QImage(32, 16, QImage::Format_Grayscale8);
 
     m_timer = new QTimer(this);
@@ -51,7 +53,18 @@ sACNEffectEngine::sACNEffectEngine() : QObject(NULL)
 
 sACNEffectEngine::~sACNEffectEngine()
 {
-    m_thread->deleteLater();
+    shutdown();
+}
+
+void sACNEffectEngine::shutdown()
+{
+    if(!m_shutdown)
+    {
+        m_shutdown = true;
+        m_thread->wait(5000);
+        m_thread->deleteLater();
+        m_thread = 0;
+    }
 }
 
 void sACNEffectEngine::setSender(sACNSentUniverse *sender)
@@ -61,8 +74,11 @@ void sACNEffectEngine::setSender(sACNSentUniverse *sender)
 
 void sACNEffectEngine::setMode(sACNEffectEngine::FxMode mode)
 {
-    Q_ASSERT(QThread::currentThread()==this->thread());
-    m_mode = mode;
+    if(QThread::currentThread()!=this->thread())
+        QMetaObject::invokeMethod(
+                    this,"setMode", Q_ARG(sACNEffectEngine::FxMode, mode));
+    else
+        m_mode = mode;
 }
 
 void sACNEffectEngine::start()
@@ -235,6 +251,7 @@ void sACNEffectEngine::setRate(qreal hz)
                         this,"setRate", Q_ARG(qreal, hz));
     else
     {
+        m_rate = hz;
         int msTime = 1000 / hz;
         m_timer->setInterval(msTime);
     }
@@ -244,6 +261,12 @@ void sACNEffectEngine::timerTick()
 {
     m_index++;
     char line[32];
+
+    if(m_shutdown)
+    {
+        m_timer->stop();
+        delete m_timer;
+    }
 
     switch(m_mode)
     {
@@ -266,9 +289,11 @@ void sACNEffectEngine::timerTick()
     case FxChase:
         if(m_index > m_end)
             m_index = m_start;
-        emit setLevel(m_index, m_index, 255);
+        QMetaObject::invokeMethod(m_sender, "setLevel", Q_ARG(quint16, m_index),
+                                  Q_ARG(quint8, 255));
         if(m_index>m_start)
-            emit setLevel(m_index-1, m_index-1, 0);
+            QMetaObject::invokeMethod(m_sender, "setLevel", Q_ARG(quint16, m_index-1),
+                                      Q_ARG(quint8, 0));
         break;
 
     case FxManual:
@@ -317,4 +342,8 @@ void sACNEffectEngine::timerTick()
 void sACNEffectEngine::setManualLevel(int level)
 {
     m_manualLevel = level;
+
+    QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, m_start),
+                              Q_ARG(quint16, m_end),
+                              Q_ARG(quint8, m_manualLevel));
 }

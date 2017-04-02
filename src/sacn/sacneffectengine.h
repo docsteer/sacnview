@@ -22,6 +22,13 @@
 #include "sacnsender.h"
 #include "sacn/ACNShare/deftypes.h"
 
+static const QStringList FX_MODE_DESCRIPTIONS = { "Manual",
+        "Ramp",
+        "Sinewave",
+        "Chase",
+        "Text",
+        "Date"};
+
 class sACNEffectEngine : public QObject
 {
     Q_OBJECT
@@ -35,6 +42,7 @@ public:
         FxDate
     };
 
+
     enum DateStyle {
         dsUSA,
         dsEU
@@ -43,6 +51,10 @@ public:
     explicit sACNEffectEngine();
     virtual ~sACNEffectEngine();
     void setSender(sACNSentUniverse *sender);
+    QString text() { return m_text;};
+    sACNEffectEngine::FxMode mode() { return m_mode;};
+    qreal rate() { return m_rate;};
+    void shutdown();
 signals:
     void setLevel(uint2 address, uint1 value);
     void setLevel(uint2 start, uint2 end, uint1 value);
@@ -84,6 +96,7 @@ private:
     QImage m_renderedImage;
     uint1 *m_image;
     int m_imageWidth;
+    bool m_shutdown;
 
     // Render a single line of variable width text
     void renderText(QString text);
