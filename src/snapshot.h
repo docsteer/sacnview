@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QtMultimedia/QSound>
+#include <QSpinBox>
 #include "streamingacn.h"
 #include "consts.h"
 
@@ -33,7 +34,10 @@ protected slots:
     void counterTick();
     void on_btnSnapshot_pressed();
     void on_btnPlay_pressed();
-    void on_sbUniverse_valueChanged(int value);
+    void on_btnAddRow_pressed();
+    void on_btnRemoveRow_pressed();
+protected:
+    virtual void resizeEvent(QResizeEvent *event);
 private:
     void setState(state s);
     void saveSnapshot();
@@ -43,9 +47,11 @@ private:
     QTimer *m_countdown;
     state m_state;
     QSound *m_camera, *m_beep;
-    quint8 m_snapshotData[MAX_DMX_ADDRESS];
-    QSharedPointer<sACNListener>m_listener;
-    sACNSentUniverse *m_sender;
+    QList<QByteArray> m_snapshotData;
+    QList<QSharedPointer<sACNListener>>m_listeners;
+    QList<sACNSentUniverse *>m_senders;
+    QList<QSpinBox *> m_universeSpins;
+    QList<QSpinBox *> m_prioritySpins;
 };
 
 #endif // SNAPSHOT_H
