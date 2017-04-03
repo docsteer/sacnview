@@ -303,7 +303,7 @@ void sACNListener::readPendingDatagrams()
 
     if(!validpacket)
     {
-        qDebug() << "Invalid Packet";
+        qDebug() << "Source coming up, not processing packet";
         return;
     }
 
@@ -566,7 +566,8 @@ void sACNListener::performMerge()
             {
                 addressToSourceMap.insert(address, ps);
             }
-            pAddr->otherSources << ps;
+            if(ps->src_valid && !ps->active.Expired())
+                pAddr->otherSources << ps;
         }
     }
 
@@ -598,6 +599,9 @@ void sACNListener::performMerge()
                 m_merged_levels[address].winningSource = s;
             }
         }
+        // Remove the winning source from the list of others
+        if(m_merged_levels[address].winningSource)
+            m_merged_levels[address].otherSources.remove(m_merged_levels[address].winningSource);
     }
 
 
