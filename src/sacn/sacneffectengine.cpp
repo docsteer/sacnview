@@ -53,7 +53,8 @@ sACNEffectEngine::sACNEffectEngine() : QObject(NULL)
 
 sACNEffectEngine::~sACNEffectEngine()
 {
-    shutdown();
+    if(!m_shutdown)
+        qWarning("Warning : Effect engine not shutdown before delete");
 }
 
 void sACNEffectEngine::shutdown()
@@ -266,6 +267,9 @@ void sACNEffectEngine::timerTick()
     {
         m_timer->stop();
         delete m_timer;
+
+        this->thread()->exit();
+        return;
     }
 
     switch(m_mode)
