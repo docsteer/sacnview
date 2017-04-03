@@ -71,7 +71,8 @@ void MultiUniverse::on_btnAddRow_pressed()
     enableBox->setStyleSheet("margin-left:50%; margin-right:50%;");
     enableBox->setChecked(m_senders.last()->isSending());
     ui->tableWidget->setCellWidget(row, COL_ENABLED, enableBox);
-    m_widgetToIndex[enableBox] = row;
+    m_widgetToFxEngine[enableBox] = m_fxEngines.last();
+    m_widgetToSender[enableBox] = m_senders.last();
     connect(enableBox, SIGNAL(toggled(bool)), this, SLOT(enableChanged(bool)));
     connect(enableBox, SIGNAL(destroyed(QObject*)), this, SLOT(removeWidgetFromIndex(QObject*)));
 
@@ -81,7 +82,8 @@ void MultiUniverse::on_btnAddRow_pressed()
     sb->setMaximum(MAX_SACN_UNIVERSE);
     sb->setValue(m_senders.last()->universe());
     ui->tableWidget->setCellWidget(row, COL_UNIVERSE, sb);
-    m_widgetToIndex[sb] = row;
+    m_widgetToFxEngine[enableBox] = m_fxEngines.last();
+    m_widgetToSender[enableBox] = m_senders.last();
     connect(sb, SIGNAL(valueChanged(int)), this, SLOT(universeChanged(int)));
     connect(sb, SIGNAL(destroyed(QObject*)), this, SLOT(removeWidgetFromIndex(QObject*)));
 
@@ -90,7 +92,8 @@ void MultiUniverse::on_btnAddRow_pressed()
     sb->setMaximum(MAX_DMX_ADDRESS);
     sb->setValue(MIN_DMX_ADDRESS);
     ui->tableWidget->setCellWidget(row, COL_STARTADDR, sb);
-    m_widgetToIndex[sb] = row;
+    m_widgetToFxEngine[sb] = m_fxEngines.last();
+    m_widgetToSender[sb] = m_senders.last();
     connect(sb, SIGNAL(valueChanged(int)), this, SLOT(startChanged(int)));
     connect(sb, SIGNAL(destroyed(QObject*)), this, SLOT(removeWidgetFromIndex(QObject*)));
 
@@ -99,7 +102,8 @@ void MultiUniverse::on_btnAddRow_pressed()
     sb->setMaximum(MAX_DMX_ADDRESS);
     sb->setValue(MAX_DMX_ADDRESS);
     ui->tableWidget->setCellWidget(row, COL_ENDADDR, sb);
-    m_widgetToIndex[sb] = row;
+    m_widgetToFxEngine[sb] = m_fxEngines.last();
+    m_widgetToSender[sb] = m_senders.last();
     connect(sb, SIGNAL(valueChanged(int)), this, SLOT(endChanged(int)));
     connect(sb, SIGNAL(destroyed(QObject*)), this, SLOT(removeWidgetFromIndex(QObject*)));
 
@@ -110,13 +114,16 @@ void MultiUniverse::on_btnAddRow_pressed()
     sb->setValue(m_senders.last()->perSourcePriority());
     ui->tableWidget->setCellWidget(row, COL_PRIORITY, sb);
     connect(sb, SIGNAL(valueChanged(int)), this, SLOT(priorityChanged(int)));
-    m_widgetToIndex[sb] = row;
+    m_widgetToFxEngine[sb] = m_fxEngines.last();
+    m_widgetToSender[sb] = m_senders.last();
 
     QComboBox *cb = new QComboBox(this);
     cb->addItems(FX_MODE_DESCRIPTIONS);
     //cb->setCurrentIndex(m_sourceInfo.last().effect);
     ui->tableWidget->setCellWidget(row, COL_EFFECT, cb);
-    m_widgetToIndex[cb] = row;
+    m_widgetToFxEngine[cb] = m_fxEngines.last();
+    m_widgetToSender[cb] = m_senders.last();
+
     connect(cb, SIGNAL(currentIndexChanged(int)), this, SLOT(fxChanged(int)));
     connect(cb, SIGNAL(destroyed(QObject*)), this, SLOT(removeWidgetFromIndex(QObject*)));
 
@@ -130,74 +137,88 @@ void MultiUniverse::on_btnAddRow_pressed()
 void MultiUniverse::removeWidgetFromIndex(QObject *o)
 {
     QWidget *w = dynamic_cast<QWidget *>(o);
-    if(m_widgetToIndex.contains(w))
-    {
-        m_widgetToIndex.remove(w);
-    }
+    m_widgetToFxEngine.remove(w);
+    m_widgetToSender.remove(w);
 }
 
 void MultiUniverse::on_btnRemoveRow_pressed()
 {
     int row = ui->tableWidget->currentRow();
     ui->tableWidget->removeRow(row);
+    m_fxEngines[row]->shutdown();
+    delete m_fxEngines[row];
     delete m_senders[row];
+    m_fxEngines.removeAt(row);
     m_senders.removeAt(row);
 }
 
 
 void MultiUniverse::universeChanged(int value)
 {
-    int index = m_widgetToIndex.value(dynamic_cast<QWidget *>(sender()), -1);
-    if(index==-1) return;
-
-    m_senders[index]->setUniverse(value);
+    QWidget *w = dynamic_cast<QWidget *>(sender());
+    if(m_widgetToSender.contains(w))
+    {
+        sACNSentUniverse *u = m_widgetToSender.value(w);
+        u->setUniverse(value);
+    }
 }
 
 void MultiUniverse::priorityChanged(int value)
 {
-    int index = m_widgetToIndex.value(dynamic_cast<QWidget *>(sender()), -1);
-    if(index==-1) return;
-
-    m_senders[index]->setPerSourcePriority(value);
+    QWidget *w = dynamic_cast<QWidget *>(sender());
+    if(m_widgetToSender.contains(w))
+    {
+        sACNSentUniverse *u = m_widgetToSender.value(w);
+        u->setPerSourcePriority(value);
+    }
 }
 
 void MultiUniverse::startChanged(int value)
 {
-
-    int index = m_widgetToIndex.value(dynamic_cast<QWidget *>(sender()), -1);
-    if(index==-1) return;
-
-    m_fxEngines[index]->setStartAddress(value-1);
+    QWidget *w = dynamic_cast<QWidget *>(sender());
+    if(m_widgetToFxEngine.contains(w))
+    {
+        sACNEffectEngine *e = m_widgetToFxEngine.value(w);
+        e->setStartAddress(value-1);
+    }
 }
 
 void MultiUniverse::endChanged(int value)
 {
-
-    int index = m_widgetToIndex.value(dynamic_cast<QWidget *>(sender()), -1);
-    if(index==-1) return;
-
-    m_fxEngines[index]->setEndAddress(value-1);
+    QWidget *w = dynamic_cast<QWidget *>(sender());
+    if(m_widgetToFxEngine.contains(w))
+    {
+        sACNEffectEngine *e = m_widgetToFxEngine.value(w);
+        e->setEndAddress(value-1);
+    }
 }
 
 void MultiUniverse::fxChanged(int value)
 {
-    int index = m_widgetToIndex.value(dynamic_cast<QWidget *>(sender()), -1);
-    if(index==-1) return;
+    QWidget *w = dynamic_cast<QWidget *>(sender());
+    if(m_widgetToFxEngine.contains(w))
+    {
+        sACNEffectEngine *e = m_widgetToFxEngine.value(w);
+        e->setMode((sACNEffectEngine::FxMode)value);
 
-    m_fxEngines[index]->setMode((sACNEffectEngine::FxMode)value);
+        int index = m_fxEngines.indexOf(e);
 
-    setupControl(index, (sACNEffectEngine::FxMode)value);
+        setupControl(index, (sACNEffectEngine::FxMode)value);
+    }
 }
 
 void MultiUniverse::enableChanged(bool enable)
 {
-    int index = m_widgetToIndex.value(dynamic_cast<QWidget *>(sender()), -1);
-    if(index==-1) return;
+    QWidget *w = dynamic_cast<QWidget *>(sender());
+    if(m_widgetToSender.contains(w))
+    {
+        sACNSentUniverse *u = m_widgetToSender.value(w);
 
-    if(enable)
-        m_senders[index]->startSending();
-    else
-        m_senders[index]->stopSending();
+        if(enable)
+            u->startSending();
+        else
+            u->stopSending();
+    }
 }
 
 void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode)
@@ -207,18 +228,19 @@ void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode)
     case sACNEffectEngine::FxManual:
         {
         QWidget *controlWidget = new QWidget(this);
-        QLabel *controlLabel = new QLabel(controlWidget);
-        m_levelLabels[row] = controlLabel;
+        QLabel *controlLabel = new QLabel("0", controlWidget);
         QSlider *slider = new QSlider(Qt::Horizontal, controlWidget);
         slider->setMinimum(MIN_SACN_LEVEL);
         slider->setMaximum(MAX_SACN_LEVEL);
+        m_widgetToLevelLabel[slider] = controlLabel;
         QHBoxLayout *controlLayout = new QHBoxLayout();
         controlLayout->setMargin(0);
         controlLayout->addWidget(controlLabel);
         controlLayout->addWidget(slider);
         controlWidget->setLayout(controlLayout);
         ui->tableWidget->setCellWidget(row, COL_CONTROL, controlWidget);
-        m_widgetToIndex[slider] = row;
+        m_widgetToFxEngine[slider] = m_fxEngines[row];
+        m_widgetToSender[slider] = m_senders[row];
         connect(slider, SIGNAL(destroyed(QObject*)), this, SLOT(removeWidgetFromIndex(QObject*)));
         connect(slider, SIGNAL(valueChanged(int)), this, SLOT(controlSliderMoved(int)));
         }
@@ -242,7 +264,8 @@ void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode)
         controlLayout->addWidget(fasterLabel);
         controlWidget->setLayout(controlLayout);
         ui->tableWidget->setCellWidget(row, COL_CONTROL, controlWidget);
-        m_widgetToIndex[slider] = row;
+        m_widgetToFxEngine[slider] = m_fxEngines[row];
+        m_widgetToSender[slider] = m_senders[row];
         connect(controlWidget, SIGNAL(destroyed(QObject*)), this, SLOT(removeWidgetFromIndex(QObject*)));
         connect(slider, SIGNAL(valueChanged(int)), this, SLOT(controlSliderMoved(int)));
         }
@@ -253,7 +276,8 @@ void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode)
         cb->addItem(tr("EU Date Style"));
         cb->addItem(tr("US Date Style"));
         ui->tableWidget->setCellWidget(row, COL_CONTROL, cb);
-        m_widgetToIndex[cb] = row;
+        m_widgetToFxEngine[cb] = m_fxEngines[row];
+        m_widgetToSender[cb] = m_senders[row];
         connect(cb, SIGNAL(destroyed(QObject*)), this, SLOT(removeWidgetFromIndex(QObject*)));
         connect(cb, SIGNAL(currentIndexChanged(int)), this, SLOT(controlComboChanged(int)));
         }
@@ -274,28 +298,33 @@ void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode)
 
 void MultiUniverse::controlSliderMoved(int value)
 {
-    int index = m_widgetToIndex.value(dynamic_cast<QWidget *>(sender()), -1);
-    if(index==-1) return;
-
-    if(m_fxEngines[index]->mode() == sACNEffectEngine::FxManual)
+    QWidget *w = dynamic_cast<QWidget *>(sender());
+    if(m_widgetToFxEngine.contains(w))
     {
-        m_fxEngines[index]->setManualLevel(value);
-        m_levelLabels[index]->setText(Preferences::getInstance()->GetFormattedValue(value));
+        sACNEffectEngine *e = m_widgetToFxEngine[w];
+        if(e->mode() == sACNEffectEngine::FxManual)
+        {
+            e->setManualLevel(value);
+            m_widgetToLevelLabel[w]->setText(Preferences::getInstance()->GetFormattedValue(value));
+        }
+        else
+            e->setRate(value);
     }
-    else
-        m_fxEngines[index]->setRate(value);
 }
 
 void MultiUniverse::controlComboChanged(int value)
 {
 
-    int index = m_widgetToIndex.value(dynamic_cast<QWidget *>(sender()), -1);
-    if(index==-1) return;
+    QWidget *w = dynamic_cast<QWidget *>(sender());
+    if(m_widgetToFxEngine.contains(w))
+    {
+        sACNEffectEngine *e = m_widgetToFxEngine[w];
 
-    if(value==0)
-        m_fxEngines[index]->setDateStyle(sACNEffectEngine::dsEU);
-    else
-        m_fxEngines[index]->setDateStyle(sACNEffectEngine::dsUSA);
+        if(value==0)
+            e->setDateStyle(sACNEffectEngine::dsEU);
+        else
+            e->setDateStyle(sACNEffectEngine::dsUSA);
+    }
 }
 
 void MultiUniverse::on_tableWidget_cellChanged(int row, int column)

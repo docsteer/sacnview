@@ -51,8 +51,9 @@ private:
     Ui::MultiUniverse *ui;
     QList <sACNSentUniverse *> m_senders;
     QList <sACNEffectEngine *> m_fxEngines;
-    QHash<QWidget*, int> m_widgetToIndex;
-    QHash<int, QLabel *> m_levelLabels;
+    QHash<QWidget*, sACNEffectEngine *> m_widgetToFxEngine;
+    QHash<QWidget*, sACNSentUniverse *> m_widgetToSender;
+    QHash<QWidget*, QLabel *> m_widgetToLevelLabel;
     enum
     {
         COL_ENABLED,
