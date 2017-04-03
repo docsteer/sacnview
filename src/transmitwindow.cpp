@@ -194,7 +194,10 @@ transmitwindow::~transmitwindow()
     if(m_sender)
         delete m_sender;
     if(m_fxEngine)
+    {
+        m_fxEngine->shutdown();
         m_fxEngine->deleteLater();
+    }
     delete ui;
 }
 
@@ -298,15 +301,12 @@ void transmitwindow::on_btnStart_pressed()
     if(m_sender->isSending())
     {
         m_sender->stopSending();
-        if(m_fxEngine)
-            m_fxEngine->deleteLater();
-        m_fxEngine = NULL;
         setUniverseOptsEnabled(true);
-        ui->tabWidget->setCurrentIndex(0);
     }
     else
     {
         m_sender->setName(ui->leSourceName->text());
+        m_sender->setUniverse(ui->sbUniverse->value());
         if(ui->cbPriorityMode->currentIndex() == pmPER_ADDRESS_PRIORITY)
         {
             m_sender->setPriorityMode(pmPER_ADDRESS_PRIORITY);
@@ -314,6 +314,7 @@ void transmitwindow::on_btnStart_pressed()
         }
         else
         {
+            m_sender->setPriorityMode(pmPER_SOURCE_PRIORITY);
             m_sender->setPerSourcePriority(ui->sbPriority->value());
         }
 
@@ -321,9 +322,12 @@ void transmitwindow::on_btnStart_pressed()
         setUniverseOptsEnabled(false);
         for(unsigned int i=0; i<sizeof(m_levels); i++)
             m_sender->setLevel(i, m_levels[i]);
-        m_fxEngine = new sACNEffectEngine();
-        connect(m_fxEngine, SIGNAL(fxLevelChange(int)), ui->slFadeLevel, SLOT(setValue(int)));
-        connect(m_fxEngine, SIGNAL(textImageChanged(QPixmap)), ui->lblTextImage, SLOT(setPixmap(QPixmap)));
+        if(!m_fxEngine)
+        {
+            m_fxEngine = new sACNEffectEngine();
+            connect(m_fxEngine, SIGNAL(fxLevelChange(int)), ui->slFadeLevel, SLOT(setValue(int)));
+            connect(m_fxEngine, SIGNAL(textImageChanged(QPixmap)), ui->lblTextImage, SLOT(setPixmap(QPixmap)));
+        }
         m_fxEngine->setSender(m_sender);
     }
 }
