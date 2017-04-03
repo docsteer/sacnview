@@ -227,14 +227,20 @@ void UniverseView::selectedAddressChanged(int address)
 
     if(list[address].winningSource)
     {
-            info.append(tr("Winning Source : %1 @ %2")
+        int prio;
+        if(list[address].winningSource->doing_per_channel)
+            prio = list[address].winningSource->priority_array[address];
+        else
+            prio = list[address].winningSource->priority;
+
+            info.append(tr("Winning Source : %1 @ %2 (Priority %3)")
                         .arg(list[address].winningSource->name)
-                        .arg(Preferences::getInstance()->GetFormattedValue(list[address].level)));
+                        .arg(Preferences::getInstance()->GetFormattedValue(list[address].level))
+                        .arg(prio));
             if(list[address].otherSources.count()>0)
             {
                 foreach(sACNSource *source, list[address].otherSources)
                 {
-                    int prio;
                     if(source->doing_per_channel)
                         prio = source->priority_array[address];
                     else
