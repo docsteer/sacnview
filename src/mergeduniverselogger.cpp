@@ -66,6 +66,11 @@ void MergedUniverseLogger::setUpFile(QString fileName)
 
 void MergedUniverseLogger::closeFile()
 {
+    if(!m_file) {
+        //already finished - bail out
+        Q_ASSERT(m_stream == nullptr);
+        return;
+    }
     //finish out
     m_stream->flush();
 
