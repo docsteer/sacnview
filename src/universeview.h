@@ -73,6 +73,7 @@ private:
     };
 
     void setUiForLoggingState(LOG_STATE state);
+    void resizeColumns();
 
     Ui::UniverseView *ui;
     QHash<sACNSource *, int> m_sourceToTableRow;

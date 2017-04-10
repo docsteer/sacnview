@@ -11,6 +11,9 @@
         <file>record.png</file>
         <file>back.png</file>
         <file>forward.png</file>
+        <file>multi_universe.png</file>
+        <file>add.png</file>
+        <file>remove.png</file>
     </qresource>
     <qresource prefix="/">
         <file>Logo.png</file>

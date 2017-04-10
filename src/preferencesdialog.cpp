@@ -18,6 +18,7 @@
 #include "preferences.h"
 #include "consts.h"
 #include <sstream>
+#include <QMessageBox>
 
 PreferencesDialog::PreferencesDialog(QWidget *parent) :
     QDialog(parent),
@@ -115,7 +116,18 @@ void PreferencesDialog::on_buttonBox_accepted()
     {
         if(m_interfaceButtons[i]->isChecked())
         {
-            p->setNetworkInterface(m_interfaceList[i]);
+            QNetworkInterface interface = m_interfaceList[i];
+            if(interface.index() != p->networkInterface().index())
+            {
+                p->setNetworkInterface(m_interfaceList[i]);
+
+                QMessageBox::information(this, tr("Network Interface Changed"),
+                                         tr("After changing the network interface, you will need to restart the application. sACNView will now close and restart"),
+                                         QMessageBox::Ok);
+                p->RESTART_APP = true;
+                qApp->quit();
+
+            }
         }
     }
 }

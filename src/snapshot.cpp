@@ -5,19 +5,15 @@
 #include "sacnsender.h"
 #include <QTimer>
 #include <QSound>
+#include <QSpinBox>
 
 Snapshot::Snapshot(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::Snapshot), m_listener(NULL), m_sender(NULL)
+    ui(new Ui::Snapshot),
+    m_listeners(QList<QSharedPointer<sACNListener>>()),
+    m_senders(QList<sACNSentUniverse *>())
 {
     ui->setupUi(this);
-    ui->sbUniverse->setMinimum(MIN_SACN_UNIVERSE);
-    ui->sbUniverse->setMaximum(MAX_SACN_UNIVERSE);
-    memset(&m_snapshotData, 0, MAX_DMX_ADDRESS);
-
-    ui->sbPriority->setMinimum(MIN_SACN_PRIORITY);
-    ui->sbPriority->setMaximum(MAX_SACN_PRIORITY);
-    ui->sbPriority->setValue(DEFAULT_SACN_PRIORITY);
 
     m_countdown = new QTimer(this);
     connect(m_countdown, SIGNAL(timeout()), this, SLOT(counterTick()));
@@ -34,6 +30,41 @@ Snapshot::~Snapshot()
     delete ui;
 }
 
+void Snapshot::on_btnAddRow_pressed()
+{
+    int row = ui->tableWidget->rowCount();
+    ui->tableWidget->setRowCount(row + 1);
+
+    QSpinBox *sbUniverse = new QSpinBox(this);
+    sbUniverse->setMinimum(MIN_SACN_UNIVERSE);
+    sbUniverse->setMaximum(MAX_SACN_UNIVERSE);
+    if(m_universeSpins.count()>0)
+        sbUniverse->setValue(m_universeSpins.last()->value()+1);
+
+    ui->tableWidget->setCellWidget(row, 0, sbUniverse);
+    m_universeSpins << sbUniverse;
+
+    QSpinBox *sbPriority = new QSpinBox(this);
+    sbPriority->setMinimum(MIN_SACN_PRIORITY);
+    sbPriority->setMaximum(MAX_SACN_PRIORITY);
+    sbPriority->setValue(DEFAULT_SACN_PRIORITY);
+    ui->tableWidget->setCellWidget(row, 1, sbPriority);
+    m_prioritySpins << sbPriority;
+
+    ui->btnSnapshot->setEnabled(ui->tableWidget->rowCount()>0);
+    setState(stSetup);
+}
+
+void Snapshot::on_btnRemoveRow_pressed()
+{
+    int row = ui->tableWidget->currentRow();
+    ui->tableWidget->removeRow(row);
+    ui->btnSnapshot->setEnabled(ui->tableWidget->rowCount()>0);
+    setState(stSetup);
+    m_universeSpins.removeAt(row);
+    m_prioritySpins.removeAt(row);
+}
+
 void Snapshot::setState(state s)
 {
     switch(s)
@@ -41,19 +72,23 @@ void Snapshot::setState(state s)
     case stSetup:
         stopSnapshot();
         ui->btnPlay->setEnabled(false);
-        ui->btnSnapshot->setEnabled(true);
+        ui->btnSnapshot->setEnabled(ui->tableWidget->rowCount()>0);
         ui->lbTimer->setText("");
-        ui->sbUniverse->setEnabled(true);
+        ui->tableWidget->setEnabled(true);
+        ui->btnAddRow->setEnabled(true);
+        ui->btnRemoveRow->setEnabled(true);
         ui->btnPlay->setText(tr("Play Back Snapshot"));
         ui->btnPlay->setIcon(QIcon(":/icons/play.png"));
-        ui->lbInfo->setText(tr("Select a universe and press Snapshot to capture a look"));
+        ui->lbInfo->setText(tr("Add the universes you want to capture, then press Snapshot to capture a look"));
         break;
     case stCountDown5:
     case stCountDown4:
     case stCountDown3:
     case stCountDown2:
     case stCountDown1:
-        ui->sbUniverse->setEnabled(false);
+        ui->tableWidget->setEnabled(false);
+        ui->btnAddRow->setEnabled(false);
+        ui->btnRemoveRow->setEnabled(false);
         ui->btnSnapshot->setEnabled(false);
         ui->lbInfo->setText(tr("Capturing snapshot in..."));
         ui->lbTimer->setText(QString::number(1+stCountDown1 - s));
@@ -65,7 +100,9 @@ void Snapshot::setState(state s)
         ui->btnPlay->setEnabled(true);
         ui->btnSnapshot->setEnabled(true);
         ui->lbTimer->setText("");
-        ui->sbUniverse->setEnabled(true);
+        ui->tableWidget->setEnabled(true);
+        ui->btnAddRow->setEnabled(true);
+        ui->btnRemoveRow->setEnabled(true);
         ui->lbInfo->setText(tr("Press Play to playback snapshot"));
         ui->btnPlay->setText(tr("Play Back Snapshot"));
         ui->btnPlay->setIcon(QIcon(":/icons/play.png"));
@@ -77,7 +114,9 @@ void Snapshot::setState(state s)
         ui->btnSnapshot->setEnabled(false);
         ui->lbTimer->setText("");
         ui->lbInfo->setText(tr("Playing Back Data"));
-        ui->sbUniverse->setEnabled(false);
+        ui->tableWidget->setEnabled(false);
+        ui->btnAddRow->setEnabled(false);
+        ui->btnRemoveRow->setEnabled(false);
         ui->btnPlay->setText(tr("Stop Playback"));
         ui->btnPlay->setIcon(QIcon(":/icons/pause.png"));
         playSnapshot();
@@ -98,9 +137,13 @@ void Snapshot::counterTick()
 
 void Snapshot::on_btnSnapshot_pressed()
 {
-    int universe = ui->sbUniverse->value();
-    sACNManager *manager = sACNManager::getInstance();
-    m_listener = manager->getListener(universe);
+    for(int i=0; i<ui->tableWidget->rowCount(); i++)
+    {
+        int universe = m_universeSpins[i]->value();
+
+        sACNManager *manager = sACNManager::getInstance();
+        m_listeners << manager->getListener(universe);
+    }
     m_countdown->start(1000);
     setState(stCountDown5);
 }
@@ -113,37 +156,55 @@ void Snapshot::on_btnPlay_pressed()
         setState(stSetup);
 }
 
-void Snapshot::on_sbUniverse_valueChanged(int value)
-{
-    Q_UNUSED(value);
-    setState(stSetup);
-}
-
 void Snapshot::saveSnapshot()
 {
-    if(!m_listener) return;
+    m_snapshotData.clear();
 
-    for(int i=0; i<MAX_DMX_ADDRESS; i++)
+    for(int i=0; i<m_listeners.count(); i++)
     {
-        m_snapshotData[i] = m_listener->mergedLevels().at(i).level;
+        QByteArray b;
+        for(int j=0; j<MAX_DMX_ADDRESS; j++)
+        {
+            int level = m_listeners[i]->mergedLevels().at(j).level;
+            if(level>0)
+                b.append(1, (char) level);
+            else
+                b.append(1, 0);
+        }
+        m_snapshotData << b;
     }
+
+    // Free up the listeners
+    m_listeners.clear();
+
 }
 
 void Snapshot::playSnapshot()
 {
-    m_sender = new sACNSentUniverse(ui->sbUniverse->value());
+    for(int i=0; i<m_snapshotData.count(); i++)
+    {
+        m_senders << new sACNSentUniverse(m_universeSpins[i]->value());
 
-    m_sender->setName(tr("sACNView Snapshot"));
+        m_senders.last()->setName(tr("sACNView Snapshot"));
 
-    m_sender->startSending();
-    m_sender->setLevel(m_snapshotData, MAX_DMX_ADDRESS);
+        m_senders.last()->startSending();
+        m_senders.last()->setLevel((const quint8*)m_snapshotData[i].constData(), MAX_DMX_ADDRESS);
+    }
 }
 
 void Snapshot::stopSnapshot()
 {
-    if(m_sender)
+    if(m_senders.count()>0)
     {
-        delete m_sender;
-        m_sender = 0;
+        qDeleteAll(m_senders);
+        m_senders.clear();
     }
+}
+
+void Snapshot::resizeEvent(QResizeEvent *event)
+{
+    QWidget::resizeEvent(event);
+
+    int width = ui->tableWidget->width() / 2;
+    ui->tableWidget->setColumnWidth(0, width - 3);
 }

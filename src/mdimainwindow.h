@@ -45,6 +45,8 @@ protected slots:
 private slots:
     void on_actionAbout_triggered(bool checked);
 
+    void on_actionMultiUniverse_triggered();
+
 private:
     Ui::MDIMainWindow *ui;
     sACNUniverseListModel *m_model;

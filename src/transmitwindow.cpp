@@ -153,6 +153,7 @@ transmitwindow::transmitwindow(QWidget *parent) :
     connect(ui->rbFadeSine, SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
     connect(ui->rbText,     SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
     connect(ui->rbDateTime, SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
+    connect(ui->rbChase,    SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
 
     connect(ui->rbEuDate, SIGNAL(toggled(bool)), this, SLOT(dateMode_toggled(bool)));
     connect(ui->rbUsDate, SIGNAL(toggled(bool)), this, SLOT(dateMode_toggled(bool)));
@@ -193,7 +194,10 @@ transmitwindow::~transmitwindow()
     if(m_sender)
         delete m_sender;
     if(m_fxEngine)
+    {
+        m_fxEngine->shutdown();
         m_fxEngine->deleteLater();
+    }
     delete ui;
 }
 
@@ -297,15 +301,12 @@ void transmitwindow::on_btnStart_pressed()
     if(m_sender->isSending())
     {
         m_sender->stopSending();
-        if(m_fxEngine)
-            m_fxEngine->deleteLater();
-        m_fxEngine = NULL;
         setUniverseOptsEnabled(true);
-        ui->tabWidget->setCurrentIndex(0);
     }
     else
     {
         m_sender->setName(ui->leSourceName->text());
+        m_sender->setUniverse(ui->sbUniverse->value());
         if(ui->cbPriorityMode->currentIndex() == pmPER_ADDRESS_PRIORITY)
         {
             m_sender->setPriorityMode(pmPER_ADDRESS_PRIORITY);
@@ -313,6 +314,7 @@ void transmitwindow::on_btnStart_pressed()
         }
         else
         {
+            m_sender->setPriorityMode(pmPER_SOURCE_PRIORITY);
             m_sender->setPerSourcePriority(ui->sbPriority->value());
         }
 
@@ -320,9 +322,12 @@ void transmitwindow::on_btnStart_pressed()
         setUniverseOptsEnabled(false);
         for(unsigned int i=0; i<sizeof(m_levels); i++)
             m_sender->setLevel(i, m_levels[i]);
-        m_fxEngine = new sACNEffectEngine();
-        connect(m_fxEngine, SIGNAL(fxLevelChange(int)), ui->slFadeLevel, SLOT(setValue(int)));
-        connect(m_fxEngine, SIGNAL(textImageChanged(QPixmap)), ui->lblTextImage, SLOT(setPixmap(QPixmap)));
+        if(!m_fxEngine)
+        {
+            m_fxEngine = new sACNEffectEngine();
+            connect(m_fxEngine, SIGNAL(fxLevelChange(int)), ui->slFadeLevel, SLOT(setValue(int)));
+            connect(m_fxEngine, SIGNAL(textImageChanged(QPixmap)), ui->lblTextImage, SLOT(setPixmap(QPixmap)));
+        }
         m_fxEngine->setSender(m_sender);
     }
 }
@@ -416,6 +421,14 @@ void transmitwindow::on_btnCcPrev_pressed()
     }
 }
 
+void transmitwindow::on_lcdNumber_valueChanged(int value)
+{
+    if(m_sender)
+    {
+        m_sender->setLevelRange(0, 511, 0);
+        m_sender->setLevel(value-1, ui->slChannelCheck->value());
+    }
+}
 
 void transmitwindow::on_slChannelCheck_valueChanged(int value)
 {
@@ -476,6 +489,7 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
 
         QMetaObject::invokeMethod(
                     m_fxEngine,"pause");
+        ui->lcdNumber->setFocus();
     }
 
     if(index==tabSliders)
@@ -494,25 +508,6 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
         ui->rbFadeManual->setChecked(true);
         ui->slFadeLevel->setValue(0);
     }
-}
-
-
-void transmitwindow::keyPressEvent(QKeyEvent *event)
-{
-    switch(event->key())
-    {
-    case Qt::Key_PageDown:
-        if(ui->tabWidget->currentIndex()==tabChannelCheck)
-            on_btnCcPrev_pressed();
-        event->accept();
-        break;
-    case Qt::Key_PageUp:
-        if(ui->tabWidget->currentIndex()==tabChannelCheck)
-            on_btnCcNext_pressed();
-        event->accept();
-        break;
-    }
-    QWidget::keyPressEvent(event);
 }
 
 void transmitwindow::on_dlFadeRate_valueChanged(int value)
@@ -590,6 +585,12 @@ void transmitwindow::radioFadeMode_toggled(bool checked)
         QMetaObject::invokeMethod(
                     m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxDate));
         ui->swFx->setCurrentIndex(2);
+    }
+    if(ui->rbChase->isChecked())
+    {
+        QMetaObject::invokeMethod(
+                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxChase));
+        ui->swFx->setCurrentIndex(0);
     }
 }
 

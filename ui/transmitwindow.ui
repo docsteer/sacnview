@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>903</width>
-    <height>502</height>
+    <height>525</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -278,6 +278,9 @@ border-radius: 4px;
         <horstretch>3</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
        <number>0</number>
@@ -864,12 +867,15 @@ border-radius: 4px;
          </spacer>
         </item>
         <item>
-         <widget class="QLCDNumber" name="lcdNumber">
+         <widget class="EditableLCDNumber" name="lcdNumber">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
+          </property>
+          <property name="focusPolicy">
+           <enum>Qt::StrongFocus</enum>
           </property>
           <property name="styleSheet">
            <string notr="true">background-color:rgb(0, 0, 0);
@@ -1141,6 +1147,13 @@ color: rgb(255, 85, 0);</string>
               </widget>
              </item>
              <item>
+              <widget class="QRadioButton" name="rbChase">
+               <property name="text">
+                <string>Chase</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QRadioButton" name="rbText">
                <property name="text">
                 <string>Text</string>
@@ -1225,7 +1238,7 @@ color: rgb(255, 85, 0);</string>
              </sizepolicy>
             </property>
             <property name="currentIndex">
-             <number>2</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="stackedWidgetPage1">
              <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1243,7 +1256,7 @@ color: rgb(255, 85, 0);</string>
               <item>
                <widget class="QLabel" name="lblFadeLevel">
                 <property name="text">
-                 <string>TextLabel</string>
+                 <string>0</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
@@ -1391,6 +1404,11 @@ color: rgb(255, 85, 0);</string>
   <customwidget>
    <class>CommandLineWidget</class>
    <extends>QPlainTextEdit</extends>
+   <header>commandline.h</header>
+  </customwidget>
+  <customwidget>
+   <class>EditableLCDNumber</class>
+   <extends>QLCDNumber</extends>
    <header>commandline.h</header>
   </customwidget>
  </customwidgets>

@@ -21,6 +21,7 @@
 #include "consts.h"
 #include <QApplication>
 #include <QNetworkInterface>
+#include <QProcess>
 
 int main(int argc, char *argv[])
 {
@@ -50,5 +51,7 @@ int main(int argc, char *argv[])
 
     Preferences::getInstance()->savePreferences();
 
+    if(Preferences::getInstance()->RESTART_APP)
+        QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
     return result;
 }

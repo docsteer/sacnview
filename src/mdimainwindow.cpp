@@ -22,6 +22,7 @@
 #include "aboutdialog.h"
 #include "sacnuniverselistmodel.h"
 #include "snapshot.h"
+#include "multiuniverse.h"
 
 MDIMainWindow::MDIMainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -122,4 +123,11 @@ void MDIMainWindow::universeDoubleClick(const QModelIndex &index)
         uniView->startListening(universe);
     }
 
+}
+
+void MDIMainWindow::on_actionMultiUniverse_triggered()
+{
+    MultiUniverse *multiUniv = new MultiUniverse(this);
+    ui->mdiArea->addSubWindow(multiUniv);
+    multiUniv->show();
 }

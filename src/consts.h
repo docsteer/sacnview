@@ -16,10 +16,11 @@
 #ifndef CONSTS_H
 #define CONSTS_H
 
+#include <QColor>
 
 #define APP_NAME        "sACNView"
-#define VERSION         "2.0.0 Beta 1"
-#define PUBLISHED_DATE  "Feb 2, 2017"
+#define VERSION         "2.0.0 Beta 2"
+#define PUBLISHED_DATE  "Apr 4, 2017"
 #define AUTHOR          "Tom Barthel-Steer"
 
 #define nNumOfSecPerHour 3600
@@ -117,6 +118,13 @@ static const QList<qreal> FX_FADE_RATES({
                                          100,
                                          500
                                      });
+
+
+
+static const QColor flickerHigherColor  = QColor::fromRgb(0x8d, 0x32, 0xfd);
+static const QColor flickerLowerColor   = QColor::fromRgb(0x04, 0xfd, 0x44);
+static const QColor flickerChangedColor = QColor::fromRgb(0xfb, 0x09, 0x09);
+
 
 #endif // CONSTS_H
 

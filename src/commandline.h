@@ -5,6 +5,7 @@
 #include <QWidget>
 #include <QPlainTextEdit>
 #include <QStack>
+#include <QLCDNumber>
 
 class CommandLine
 {
@@ -75,6 +76,17 @@ protected:
 private:
     CommandLine m_commandLine;
     void displayText();
+};
+
+class EditableLCDNumber : public QLCDNumber
+{
+    Q_OBJECT;
+public:
+    EditableLCDNumber(QWidget *parent);
+signals:
+    void valueChanged(int);
+protected:
+    virtual void keyPressEvent(QKeyEvent *event);
 };
 
 #endif // COMMANDLINE_H

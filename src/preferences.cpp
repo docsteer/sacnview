@@ -25,6 +25,7 @@ Preferences *Preferences::m_instance = NULL;
 
 Preferences::Preferences()
 {
+    RESTART_APP = false;
     loadPreferences();
 }
 
@@ -147,6 +148,7 @@ void Preferences::savePreferences()
     settings.setValue(S_DISPLAY_FORMAT, QVariant(m_nDisplayFormat));
     settings.setValue(S_BLIND_VISUALIZER, QVariant(m_bBlindVisualizer));
     settings.setValue(S_TIMEOUT, QVariant(m_nNumSecondsOfSacn));
+    settings.setValue(S_FLICKERFINDERSHOWINFO, QVariant(m_flickerFinderShowInfo));
 }
 
 void Preferences::loadPreferences()
@@ -165,4 +167,15 @@ void Preferences::loadPreferences()
     m_nDisplayFormat = settings.value(S_DISPLAY_FORMAT, QVariant(DECIMAL)).toInt();
     m_bBlindVisualizer = settings.value(S_BLIND_VISUALIZER, QVariant(false)).toBool();
     m_nNumSecondsOfSacn = settings.value(S_TIMEOUT, QVariant(0)).toInt();
+    m_flickerFinderShowInfo = settings.value(S_FLICKERFINDERSHOWINFO, QVariant(true)).toBool();
+}
+
+void Preferences::setFlickerFinderShowInfo(bool showIt)
+{
+    m_flickerFinderShowInfo = showIt;
+}
+
+bool Preferences::getFlickerFinderShowInfo()
+{
+    return m_flickerFinderShowInfo;
 }

@@ -38,8 +38,11 @@
    </attribute>
    <addaction name="actionScopeView"/>
    <addaction name="actionRecieve"/>
+   <addaction name="separator"/>
    <addaction name="actionTranmsit"/>
    <addaction name="actionSnapshot"/>
+   <addaction name="actionMultiUniverse"/>
+   <addaction name="separator"/>
    <addaction name="actionSettings"/>
    <addaction name="actionAbout"/>
   </widget>
@@ -184,6 +187,15 @@
    </property>
    <property name="toolTip">
     <string>About sACNView</string>
+   </property>
+  </action>
+  <action name="actionMultiUniverse">
+   <property name="icon">
+    <iconset resource="../res/resources.qrc">
+     <normaloff>:/icons/multi_universe.png</normaloff>:/icons/multi_universe.png</iconset>
+   </property>
+   <property name="text">
+    <string>Send Multiple Universes</string>
    </property>
   </action>
  </widget>
