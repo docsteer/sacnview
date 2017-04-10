@@ -82,8 +82,8 @@ void MultiUniverse::on_btnAddRow_pressed()
     sb->setMaximum(MAX_SACN_UNIVERSE);
     sb->setValue(m_senders.last()->universe());
     ui->tableWidget->setCellWidget(row, COL_UNIVERSE, sb);
-    m_widgetToFxEngine[enableBox] = m_fxEngines.last();
-    m_widgetToSender[enableBox] = m_senders.last();
+    m_widgetToFxEngine[sb] = m_fxEngines.last();
+    m_widgetToSender[sb] = m_senders.last();
     connect(sb, SIGNAL(valueChanged(int)), this, SLOT(universeChanged(int)));
     connect(sb, SIGNAL(destroyed(QObject*)), this, SLOT(removeWidgetFromIndex(QObject*)));
 
