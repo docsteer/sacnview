@@ -19,8 +19,8 @@
 #include <QColor>
 
 #define APP_NAME        "sACNView"
-#define VERSION         "2.0.0 Beta 1"
-#define PUBLISHED_DATE  "Feb 2, 2017"
+#define VERSION         "2.0.0 Beta 2"
+#define PUBLISHED_DATE  "Apr 4, 2017"
 #define AUTHOR          "Tom Barthel-Steer"
 
 #define nNumOfSecPerHour 3600

@@ -15,7 +15,7 @@
 ; limitations under the License.
 
 !define PRODUCT_NAME "sACNView"
-!define PRODUCT_VERSION "2.0.0 Beta 1"
+!define PRODUCT_VERSION "2.0.0 Beta 2"
 !define PRODUCT_PUBLISHER "Tom Barthel-Steer"
 !define PRODUCT_WEB_SITE "http://www.tomsteer.net"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\sACNView.exe"
