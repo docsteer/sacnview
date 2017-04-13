@@ -114,11 +114,7 @@ void PreferencesDialog::on_buttonBox_accepted()
         seconds = 0;
     p->SetNumSecondsOfSacn(seconds);
 
-    {
-        QString name = ui->leDefaultSourceName->text();
-        name.truncate(MAX_SOURCE_NAME_LEN);
-        p->SetDefaultTransmitName(name);
-    }
+    p->SetDefaultTransmitName(ui->leDefaultSourceName->text());
 
     for(int i=0; i<m_interfaceButtons.count(); i++)
     {

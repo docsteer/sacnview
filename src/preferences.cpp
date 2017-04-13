@@ -107,7 +107,8 @@ void Preferences::SetBlindVisualizer (bool bBlindVisualizer)
 
 void Preferences::SetDefaultTransmitName (QString sDefaultTransmitName)
 {
-    m_sDefaultTransmitName = sDefaultTransmitName;
+    sDefaultTransmitName.truncate(MAX_SOURCE_NAME_LEN);
+    m_sDefaultTransmitName = sDefaultTransmitName.trimmed();
     return;
 }
 
