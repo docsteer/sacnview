@@ -46,10 +46,22 @@ sACNUniverseListModel::sACNUniverseListModel(QObject *parent) : QAbstractItemMod
     m_socket = new QUdpSocket(this);
     connect(m_socket, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
 
-    m_socket->bind(QHostAddress(QHostAddress::AnyIPv4),
-                   STREAM_IP_PORT,
-                   QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
+    QNetworkInterface iface = Preferences::getInstance()->networkInterface();
 
+    // Bind to first IPv4 address on selected NIC
+    foreach (const QNetworkAddressEntry &ifaceAddr, iface.addressEntries())
+    {
+        if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol)
+        {
+            m_socket->bind(ifaceAddr.ip(),
+                           STREAM_IP_PORT,
+                           QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
+
+            qDebug("Bound to IP: " + ifaceAddr.ip().toString().toLatin1());
+
+            break;
+        }
+    }
 
     setStartUniverse(1);
 

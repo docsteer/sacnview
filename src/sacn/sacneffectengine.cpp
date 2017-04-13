@@ -21,6 +21,7 @@
 #include <QFont>
 #include "fontdata.h"
 #include <QDateTime>
+#include <QEventLoop>
 
 void GetCharacterCoord(unsigned char ch, int *x, int *y)
 {
@@ -61,10 +62,16 @@ void sACNEffectEngine::shutdown()
 {
     if(!m_shutdown)
     {
+        QEventLoop loop;
+        QObject::connect(m_thread, SIGNAL(destroyed()), &loop, SLOT(quit()));
+
         m_shutdown = true;
-        m_thread->wait(5000);
+        //m_thread->wait(5000);
         m_thread->deleteLater();
         m_thread = 0;
+
+        // Wait for m_thread to be deleted
+        loop.exec();
     }
 }
 
