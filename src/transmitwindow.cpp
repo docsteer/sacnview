@@ -52,7 +52,7 @@ transmitwindow::transmitwindow(QWidget *parent) :
     ui->sbFadeRangeStart->setMinimum(MIN_DMX_ADDRESS);
     ui->sbFadeRangeStart->setMaximum(MAX_DMX_ADDRESS);
 
-    ui->leSourceName->setText(DEFAULT_SOURCE_NAME);
+    ui->leSourceName->setText(Preferences::getInstance()->GetDefaultTransmitName());
 
     ui->dlFadeRate->setMinimum(0);
     ui->dlFadeRate->setMaximum(FX_FADE_RATES.count()-1);

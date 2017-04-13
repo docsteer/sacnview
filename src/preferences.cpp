@@ -105,6 +105,12 @@ void Preferences::SetBlindVisualizer (bool bBlindVisualizer)
     return;
 }
 
+void Preferences::SetDefaultTransmitName (QString sDefaultTransmitName)
+{
+    m_sDefaultTransmitName = sDefaultTransmitName;
+    return;
+}
+
 void Preferences::SetNumSecondsOfSacn (int nNumSecondsOfSacn)
 {
     Q_ASSERT(nNumSecondsOfSacn >= 0 && nNumSecondsOfSacn <= MAX_SACN_TRANSMIT_TIME_SEC);
@@ -129,6 +135,11 @@ bool Preferences::GetBlindVisualizer()
     return m_bBlindVisualizer;
 }
 
+QString Preferences::GetDefaultTransmitName()
+{
+   return m_sDefaultTransmitName;
+}
+
 unsigned int Preferences::GetNumSecondsOfSacn()
 {
    return m_nNumSecondsOfSacn;
@@ -147,6 +158,7 @@ void Preferences::savePreferences()
         settings.setValue(S_MAC_ADDRESS, m_interface.hardwareAddress());
     settings.setValue(S_DISPLAY_FORMAT, QVariant(m_nDisplayFormat));
     settings.setValue(S_BLIND_VISUALIZER, QVariant(m_bBlindVisualizer));
+    settings.setValue(S_DEFAULT_SOURCENAME, m_sDefaultTransmitName);
     settings.setValue(S_TIMEOUT, QVariant(m_nNumSecondsOfSacn));
     settings.setValue(S_FLICKERFINDERSHOWINFO, QVariant(m_flickerFinderShowInfo));
 }
@@ -166,6 +178,7 @@ void Preferences::loadPreferences()
 
     m_nDisplayFormat = settings.value(S_DISPLAY_FORMAT, QVariant(DECIMAL)).toInt();
     m_bBlindVisualizer = settings.value(S_BLIND_VISUALIZER, QVariant(false)).toBool();
+    m_sDefaultTransmitName = settings.value(S_DEFAULT_SOURCENAME, DEFAULT_SOURCE_NAME).toString();
     m_nNumSecondsOfSacn = settings.value(S_TIMEOUT, QVariant(0)).toInt();
     m_flickerFinderShowInfo = settings.value(S_FLICKERFINDERSHOWINFO, QVariant(true)).toBool();
 }

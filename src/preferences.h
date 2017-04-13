@@ -29,6 +29,7 @@
 static const QString S_MAC_ADDRESS("MacAddress");
 static const QString S_DISPLAY_FORMAT("Display Format");
 static const QString S_BLIND_VISUALIZER("Show Blind");
+static const QString S_DEFAULT_SOURCENAME("Default Transmit Source Name");
 static const QString S_TIMEOUT("Timeout");
 static const QString S_FLICKERFINDERSHOWINFO("Flicker Finder Info");
 
@@ -70,12 +71,14 @@ public:
     // Preferences access functions here:
     void SetDisplayFormat(unsigned int nDisplayFormat);
     void SetBlindVisualizer (bool bBlindVisualizer);
+    void SetDefaultTransmitName (QString sDefaultTransmitName);
     void SetNumSecondsOfSacn (int nNumSecondsOfSacn);
     void setFlickerFinderShowInfo(bool showIt);
 
     unsigned int GetDisplayFormat();
     unsigned int GetMaxLevel();
     bool GetBlindVisualizer();
+    QString Preferences::GetDefaultTransmitName();
     unsigned int GetNumSecondsOfSacn();
     bool getFlickerFinderShowInfo();
 
@@ -96,6 +99,7 @@ private:
 
     unsigned int m_nDisplayFormat;
     bool m_bBlindVisualizer;
+    QString m_sDefaultTransmitName;
     unsigned int m_nNumSecondsOfSacn;
     bool m_flickerFinderShowInfo;
 
