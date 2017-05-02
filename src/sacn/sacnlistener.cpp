@@ -79,15 +79,27 @@ void sACNListener::startReception(int universe)
     // Clear the levels array
     memset(&m_last_levels, -1, 512);
 
+    QNetworkInterface iface = Preferences::getInstance()->networkInterface();
+
     CIPAddr addr;
     GetUniverseAddress(universe, addr);
 
     quint16 port = addr.GetIPPort();
-    m_socket->bind(QHostAddress(QHostAddress::AnyIPv4),
-                   port,
-                   QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
 
-    QNetworkInterface iface = Preferences::getInstance()->networkInterface();
+    // Bind to first IPv4 address on selected NIC
+    foreach (QNetworkAddressEntry ifaceAddr, iface.addressEntries())
+    {
+        if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol)
+        {
+            m_socket->bind(ifaceAddr.ip(),
+                           port,
+                           QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
+
+            qDebug("Bound to IP: " + ifaceAddr.ip().toString().toLatin1());
+
+            break;
+        }
+    }
 
     m_socket->joinMulticastGroup(QHostAddress(addr.GetV4Address()), iface);
 

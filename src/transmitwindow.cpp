@@ -195,8 +195,14 @@ transmitwindow::~transmitwindow()
         delete m_sender;
     if(m_fxEngine)
     {
+        QEventLoop loop;
+        QObject::connect(m_fxEngine, SIGNAL(destroyed()), &loop, SLOT(quit()));
+
         m_fxEngine->shutdown();
         m_fxEngine->deleteLater();
+
+        // Wait for m_fxEngine to be deleted
+        loop.exec();
     }
     delete ui;
 }
