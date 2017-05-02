@@ -168,9 +168,9 @@ void Snapshot::saveSnapshot()
         {
             int level = m_listeners[i]->mergedLevels().at(j).level;
             if(level>0)
-                b.append(1, (char) level);
+                b.append( (char) level);
             else
-                b.append(1, 0);
+                b.append( (char) 0);
         }
         m_snapshotData << b;
     }
