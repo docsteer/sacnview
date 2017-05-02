@@ -17,12 +17,12 @@
 #define SACNLISTENER_H
 
 #include <QObject>
-#include <QUdpSocket>
 #include <vector>
 #include <QTimer>
 #include <QElapsedTimer>
 #include <QPoint>
 #include "streamingacn.h"
+#include "sacnsocket.h"
 
 
 struct sACNMergedAddress
@@ -83,7 +83,7 @@ private slots:
     void checkSourceExpiration();
     void checkSampleExpiration();
 private:
-    QUdpSocket *m_socket;
+    sACNRxSocket *m_socket;
     std::vector<sACNSource *> m_sources;
     int m_last_levels[512];
     sACNMergedSourceList m_merged_levels;

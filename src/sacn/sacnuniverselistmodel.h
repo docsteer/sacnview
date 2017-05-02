@@ -5,7 +5,6 @@
 #include <QSharedPointer>
 #include <QWeakPointer>
 #include <QAbstractItemModel>
-#include <QUdpSocket>
 #include <QHostAddress>
 #include <QTimer>
 #include <QElapsedTimer>
@@ -15,6 +14,7 @@
 #define NUM_UNIVERSES_LISTED 20
 
 class sACNUniverseInfo;
+class sACNRxSocket;
 
 class sACNBasicSourceInfo
 {
@@ -67,7 +67,7 @@ private:
     QList<sACNUniverseInfo *>m_universes;
     int m_start;
     QTimer *m_checkTimeoutTimer;
-    QUdpSocket *m_socket;
+    sACNRxSocket *m_socket;
 };
 
 #endif // SACNUNIVERSELISTMODEL_H

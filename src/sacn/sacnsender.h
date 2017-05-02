@@ -17,7 +17,6 @@
 #define SACNSENDER_H
 
 #include <Qt>
-#include <QUdpSocket>
 #include <QMutex>
 #include <vector>
 #include <map>
@@ -28,6 +27,7 @@
 #include "tock.h"
 #include "deftypes.h"
 #include "consts.h"
+#include "sacnsocket.h"
 
 class QTimer;
 
@@ -239,7 +239,7 @@ private:
     virtual ~CStreamServer();
     static CStreamServer *m_instance;
 
-    QUdpSocket * m_sendsock;  //The actual socket used for sending
+    sACNTxSocket * m_sendsock;  //The actual socket used for sending
     QTimer *m_tickTimer;
     QThread *m_thread;
 

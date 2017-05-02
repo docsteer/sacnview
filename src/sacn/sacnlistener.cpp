@@ -73,35 +73,13 @@ void sACNListener::startReception(int universe)
 {
     m_universe = universe;
     m_isSampling = true;
-    m_socket = new QUdpSocket(this);
+    m_socket = new sACNRxSocket(this);
     connect(m_socket, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
 
     // Clear the levels array
     memset(&m_last_levels, -1, 512);
 
-    QNetworkInterface iface = Preferences::getInstance()->networkInterface();
-
-    CIPAddr addr;
-    GetUniverseAddress(universe, addr);
-
-    quint16 port = addr.GetIPPort();
-
-    // Bind to first IPv4 address on selected NIC
-    foreach (QNetworkAddressEntry ifaceAddr, iface.addressEntries())
-    {
-        if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol)
-        {
-            m_socket->bind(ifaceAddr.ip(),
-                           port,
-                           QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
-
-            qDebug("Bound to IP: " + ifaceAddr.ip().toString().toLatin1());
-
-            break;
-        }
-    }
-
-    m_socket->joinMulticastGroup(QHostAddress(addr.GetV4Address()), iface);
+    m_socket->bindMulticast(universe);
 
     m_initalSampleTimer = new QTimer(this);
     m_initalSampleTimer->setInterval(100);

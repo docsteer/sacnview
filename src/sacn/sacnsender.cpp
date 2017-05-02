@@ -177,26 +177,10 @@ CStreamServer *CStreamServer::getInstance()
 
 CStreamServer::CStreamServer()
 {
-    m_sendsock = new QUdpSocket();
-    QNetworkInterface iface = Preferences::getInstance()->networkInterface();
-    QHostAddress a;
-    QList<QNetworkAddressEntry> addressEntries = iface.addressEntries();
-    for(int i=0; i<addressEntries.count(); i++)
-    {
-        if(addressEntries[i].ip().protocol() == QAbstractSocket::IPv4Protocol)
-        {
-            a = addressEntries[i].ip();
-        }
-    }
-#ifdef Q_OS_WIN
-    bool ok = m_sendsock->bind(a);
-#else
-    bool ok = m_sendsock->bind();
-#endif
-    if(!ok)
-        qDebug() << "Failed to bind RX socket";
-    m_sendsock->setSocketOption(QAbstractSocket::MulticastLoopbackOption, QVariant(1));
-    m_sendsock->setMulticastInterface(iface);
+    m_sendsock = new sACNTxSocket();
+
+    m_sendsock->bindMulticast();
+
     m_thread = new QThread();
     m_tickTimer = new QTimer(this);
     m_tickTimer->setInterval(10);

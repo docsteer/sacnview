@@ -20,6 +20,7 @@
 #include "streamcommon.h"
 #include "ipaddr.h"
 #include "preferences.h"
+#include "sacnsocket.h"
 
 sACNUniverseInfo::sACNUniverseInfo(int u)
 {
@@ -43,25 +44,10 @@ sACNUniverseListModel::sACNUniverseListModel(QObject *parent) : QAbstractItemMod
 {
     m_start = 1;
 
-    m_socket = new QUdpSocket(this);
+    m_socket = new sACNRxSocket(this);
     connect(m_socket, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
 
-    QNetworkInterface iface = Preferences::getInstance()->networkInterface();
-
-    // Bind to first IPv4 address on selected NIC
-    foreach (const QNetworkAddressEntry &ifaceAddr, iface.addressEntries())
-    {
-        if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol)
-        {
-            m_socket->bind(ifaceAddr.ip(),
-                           STREAM_IP_PORT,
-                           QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
-
-            qDebug("Bound to IP: " + ifaceAddr.ip().toString().toLatin1());
-
-            break;
-        }
-    }
+    m_socket->bindMulticast(1);
 
     setStartUniverse(1);
 
