@@ -78,7 +78,7 @@ public:
     unsigned int GetDisplayFormat();
     unsigned int GetMaxLevel();
     bool GetBlindVisualizer();
-    QString Preferences::GetDefaultTransmitName();
+    QString GetDefaultTransmitName();
     unsigned int GetNumSecondsOfSacn();
     bool getFlickerFinderShowInfo();
 
