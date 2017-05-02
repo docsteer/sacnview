@@ -164,7 +164,11 @@ border-radius: 4px;
         </widget>
        </item>
        <item row="0" column="1" colspan="2">
-        <widget class="QLineEdit" name="leSourceName"/>
+        <widget class="QLineEdit" name="leSourceName">
+         <property name="maxLength">
+          <number>63</number>
+         </property>
+        </widget>
        </item>
        <item row="3" column="1" colspan="2">
         <widget class="QComboBox" name="cbPriorityMode">

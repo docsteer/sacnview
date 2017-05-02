@@ -43,6 +43,7 @@
 #define MAX_SACN_TRANSMIT_TIME_SEC  1000000
 
 #define DEFAULT_SOURCE_NAME "sACNView"
+#define MAX_SOURCE_NAME_LEN 63
 
 
 enum PriorityMode

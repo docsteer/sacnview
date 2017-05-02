@@ -3,6 +3,7 @@
 #include "consts.h"
 #include "sacnlistener.h"
 #include "sacnsender.h"
+#include "preferences.h"
 #include <QTimer>
 #include <QSound>
 #include <QSpinBox>
@@ -185,7 +186,12 @@ void Snapshot::playSnapshot()
     {
         m_senders << new sACNSentUniverse(m_universeSpins[i]->value());
 
-        m_senders.last()->setName(tr("sACNView Snapshot"));
+        {
+            QString name = Preferences::getInstance()->GetDefaultTransmitName();
+            QString postfix = tr(" - Snapshot");
+            name.truncate(MAX_SOURCE_NAME_LEN - postfix.length());
+            m_senders.last()->setName(name.trimmed() + postfix);
+        }
 
         m_senders.last()->startSending();
         m_senders.last()->setLevel((const quint8*)m_snapshotData[i].constData(), MAX_DMX_ADDRESS);

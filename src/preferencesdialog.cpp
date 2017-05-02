@@ -69,6 +69,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 
     ui->cbDisplayBlind->setChecked(Preferences::getInstance()->GetBlindVisualizer());
 
+    ui->leDefaultSourceName->setText(Preferences::getInstance()->GetDefaultTransmitName());
+
     int timeout = Preferences::getInstance()->GetNumSecondsOfSacn();
     if(timeout>0)
     {
@@ -111,6 +113,8 @@ void PreferencesDialog::on_buttonBox_accepted()
     if(!ui->gbTransmitTimeout->isChecked())
         seconds = 0;
     p->SetNumSecondsOfSacn(seconds);
+
+    p->SetDefaultTransmitName(ui->leDefaultSourceName->text());
 
     for(int i=0; i<m_interfaceButtons.count(); i++)
     {

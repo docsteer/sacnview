@@ -64,8 +64,12 @@ void MultiUniverse::on_btnAddRow_pressed()
     m_fxEngines.last()->setEndAddress(MAX_DMX_ADDRESS-1);
     m_fxEngines.last()->setMode(sACNEffectEngine::FxManual);
     m_fxEngines.last()->start();
-    m_senders.last()->setName(tr("sACNView_%1").arg(nextUniverse));
-
+    {
+        QString name = Preferences::getInstance()->GetDefaultTransmitName();
+        QString postfix = tr("_%1").arg(nextUniverse);
+        name.truncate(MAX_SOURCE_NAME_LEN - postfix.length());
+        m_senders.last()->setName(name.trimmed() + postfix);
+    }
 
     QCheckBox *enableBox = new QCheckBox(this);
     enableBox->setStyleSheet("margin-left:50%; margin-right:50%;");
