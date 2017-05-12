@@ -30,8 +30,9 @@ MDIMainWindow::MDIMainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->sbUniverseList->setMinimum(MIN_SACN_UNIVERSE);
-    ui->sbUniverseList->setMaximum(MAX_SACN_UNIVERSE - NUM_UNIVERSES_LISTED);
-
+    ui->sbUniverseList->setMaximum(MAX_SACN_UNIVERSE);
+    ui->sbUniverseList->setWrapping(true);
+    ui->sbUniverseList->setValue(MIN_SACN_UNIVERSE);
 
     m_model = new sACNUniverseListModel(this);
     ui->treeView->setModel(m_model);

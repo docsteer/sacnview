@@ -20,6 +20,7 @@
 #include "streamcommon.h"
 #include "ipaddr.h"
 #include "preferences.h"
+#include "consts.h"
 
 sACNUniverseInfo::sACNUniverseInfo(int u)
 {
@@ -72,6 +73,10 @@ sACNUniverseListModel::sACNUniverseListModel(QObject *parent) : QAbstractItemMod
 
 void sACNUniverseListModel::setStartUniverse(int start)
 {
+    // Limit max value
+    static const int startMax = (MAX_SACN_UNIVERSE - NUM_UNIVERSES_LISTED) + 1;
+    if (start > startMax) start = startMax;
+
     beginResetModel();
 
     qDeleteAll(m_universes);
