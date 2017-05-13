@@ -233,24 +233,24 @@ void UniverseView::selectedAddressChanged(int address)
         else
             prio = list[address].winningSource->priority;
 
-            info.append(tr("Winning Source : %1 @ %2 (Priority %3)")
-                        .arg(list[address].winningSource->name)
-                        .arg(Preferences::getInstance()->GetFormattedValue(list[address].level))
-                        .arg(prio));
-            if(list[address].otherSources.count()>0)
+        info.append(tr("Winning Source : %1 @ %2 (Priority %3)")
+                    .arg(list[address].winningSource->name)
+                    .arg(Preferences::getInstance()->GetFormattedValue(list[address].level))
+                    .arg(prio));
+        if(list[address].otherSources.count()>0)
+        {
+            foreach(sACNSource *source, list[address].otherSources)
             {
-                foreach(sACNSource *source, list[address].otherSources)
-                {
-                    if(source->doing_per_channel)
-                        prio = source->priority_array[address];
-                    else
-                        prio = source->priority;
-                    info.append(tr("\nOther Source : %1 @ %2 (Priority %3)")
-                                .arg(source->name)
-                                .arg(Preferences::getInstance()->GetFormattedValue(source->level_array[address]))
-                                .arg(prio));
-                }
+                if(source->doing_per_channel)
+                    prio = source->priority_array[address];
+                else
+                    prio = source->priority;
+                info.append(tr("\nOther Source : %1 @ %2 (Priority %3)")
+                            .arg(source->name)
+                            .arg(Preferences::getInstance()->GetFormattedValue(source->level_array[address]))
+                            .arg(prio));
             }
+        }
     }
     if(!list[address].winningSource)
     {
