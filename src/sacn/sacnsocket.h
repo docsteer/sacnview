@@ -20,7 +20,7 @@ class sACNTxSocket : public QUdpSocket
 public:
     sACNTxSocket(QObject *parent = Q_NULLPTR);
 
-    void bindMulticast();
+    bool bindMulticast();
 };
 
 
