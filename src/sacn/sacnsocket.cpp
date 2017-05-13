@@ -28,6 +28,9 @@ bool sACNRxSocket::bindMulticast(quint16 universe)
     // Join multicast on selected NIC
     if (ok)
     {
+        #if (QT_VERSION <= QT_VERSION_CHECK(5, 8, 0))
+        #error setMulticastInterface() fails to bind to correct interface on systems running IPV4 and IPv6 with QT <= 5.8.0
+        #endif
         setMulticastInterface(iface);
         ok |= joinMulticastGroup(QHostAddress(addr.GetV4Address()), iface);
     }
