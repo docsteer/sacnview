@@ -59,6 +59,8 @@ sACNUniverseListModel::sACNUniverseListModel(QObject *parent) : QAbstractItemMod
 
 void sACNUniverseListModel::setStartUniverse(int start)
 {
+    QMutexLocker locker(&mutex_readPendingDatagrams);
+
     // Limit max value
     static const int startMax = (MAX_SACN_UNIVERSE - NUM_UNIVERSES_LISTED) + 1;
     if (start > startMax) start = startMax;
@@ -162,6 +164,8 @@ QModelIndex sACNUniverseListModel::parent(const QModelIndex &index) const
 
 void sACNUniverseListModel::readPendingDatagrams()
 {
+    QMutexLocker locker(&mutex_readPendingDatagrams);
+
     while(m_socket->hasPendingDatagrams())
     {
         QByteArray datagram;
