@@ -206,7 +206,7 @@ void sACNUniverseListModel::readPendingDatagrams()
             int univIndex = universe - m_start;
             if (
                     (univIndex > m_universes.count())
-                     or (univIndex < 0)
+                     || (univIndex < 0)
                 ) { continue; }
 
             if(!m_universes[univIndex]->sourcesByCid.contains(source_cid))
