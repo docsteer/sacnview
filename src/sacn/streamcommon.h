@@ -115,6 +115,12 @@
 //for support of the early draft
 #define DRAFT_ROOT_VECTOR 3
 
+/*
+ *  Options
+ */
+#define PREVIEW_DATA_OPTION 0x80 // Bit 7
+#define STREAM_TERMINATED_OPTION 0x40 // Bit 6
+
 /***/
 
 //The well-known streaming ACN port (currently the ACN port)
