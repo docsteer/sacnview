@@ -262,7 +262,7 @@ void transmitwindow::setUniverseOptsEnabled(bool enabled)
     ui->cbPriorityMode->setEnabled(enabled);
     ui->gbProtocolMode->setEnabled(enabled);
     ui->gbProtocolVersion->setEnabled(enabled);
-    ui->cbBlind->setEnabled(enabled);
+    ui->cbBlind->setEnabled(enabled ? ui->rbRatified->isChecked() : false);
     ui->tabWidget->setEnabled(!enabled);
 
 
@@ -687,4 +687,15 @@ void transmitwindow::dateMode_toggled(bool checked)
         QMetaObject::invokeMethod(
                     m_fxEngine,"setDateStyle", Q_ARG(sACNEffectEngine::DateStyle, sACNEffectEngine::dsUSA));
     }
+}
+
+void transmitwindow::on_rbDraft_clicked()
+{
+    ui->cbBlind->setEnabled(false);
+    ui->cbBlind->setChecked(false);
+}
+
+void transmitwindow::on_rbRatified_clicked()
+{
+    ui->cbBlind->setEnabled(true);
 }
