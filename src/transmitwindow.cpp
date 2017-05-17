@@ -324,7 +324,8 @@ void transmitwindow::on_btnStart_pressed()
             m_sender->setPerSourcePriority(ui->sbPriority->value());
         }
 
-        m_sender->startSending();
+        m_sender->startSending(ui->cbBlind->isChecked());
+
         setUniverseOptsEnabled(false);
         for(unsigned int i=0; i<sizeof(m_levels); i++)
             m_sender->setLevel(i, m_levels[i]);
