@@ -262,7 +262,7 @@ void transmitwindow::setUniverseOptsEnabled(bool enabled)
     ui->cbPriorityMode->setEnabled(enabled);
     ui->gbProtocolMode->setEnabled(enabled);
     ui->gbProtocolVersion->setEnabled(enabled);
-    ui->cbBlind->setEnabled(enabled);
+    ui->cbBlind->setEnabled(enabled ? ui->rbRatified->isChecked() : false);
     ui->tabWidget->setEnabled(!enabled);
 
 
@@ -324,7 +324,8 @@ void transmitwindow::on_btnStart_pressed()
             m_sender->setPerSourcePriority(ui->sbPriority->value());
         }
 
-        m_sender->startSending();
+        m_sender->startSending(ui->cbBlind->isChecked());
+
         setUniverseOptsEnabled(false);
         for(unsigned int i=0; i<sizeof(m_levels); i++)
             m_sender->setLevel(i, m_levels[i]);
@@ -686,4 +687,15 @@ void transmitwindow::dateMode_toggled(bool checked)
         QMetaObject::invokeMethod(
                     m_fxEngine,"setDateStyle", Q_ARG(sACNEffectEngine::DateStyle, sACNEffectEngine::dsUSA));
     }
+}
+
+void transmitwindow::on_rbDraft_clicked()
+{
+    ui->cbBlind->setEnabled(false);
+    ui->cbBlind->setChecked(false);
+}
+
+void transmitwindow::on_rbRatified_clicked()
+{
+    ui->cbBlind->setEnabled(true);
 }

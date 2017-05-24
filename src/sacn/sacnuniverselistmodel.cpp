@@ -208,6 +208,16 @@ void sACNUniverseListModel::readPendingDatagrams()
                     (univIndex > m_universes.count())
                      || (univIndex < 0)
                 ) { continue; }
+        // Listen to preview?
+        preview = (PREVIEW_DATA_OPTION == (options & PREVIEW_DATA_OPTION));
+        if ((preview) && !Preferences::getInstance()->GetBlindVisualizer())
+        {
+            qDebug() << "Ignore preview";
+            return;
+        }
+
+        sACNBasicSourceInfo *info = 0;
+        int univIndex = universe - m_start;
 
             if(!m_universes[univIndex]->sourcesByCid.contains(source_cid))
             {
