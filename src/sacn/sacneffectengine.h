@@ -77,9 +77,10 @@ public slots:
     void setRate(qreal hz);
 
     void setManualLevel(int level);
+
 private slots:
     void timerTick();
-
+    void doShutdown();
 private:
     QThread *m_thread;
     sACNSentUniverse *m_sender;
@@ -96,7 +97,6 @@ private:
     QImage m_renderedImage;
     uint1 *m_image;
     int m_imageWidth;
-    bool m_shutdown;
 
     // Render a single line of variable width text
     void renderText(QString text);

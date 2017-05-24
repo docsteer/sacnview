@@ -180,8 +180,16 @@ CStreamServer *CStreamServer::getInstance()
     return m_instance;
 }
 
+void CStreamServer::shutdown()
+{
+    if(m_instance)
+        delete m_instance;
+    m_instance = Q_NULLPTR;
+}
+
 CStreamServer::CStreamServer()
 {
+    m_terminate = false;
     m_sendsock = new sACNTxSocket();
 
     m_sendsock->bindMulticast();
@@ -197,11 +205,12 @@ CStreamServer::CStreamServer()
 
 CStreamServer::~CStreamServer()
 {
+    m_terminate = true;
+    m_thread->wait();
     //Clean up the sequence numbers
     for(seqiter it3 = m_seqmap.begin(); it3 != m_seqmap.end(); ++it3)
         if(it3->second.second)
             delete it3->second.second;
-    m_thread->wait();
     delete m_thread;
 }
 
@@ -249,6 +258,13 @@ void CStreamServer::RemovePSeq(const CID &cid, uint2 universe)
 
 void CStreamServer::Tick()
 {
+    if(m_terminate)
+    {
+        m_tickTimer->stop();
+        delete m_tickTimer;
+        m_thread->exit();
+        return;
+    }
     QMutexLocker locker(&m_writeMutex);
 
     int valid_count = 0;

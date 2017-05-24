@@ -169,6 +169,11 @@ public:
      * @return Returns the one instance of the CStreamServer
      */
     static CStreamServer *getInstance();
+    /**
+     * @brief shutdown shuts down the CStreamServer.
+     * not thread safe!
+     */
+    static void shutdown();
 
 
   //Use this to create a universe for a source cid, startcode, etc.
@@ -295,6 +300,8 @@ private:
 
    // Mutex for write protection of members
    QMutex m_writeMutex;
+
+   bool m_terminate;
 };
 
 

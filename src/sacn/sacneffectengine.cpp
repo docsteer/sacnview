@@ -40,7 +40,6 @@ sACNEffectEngine::sACNEffectEngine() : QObject(NULL)
     m_manualLevel = 0;
     m_dateStyle = dsEU;
     m_mode = FxRamp;
-    m_shutdown = false;
     m_renderedImage = QImage(32, 16, QImage::Format_Grayscale8);
 
     m_timer = new QTimer(this);
@@ -54,24 +53,21 @@ sACNEffectEngine::sACNEffectEngine() : QObject(NULL)
 
 sACNEffectEngine::~sACNEffectEngine()
 {
-    if(!m_shutdown)
+    if(m_thread)
         qWarning("Warning : Effect engine not shutdown before delete");
 }
 
 void sACNEffectEngine::shutdown()
 {
-    if(!m_shutdown)
+    if(m_thread)
     {
-        QEventLoop loop;
-        QObject::connect(m_thread, SIGNAL(destroyed()), &loop, SLOT(quit()));
-
-        m_shutdown = true;
-        //m_thread->wait(5000);
-        m_thread->deleteLater();
+        // Run the doShutdown() method in the effect thread
+        QMetaObject::invokeMethod(this,"doShutdown");
+        // Wait for the thread to exit
+        m_thread->wait();
+        // Can now safely delete
+        delete m_thread;
         m_thread = 0;
-
-        // Wait for m_thread to be deleted
-        loop.exec();
     }
 }
 
@@ -270,15 +266,6 @@ void sACNEffectEngine::timerTick()
     m_index++;
     char line[32];
 
-    if(m_shutdown)
-    {
-        m_timer->stop();
-        delete m_timer;
-
-        this->thread()->exit();
-        return;
-    }
-
     switch(m_mode)
     {
     case FxRamp:
@@ -357,4 +344,12 @@ void sACNEffectEngine::setManualLevel(int level)
     QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, m_start),
                               Q_ARG(quint16, m_end),
                               Q_ARG(quint8, m_manualLevel));
+}
+
+void sACNEffectEngine::doShutdown()
+{
+    m_timer->stop();
+    delete m_timer;
+
+    this->thread()->exit();
 }
