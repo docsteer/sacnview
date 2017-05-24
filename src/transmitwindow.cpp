@@ -295,7 +295,10 @@ void transmitwindow::on_btnStart_pressed()
         }
     }
     if(!m_sender)
+    {
         m_sender = new sACNSentUniverse(ui->sbUniverse->value());
+        connect(m_sender, SIGNAL(sendingTimeout()), this, SLOT(sourceTimeout()));
+    }
 
     m_sender->setUnicastAddress(unicast);
     if(ui->rbRatified->isChecked())
@@ -698,4 +701,9 @@ void transmitwindow::on_rbDraft_clicked()
 void transmitwindow::on_rbRatified_clicked()
 {
     ui->cbBlind->setEnabled(true);
+}
+
+void transmitwindow::sourceTimeout()
+{
+    setUniverseOptsEnabled(true);
 }

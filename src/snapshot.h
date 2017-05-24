@@ -36,6 +36,7 @@ protected slots:
     void on_btnPlay_pressed();
     void on_btnAddRow_pressed();
     void on_btnRemoveRow_pressed();
+    void senderTimedOut();
 protected:
     virtual void resizeEvent(QResizeEvent *event);
 private:
