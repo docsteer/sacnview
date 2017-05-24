@@ -26,7 +26,8 @@ class sACNRxSocket : public QUdpSocket
 public:
     sACNRxSocket(QObject *parent = Q_NULLPTR);
 
-    void bindMulticast(quint16 universe);
+    bool bindMulticast(quint16 universe);
+    bool bindUnicast();
 };
 
 class sACNTxSocket : public QUdpSocket
@@ -35,7 +36,7 @@ class sACNTxSocket : public QUdpSocket
 public:
     sACNTxSocket(QObject *parent = Q_NULLPTR);
 
-    void bindMulticast();
+    bool bindMulticast();
 };
 
 

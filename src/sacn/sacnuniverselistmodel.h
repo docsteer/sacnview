@@ -8,6 +8,8 @@
 #include <QHostAddress>
 #include <QTimer>
 #include <QElapsedTimer>
+#include <QMutex>
+#include <list>
 #include "deftypes.h"
 #include "CID.h"
 
@@ -64,10 +66,11 @@ protected slots:
     void readPendingDatagrams();
     void checkTimeouts();
 private:
+    QMutex mutex_readPendingDatagrams;
     QList<sACNUniverseInfo *>m_universes;
     int m_start;
     QTimer *m_checkTimeoutTimer;
-    sACNRxSocket *m_socket;
+    std::list<sACNRxSocket *> m_sockets;
 };
 
 #endif // SACNUNIVERSELISTMODEL_H
