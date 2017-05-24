@@ -43,7 +43,7 @@ bool sACNRxSocket::bindMulticast(quint16 universe)
     // Join multicast on selected NIC
     if (ok)
     {
-        #if (QT_VERSION <= QT_VERSION_CHECK(5, 8, 0))
+        #if (QT_VERSION <= QT_VERSION_CHECK(5, 8, 0)) && Q_OS_MACOS
         #error setMulticastInterface() fails to bind to correct interface on systems running IPV4 and IPv6 with QT <= 5.8.0
         #endif
         setMulticastInterface(iface);
@@ -113,11 +113,8 @@ bool sACNTxSocket::bindMulticast()
         }
     }
   
-    bool ok = bind();
 
-    if(ok)
-        qDebug() << "sACNTxSocket : Bound to IP: " << a.toString().toLatin1();
-    else
+    if(!ok)
         qDebug() << "sACNTxSocket : Failed to bind TX socket";
 
     return ok;

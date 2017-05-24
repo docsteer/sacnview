@@ -190,6 +190,7 @@ void sACNUniverseListModel::readPendingDatagrams()
             //them to be 0 just in case they never get set.
             uint2 reserved = 0;
             uint1 options = 0;
+            bool preview = false;
             uint1 *pbuf = (uint1*)datagram.data();
 
             if(!ValidateStreamHeader(pbuf, datagram.length(), source_cid, source_name, priority,
@@ -200,12 +201,6 @@ void sACNUniverseListModel::readPendingDatagrams()
                 continue;
             }
 
-            sACNBasicSourceInfo *info = 0;
-            int univIndex = universe - m_start;
-            if (
-                    (univIndex > m_universes.count())
-                     || (univIndex < 0)
-                ) { continue; }
         // Listen to preview?
         preview = (PREVIEW_DATA_OPTION == (options & PREVIEW_DATA_OPTION));
         if ((preview) && !Preferences::getInstance()->GetBlindVisualizer())
@@ -216,6 +211,10 @@ void sACNUniverseListModel::readPendingDatagrams()
 
         sACNBasicSourceInfo *info = 0;
         int univIndex = universe - m_start;
+        if (
+                (univIndex > m_universes.count())
+                 || (univIndex < 0)
+            ) { continue; }
 
             if(!m_universes[univIndex]->sourcesByCid.contains(source_cid))
             {
