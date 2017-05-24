@@ -121,6 +121,36 @@ void sACNSentUniverse::setLevel(const quint8 *data, int len, int start)
     }
 }
 
+void sACNSentUniverse::setVerticalBar(quint16 index, quint8 level)
+{
+    Q_ASSERT(index<32);
+
+    if(isSending())
+    {
+        memset(m_slotData, 0, 512);
+        for(int i=0; i<16; i++)
+        {
+            m_slotData[(i*32)+index] = level;
+        }
+
+        CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+    }
+}
+
+
+void sACNSentUniverse::setHorizontalBar(quint16 index, quint8 level)
+{
+    Q_ASSERT(index<16);
+
+    if(isSending())
+    {
+        memset(m_slotData, 0, 512);
+        memset(m_slotData + 32*index, level, 32);
+
+        CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+    }
+}
+
 void sACNSentUniverse::setName(const QString &name)
 {
     m_name = name;

@@ -59,6 +59,15 @@ public slots:
      */
     void setLevel(const quint8 *data, int len, int start=0);
     /**
+     * @brief sets a vertical bar on a 16x32 grid for the universe
+     */
+    void setVerticalBar(quint16 index, quint8 level);
+    /**
+     * @brief sets a horizontal bar on a 16x32 grid for the universe
+     */
+    void setHorizontalBar(quint16 index, quint8 level);
+
+    /**
      * @brief setName sets the universe name
      * @param name the name to set
      */

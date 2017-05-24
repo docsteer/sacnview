@@ -26,6 +26,8 @@ static const QStringList FX_MODE_DESCRIPTIONS = { "Manual",
         "Ramp",
         "Sinewave",
         "Chase",
+        "Vertical Bars",
+        "Horizontal Bars",
         "Text",
         "Date"};
 
@@ -38,6 +40,8 @@ public:
         FxRamp,
         FxSinewave,
         FxChase,
+        FxVerticalBar,
+        FxHorizontalBar,
         FxText,
         FxDate
     };
