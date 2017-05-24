@@ -5,16 +5,18 @@
 #include <QSharedPointer>
 #include <QWeakPointer>
 #include <QAbstractItemModel>
-#include <QUdpSocket>
 #include <QHostAddress>
 #include <QTimer>
 #include <QElapsedTimer>
+#include <QMutex>
+#include <list>
 #include "deftypes.h"
 #include "CID.h"
 
 #define NUM_UNIVERSES_LISTED 20
 
 class sACNUniverseInfo;
+class sACNRxSocket;
 
 class sACNBasicSourceInfo
 {
@@ -64,10 +66,11 @@ protected slots:
     void readPendingDatagrams();
     void checkTimeouts();
 private:
+    QMutex mutex_readPendingDatagrams;
     QList<sACNUniverseInfo *>m_universes;
     int m_start;
     QTimer *m_checkTimeoutTimer;
-    QUdpSocket *m_socket;
+    std::list<sACNRxSocket *> m_sockets;
 };
 
 #endif // SACNUNIVERSELISTMODEL_H

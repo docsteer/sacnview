@@ -63,7 +63,8 @@ SOURCES += src/main.cpp\
     src/snapshot.cpp \
     src/commandline.cpp \
     src/multiuniverse.cpp \
-    src/flickerfinderinfoform.cpp
+    src/flickerfinderinfoform.cpp \
+    src/sacn/sacnsocket.cpp
 	
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -96,7 +97,8 @@ HEADERS  += src/mdimainwindow.h \
     src/commandline.h \
     src/fontdata.h \
     src/multiuniverse.h \
-    src/flickerfinderinfoform.h
+    src/flickerfinderinfoform.h \
+    src/sacn/sacnsocket.h
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \

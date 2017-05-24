@@ -17,7 +17,6 @@
 #define SACNSENDER_H
 
 #include <Qt>
-#include <QUdpSocket>
 #include <QMutex>
 #include <vector>
 #include <map>
@@ -28,6 +27,7 @@
 #include "tock.h"
 #include "deftypes.h"
 #include "consts.h"
+#include "sacnsocket.h"
 
 class QTimer;
 
@@ -83,8 +83,9 @@ public slots:
     uint1 perSourcePriority() { return m_priority;};
     /**
      * @brief startSending - starts sending for the selected universe
+     * @param (Optional) preview - set the preview flag?
      */
-    void startSending();
+    void startSending(bool preview = false);
     /**
      * @brief stopSending - stops sending for the selected universe
      */
@@ -156,8 +157,8 @@ private:
 //Alternatively, you can directly set them while a universe is running with
 //OptionsPreviewData and OptionsStreamTerminated.  The terminated option doesn't
 //really need to be used, as DestroyUniverse handles that functionality for you.
-#define PREVIEW_DATA_OPTION 0x40
-#define STREAM_TERMINATED_OPTION 0x80
+#define PREVIEW_DATA_OPTION 0x80 // Bit 7
+#define STREAM_TERMINATED_OPTION 0x40 // Bit 6
 
 class CStreamServer : public QObject
 {
@@ -239,7 +240,7 @@ private:
     virtual ~CStreamServer();
     static CStreamServer *m_instance;
 
-    QUdpSocket * m_sendsock;  //The actual socket used for sending
+    sACNTxSocket * m_sendsock;  //The actual socket used for sending
     QTimer *m_tickTimer;
     QThread *m_thread;
 

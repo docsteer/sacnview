@@ -167,6 +167,7 @@ void Snapshot::saveSnapshot()
         for(int j=0; j<MAX_DMX_ADDRESS; j++)
         {
             int level = m_listeners[i]->mergedLevels().at(j).level;
+
             if(level>0) {
 #if QT_VERSION >= 0x050700
                 b.append(1, (char) level);

@@ -46,17 +46,22 @@ sACNSentUniverse::~sACNSentUniverse()
     streamServer->DestroyUniverse(m_handle);
 }
 
-void sACNSentUniverse::startSending()
+void sACNSentUniverse::startSending(bool preview)
 {
+    uint1 options = 0;
+
     CStreamServer *streamServer = CStreamServer::getInstance();
     if(m_cid.isNull())
         m_cid = CID::CreateCid();
 
+    if (preview)
+        options += PREVIEW_DATA_OPTION;
+
     if(m_unicastAddress.isNull())
-        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, 0, 0,
+        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, options, 0,
            m_universe, 512, m_slotData, m_handle, false, 850, CIPAddr(), m_version==StreamingACNProtocolVersion::sACNProtocolDraft );
     else
-        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, 0, 0, m_universe,
+        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, options, 0, m_universe,
              512, m_slotData, m_handle, false, 850, CIPAddr(m_unicastAddress), m_version==StreamingACNProtocolVersion::sACNProtocolDraft );
 
     streamServer->SetUniverseDirty(m_handle);
@@ -64,7 +69,7 @@ void sACNSentUniverse::startSending()
     if(m_priorityMode == pmPER_ADDRESS_PRIORITY)
     {
         uint1 *pslots;
-        streamServer->CreateUniverse(m_cid, qPrintable(m_name), 0, 0, 0, 0xDD, m_universe, 512, pslots, m_priorityHandle);
+        streamServer->CreateUniverse(m_cid, qPrintable(m_name), 0, options, 0, 0xDD, m_universe, 512, pslots, m_priorityHandle);
         memcpy(pslots, m_perChannelPriorities, sizeof(m_perChannelPriorities));
         streamServer->SetUniverseDirty(m_priorityHandle);
     }
@@ -177,26 +182,10 @@ CStreamServer *CStreamServer::getInstance()
 
 CStreamServer::CStreamServer()
 {
-    m_sendsock = new QUdpSocket();
-    QNetworkInterface iface = Preferences::getInstance()->networkInterface();
-    QHostAddress a;
-    QList<QNetworkAddressEntry> addressEntries = iface.addressEntries();
-    for(int i=0; i<addressEntries.count(); i++)
-    {
-        if(addressEntries[i].ip().protocol() == QAbstractSocket::IPv4Protocol)
-        {
-            a = addressEntries[i].ip();
-        }
-    }
-#ifdef Q_OS_WIN
-    bool ok = m_sendsock->bind(a);
-#else
-    bool ok = m_sendsock->bind();
-#endif
-    if(!ok)
-        qDebug() << "Failed to bind RX socket";
-    m_sendsock->setSocketOption(QAbstractSocket::MulticastLoopbackOption, QVariant(1));
-    m_sendsock->setMulticastInterface(iface);
+    m_sendsock = new sACNTxSocket();
+
+    m_sendsock->bindMulticast();
+
     m_thread = new QThread();
     m_tickTimer = new QTimer(this);
     m_tickTimer->setInterval(10);

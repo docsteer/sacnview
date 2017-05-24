@@ -223,6 +223,11 @@
           </column>
           <column>
            <property name="text">
+            <string>Preview</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
             <string>IP Address</string>
            </property>
           </column>
@@ -256,6 +261,7 @@
             <string>Per-Address</string>
            </property>
           </column>
+          <item row="0" column="2"/>
          </widget>
          <widget class="QPlainTextEdit" name="teInfo">
           <property name="sizePolicy">
