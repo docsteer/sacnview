@@ -30,20 +30,29 @@
     <normaloff>:/icons/settings.png</normaloff>:/icons/settings.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_4">
-   <item>
+   <property name="sizeConstraint">
+    <enum>QLayout::SetMinimumSize</enum>
+   </property>
+   <item alignment="Qt::AlignVCenter">
     <widget class="QGroupBox" name="gbNetworkInterface">
      <property name="title">
       <string>Network Interface</string>
      </property>
     </widget>
    </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox">
+   <item alignment="Qt::AlignVCenter">
+    <widget class="QGroupBox" name="gbDisplayFormat">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>130</height>
+      </size>
      </property>
      <property name="title">
       <string>Display Format</string>
@@ -76,13 +85,19 @@
      </layout>
     </widget>
    </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_2">
+   <item alignment="Qt::AlignVCenter">
+    <widget class="QGroupBox" name="gbRecieveOptions">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>70</height>
+      </size>
      </property>
      <property name="maximumSize">
       <size>
@@ -116,7 +131,7 @@
      </layout>
     </widget>
    </item>
-   <item>
+   <item alignment="Qt::AlignVCenter">
     <widget class="QGroupBox" name="gbTransmitOptions">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -141,6 +156,12 @@
         <width>361</width>
         <height>73</height>
        </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
       <property name="title">
        <string>Stop transmitting sACN after</string>
@@ -210,10 +231,16 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>20</y>
+        <y>25</y>
         <width>361</width>
         <height>55</height>
        </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
       <property name="title">
        <string>Default Source Name</string>
@@ -222,7 +249,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>20</y>
+         <y>25</y>
          <width>341</width>
          <height>25</height>
         </rect>
@@ -230,12 +257,21 @@
        <property name="maxLength">
         <number>63</number>
        </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+       </property>
       </widget>
      </widget>
     </widget>
    </item>
-   <item>
+   <item alignment="Qt::AlignVCenter">
     <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>

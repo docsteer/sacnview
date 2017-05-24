@@ -43,14 +43,9 @@ sACNBasicSourceInfo::sACNBasicSourceInfo(sACNUniverseInfo *p)
 
 sACNUniverseListModel::sACNUniverseListModel(QObject *parent) : QAbstractItemModel(parent)
 {
-    m_start = 1;
+    m_start = MIN_SACN_UNIVERSE;
 
-    m_socket = new sACNRxSocket(this);
-    connect(m_socket, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
-
-    m_socket->bindMulticast(1);
-
-    setStartUniverse(1);
+    setStartUniverse(m_start);
 
     m_checkTimeoutTimer = new QTimer(this);
     connect(m_checkTimeoutTimer, SIGNAL(timeout()), this, SLOT(checkTimeouts()));
@@ -70,22 +65,25 @@ void sACNUniverseListModel::setStartUniverse(int start)
     qDeleteAll(m_universes);
     m_universes.clear();
 
-    for(int universe=m_start; universe<m_start+NUM_UNIVERSES_LISTED; universe++)
-    {
-        CIPAddr addr;
-        GetUniverseAddress(universe, addr);
-        QNetworkInterface iface = Preferences::getInstance()->networkInterface();
-        m_socket->leaveMulticastGroup(QHostAddress(addr.GetV4Address()), iface);
-    }
+    // Destroy all old sockets
+    qDeleteAll(m_sockets);
+    m_sockets.clear();
 
+    // Listen unicast
+    m_sockets.push_back(new sACNRxSocket(this));
+    m_sockets.back()->bindUnicast();
+    connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
+
+    // Listen multicast
     m_start = start;
-
     for(int universe=m_start; universe<m_start+NUM_UNIVERSES_LISTED; universe++)
     {
         CIPAddr addr;
         GetUniverseAddress(universe, addr);
-        QNetworkInterface iface = Preferences::getInstance()->networkInterface();
-        m_socket->joinMulticastGroup(QHostAddress(addr.GetV4Address()), iface);
+
+        m_sockets.push_back(new sACNRxSocket(this));
+        m_sockets.back()->bindMulticast(universe);
+        connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
 
         m_universes << new sACNUniverseInfo(universe);
     }
@@ -166,68 +164,86 @@ void sACNUniverseListModel::readPendingDatagrams()
 {
     QMutexLocker locker(&mutex_readPendingDatagrams);
 
-    while(m_socket->hasPendingDatagrams())
+    // Check all sockets
+    foreach (sACNRxSocket* m_socket, m_sockets)
     {
-        QByteArray datagram;
-        datagram.resize(m_socket->pendingDatagramSize());
-        QHostAddress sender;
-        quint16 senderPort;
-
-        m_socket->readDatagram(datagram.data(), datagram.size(),
-                                &sender, &senderPort);
-
-        // Process the data
-        CID source_cid;
-        uint1 start_code;
-        uint1 sequence;
-        uint2 universe;
-        uint2 slot_count;
-        uint1* pdata;
-        char source_name [SOURCE_NAME_SIZE];
-        uint1 priority;
-        //These only apply to the ratified version of the spec, so we will hardwire
-        //them to be 0 just in case they never get set.
-        uint2 reserved = 0;
-        uint1 options = 0;
-        uint1 *pbuf = (uint1*)datagram.data();
-
-        if(!ValidateStreamHeader(pbuf, datagram.length(), source_cid, source_name, priority,
-                start_code, reserved, sequence, options, universe, slot_count, pdata))
+        while(m_socket->hasPendingDatagrams())
         {
-            // Recieved a packet but not valid. Log and discard
-            qDebug() << "Invalid Packet";
-            continue;
+            QByteArray datagram;
+            datagram.resize(m_socket->pendingDatagramSize());
+            QHostAddress sender;
+            quint16 senderPort;
+
+            m_socket->readDatagram(datagram.data(), datagram.size(),
+                                    &sender, &senderPort);
+
+            // Process the data
+            CID source_cid;
+            uint1 start_code;
+            uint1 sequence;
+            uint2 universe;
+            uint2 slot_count;
+            uint1* pdata;
+            char source_name [SOURCE_NAME_SIZE];
+            uint1 priority;
+            //These only apply to the ratified version of the spec, so we will hardwire
+            //them to be 0 just in case they never get set.
+            uint2 reserved = 0;
+            uint1 options = 0;
+            uint1 *pbuf = (uint1*)datagram.data();
+
+            if(!ValidateStreamHeader(pbuf, datagram.length(), source_cid, source_name, priority,
+                    start_code, reserved, sequence, options, universe, slot_count, pdata))
+            {
+                // Recieved a packet but not valid. Log and discard
+                qDebug() << "Invalid Packet";
+                continue;
+            }
+
+            sACNBasicSourceInfo *info = 0;
+            int univIndex = universe - m_start;
+            if (
+                    (univIndex > m_universes.count())
+                     || (univIndex < 0)
+                ) { continue; }
+        // Listen to preview?
+        preview = (PREVIEW_DATA_OPTION == (options & PREVIEW_DATA_OPTION));
+        if ((preview) && !Preferences::getInstance()->GetBlindVisualizer())
+        {
+            qDebug() << "Ignore preview";
+            return;
         }
 
         sACNBasicSourceInfo *info = 0;
         int univIndex = universe - m_start;
 
-        if(!m_universes[univIndex]->sourcesByCid.contains(source_cid))
-        {
-            info = new sACNBasicSourceInfo(m_universes[univIndex]);
-            info->cid = source_cid;
-        }
-        else
-        {
-            info = m_universes[univIndex]->sourcesByCid.value(source_cid);
-            info->timeout.restart();
-        }
+            if(!m_universes[univIndex]->sourcesByCid.contains(source_cid))
+            {
+                info = new sACNBasicSourceInfo(m_universes[univIndex]);
+                info->cid = source_cid;
+            }
+            else
+            {
+                info = m_universes[univIndex]->sourcesByCid.value(source_cid);
+                info->timeout.restart();
+            }
 
-        info->address = sender;
-        info->name = source_name;
+            info->address = sender;
+            info->name = source_name;
 
-        if(!m_universes[univIndex]->sourcesByCid.contains(source_cid))
-        {
-            // We are adding the source for this universe
-            QModelIndex parent = index(m_start - universe, 0);
-            int firstRow = m_universes[univIndex]->sources.count()+1;
-            int lastRow = firstRow;
-            beginInsertRows(parent, firstRow, lastRow);
-            m_universes[univIndex]->sources << info;
-            m_universes[univIndex]->sourcesByCid[source_cid] = info;
-            endInsertRows();
+            if(!m_universes[univIndex]->sourcesByCid.contains(source_cid))
+            {
+                // We are adding the source for this universe
+                QModelIndex parent = index(m_start - universe, 0);
+                int firstRow = m_universes[univIndex]->sources.count()+1;
+                int lastRow = firstRow;
+                beginInsertRows(parent, firstRow, lastRow);
+                m_universes[univIndex]->sources << info;
+                m_universes[univIndex]->sourcesByCid[source_cid] = info;
+                endInsertRows();
+            }
+
         }
-
     }
 }
 

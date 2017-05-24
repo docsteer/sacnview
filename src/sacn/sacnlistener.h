@@ -18,6 +18,7 @@
 
 #include <QObject>
 #include <vector>
+#include <list>
 #include <QTimer>
 #include <QElapsedTimer>
 #include <QPoint>
@@ -83,7 +84,7 @@ private slots:
     void checkSourceExpiration();
     void checkSampleExpiration();
 private:
-    sACNRxSocket *m_socket;
+    std::list<sACNRxSocket *> m_sockets;
     std::vector<sACNSource *> m_sources;
     int m_last_levels[512];
     sACNMergedSourceList m_merged_levels;

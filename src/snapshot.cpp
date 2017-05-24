@@ -167,10 +167,21 @@ void Snapshot::saveSnapshot()
         for(int j=0; j<MAX_DMX_ADDRESS; j++)
         {
             int level = m_listeners[i]->mergedLevels().at(j).level;
-            if(level>0)
-                b.append( (char) level);
-            else
-                b.append( (char) 0);
+
+            if(level>0) {
+#if QT_VERSION >= 0x050700
+                b.append(1, (char) level);
+#else
+                b.append(QByteArray().fill((char)level, 1));
+#endif
+            }
+            else {
+#if QT_VERSION >= 0x050700
+                b.append(1, 0);
+#else
+                b.append(QByteArray().fill(0, 1));
+#endif
+            }
         }
         m_snapshotData << b;
     }

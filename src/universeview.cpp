@@ -108,6 +108,10 @@ void UniverseView::sourceChanged(sACNSource *source)
     ui->twSources->item(row,COL_NAME)->setBackgroundColor(Preferences::getInstance()->colorForCID(source->src_cid));
     ui->twSources->item(row,COL_CID)->setText(source->cid_string());
     ui->twSources->item(row,COL_PRIO)->setText(QString::number(source->priority));
+    if (source->protocol_version == sACNProtocolDraft)
+        ui->twSources->item(row,COL_PREVIEW)->setText(tr("N/A"));
+    else
+        ui->twSources->item(row,COL_PREVIEW)->setText(source->isPreview ? tr("Yes") : tr("No"));
     ui->twSources->item(row,COL_IP)->setText(source->ip.toString());
     ui->twSources->item(row,COL_FPS)->setText(QString::number((source->fps)));
     ui->twSources->item(row,COL_SEQ_ERR)->setText(QString::number(source->seqErr));
@@ -127,6 +131,7 @@ void UniverseView::sourceOnline(sACNSource *source)
     ui->twSources->setItem(row,COL_NAME,    new QTableWidgetItem() );
     ui->twSources->setItem(row,COL_CID,     new QTableWidgetItem() );
     ui->twSources->setItem(row,COL_PRIO,    new QTableWidgetItem() );
+    ui->twSources->setItem(row,COL_PREVIEW,    new QTableWidgetItem() );
     ui->twSources->setItem(row,COL_IP,      new QTableWidgetItem() );
     ui->twSources->setItem(row,COL_FPS,     new QTableWidgetItem() );
     ui->twSources->setItem(row,COL_SEQ_ERR, new QTableWidgetItem() );
@@ -233,24 +238,24 @@ void UniverseView::selectedAddressChanged(int address)
         else
             prio = list[address].winningSource->priority;
 
-            info.append(tr("Winning Source : %1 @ %2 (Priority %3)")
-                        .arg(list[address].winningSource->name)
-                        .arg(Preferences::getInstance()->GetFormattedValue(list[address].level))
-                        .arg(prio));
-            if(list[address].otherSources.count()>0)
+        info.append(tr("Winning Source : %1 @ %2 (Priority %3)")
+                    .arg(list[address].winningSource->name)
+                    .arg(Preferences::getInstance()->GetFormattedValue(list[address].level))
+                    .arg(prio));
+        if(list[address].otherSources.count()>0)
+        {
+            foreach(sACNSource *source, list[address].otherSources)
             {
-                foreach(sACNSource *source, list[address].otherSources)
-                {
-                    if(source->doing_per_channel)
-                        prio = source->priority_array[address];
-                    else
-                        prio = source->priority;
-                    info.append(tr("\nOther Source : %1 @ %2 (Priority %3)")
-                                .arg(source->name)
-                                .arg(Preferences::getInstance()->GetFormattedValue(source->level_array[address]))
-                                .arg(prio));
-                }
+                if(source->doing_per_channel)
+                    prio = source->priority_array[address];
+                else
+                    prio = source->priority;
+                info.append(tr("\nOther Source : %1 @ %2 (Priority %3)")
+                            .arg(source->name)
+                            .arg(Preferences::getInstance()->GetFormattedValue(source->level_array[address]))
+                            .arg(prio));
             }
+        }
     }
     if(!list[address].winningSource)
     {
