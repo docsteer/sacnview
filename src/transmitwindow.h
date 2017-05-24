@@ -69,6 +69,11 @@ protected slots:
     void recordButtonPressed(bool on);
     void setLevels(QSet<int> addresses, int level);
     void dateMode_toggled(bool checked);
+private slots:
+    void on_rbDraft_clicked();
+
+    void on_rbRatified_clicked();
+
 private:
     enum TABS
     {

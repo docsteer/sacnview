@@ -181,7 +181,14 @@ void sACNListener::readPendingDatagrams()
             return;
         }
 
-        preview = (0x80 == (options & 0x80));
+        // Listen to preview?
+        preview = (PREVIEW_DATA_OPTION == (options & PREVIEW_DATA_OPTION));
+        if ((preview) && !Preferences::getInstance()->GetBlindVisualizer())
+        {
+            qDebug() << "Ignore preview";
+            return;
+        }
+
 
         sACNSource *ps = NULL; // Pointer to the source
         bool foundsource = false;

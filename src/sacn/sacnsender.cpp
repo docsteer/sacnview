@@ -46,17 +46,22 @@ sACNSentUniverse::~sACNSentUniverse()
     streamServer->DestroyUniverse(m_handle);
 }
 
-void sACNSentUniverse::startSending()
+void sACNSentUniverse::startSending(bool preview)
 {
+    uint1 options = 0;
+
     CStreamServer *streamServer = CStreamServer::getInstance();
     if(m_cid.isNull())
         m_cid = CID::CreateCid();
 
+    if (preview)
+        options += PREVIEW_DATA_OPTION;
+
     if(m_unicastAddress.isNull())
-        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, 0, 0,
+        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, options, 0,
            m_universe, 512, m_slotData, m_handle, false, 850, CIPAddr(), m_version==StreamingACNProtocolVersion::sACNProtocolDraft );
     else
-        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, 0, 0, m_universe,
+        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, options, 0, m_universe,
              512, m_slotData, m_handle, false, 850, CIPAddr(m_unicastAddress), m_version==StreamingACNProtocolVersion::sACNProtocolDraft );
 
     streamServer->SetUniverseDirty(m_handle);
@@ -64,7 +69,7 @@ void sACNSentUniverse::startSending()
     if(m_priorityMode == pmPER_ADDRESS_PRIORITY)
     {
         uint1 *pslots;
-        streamServer->CreateUniverse(m_cid, qPrintable(m_name), 0, 0, 0, 0xDD, m_universe, 512, pslots, m_priorityHandle);
+        streamServer->CreateUniverse(m_cid, qPrintable(m_name), 0, options, 0, 0xDD, m_universe, 512, pslots, m_priorityHandle);
         memcpy(pslots, m_perChannelPriorities, sizeof(m_perChannelPriorities));
         streamServer->SetUniverseDirty(m_priorityHandle);
     }
