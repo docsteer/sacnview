@@ -46,6 +46,7 @@ protected slots:
     void levelsChanged();
     void selectedAddressChanged(int address);
     void on_btnStartFlickerFinder_pressed();
+    void on_btnLogWindow_pressed();
 protected:
     virtual void resizeEvent(QResizeEvent *event);
     virtual void showEvent(QShowEvent *event);
@@ -81,6 +82,7 @@ private:
     int m_selectedAddress;
     QSharedPointer<sACNListener> m_listener;
     MergedUniverseLogger *m_logger;
+    QWidget *m_parentWindow;
 };
 
 #endif // UNIVERSEVIEW_H

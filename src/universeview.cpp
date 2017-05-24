@@ -20,6 +20,8 @@
 #include "preferences.h"
 #include "consts.h"
 #include "flickerfinderinfoform.h"
+#include "logwindow.h"
+#include "mdimainwindow.h"
 
 #include <QFileDialog>
 #include <QStandardPaths>
@@ -49,6 +51,7 @@ UniverseView::UniverseView(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::UniverseView)
 {
+    m_parentWindow = parent; // needed as parent() in qobject world isn't..
     m_selectedAddress = -1;
     m_logger = NULL;
     ui->setupUi(this);
@@ -327,4 +330,14 @@ void UniverseView::on_btnStartFlickerFinder_pressed()
         ui->universeDisplay->setFlickerFinder(true);
         ui->btnStartFlickerFinder->setText(tr("Stop Flicker Finder"));
     }
+}
+
+
+void UniverseView::on_btnLogWindow_pressed()
+{
+    MDIMainWindow *mainWindow = dynamic_cast<MDIMainWindow *>(m_parentWindow);
+    if(!mainWindow) return;
+    LogWindow *w = new LogWindow(mainWindow);
+    w->setUniverse(ui->sbUniverse->value());
+    mainWindow->showWidgetAsMdiWindow(w);
 }

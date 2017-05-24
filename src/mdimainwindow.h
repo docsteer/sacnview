@@ -32,6 +32,8 @@ public:
     explicit MDIMainWindow(QWidget *parent = 0);
     ~MDIMainWindow();
 
+    void showWidgetAsMdiWindow(QWidget *w);
+
 protected slots:
     void on_actionScopeView_triggered(bool checked);
     void on_actionRecieve_triggered(bool checked);

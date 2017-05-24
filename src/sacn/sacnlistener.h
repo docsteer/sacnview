@@ -31,10 +31,12 @@ struct sACNMergedAddress
     sACNMergedAddress() {
         level = -1;
         winningSource = NULL;
+        changedSinceLastMerge = false;
     }
     int level;
     sACNSource *winningSource;
     QSet<sACNSource *> otherSources;
+    bool changedSinceLastMerge;
 };
 
 typedef QList<sACNMergedAddress> sACNMergedSourceList;
