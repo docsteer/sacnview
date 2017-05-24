@@ -56,8 +56,6 @@ void sACNUniverseListModel::setStartUniverse(int start)
 {
     QMutexLocker locker(&mutex_readPendingDatagrams);
 
-    QNetworkInterface iface = Preferences::getInstance()->networkInterface();
-
     // Limit max value
     static const int startMax = (MAX_SACN_UNIVERSE - NUM_UNIVERSES_LISTED) + 1;
     if (start > startMax) start = startMax;
