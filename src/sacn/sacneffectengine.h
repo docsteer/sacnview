@@ -54,7 +54,6 @@ public:
     QString text() { return m_text;};
     sACNEffectEngine::FxMode mode() { return m_mode;};
     qreal rate() { return m_rate;};
-    void shutdown();
 signals:
     void setLevel(uint2 address, uint1 value);
     void setLevel(uint2 start, uint2 end, uint1 value);
@@ -80,7 +79,6 @@ public slots:
 
 private slots:
     void timerTick();
-    void doShutdown();
 private:
     QThread *m_thread;
     sACNSentUniverse *m_sender;

@@ -195,7 +195,6 @@ transmitwindow::~transmitwindow()
         delete m_sender;
     if(m_fxEngine)
     {
-        m_fxEngine->shutdown();
         m_fxEngine->deleteLater();
     }
     delete ui;

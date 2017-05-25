@@ -300,8 +300,6 @@ private:
 
    // Mutex for write protection of members
    QMutex m_writeMutex;
-
-   bool m_terminate;
 };
 
 

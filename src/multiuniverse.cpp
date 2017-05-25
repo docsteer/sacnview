@@ -38,10 +38,6 @@ MultiUniverse::~MultiUniverse()
     {
         m_senders[i]->stopSending();
     }
-    for(int i=0; i<m_fxEngines.count(); i++)
-    {
-        m_fxEngines[i]->shutdown();
-    }
 
     qDeleteAll(m_fxEngines);
     qDeleteAll(m_senders);
@@ -149,7 +145,6 @@ void MultiUniverse::on_btnRemoveRow_pressed()
 {
     int row = ui->tableWidget->currentRow();
     ui->tableWidget->removeRow(row);
-    m_fxEngines[row]->shutdown();
     delete m_fxEngines[row];
     delete m_senders[row];
     m_fxEngines.removeAt(row);

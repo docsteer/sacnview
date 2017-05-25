@@ -48,27 +48,14 @@ sACNEffectEngine::sACNEffectEngine() : QObject(NULL)
 
     m_thread = new QThread();
     moveToThread(m_thread);
+    connect(m_thread, &QThread::finished, this, &QObject::deleteLater);
     m_thread->start();
 }
 
 sACNEffectEngine::~sACNEffectEngine()
 {
-    if(m_thread)
-        qWarning("Warning : Effect engine not shutdown before delete");
-}
-
-void sACNEffectEngine::shutdown()
-{
-    if(m_thread)
-    {
-        // Run the doShutdown() method in the effect thread
-        QMetaObject::invokeMethod(this,"doShutdown");
-        // Wait for the thread to exit
-        m_thread->wait();
-        // Can now safely delete
-        delete m_thread;
-        m_thread = 0;
-    }
+    // Stop thread
+    m_thread->quit();
 }
 
 void sACNEffectEngine::setSender(sACNSentUniverse *sender)
@@ -344,12 +331,4 @@ void sACNEffectEngine::setManualLevel(int level)
     QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, m_start),
                               Q_ARG(quint16, m_end),
                               Q_ARG(quint8, m_manualLevel));
-}
-
-void sACNEffectEngine::doShutdown()
-{
-    m_timer->stop();
-    delete m_timer;
-
-    this->thread()->exit();
 }

@@ -189,12 +189,12 @@ void CStreamServer::shutdown()
 
 CStreamServer::CStreamServer()
 {
-    m_terminate = false;
     m_sendsock = new sACNTxSocket();
 
     m_sendsock->bindMulticast();
 
     m_thread = new QThread();
+    connect(m_thread, &QThread::finished, this, &QObject::deleteLater);
     m_tickTimer = new QTimer(this);
     m_tickTimer->setInterval(10);
     connect(m_tickTimer, SIGNAL(timeout()), this, SLOT(Tick()));
@@ -205,13 +205,13 @@ CStreamServer::CStreamServer()
 
 CStreamServer::~CStreamServer()
 {
-    m_terminate = true;
-    m_thread->wait();
     //Clean up the sequence numbers
     for(seqiter it3 = m_seqmap.begin(); it3 != m_seqmap.end(); ++it3)
+    {
         if(it3->second.second)
             delete it3->second.second;
-    delete m_thread;
+            it3->second.second = Q_NULLPTR;
+    }
 }
 
 
@@ -258,13 +258,6 @@ void CStreamServer::RemovePSeq(const CID &cid, uint2 universe)
 
 void CStreamServer::Tick()
 {
-    if(m_terminate)
-    {
-        m_tickTimer->stop();
-        delete m_tickTimer;
-        m_thread->exit();
-        return;
-    }
     QMutexLocker locker(&m_writeMutex);
 
     int valid_count = 0;
