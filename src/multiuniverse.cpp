@@ -144,6 +144,7 @@ void MultiUniverse::removeWidgetFromIndex(QObject *o)
 void MultiUniverse::on_btnRemoveRow_pressed()
 {
     int row = ui->tableWidget->currentRow();
+    if (row == -1) return;
     ui->tableWidget->removeRow(row);
     delete m_fxEngines[row];
     delete m_senders[row];
