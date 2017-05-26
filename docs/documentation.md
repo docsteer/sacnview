@@ -9,12 +9,12 @@ If Windows alerts you that sACNView needs to make a network connection and that 
 The main window contains multiple smaller windows for the different functions of the program.
 
 ## Main View Buttons
-![The Scope view button opens an Oscilloscope View](scope.png)
-![The View button opens a single universe view](univ_view.png
-![The Transmit button opens a transmitter for an sACN universe](transmit.png)
-![The Snapshot button opens a window to snapshot and play back sACN universes](snapshot.png)
-![The Multi-Universe Transmit button opens a transmitter for multiple sACN universe](multi_universe.png)
-![The Settings button opens the settings window](settings.png)
+![](../images/scope.png)The Scope view button opens an Oscilloscope View
+![](../images/univ_view.png)The View button opens a single universe view
+![](../images/transmit.png)The Transmit button opens a transmitter for an sACN universe](transmit.png)
+![](../images/snapshot.png)The Snapshot button opens a window to snapshot and play back sACN universes
+![](../images/multi_universe.png)The Multi-Universe Transmit button opens a transmitter for multiple sACN universe
+![](../images/settings.png)The Settings button opens the settings window
 
 # Universe Overview
 
