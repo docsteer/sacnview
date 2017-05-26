@@ -192,7 +192,7 @@ void transmitwindow::fixSize()
 transmitwindow::~transmitwindow()
 {
     if(m_sender)
-        delete m_sender;
+        m_sender->deleteLater();
     if(m_fxEngine)
     {
         m_fxEngine->deleteLater();

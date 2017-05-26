@@ -183,7 +183,7 @@ CStreamServer *CStreamServer::getInstance()
 void CStreamServer::shutdown()
 {
     if(m_instance)
-        delete m_instance;
+        m_instance->deleteLater();
     m_instance = Q_NULLPTR;
 }
 
@@ -212,6 +212,7 @@ CStreamServer::~CStreamServer()
             delete it3->second.second;
             it3->second.second = Q_NULLPTR;
     }
+    m_thread->quit();
 }
 
 

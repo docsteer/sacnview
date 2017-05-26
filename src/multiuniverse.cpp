@@ -34,13 +34,19 @@ MultiUniverse::MultiUniverse(QWidget *parent) :
 MultiUniverse::~MultiUniverse()
 {
     delete ui;
-    for(int i=0; i<m_senders.count(); i++)
+
+    while (m_fxEngines.size())
     {
-        m_senders[i]->stopSending();
+       m_fxEngines.front()->deleteLater();
+       m_fxEngines.removeFirst();
     }
 
-    qDeleteAll(m_fxEngines);
-    qDeleteAll(m_senders);
+    while (m_senders.size())
+    {
+       m_senders.front()->stopSending();
+       m_senders.front()->deleteLater();
+       m_senders.removeFirst();
+    }
 }
 
 
@@ -146,8 +152,8 @@ void MultiUniverse::on_btnRemoveRow_pressed()
     int row = ui->tableWidget->currentRow();
     if (row == -1) return;
     ui->tableWidget->removeRow(row);
-    delete m_fxEngines[row];
-    delete m_senders[row];
+    m_fxEngines[row]->deleteLater();
+    m_senders[row]->deleteLater();
     m_fxEngines.removeAt(row);
     m_senders.removeAt(row);
 }

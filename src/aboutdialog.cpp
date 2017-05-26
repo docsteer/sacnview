@@ -49,6 +49,7 @@ aboutDialog::aboutDialog(QWidget *parent) :
 
 aboutDialog::~aboutDialog()
 {
+    m_displayTimer->deleteLater();
     delete ui;
 }
 
