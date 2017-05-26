@@ -1,16 +1,11 @@
-# sacnview
 sACNView is a tool for viewing, monitoring and testing the ANSI/ESTA E1.17 protcol, informally known as "Streaming ACN".
 
 This protcol is used in lighting systems (typically theatre, television, live entertainment and other systems where a high performance stream of data is required).
 
-This is sACNView mark 2. The original program was written in Borland Delphi, but this new version supplants it.
+This is sACNView mark 2, which supplants the original version.
 
-#Installation
-If you are interested in simply using the program, visit the download page to download installers for your platform (Mac or Windows OS).
+# How to Install
+Use the buttons at the top of this page to download and install the program for your operating system
 
-#Building
-If you are interested in building the application you will need the following:
-* Qt Creator - https://www.qt.io/ide/
-* To build the windows installer - NSIS - http://nsis.sourceforge.net/
-
-To build, open the .PRO file in the root directory and build with Qt Creator. To build the windows installer, compile the NSIS file in the install/win directory.
+# How to Use
+See the [Documentation](./documentation) page for information on how to use the application
