@@ -1,4 +1,4 @@
 theme: jekyll-theme-tactile;
 title: sACNView;
-description: sACNView, a tool for sending and receiving the Streaming ACN (ESTA E1.31) control protocol;
+description: sACNView, a tool for sending and receiving the Streaming ACN control protocol;
 show_downloads: true;
