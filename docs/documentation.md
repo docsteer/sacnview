@@ -1,5 +1,6 @@
 # Installing sACNView
 To install sACNView on Windows, download and run the installer. Shortcuts will be created on the desktop and the start menu.
+
 To install sACNView on Mac, download the .DMG file and open it. Drag the application into the Applications folder; it will now be available to run from finder.
 
 If Windows alerts you that sACNView needs to make a network connection and that it is blocked by Windows Firewall, be sure to click 'Allow'
@@ -8,11 +9,12 @@ If Windows alerts you that sACNView needs to make a network connection and that 
 The main window contains multiple smaller windows for the different functions of the program.
 
 ## Main View Buttons
-	The Scope view button opens an Oscilloscope View
-	The Overview button re-opens the Universe Overview
-	The View button opens a single universe view
-	The Transmit button opens a transmitter for an sACN universe
-	The Settings button opens the settings window
+![The Scope view button opens an Oscilloscope View](scope.png)
+![The View button opens a single universe view](univ_view.png
+![The Transmit button opens a transmitter for an sACN universe](transmit.png)
+![The Snapshot button opens a window to snapshot and play back sACN universes](snapshot.png)
+![The Multi-Universe Transmit button opens a transmitter for multiple sACN universe](multi_universe.png)
+![The Settings button opens the settings window](settings.png)
 
 # Universe Overview
 
