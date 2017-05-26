@@ -43,7 +43,6 @@ MultiUniverse::~MultiUniverse()
 
     while (m_senders.size())
     {
-       m_senders.front()->stopSending();
        m_senders.front()->deleteLater();
        m_senders.removeFirst();
     }
