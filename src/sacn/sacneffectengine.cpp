@@ -319,6 +319,18 @@ void sACNEffectEngine::timerTick()
             m_sender->setLevel(scanline, 32, i*32);
         }
         break;
+    case FxVerticalBar:
+        if(m_index > 31)
+            m_index = 0;
+        QMetaObject::invokeMethod(m_sender, "setVerticalBar", Q_ARG(quint16, m_index),
+                                      Q_ARG(quint8, 255));
+        break;
+    case FxHorizontalBar:
+        if(m_index > 15)
+            m_index = 0;
+        QMetaObject::invokeMethod(m_sender, "setHorizontalBar", Q_ARG(quint16, m_index),
+                                      Q_ARG(quint8, 255));
+        break;
     }
 }
 

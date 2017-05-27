@@ -254,6 +254,8 @@ void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode)
     case sACNEffectEngine::FxChase:
     case sACNEffectEngine::FxRamp:
     case sACNEffectEngine::FxSinewave:
+    case sACNEffectEngine::FxVerticalBar:
+    case sACNEffectEngine::FxHorizontalBar:
         {
         QWidget *controlWidget = new QWidget(this);
         QLabel *slowerLabel = new QLabel(tr("Slower"), controlWidget);
