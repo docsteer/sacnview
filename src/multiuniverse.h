@@ -47,6 +47,7 @@ private slots:
     void controlSliderMoved(int value);
     void controlComboChanged(int value);
     void priorityChanged(int value);
+    void senderTimedout();
 private:
     Ui::MultiUniverse *ui;
     QList <sACNSentUniverse *> m_senders;

@@ -125,6 +125,14 @@ public slots:
 
     int universe() { return m_universe;};
 
+signals:
+    /**
+     * @brief sendingTimeout is emitted when the source stops sending
+     * due to the send timeout setting
+     */
+    void sendingTimeout();
+private slots:
+    void doTimeout();
 private:
     bool m_isSending;
     // The handle for the CStreamServer universe
@@ -151,6 +159,8 @@ private:
     QHostAddress m_unicastAddress;
     // Protocol Version
     StreamingACNProtocolVersion m_version;
+    // Timer to shutdown after timeout
+    QTimer *m_checkTimeoutTimer;
 };
 
 

@@ -59,6 +59,7 @@ void MultiUniverse::on_btnAddRow_pressed()
         nextUniverse = m_senders.last()->universe() + 1;
 
     m_senders.append(new sACNSentUniverse(nextUniverse));
+    connect(m_senders.last(), SIGNAL(sendingTimeout()), this, SLOT(senderTimedout()));
     m_fxEngines.append(new sACNEffectEngine());
     m_fxEngines.last()->setSender(m_senders.last());
     m_fxEngines.last()->setStartAddress(MIN_DMX_ADDRESS-1);
@@ -346,5 +347,17 @@ void MultiUniverse::on_tableWidget_cellChanged(int row, int column)
         if(ui->tableWidget->item(row, column))
             m_fxEngines[row]->setText(ui->tableWidget->item(row, column)->text());
     }
+}
+
+void MultiUniverse::senderTimedout()
+{
+    sACNSentUniverse *timedOutSender = dynamic_cast<sACNSentUniverse *>(sender());
+    if(!timedOutSender) return;
+
+    int index = m_senders.indexOf(timedOutSender);
+
+    QCheckBox *cb = dynamic_cast<QCheckBox *>(ui->tableWidget->cellWidget(index, 0));
+
+    cb->setChecked(false);
 }
 

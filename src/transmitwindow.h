@@ -69,6 +69,7 @@ protected slots:
     void recordButtonPressed(bool on);
     void setLevels(QSet<int> addresses, int level);
     void dateMode_toggled(bool checked);
+    void sourceTimeout();
 private slots:
     void on_rbDraft_clicked();
 

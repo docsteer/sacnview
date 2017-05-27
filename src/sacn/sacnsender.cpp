@@ -38,12 +38,19 @@ sACNSentUniverse::sACNSentUniverse(int universe)
     m_handle = 0;
     m_isSending = false;
     m_priorityMode = pmPER_SOURCE_PRIORITY;
+    m_checkTimeoutTimer = Q_NULLPTR;
 }
 
 sACNSentUniverse::~sACNSentUniverse()
 {
     CStreamServer *streamServer = CStreamServer::getInstance();
     streamServer->DestroyUniverse(m_handle);
+
+    if(m_checkTimeoutTimer)
+    {
+        m_checkTimeoutTimer->stop();
+        delete m_checkTimeoutTimer;
+    }
 }
 
 void sACNSentUniverse::startSending(bool preview)
@@ -74,6 +81,16 @@ void sACNSentUniverse::startSending(bool preview)
         streamServer->SetUniverseDirty(m_priorityHandle);
     }
     m_isSending = true;
+
+    int seconds = Preferences::getInstance()->GetNumSecondsOfSacn();
+    if(seconds>0)
+    {
+        m_checkTimeoutTimer = new QTimer(this);
+        connect(m_checkTimeoutTimer, SIGNAL(timeout()), this, SLOT(doTimeout()));
+        m_checkTimeoutTimer->setSingleShot(true);
+        m_checkTimeoutTimer->setInterval(1000 * seconds);
+        m_checkTimeoutTimer->start();
+    }
 }
 
 
@@ -199,6 +216,15 @@ void sACNSentUniverse::setUniverse(int universe)
         stopSending();
         startSending();
     }
+}
+
+void sACNSentUniverse::doTimeout()
+{
+    delete m_checkTimeoutTimer;
+    m_checkTimeoutTimer = 0;
+    stopSending();
+    emit sendingTimeout();
+    qDebug() << "Source " << this->name() << " timeout";
 }
 
 CStreamServer *CStreamServer::m_instance = 0;

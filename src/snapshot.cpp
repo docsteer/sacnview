@@ -206,16 +206,15 @@ void Snapshot::playSnapshot()
 
         m_senders.last()->startSending();
         m_senders.last()->setLevel((const quint8*)m_snapshotData[i].constData(), MAX_DMX_ADDRESS);
+        connect(m_senders.last(), SIGNAL(sendingTimeout()), this, SLOT(senderTimedOut()));
     }
 }
 
 void Snapshot::stopSnapshot()
 {
-    if(m_senders.count()>0)
-    {
-        qDeleteAll(m_senders);
-        m_senders.clear();
-    }
+    for(int i=0; i<m_senders.count(); i++)
+            m_senders[i]->deleteLater();
+    m_senders.clear();
 }
 
 void Snapshot::resizeEvent(QResizeEvent *event)
@@ -224,4 +223,9 @@ void Snapshot::resizeEvent(QResizeEvent *event)
 
     int width = ui->tableWidget->width() / 2;
     ui->tableWidget->setColumnWidth(0, width - 3);
+}
+
+void Snapshot::senderTimedOut()
+{
+    setState(stSetup);
 }
