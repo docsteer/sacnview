@@ -516,6 +516,7 @@ void sACNListener::performMerge()
     int skipCounter = 0;
     for(int i=0; i < 512 && i<(number_of_addresses_to_merge + skipCounter); i++)
     {
+        m_merged_levels[i].changedSinceLastMerge = false;
         if(addresses_to_merge[i] == -1) {
             ++skipCounter;
             continue;
@@ -596,6 +597,7 @@ void sACNListener::performMerge()
             if(s->level_array[address] > levels[address])
             {
                 levels[address] = s->level_array[address];
+                m_merged_levels[address].changedSinceLastMerge = (m_merged_levels[address].level != levels[address]);
                 m_merged_levels[address].level = levels[address];
                 m_merged_levels[address].winningSource = s;
             }

@@ -132,3 +132,9 @@ void MDIMainWindow::on_actionMultiUniverse_triggered()
     ui->mdiArea->addSubWindow(multiUniv);
     multiUniv->show();
 }
+
+void MDIMainWindow::showWidgetAsMdiWindow(QWidget *w)
+{
+    ui->mdiArea->addSubWindow(w);
+    w->show();
+}
