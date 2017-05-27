@@ -54,7 +54,6 @@ public:
     QString text() { return m_text;};
     sACNEffectEngine::FxMode mode() { return m_mode;};
     qreal rate() { return m_rate;};
-    void shutdown();
 signals:
     void setLevel(uint2 address, uint1 value);
     void setLevel(uint2 start, uint2 end, uint1 value);
@@ -77,9 +76,9 @@ public slots:
     void setRate(qreal hz);
 
     void setManualLevel(int level);
+
 private slots:
     void timerTick();
-
 private:
     QThread *m_thread;
     sACNSentUniverse *m_sender;
@@ -96,7 +95,6 @@ private:
     QImage m_renderedImage;
     uint1 *m_image;
     int m_imageWidth;
-    bool m_shutdown;
 
     // Render a single line of variable width text
     void renderText(QString text);

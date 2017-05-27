@@ -94,6 +94,7 @@ QSharedPointer<sACNListener> sACNManager::getListener(int universe)
         listener = new sACNListener();
         connect(listener, SIGNAL(destroyed(QObject*)), this, SLOT(listenerDeleted(QObject*)));
         QThread *newThread = new QThread();
+        connect(newThread, &QThread::finished, this, &QObject::deleteLater);
         newThread->setObjectName(QString("Universe %1 RX").arg(universe));
         listener->moveToThread(newThread);
         newThread->start(QThread::HighPriority);

@@ -192,17 +192,10 @@ void transmitwindow::fixSize()
 transmitwindow::~transmitwindow()
 {
     if(m_sender)
-        delete m_sender;
+        m_sender->deleteLater();
     if(m_fxEngine)
     {
-        QEventLoop loop;
-        QObject::connect(m_fxEngine, SIGNAL(destroyed()), &loop, SLOT(quit()));
-
-        m_fxEngine->shutdown();
         m_fxEngine->deleteLater();
-
-        // Wait for m_fxEngine to be deleted
-        loop.exec();
     }
     delete ui;
 }

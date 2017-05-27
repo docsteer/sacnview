@@ -40,7 +40,6 @@ sACNEffectEngine::sACNEffectEngine() : QObject(NULL)
     m_manualLevel = 0;
     m_dateStyle = dsEU;
     m_mode = FxRamp;
-    m_shutdown = false;
     m_renderedImage = QImage(32, 16, QImage::Format_Grayscale8);
 
     m_timer = new QTimer(this);
@@ -49,30 +48,14 @@ sACNEffectEngine::sACNEffectEngine() : QObject(NULL)
 
     m_thread = new QThread();
     moveToThread(m_thread);
+    connect(m_thread, &QThread::finished, this, &QObject::deleteLater);
     m_thread->start();
 }
 
 sACNEffectEngine::~sACNEffectEngine()
 {
-    if(!m_shutdown)
-        qWarning("Warning : Effect engine not shutdown before delete");
-}
-
-void sACNEffectEngine::shutdown()
-{
-    if(!m_shutdown)
-    {
-        QEventLoop loop;
-        QObject::connect(m_thread, SIGNAL(destroyed()), &loop, SLOT(quit()));
-
-        m_shutdown = true;
-        //m_thread->wait(5000);
-        m_thread->deleteLater();
-        m_thread = 0;
-
-        // Wait for m_thread to be deleted
-        loop.exec();
-    }
+    // Stop thread
+    m_thread->quit();
 }
 
 void sACNEffectEngine::setSender(sACNSentUniverse *sender)
@@ -269,15 +252,6 @@ void sACNEffectEngine::timerTick()
 {
     m_index++;
     char line[32];
-
-    if(m_shutdown)
-    {
-        m_timer->stop();
-        delete m_timer;
-
-        this->thread()->exit();
-        return;
-    }
 
     switch(m_mode)
     {

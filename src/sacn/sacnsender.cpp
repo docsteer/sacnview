@@ -180,6 +180,13 @@ CStreamServer *CStreamServer::getInstance()
     return m_instance;
 }
 
+void CStreamServer::shutdown()
+{
+    if(m_instance)
+        m_instance->deleteLater();
+    m_instance = Q_NULLPTR;
+}
+
 CStreamServer::CStreamServer()
 {
     m_sendsock = new sACNTxSocket();
@@ -187,6 +194,7 @@ CStreamServer::CStreamServer()
     m_sendsock->bindMulticast();
 
     m_thread = new QThread();
+    connect(m_thread, &QThread::finished, this, &QObject::deleteLater);
     m_tickTimer = new QTimer(this);
     m_tickTimer->setInterval(10);
     connect(m_tickTimer, SIGNAL(timeout()), this, SLOT(Tick()));
@@ -199,10 +207,12 @@ CStreamServer::~CStreamServer()
 {
     //Clean up the sequence numbers
     for(seqiter it3 = m_seqmap.begin(); it3 != m_seqmap.end(); ++it3)
+    {
         if(it3->second.second)
             delete it3->second.second;
-    m_thread->wait();
-    delete m_thread;
+            it3->second.second = Q_NULLPTR;
+    }
+    m_thread->quit();
 }
 
 

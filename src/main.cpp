@@ -22,6 +22,7 @@
 #include <QApplication>
 #include <QNetworkInterface>
 #include <QProcess>
+#include "sacnsender.h"
 
 int main(int argc, char *argv[])
 {
@@ -44,12 +45,18 @@ int main(int argc, char *argv[])
     }
 
 
-    MDIMainWindow w;
-    w.showMaximized();
+    // Changed to heap rather than stack,
+    // so that we can destroy before cleaning up the singletons
+    MDIMainWindow *w = new MDIMainWindow();
+    w->showMaximized();
 
     int result = a.exec();
 
+    delete w;
+
     Preferences::getInstance()->savePreferences();
+
+    CStreamServer::shutdown();
 
     if(Preferences::getInstance()->RESTART_APP)
         QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
