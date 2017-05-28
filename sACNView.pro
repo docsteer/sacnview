@@ -32,7 +32,7 @@ TEMPLATE = app
 INCLUDEPATH += src src/sacn src/sacn/ACNShare
 
 GIT_VERSION = $$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --always --tags)
-GIT_DATE_CMD = git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%a,%d\\\ %b\\\ %Y\" --format=\"%cd\" $$GIT_VERSION
+GIT_DATE_CMD = git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%a,%d\\ %b\\ %Y\" --format=\"%cd\" $$GIT_VERSION
 GIT_DATE = $$system($$GIT_DATE_CMD)
 
 DEFINES += GIT_CURRENT_SHA1=\\\"$$GIT_VERSION\\\" GIT_DATE='\\\"$$GIT_DATE\\\"'
@@ -121,9 +121,6 @@ RESOURCES += \
     res/resources.qrc
 
 RC_FILE = res/sacnview.rc
-
-DISTFILES += \
-    res/codemess.png
 
 isEmpty(TARGET_EXT) {
     win32 {
