@@ -68,6 +68,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     }
 
     ui->cbDisplayBlind->setChecked(Preferences::getInstance()->GetBlindVisualizer());
+    ui->cbRestoreWindows->setChecked(Preferences::getInstance()->GetSaveWindowLayout());
 
     ui->leDefaultSourceName->setText(Preferences::getInstance()->GetDefaultTransmitName());
 
@@ -108,6 +109,7 @@ void PreferencesDialog::on_buttonBox_accepted()
 
     p->SetDisplayFormat(displayFormat);
     p->SetBlindVisualizer(ui->cbDisplayBlind->isChecked());
+    p->SetSaveWindowLayout(ui->cbRestoreWindows->isChecked());
 
     int seconds = ui->NumOfHoursOfSacn->value()*60*60 + ui->NumOfMinOfSacn->value()*60 + ui->NumOfSecOfSacn->value();
     if(!ui->gbTransmitTimeout->isChecked())

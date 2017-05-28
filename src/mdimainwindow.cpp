@@ -24,6 +24,8 @@
 #include "snapshot.h"
 #include "multiuniverse.h"
 
+#include <QMdiSubWindow>
+
 MDIMainWindow::MDIMainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MDIMainWindow), m_model(NULL)
@@ -137,4 +139,95 @@ void MDIMainWindow::showWidgetAsMdiWindow(QWidget *w)
 {
     ui->mdiArea->addSubWindow(w);
     w->show();
+}
+
+void MDIMainWindow::saveMdiWindows()
+{
+    Preferences *p = Preferences::getInstance();
+    if(p->GetSaveWindowLayout())
+    {
+        p->SetMainWindowGeometry(saveGeometry());
+
+        QList<MDIWindowInfo> result;
+        QList<QMdiSubWindow *> windows = ui->mdiArea->subWindowList();
+        foreach(QMdiSubWindow *window, windows)
+        {
+            if(qobject_cast<ScopeWindow*>(window->widget())!=Q_NULLPTR)
+            {
+                MDIWindowInfo i;
+                i.name = "Scope";
+                i.geometry = window->saveGeometry();
+                result << i;
+            }
+            if(qobject_cast<UniverseView*>(window->widget())!=Q_NULLPTR)
+            {
+                MDIWindowInfo i;
+                i.name = "Universe";
+                i.geometry = window->saveGeometry();
+                result << i;
+            }
+            if(qobject_cast<transmitwindow*>(window->widget())!=Q_NULLPTR)
+            {
+                MDIWindowInfo i;
+                i.name = "Transmit";
+                i.geometry = window->saveGeometry();
+                result << i;
+            }
+            if(qobject_cast<Snapshot*>(window->widget())!=Q_NULLPTR)
+            {
+                MDIWindowInfo i;
+                i.name = "Snapshot";
+                i.geometry = window->saveGeometry();
+                result << i;
+            }
+        }
+
+        p->SetSavedWindows(result);
+    }
+}
+
+
+void MDIMainWindow::restoreMdiWindows()
+{
+    Preferences *p = Preferences::getInstance();
+    if(p->GetSaveWindowLayout())
+    {
+        restoreGeometry(p->GetMainWindowGeometry());
+
+        QList<MDIWindowInfo> windows = p->GetSavedWindows();
+        foreach(MDIWindowInfo window, windows)
+        {
+            if(window.name=="Scope")
+            {
+                ScopeWindow *scopeWindow = new ScopeWindow(this);
+                QMdiSubWindow *subWindow = ui->mdiArea->addSubWindow(scopeWindow);
+                subWindow->restoreGeometry(window.geometry);
+                scopeWindow->show();
+            }
+
+            if(window.name=="Universe")
+            {
+                UniverseView *universe = new UniverseView(this);
+                QMdiSubWindow *subWindow = ui->mdiArea->addSubWindow(universe);
+                subWindow->restoreGeometry(window.geometry);
+                universe->show();
+            }
+
+            if(window.name=="Transmit")
+            {
+                transmitwindow *transmit = new transmitwindow(this);
+                QMdiSubWindow *subWindow = ui->mdiArea->addSubWindow(transmit);
+                subWindow->restoreGeometry(window.geometry);
+                transmit->show();
+            }
+
+            if(window.name=="Snapshot")
+            {
+                Snapshot *snapshot = new Snapshot(this);
+                QMdiSubWindow *subWindow = ui->mdiArea->addSubWindow(snapshot);
+                subWindow->restoreGeometry(window.geometry);
+                snapshot->show();
+            }
+        }
+    }
 }

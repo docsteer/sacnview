@@ -96,8 +96,6 @@ private:
     bool m_blink;
     sACNEffectEngine *m_fxEngine;
     bool m_recordMode;
-
-    quint8 m_presetData[PRESET_COUNT][MAX_DMX_ADDRESS];
 };
 
 #endif // TRANSMITWINDOW_H

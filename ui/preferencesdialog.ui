@@ -55,7 +55,7 @@
       </size>
      </property>
      <property name="title">
-      <string>Display Format</string>
+      <string>Display Options</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
@@ -79,6 +79,13 @@
        <widget class="QRadioButton" name="HexDisplayFormat">
         <property name="text">
          <string>Hexadecimal (00-FF)</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="cbRestoreWindows">
+        <property name="text">
+         <string>Restore windows on application restart</string>
         </property>
        </widget>
       </item>

@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 
     a.setApplicationName(APP_NAME);
     a.setApplicationVersion(VERSION);
-    a.setOrganizationName(AUTHOR);
+    a.setOrganizationName("sACNView");
     a.setOrganizationDomain("tomsteer.net");
 
     if(!Preferences::getInstance()->defaultInterfaceAvailable())
@@ -48,10 +48,15 @@ int main(int argc, char *argv[])
     // Changed to heap rather than stack,
     // so that we can destroy before cleaning up the singletons
     MDIMainWindow *w = new MDIMainWindow();
-    w->showMaximized();
+    w->restoreMdiWindows();
+    if(Preferences::getInstance()->GetSaveWindowLayout())
+        w->show();
+    else
+        w->showMaximized();
 
     int result = a.exec();
 
+    w->saveMdiWindows();
     delete w;
 
     Preferences::getInstance()->savePreferences();
