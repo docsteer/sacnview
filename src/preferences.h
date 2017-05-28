@@ -22,6 +22,7 @@
 #include <QColor>
 #include "deftypes.h"
 #include "CID.h"
+#include "consts.h"
 
 
 
@@ -32,7 +33,19 @@ static const QString S_BLIND_VISUALIZER("Show Blind");
 static const QString S_DEFAULT_SOURCENAME("Default Transmit Source Name");
 static const QString S_TIMEOUT("Timeout");
 static const QString S_FLICKERFINDERSHOWINFO("Flicker Finder Info");
+static const QString S_SAVEWINDOWLAYOUT("Save Window Layout");
+static const QString S_PRESETS("Preset %1");
+static const QString S_MAINWINDOWGEOM("Main Window Geometry");
+static const QString S_SUBWINDOWLIST("Sub Window");
+static const QString S_SUBWINDOWNAME("SubWindow Name");
+static const QString S_SUBWINDOWGEOM("SubWindow Geometry");
 
+
+struct MDIWindowInfo
+{
+    QString name;
+    QByteArray geometry;
+};
 
 class Preferences
 {
@@ -74,6 +87,10 @@ public:
     void SetDefaultTransmitName (QString sDefaultTransmitName);
     void SetNumSecondsOfSacn (int nNumSecondsOfSacn);
     void setFlickerFinderShowInfo(bool showIt);
+    void SetPreset(const QByteArray &data, int index);
+    void SetSaveWindowLayout(bool value);
+    void SetMainWindowGeometry(const QByteArray &value);
+    void SetSavedWindows(QList<MDIWindowInfo> values);
 
     unsigned int GetDisplayFormat();
     unsigned int GetMaxLevel();
@@ -81,6 +98,11 @@ public:
     QString GetDefaultTransmitName();
     unsigned int GetNumSecondsOfSacn();
     bool getFlickerFinderShowInfo();
+    QByteArray GetPreset(int index);
+    bool GetSaveWindowLayout();
+    QByteArray GetMainWindowGeometry();
+    QList<MDIWindowInfo> GetSavedWindows();
+
 
     QString GetFormattedValue(unsigned int nLevelInDecimal);
 
@@ -102,6 +124,10 @@ private:
     QString m_sDefaultTransmitName;
     unsigned int m_nNumSecondsOfSacn;
     bool m_flickerFinderShowInfo;
+    QByteArray m_presets[MAX_DMX_ADDRESS];
+    bool m_saveWindowLayout;
+    QByteArray m_mainWindowGeometry;
+    QList<MDIWindowInfo> m_windowInfo;
 
     void loadPreferences();
 

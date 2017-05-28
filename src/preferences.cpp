@@ -26,6 +26,8 @@ Preferences *Preferences::m_instance = NULL;
 Preferences::Preferences()
 {
     RESTART_APP = false;
+    for(int i=0; i<PRESET_COUNT; i++)
+        m_presets[i] = QByteArray(MAX_DMX_ADDRESS, (char) 0);
     loadPreferences();
 }
 
@@ -162,6 +164,22 @@ void Preferences::savePreferences()
     settings.setValue(S_DEFAULT_SOURCENAME, m_sDefaultTransmitName);
     settings.setValue(S_TIMEOUT, QVariant(m_nNumSecondsOfSacn));
     settings.setValue(S_FLICKERFINDERSHOWINFO, QVariant(m_flickerFinderShowInfo));
+    settings.setValue(S_SAVEWINDOWLAYOUT, m_saveWindowLayout);
+    settings.setValue(S_MAINWINDOWGEOM, m_mainWindowGeometry);
+
+    settings.beginWriteArray(S_SUBWINDOWLIST);
+    for(int i=0; i<m_windowInfo.count(); i++)
+    {
+        settings.setArrayIndex(i);
+        settings.setValue(S_SUBWINDOWNAME, m_windowInfo[i].name);
+        settings.setValue(S_SUBWINDOWGEOM, m_windowInfo[i].geometry);
+    }
+    settings.endArray();
+
+    for(int i=0; i<PRESET_COUNT; i++)
+    {
+        settings.setValue(S_PRESETS.arg(i), QVariant(m_presets[i]));
+    }
 }
 
 void Preferences::loadPreferences()
@@ -182,6 +200,28 @@ void Preferences::loadPreferences()
     m_sDefaultTransmitName = settings.value(S_DEFAULT_SOURCENAME, DEFAULT_SOURCE_NAME).toString();
     m_nNumSecondsOfSacn = settings.value(S_TIMEOUT, QVariant(0)).toInt();
     m_flickerFinderShowInfo = settings.value(S_FLICKERFINDERSHOWINFO, QVariant(true)).toBool();
+    m_saveWindowLayout = settings.value(S_SAVEWINDOWLAYOUT, QVariant(false)).toBool();
+    m_mainWindowGeometry = settings.value(S_MAINWINDOWGEOM, QVariant(QByteArray())).toByteArray();
+
+    m_windowInfo.clear();
+    int size = settings.beginReadArray(S_SUBWINDOWLIST);
+    for(int i=0; i<size; i++)
+    {
+        MDIWindowInfo value;
+        settings.setArrayIndex(i);
+        value.name = settings.value(S_SUBWINDOWNAME).toString();
+        value.geometry = settings.value(S_SUBWINDOWGEOM).toByteArray();
+        m_windowInfo << value;
+    }
+    settings.endArray();
+
+    for(int i=0; i<PRESET_COUNT; i++)
+    {
+        if(settings.contains(S_PRESETS.arg(i)))
+        {
+            m_presets[i] = settings.value(S_PRESETS.arg(i)).toByteArray();
+        }
+    }
 }
 
 void Preferences::setFlickerFinderShowInfo(bool showIt)
@@ -192,4 +232,50 @@ void Preferences::setFlickerFinderShowInfo(bool showIt)
 bool Preferences::getFlickerFinderShowInfo()
 {
     return m_flickerFinderShowInfo;
+}
+
+void Preferences::SetPreset(const QByteArray &data, int index)
+{
+    Q_ASSERT(index>=0);
+    Q_ASSERT(index<PRESET_COUNT);
+
+    m_presets[index] = data;
+}
+
+QByteArray Preferences::GetPreset(int index)
+{
+    Q_ASSERT(index>=0);
+    Q_ASSERT(index<PRESET_COUNT);
+
+    return m_presets[index];
+}
+
+void Preferences::SetSaveWindowLayout(bool value)
+{
+    m_saveWindowLayout = value;
+}
+
+bool Preferences::GetSaveWindowLayout()
+{
+    return m_saveWindowLayout;
+}
+
+void Preferences::SetMainWindowGeometry(const QByteArray &value)
+{
+    m_mainWindowGeometry = value;
+}
+
+QByteArray Preferences::GetMainWindowGeometry()
+{
+    return m_mainWindowGeometry;
+}
+
+void Preferences::SetSavedWindows(QList<MDIWindowInfo> values)
+{
+    m_windowInfo = values;
+}
+
+QList<MDIWindowInfo> Preferences::GetSavedWindows()
+{
+    return m_windowInfo;
 }

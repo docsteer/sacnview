@@ -37,7 +37,6 @@ transmitwindow::transmitwindow(QWidget *parent) :
     m_recordMode = false;
 
     memset(m_levels, 0, sizeof(m_levels));
-    memset(m_presetData, 0, sizeof(m_presetData));
     on_cbPriorityMode_currentIndexChanged(ui->cbPriorityMode->currentIndex());
 
     ui->sbUniverse->setMinimum(1);
@@ -609,11 +608,13 @@ void transmitwindow::presetButtonPressed()
     if(!btn) return;
 
     int index = m_presetButtons.indexOf(btn);
+    quint8 buffer[MAX_DMX_ADDRESS];
 
     if(m_recordMode)
     {
         // Record a preset
-        m_sender->copyLevels(m_presetData[index]);
+        m_sender->copyLevels(buffer);
+        Preferences::getInstance()->SetPreset(QByteArray((const char*)buffer, MAX_DMX_ADDRESS), index);
         m_recordMode = false;
 
         foreach(QToolButton *btn, m_presetButtons)
@@ -625,12 +626,13 @@ void transmitwindow::presetButtonPressed()
     else
     {
         // Play back a preset
-        m_sender->setLevel(m_presetData[index], MAX_DMX_ADDRESS);
+        QByteArray baPreset = Preferences::getInstance()->GetPreset(index);
+        m_sender->setLevel((const quint8*)baPreset.constData(), MAX_DMX_ADDRESS);
         // Apply it to the faders
         int addr = ui->sbFadersStart->value()-1;
         for(int i=0; i<m_sliders.count(); i++)
         {
-            m_sliders[i]->setValue(m_presetData[index][addr]);
+            m_sliders[i]->setValue(baPreset.at(addr));
             addr++;
         }
     }
