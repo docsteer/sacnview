@@ -29,7 +29,7 @@ aboutDialog::aboutDialog(QWidget *parent) :
     ui->setupUi(this);
 
     ui->DisplayVer->setText(QString("%1\n%2").arg(VERSION).arg(GIT_CURRENT_SHA1));
-    ui->displayDate->setText(PUBLISHED_DATE);
+    ui->displayDate->setText(GIT_DATE);
     ui->DisplayName->setText(AUTHOR);
 
     ui->lblLicense->setText(
