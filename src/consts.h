@@ -19,7 +19,6 @@
 #include <QColor>
 
 #define APP_NAME        "sACNView"
-#define VERSION         "2.0.0 RC1"
 #define AUTHOR          "Tom Barthel-Steer\r\nMarcus Birkin\r\nHans Hinrichsen\r\nMatt Kerr"
 
 #define nNumOfSecPerHour 3600
