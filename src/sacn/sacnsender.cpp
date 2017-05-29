@@ -265,8 +265,10 @@ CStreamServer::~CStreamServer()
     for(seqiter it3 = m_seqmap.begin(); it3 != m_seqmap.end(); ++it3)
     {
         if(it3->second.second)
+        {
             delete it3->second.second;
             it3->second.second = Q_NULLPTR;
+        }
     }
     m_thread->quit();
 }
