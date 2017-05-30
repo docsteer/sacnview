@@ -32,14 +32,19 @@ TEMPLATE = app
 INCLUDEPATH += src src/sacn src/sacn/ACNShare
 
 GIT_VERSION = $$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --always --tags)
-GIT_DATE_CMD = git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%a,%d\\ %b\\ %Y\" --format=\"%cd\" $$GIT_VERSION
+GIT_DATE_DAY = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%a\" --format=\"%cd\" $$GIT_VERSION)
+GIT_DATE_DATE = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%d\" --format=\"%cd\" $$GIT_VERSION)
+GIT_DATE_MONTH = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%b\" --format=\"%cd\" $$GIT_VERSION)
+GIT_DATE_YEAR = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%Y\" --format=\"%cd\" $$GIT_VERSION)
 GIT_TAG = $$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --abbrev=0 --always --tags)
 GIT_SHA1 = $$system(git --git-dir $$PWD/.git --work-tree $$PWD rev-parse --short HEAD)
-GIT_DATE = $$system($$GIT_DATE_CMD)
 
-DEFINES += GIT_CURRENT_SHA1=\\\"$$GIT_SHA1\\\"
+DEFINES += GIT_CURRENT_SHA1=\\\"$$GIT_VERSION\\\"
+DEFINES += GIT_DATE_DAY=\\\"$$GIT_DATE_DAY\\\"
+DEFINES += GIT_DATE_DATE=\\\"$$GIT_DATE_DATE\\\"
+DEFINES += GIT_DATE_MONTH=\\\"$$GIT_DATE_MONTH\\\"
+DEFINES += GIT_DATE_YEAR=\\\"$$GIT_DATE_YEAR\\\"
 DEFINES += VERSION=\\\"$$GIT_TAG\\\"
-DEFINES += GIT_DATE='\\\"$$GIT_DATE\\\"'
 
 SOURCES += src/main.cpp\
     src/mdimainwindow.cpp \
