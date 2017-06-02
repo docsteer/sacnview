@@ -37,6 +37,17 @@
 
 sACNListener::sACNListener(QObject *parent) : QThread(parent)
 {
+    // PUT EVERYTHING IN RUN!
+}
+
+
+sACNListener::~sACNListener()
+{
+}
+
+void sACNListener::run()
+{
+    qDebug() << "sACNListener started in thread: " << QThread::currentThreadId();
     m_mergeTimer = Q_NULLPTR;
     m_initalSampleTimer = Q_NULLPTR;
     m_ssHLL = 1000;
@@ -47,22 +58,8 @@ sACNListener::sACNListener(QObject *parent) : QThread(parent)
     m_elapsedTime.start();
     m_mergesPerSecond = 0;
     m_mergesPerSecondTimer.start();
-}
 
-sACNListener::~sACNListener()
-{
-    qDeleteAll(m_sockets);
-
-    if(m_mergeTimer)
-    {
-        m_mergeTimer->deleteLater();
-        m_mergeTimer = Q_NULLPTR;
-    }
-    if(m_initalSampleTimer)
-    {
-        m_initalSampleTimer->deleteLater();
-        m_initalSampleTimer = Q_NULLPTR;
-    }
+    exec();
 }
 
 void sACNListener::startReception(int universe)

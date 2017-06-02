@@ -93,6 +93,7 @@ private slots:
     void checkSourceExpiration();
     void checkSampleExpiration();
 private:
+    void run();
     std::list<sACNRxSocket *> m_sockets;
     std::vector<sACNSource *> m_sources;
     int m_last_levels[512];
