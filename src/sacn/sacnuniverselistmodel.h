@@ -12,6 +12,7 @@
 #include <list>
 #include "deftypes.h"
 #include "CID.h"
+#include "sacnlistener.h"
 
 #define NUM_UNIVERSES_LISTED 20
 
@@ -48,7 +49,7 @@ public:
  */
 class sACNUniverseListModel : public QAbstractItemModel
 {
-    Q_OBJECT;
+    Q_OBJECT
 
 public:
     sACNUniverseListModel(QObject *parent = NULL);
@@ -62,15 +63,17 @@ protected:
     virtual QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
     virtual QModelIndex parent(const QModelIndex &index) const;
 
-protected slots:
-    void readPendingDatagrams();
-    void checkTimeouts();
+public slots:
+    void sourceOnline(sACNSource *source);
+    void sourceChanged(sACNSource *source);
+    void sourceOffline(sACNSource *source);
+
 private:
     QMutex mutex_readPendingDatagrams;
     QList<sACNUniverseInfo *>m_universes;
     int m_start;
     QTimer *m_checkTimeoutTimer;
-    std::list<sACNRxSocket *> m_sockets;
+    QList<QSharedPointer<sACNListener>> m_listeners;
 };
 
 #endif // SACNUNIVERSELISTMODEL_H

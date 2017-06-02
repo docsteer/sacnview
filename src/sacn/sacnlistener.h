@@ -57,7 +57,7 @@ public:
      * @brief universe
      * @return the universe which this listener is listening for
      */
-    int universe() {return m_universe;};
+    int universe() {return m_universe;}
     /**
      * @brief mergedLevels
      * @return an sACNMergerdSourceList, a list of merged address structures, allowing you to see
@@ -65,15 +65,15 @@ public:
      */
     sACNMergedSourceList mergedLevels() { return m_merged_levels;}
 
-    int sourceCount() { return m_sources.size();};
-    sACNSource *source(int index) { return m_sources[index];};
+    int sourceCount() { return m_sources.size();}
+    sACNSource *source(int index) { return m_sources[index];}
 
     // Diagnostic - the number of merge operations per second
-    int mergesPerSecond() { return m_mergesPerSecond;};
+    int mergesPerSecond() { return (m_mergesPerSecond > 0) ? m_mergesPerSecond : 0;}
 public slots:
     void startReception(int universe);
-    void monitorAddress(int address) { m_monitoredChannels.insert(address);};
-    void unMonitorAddress(int address) { m_monitoredChannels.remove(address);};
+    void monitorAddress(int address) { m_monitoredChannels.insert(address);}
+    void unMonitorAddress(int address) { m_monitoredChannels.remove(address);}
 signals:
     void sourceFound(sACNSource *source);
     void sourceLost(sACNSource *source);

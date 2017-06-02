@@ -37,8 +37,8 @@
 
 sACNListener::sACNListener(QObject *parent) : QObject(parent)
 {
-    m_mergeTimer = 0;
-    m_initalSampleTimer = 0;
+    m_mergeTimer = Q_NULLPTR;
+    m_initalSampleTimer = Q_NULLPTR;
     m_ssHLL = 1000;
     m_merged_levels.reserve(512);
     for(int i=0; i<512; i++)
@@ -56,12 +56,12 @@ sACNListener::~sACNListener()
     if(m_mergeTimer)
     {
         delete m_mergeTimer;
-        m_mergeTimer = 0;
+        m_mergeTimer = Q_NULLPTR;
     }
     if(m_initalSampleTimer)
     {
         delete m_initalSampleTimer;
-        m_initalSampleTimer = 0;
+        m_initalSampleTimer = Q_NULLPTR;
     }
 }
 
@@ -104,7 +104,7 @@ void sACNListener::checkSampleExpiration()
         qDebug() << "Sampling has ended";
         m_initalSampleTimer->stop();
         m_initalSampleTimer->deleteLater();
-        m_initalSampleTimer = 0;
+        m_initalSampleTimer = Q_NULLPTR;
     }
 }
 
@@ -313,6 +313,7 @@ void sACNListener::readPendingDatagrams()
 
                 m_sources.push_back(ps);
 
+                ps->universe = universe;
                 ps->active.SetInterval(WAIT_OFFLINE + m_ssHLL);
                 ps->lastseq = sequence;
                 ps->src_cid = source_cid;

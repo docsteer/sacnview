@@ -67,10 +67,11 @@ void aboutDialog::updateDisplay()
     while (i.hasNext()) {
         i.next();
         QSharedPointer<sACNListener> listener = i.value().toStrongRef();
-
-        data.append(QString("Universe %1\tMerges per second %2\n")
-                    .arg(i.key())
-                    .arg(listener->mergesPerSecond()));
+        if (listener) {
+            data.append(QString("Universe %1\tMerges per second %2\n")
+                        .arg(i.key())
+                        .arg(listener->mergesPerSecond()));
+        }
     }
 
     ui->teDiag->setPlainText(data);
