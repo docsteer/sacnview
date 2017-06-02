@@ -100,7 +100,7 @@ public:
 
     const QHash<int, QWeakPointer<sACNListener> > getListenerList() { return m_listenerHash; }
 public slots:
-    void listenerDeleted(QObject *obj = Q_NULLPTR);
+    void listenerDelete(QObject *obj = Q_NULLPTR);
 private:
     sACNManager();
     QMutex sACNManager_mutex;

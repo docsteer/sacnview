@@ -192,6 +192,7 @@ void sACNUniverseListModel::sourceChanged(sACNSource *source)
 
     // Update existing source
     sACNBasicSourceInfo *info = Q_NULLPTR;
+    if (m_universes.count() + 1 < univIndex) {return;}
     info = m_universes[univIndex]->sourcesByCid.value(source->src_cid);
     if (info == Q_NULLPTR) {
         // Try to (re)add...

@@ -84,10 +84,9 @@ sACNManager::sACNManager() : QObject()
 
 }
 
-static void strongPointerDeleted(sACNListener *obj)
+static void strongPointerDelete(sACNListener *obj)
 {
-    sACNManager::getInstance()->listenerDeleted(obj);
-    obj->deleteLater();
+    sACNManager::getInstance()->listenerDelete(obj);
 }
 
 QSharedPointer<sACNListener> sACNManager::getListener(int universe)
@@ -98,25 +97,22 @@ QSharedPointer<sACNListener> sACNManager::getListener(int universe)
     // want to use it. It stores a QWeakPointer, which gets set to null when all instances of the shared
     // pointer are gone
 
-    sACNListener *listener = NULL;
+
     QSharedPointer<sACNListener> strongPointer;
     if(!m_listenerHash.contains(universe))
     {
-        // Create listener
+        // Create listener as thread
+        sACNListener *listener = Q_NULLPTR;
         listener = new sACNListener();
-
-        // Create thread
-        QThread *newThread = new QThread();
-        newThread->setObjectName(QString("Universe %1 RX").arg(universe));
-        listener->moveToThread(newThread);
-        newThread ->start(QThread::HighPriority);
-        m_listenerThreads[universe] = newThread;
+        listener->start(QThread::HighPriority);
+        listener->setObjectName(QString("Universe %1 RX").arg(universe));
+        m_listenerThreads[universe] = listener;
 
         // Start reception
         QMetaObject::invokeMethod(listener,"startReception", Q_ARG(int,universe));
 
         // Create strong pointer to return
-        strongPointer = QSharedPointer<sACNListener>(listener, strongPointerDeleted);
+        strongPointer = QSharedPointer<sACNListener>(listener, strongPointerDelete);
         m_listenerHash[universe] = strongPointer.toWeakRef();
         m_objToUniverse[listener] = universe;
 
@@ -136,14 +132,17 @@ QSharedPointer<sACNListener> sACNManager::getListener(int universe)
     return strongPointer;
 }
 
-void sACNManager::listenerDeleted(QObject *obj)
+void sACNManager::listenerDelete(QObject *obj)
 {
     QMutexLocker locker(&sACNManager_mutex);
     int universe = m_objToUniverse[obj];
 
     qDebug() << "Destroying Listener for universe " << universe;
+
     m_listenerHash.remove(universe);
+
     m_objToUniverse.remove(obj);
+
     m_listenerThreads[universe]->exit();
     m_listenerThreads[universe]->wait();
     m_listenerThreads[universe]->deleteLater();

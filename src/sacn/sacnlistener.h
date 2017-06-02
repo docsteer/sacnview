@@ -17,6 +17,7 @@
 #define SACNLISTENER_H
 
 #include <QObject>
+#include <QThread>
 #include <vector>
 #include <list>
 #include <QTimer>
@@ -46,7 +47,7 @@ typedef QList<sACNMergedAddress> sACNMergedSourceList;
  * The class should not be instantiated directly; instead, instead use sACNManager to get the listener for a universe - this
  * allows reuse of listeners
  */
-class sACNListener : public QObject
+class sACNListener : public QThread
 {
     Q_OBJECT
 public:
@@ -67,6 +68,12 @@ public:
 
     int sourceCount() { return m_sources.size();}
     sACNSource *source(int index) { return m_sources[index];}
+
+    /**
+     *  @brief processDatagram Process a suspected sACN datagram.
+     * This allows other listeners to pass on unicast datagrams for other universes
+     */
+    void processDatagram(QByteArray data, QHostAddress receiver, QHostAddress sender);
 
     // Diagnostic - the number of merge operations per second
     int mergesPerSecond() { return (m_mergesPerSecond > 0) ? m_mergesPerSecond : 0;}

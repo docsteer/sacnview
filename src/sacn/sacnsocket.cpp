@@ -78,13 +78,18 @@ bool sACNRxSocket::bindUnicast()
             ok = bind(ifaceAddr.ip(),
                       STREAM_IP_PORT,
                       QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
-            qDebug() << "sACNRxSocket : Bound to IP:" << ifaceAddr.ip().toString();
-            break;
+            if (ok) {
+                qDebug() << "sACNRxSocket : Bound to IP:" << ifaceAddr.ip().toString();
+                break;
+            }
         }
     }
 
-    if(!ok)
+
+    if (!ok) {
+        close();
         qDebug() << "sACNRxSocket : Failed to bind RX socket";
+    }
 
     return ok;
 }
