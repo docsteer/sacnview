@@ -28,6 +28,7 @@
 #include <QString>
 #include <QHostAddress>
 #include <QElapsedTimer>
+#include <QMutex>
 
 #include "deftypes.h"
 #include "CID.h"
@@ -62,6 +63,7 @@ public:
     ttimer priority_wait;  //if !initially_notified, used to track if a source is finally detected
                                   //(either by receiving priority or timeout).  If doing_per_channel,
                                   //used to time out the 0xdd packets to see if we lost per-channel priority
+    quint16 universe;
     uint1 level_array[512];
     uint1 priority_array[512];
     uint1 last_level_array[512];
@@ -90,17 +92,18 @@ public:
 // The sACNManager class is a singleton that manages the lifespan of sACNTransmitters and sACNListeners.
 class sACNManager : public QObject
 {
-    Q_OBJECT;
+    Q_OBJECT
 public:
     static sACNManager *getInstance();
 
     QSharedPointer<sACNListener> getListener(int universe);
 
-    const QHash<int, QWeakPointer<sACNListener> > getListenerList() { return m_listenerHash;};
-private slots:
-    void listenerDeleted(QObject *obj = Q_NULLPTR);
+    const QHash<int, QWeakPointer<sACNListener> > getListenerList() { return m_listenerHash; }
+public slots:
+    void listenerDelete(QObject *obj = Q_NULLPTR);
 private:
     sACNManager();
+    QMutex sACNManager_mutex;
     QHash<int, QWeakPointer<sACNListener> > m_listenerHash;
     QHash<int, QThread *> m_listenerThreads;
     QHash<QObject*, int> m_objToUniverse;
