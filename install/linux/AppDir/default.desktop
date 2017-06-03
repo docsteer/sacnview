@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=sACNView 2.0
+Exec=sACNView %F
+Icon=default
+Comment=Streaming ACN Viewer mark2
+Terminal=false

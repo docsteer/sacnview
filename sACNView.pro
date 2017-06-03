@@ -16,12 +16,12 @@
 QT       += core gui network multimedia
 
 macx {
-QMAKE_MAC_SDK = macosx10.12
-ICON = res/icon.icns
+    QMAKE_MAC_SDK = macosx10.12
+    ICON = res/icon.icns
 }
 
 !msvc {
-        QMAKE_CXXFLAGS += -std=gnu++0x
+    QMAKE_CXXFLAGS += -std=gnu++0x
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -152,12 +152,29 @@ win32 {
 }
 macx {
     DEPLOY_COMMAND = macdeployqt
-    DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/
-    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${_PRO_FILE_PWD_}/install/mac/sACNView.dmg
+    DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/mac
+    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/ACNView.dmg
     DEPLOY_TARGET = $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
     DEPLOY_CLEANUP = $${_PRO_FILE_PWD_}/install/mac/create-dmg --volname "sACNView_Installer" --volicon "$${_PRO_FILE_PWD_}/res/icon.icns"
     DEPLOY_CLEANUP += --background "$${_PRO_FILE_PWD_}/res/mac_install_bg.png" --window-pos 200 120 --window-size 800 400 --icon-size 100 --icon sACNView.app 200 190 --hide-extension sACNView.app --app-drop-link 600 185
     DEPLOY_CLEANUP += $${_PRO_FILE_PWD_}/install/mac/sACNView.dmg $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
+}
+unix {
+    DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/linux
+    DEPLOY_TARGET = $${DEPLOY_DIR}/AppDir/$${TARGET}
+
+    DEPLOY_COMMAND = $${OUT_PWD}/linuxdeployqt
+    DEPLOY_OPT = -appimage -verbose=2
+
+    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/*.AppImage
+    PRE_DEPLOY_COMMAND += && $${QMAKE_DEL_FILE} $${DEPLOY_TARGET}
+    PRE_DEPLOY_COMMAND += && wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" -O $${DEPLOY_COMMAND}
+    PRE_DEPLOY_COMMAND += && chmod a+x $${DEPLOY_COMMAND}
+    PRE_DEPLOY_COMMAND += && unset LD_LIBRARY_PATH
+    PRE_DEPLOY_COMMAND += && $$QMAKE_COPY $${OUT_PWD}/$${TARGET} $${DEPLOY_TARGET}
+    PRE_DEPLOY_COMMAND += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/icon_256.png $${DEPLOY_DIR}/AppDir/default.png
+
+    DEPLOY_CLEANUP = $$QMAKE_COPY $${OUT_PWD}/$${TARGET}*.AppImage $${DEPLOY_DIR}/$${TARGET}_$${GIT_TAG}.AppImage
 }
 
 CONFIG( release , debug | release) {
