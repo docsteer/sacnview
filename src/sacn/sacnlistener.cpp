@@ -35,82 +35,72 @@
 //The time during which to sample
 #define SAMPLE_TIME 1500
 
-sACNListener::sACNListener(QObject *parent) : QThread(parent)
+sACNListener::sACNListener(int universe, QObject *parent) : QObject(parent),
+    m_universe(universe),
+    m_ssHLL(1000),
+    m_mergesPerSecond(0),
+    m_isSampling(true)
 {
-    // PUT EVERYTHING IN RUN!
-}
-
-
-sACNListener::~sACNListener()
-{
-}
-
-void sACNListener::run()
-{
-    qDebug() << "sACNListener started in thread: " << QThread::currentThreadId();
-    m_mergeTimer = Q_NULLPTR;
-    m_initalSampleTimer = Q_NULLPTR;
-    m_ssHLL = 1000;
     m_merged_levels.reserve(512);
     for(int i=0; i<512; i++)
         m_merged_levels << sACNMergedAddress();
-
-    m_elapsedTime.start();
-    m_mergesPerSecond = 0;
-    m_mergesPerSecondTimer.start();
-
-    exec();
 }
 
-void sACNListener::startReception(int universe)
+sACNListener::~sACNListener()
 {
-    m_universe = universe;
-    m_isSampling = true;
+    m_initalSampleTimer->deleteLater();
+    m_mergeTimer->deleteLater();
+    qDeleteAll(m_sockets);
+    qDebug() << "sACNListener" << QThread::currentThreadId() << ": stopping";
+}
+
+void sACNListener::startReception()
+{
+    qDebug() << "sACNListener" << QThread::currentThreadId() << ": Starting universe" << m_universe;
+
     // Clear the levels array
     memset(&m_last_levels, -1, 512);
 
     // Listen multicast
-    m_sockets.push_back(new sACNRxSocket(this));
-    if (m_sockets.back()->bindMulticast(universe)) {
-        connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
+    m_sockets.push_back(new sACNRxSocket());
+    if (m_sockets.back()->bindMulticast(m_universe)) {
+        connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()), Qt::DirectConnection);
     } else {
        // Failed to bind,
        m_sockets.pop_back();
     }
 
     // Listen unicast
-    m_sockets.push_back(new sACNRxSocket(this));
+    m_sockets.push_back(new sACNRxSocket());
     if (m_sockets.back()->bindUnicast()) {
-        connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
+        connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()), Qt::DirectConnection);
     } else {
-       // Failed to bind, mostly expected for unicast.
+       // Failed to bind
        m_sockets.pop_back();
     }
 
+    // Start intial sampling
     m_initalSampleTimer = new QTimer(this);
-    m_initalSampleTimer->setInterval(100);
-    connect(m_initalSampleTimer, SIGNAL(timeout()), this, SLOT(checkSampleExpiration()));
+    m_initalSampleTimer->setSingleShot(true);
+    m_initalSampleTimer->setInterval(SAMPLE_TIME);
+    connect(m_initalSampleTimer, SIGNAL(timeout()), this, SLOT(sampleExpiration()), Qt::DirectConnection);
     m_initalSampleTimer->start();
 
     // Merge is performed whenever the thread has time
+    m_elapsedTime.start();
+    m_mergesPerSecondTimer.start();
     m_mergeTimer = new QTimer(this);
     m_mergeTimer->setInterval(1);
-    connect(m_mergeTimer, SIGNAL(timeout()), this, SLOT(performMerge()));
-    connect(m_mergeTimer, SIGNAL(timeout()), this, SLOT(checkSourceExpiration()));
+    connect(m_mergeTimer, SIGNAL(timeout()), this, SLOT(performMerge()), Qt::DirectConnection);
+    connect(m_mergeTimer, SIGNAL(timeout()), this, SLOT(checkSourceExpiration()), Qt::DirectConnection);
     m_mergeTimer->start();
 }
 
 
-void sACNListener::checkSampleExpiration()
+void sACNListener::sampleExpiration()
 {
-    if(this->m_isSampling && m_sampleTimer.Expired())
-    {
-        m_isSampling = false;
-        qDebug() << "Sampling has ended";
-        m_initalSampleTimer->stop();
-        m_initalSampleTimer->deleteLater();
-        m_initalSampleTimer = Q_NULLPTR;
-    }
+    m_isSampling = false;
+    qDebug() << "sACNListener" << QThread::currentThreadId() << ": Sampling has ended";
 }
 
 void sACNListener::checkSourceExpiration()
@@ -134,7 +124,7 @@ void sACNListener::checkSourceExpiration()
                 (*it)->doing_per_channel = false;
                 emit sourceChanged(*it);
                 m_mergeAll = true;
-                qDebug() << "Source stopped sending per-channel priority" << cidstr;
+                qDebug() << "sACNListener" << QThread::currentThreadId() << ": Source stopped sending per-channel priority" << cidstr;
             }
         }
     }
@@ -187,7 +177,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
             start_code, reserved, sequence, options, universe, slot_count, pdata))
     {
         // Recieved a packet but not valid. Log and discard
-        qDebug() << "Invalid Packet";
+        qDebug() << "sACNListener" << QThread::currentThreadId() << ": Invalid Packet";
         return;
     }
 
@@ -201,7 +191,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
         if (receiver.isMulticast())
         {
             // Log and discard
-            qDebug() << "Wrong Universe and is multicast";
+            qDebug() << "sACNListener" << QThread::currentThreadId() << ": Wrong Universe and is multicast";
             return;
         } else {
             // Unicast, send to releivent listener!
@@ -216,7 +206,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
     preview = (PREVIEW_DATA_OPTION == (options & PREVIEW_DATA_OPTION));
     if ((preview) && !Preferences::getInstance()->GetBlindVisualizer())
     {
-        qDebug() << "Ignore preview";
+        qDebug() << "sACNListener" << QThread::currentThreadId() << ": Ignore preview";
         return;
     }
 
@@ -330,7 +320,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
 
     if(!validpacket)
     {
-        qDebug() << "Source coming up, not processing packet";
+        qDebug() << "sACNListener" << QThread::currentThreadId() << ": Source coming up, not processing packet";
         return;
     }
 
@@ -366,7 +356,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
 
 
         // This is a brand new source
-        qDebug() << "Found new source name " << source_name;
+        qDebug() << "sACNListener" << QThread::currentThreadId() << ": Found new source name " << source_name;
         m_mergeAll = true;
         emit sourceFound(ps);
     }
@@ -374,7 +364,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
     if (newsourcenotify)
     {
         // This is a source that came back online
-        qDebug() << "Source came back name " << source_name;
+        qDebug() << "sACNListener" << QThread::currentThreadId() << ": Source came back name " << source_name;
         m_mergeAll = true;
         emit sourceChanged(ps);
     }
@@ -494,7 +484,7 @@ void sACNListener::performMerge()
     {
         m_mergesPerSecond = m_mergeCounter;
         m_mergeCounter = 0;
-        m_mergesPerSecondTimer.start();
+        m_mergesPerSecondTimer.restart();
     }
 
     m_mergeCounter++;

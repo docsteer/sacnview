@@ -47,11 +47,11 @@ typedef QList<sACNMergedAddress> sACNMergedSourceList;
  * The class should not be instantiated directly; instead, instead use sACNManager to get the listener for a universe - this
  * allows reuse of listeners
  */
-class sACNListener : public QThread
+class sACNListener : public QObject
 {
     Q_OBJECT
 public:
-    sACNListener(QObject *parent = 0);
+    sACNListener(int universe, QObject *parent = 0);
     virtual ~sACNListener();
 
     /**
@@ -76,9 +76,10 @@ public:
     void processDatagram(QByteArray data, QHostAddress receiver, QHostAddress sender);
 
     // Diagnostic - the number of merge operations per second
+
     int mergesPerSecond() { return (m_mergesPerSecond > 0) ? m_mergesPerSecond : 0;}
 public slots:
-    void startReception(int universe);
+    void startReception();
     void monitorAddress(int address) { m_monitoredChannels.insert(address);}
     void unMonitorAddress(int address) { m_monitoredChannels.remove(address);}
 signals:
@@ -91,9 +92,8 @@ private slots:
     void readPendingDatagrams();
     void performMerge();
     void checkSourceExpiration();
-    void checkSampleExpiration();
+    void sampleExpiration();
 private:
-    void run();
     std::list<sACNRxSocket *> m_sockets;
     std::vector<sACNSource *> m_sources;
     int m_last_levels[512];
@@ -103,14 +103,13 @@ private:
     int m_ssHLL;
     // Are we in the initial sampling state
     bool m_isSampling;
-    ttimer m_sampleTimer;
     QTimer *m_initalSampleTimer;
     QTimer *m_mergeTimer;
     QElapsedTimer m_elapsedTime;
     int m_predictableTimerValue;
     QSet<int> m_monitoredChannels;
     bool m_mergeAll; // A flag to initiate a complete remerge of everything
-    int m_mergesPerSecond;
+    unsigned int m_mergesPerSecond;
     int m_mergeCounter;
     QElapsedTimer m_mergesPerSecondTimer;
 };

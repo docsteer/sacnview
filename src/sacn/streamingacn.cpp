@@ -86,6 +86,7 @@ sACNManager::sACNManager() : QObject()
 
 static void strongPointerDelete(sACNListener *obj)
 {
+    obj->deleteLater();
     sACNManager::getInstance()->listenerDelete(obj);
 }
 
@@ -101,22 +102,25 @@ QSharedPointer<sACNListener> sACNManager::getListener(int universe)
     QSharedPointer<sACNListener> strongPointer;
     if(!m_listenerHash.contains(universe))
     {
-        // Create listener as thread
-        sACNListener *listener = Q_NULLPTR;
-        listener = new sACNListener();
-        listener->start(QThread::HighPriority);
-        listener->setObjectName(QString("Universe %1 RX").arg(universe));
-        m_listenerThreads[universe] = listener;
+        qDebug() << "Creating Listener for universe " << universe;
 
-        // Start reception
-        QMetaObject::invokeMethod(listener,"startReception", Q_ARG(int,universe));
+        // Create thread and move listener to thread
+        QThread *thread = new QThread;
+        thread->setObjectName(QString("Universe %1 RX").arg(universe));
+
+        sACNListener *listener = new sACNListener(universe);
+        listener->moveToThread(thread);
+        connect(thread, SIGNAL(started()), listener, SLOT(startReception()));
+        connect(thread, SIGNAL(finished()), listener, SLOT(deleteLater()));
+        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+        thread->start(QThread::HighPriority);
+
+        m_listenerThreads[universe] = thread;
 
         // Create strong pointer to return
         strongPointer = QSharedPointer<sACNListener>(listener, strongPointerDelete);
         m_listenerHash[universe] = strongPointer.toWeakRef();
         m_objToUniverse[listener] = universe;
-
-        qDebug() << "Creating Listener for universe " << universe;
     }
     else
     {
@@ -145,6 +149,5 @@ void sACNManager::listenerDelete(QObject *obj)
 
     m_listenerThreads[universe]->exit();
     m_listenerThreads[universe]->wait();
-    m_listenerThreads[universe]->deleteLater();
     m_listenerThreads.remove(universe);
 }

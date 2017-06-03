@@ -18,6 +18,7 @@
 #include <QNetworkInterface>
 #include <QNetworkAddressEntry>
 #include <QDebug>
+#include <QThread>
 #include "ipaddr.h"
 #include "streamcommon.h"
 
@@ -52,13 +53,13 @@ bool sACNRxSocket::bindMulticast(quint16 universe)
 
     if(ok)
     {
-        qDebug() << "sACNRxSocket : Bound to interface:" << iface.name();
-        qDebug() << "sACNRxSocket : Joining Multicast Group:" << QHostAddress(addr.GetV4Address()).toString();
+        qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Bound to interface:" << iface.name();
+        qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Joining Multicast Group:" << QHostAddress(addr.GetV4Address()).toString();
     }
     else
     {
         close();
-        qDebug() << "sACNRxSocket : Failed to bind RX socket";
+        qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Failed to bind RX socket";
     }
 
     return ok;
@@ -79,7 +80,7 @@ bool sACNRxSocket::bindUnicast()
                       STREAM_IP_PORT,
                       QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
             if (ok) {
-                qDebug() << "sACNRxSocket : Bound to IP:" << ifaceAddr.ip().toString();
+                qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Bound to IP:" << ifaceAddr.ip().toString();
                 break;
             }
         }
@@ -88,7 +89,7 @@ bool sACNRxSocket::bindUnicast()
 
     if (!ok) {
         close();
-        qDebug() << "sACNRxSocket : Failed to bind RX socket";
+        qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Failed to bind RX socket";
     }
 
     return ok;
@@ -113,14 +114,14 @@ bool sACNTxSocket::bindMulticast()
             ok = bind(ifaceAddr.ip());
             setSocketOption(QAbstractSocket::MulticastLoopbackOption, QVariant(1));
             setMulticastInterface(iface);
-            qDebug() << "sACNTxSocket : Bound to IP:" << ifaceAddr.ip().toString();
+            qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Bound to IP:" << ifaceAddr.ip().toString();
             break;
         }
     }
   
 
     if(!ok)
-        qDebug() << "sACNTxSocket : Failed to bind TX socket";
+        qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Failed to bind TX socket";
 
     return ok;
 }
