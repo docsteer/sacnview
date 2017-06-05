@@ -557,14 +557,14 @@ void sACNListener::performMerge()
             sACNMergedAddress *pAddr = &m_merged_levels[addresses_to_merge[i]];
             int address = addresses_to_merge[i];
 
-            if (ps->src_valid  && !ps->active.Expired() && ps->priority_array[address] > priorities[address] && ps->priority_array[address]>0)
+            if (ps->src_valid  && !ps->active.Expired() && ps->priority_array[address] > priorities[address])
             {
                 // Sources of higher priority
                 priorities[address] = ps->priority_array[address];
                 addressToSourceMap.remove(address);
                 addressToSourceMap.insert(address, ps);
             }
-            if (ps->src_valid  && !ps->active.Expired() && ps->priority_array[address] == priorities[address] && ps->priority_array[address]>0)
+            if (ps->src_valid  && !ps->active.Expired() && ps->priority_array[address] == priorities[address])
             {
                 addressToSourceMap.insert(address, ps);
             }
