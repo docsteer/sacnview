@@ -28,6 +28,10 @@ ConfigurePerChanPrioDlg::ConfigurePerChanPrioDlg(QWidget *parent) :
     ui->sbSetAll->setMaximum(MAX_SACN_PRIORITY);
     ui->sbPriority->setValue(DEFAULT_SACN_PRIORITY);
     ui->sbSetAll->setValue(DEFAULT_SACN_PRIORITY);
+    ui->sbPriority->setEnabled(false);
+    ui->sbSetAll->setEnabled(true);
+    ui->sbPriority->setWrapping(true);
+    ui->sbSetAll->setWrapping(true);
 }
 
 ConfigurePerChanPrioDlg::~ConfigurePerChanPrioDlg()

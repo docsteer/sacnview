@@ -41,10 +41,12 @@ transmitwindow::transmitwindow(QWidget *parent) :
 
     ui->sbUniverse->setMinimum(1);
     ui->sbUniverse->setMaximum(MAX_SACN_UNIVERSE);
+    ui->sbUniverse->setWrapping(true);
 
     ui->sbPriority->setMinimum(MIN_SACN_PRIORITY);
     ui->sbPriority->setMaximum(MAX_SACN_PRIORITY);
     ui->sbPriority->setValue(DEFAULT_SACN_PRIORITY);
+    ui->sbPriority->setWrapping(true);
 
     ui->sbFadeRangeEnd->setMinimum(MIN_DMX_ADDRESS);
     ui->sbFadeRangeEnd->setMaximum(MAX_DMX_ADDRESS);
@@ -370,6 +372,7 @@ void transmitwindow::on_btnFxStart_pressed()
 void transmitwindow::on_btnEditPerChan_pressed()
 {
     ConfigurePerChanPrioDlg dlg;
+    dlg.setWindowTitle(tr("Per address priority universe %1").arg(ui->sbUniverse->value()));
     dlg.setData(m_perAddressPriorities);
     int result = dlg.exec();
     if(result==QDialog::Accepted)
