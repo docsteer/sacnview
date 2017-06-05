@@ -48,8 +48,10 @@ transmitwindow::transmitwindow(QWidget *parent) :
 
     ui->sbFadeRangeEnd->setMinimum(MIN_DMX_ADDRESS);
     ui->sbFadeRangeEnd->setMaximum(MAX_DMX_ADDRESS);
+    ui->sbFadeRangeEnd->setWrapping(true);
     ui->sbFadeRangeStart->setMinimum(MIN_DMX_ADDRESS);
     ui->sbFadeRangeStart->setMaximum(MAX_DMX_ADDRESS);
+    ui->sbFadeRangeStart->setWrapping(true);
 
     ui->leSourceName->setText(Preferences::getInstance()->GetDefaultTransmitName());
 
@@ -523,33 +525,14 @@ void transmitwindow::on_dlFadeRate_valueChanged(int value)
 
 void transmitwindow::on_sbFadeRangeStart_valueChanged(int value)
 {
-
     if(m_fxEngine)
         m_fxEngine->setStartAddress(value-1);
 }
 
 void transmitwindow::on_sbFadeRangeEnd_valueChanged(int value)
 {
-
     if(m_fxEngine)
         m_fxEngine->setEndAddress(value-1);
-}
-
-
-void transmitwindow::on_sbFadeRangeStart_editingFinished()
-{
-    if(ui->sbFadeRangeStart->value() > ui->sbFadeRangeEnd->value())
-    {
-        ui->sbFadeRangeEnd->setValue(ui->sbFadeRangeStart->value());
-    }
-}
-
-void transmitwindow::on_sbFadeRangeEnd_editingFinished()
-{
-    if(ui->sbFadeRangeEnd->value() < ui->sbFadeRangeStart->value())
-    {
-        ui->sbFadeRangeStart->setValue(ui->sbFadeRangeEnd->value());
-    }
 }
 
 void transmitwindow::radioFadeMode_toggled(bool checked)

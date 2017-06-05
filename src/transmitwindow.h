@@ -57,9 +57,7 @@ protected slots:
     void on_dlFadeRate_valueChanged(int value);
     void doBlink();
     void on_sbFadeRangeStart_valueChanged(int value);
-    void on_sbFadeRangeStart_editingFinished();
     void on_sbFadeRangeEnd_valueChanged(int value);
-    void on_sbFadeRangeEnd_editingFinished();
     void radioFadeMode_toggled(bool checked);
     void on_slFadeLevel_valueChanged(int value);
     void on_btnFxPause_pressed();
