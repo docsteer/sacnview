@@ -38,8 +38,8 @@
 sACNListener::sACNListener(int universe, QObject *parent) : QObject(parent),
     m_universe(universe),
     m_ssHLL(1000),
-    m_mergesPerSecond(0),
-    m_isSampling(true)
+    m_isSampling(true),
+    m_mergesPerSecond(0)
 {
     m_merged_levels.reserve(512);
     for(int i=0; i<512; i++)
