@@ -46,10 +46,6 @@ sACNUniverseListModel::sACNUniverseListModel(QObject *parent) : QAbstractItemMod
     m_start = MIN_SACN_UNIVERSE;
 
     setStartUniverse(m_start);
-
-    m_checkTimeoutTimer = new QTimer(this);
-    connect(m_checkTimeoutTimer, SIGNAL(timeout()), this, SLOT(checkTimeouts()));
-    m_checkTimeoutTimer->start(5000);
 }
 
 void sACNUniverseListModel::setStartUniverse(int start)
@@ -65,27 +61,26 @@ void sACNUniverseListModel::setStartUniverse(int start)
     qDeleteAll(m_universes);
     m_universes.clear();
 
-    // Destroy all old sockets
-    qDeleteAll(m_sockets);
-    m_sockets.clear();
+    // Release listener sharedpointers
+    m_listeners.clear();
 
-    // Listen unicast
-    m_sockets.push_back(new sACNRxSocket(this));
-    m_sockets.back()->bindUnicast();
-    connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
-
-    // Listen multicast
+    // Create listeners
     m_start = start;
     for(int universe=m_start; universe<m_start+NUM_UNIVERSES_LISTED; universe++)
     {
-        CIPAddr addr;
-        GetUniverseAddress(universe, addr);
-
-        m_sockets.push_back(new sACNRxSocket(this));
-        m_sockets.back()->bindMulticast(universe);
-        connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
+        m_listeners.push_back(sACNManager::getInstance()->getListener(universe));
 
         m_universes << new sACNUniverseInfo(universe);
+
+        // Add the existing sources
+        for(int i=0; i<m_listeners.back()->sourceCount(); i++)
+        {
+            sourceOnline(m_listeners.back()->source(i));
+        }
+
+        connect(m_listeners.back().data(), SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
+        connect(m_listeners.back().data(), SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
+        connect(m_listeners.back().data(), SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
     }
 
     endResetModel();
@@ -160,110 +155,86 @@ QModelIndex sACNUniverseListModel::parent(const QModelIndex &index) const
     return QModelIndex();
 }
 
-void sACNUniverseListModel::readPendingDatagrams()
+void sACNUniverseListModel::sourceOnline(sACNSource *source)
 {
-    QMutexLocker locker(&mutex_readPendingDatagrams);
+    int univIndex = source->universe - m_start;
+    if (
+            (univIndex > m_universes.count())
+            ||
+            (univIndex < 0)
+        ) { return; }
 
-    // Check all sockets
-    foreach (sACNRxSocket* m_socket, m_sockets)
-    {
-        while(m_socket->hasPendingDatagrams())
-        {
-            QByteArray datagram;
-            datagram.resize(m_socket->pendingDatagramSize());
-            QHostAddress sender;
-            quint16 senderPort;
+    // Create sACNBasicSourceInfo copy of sACNSource
+    sACNBasicSourceInfo *info = Q_NULLPTR;
+    info = new sACNBasicSourceInfo(m_universes[univIndex]);
+    info->cid = source->src_cid;
+    info->address = source->ip;
+    info->name = source->name == NULL ? tr("????") : source->name;
 
-            m_socket->readDatagram(datagram.data(), datagram.size(),
-                                    &sender, &senderPort);
-
-            // Process the data
-            CID source_cid;
-            uint1 start_code;
-            uint1 sequence;
-            uint2 universe;
-            uint2 slot_count;
-            uint1* pdata;
-            char source_name [SOURCE_NAME_SIZE];
-            uint1 priority;
-            //These only apply to the ratified version of the spec, so we will hardwire
-            //them to be 0 just in case they never get set.
-            uint2 reserved = 0;
-            uint1 options = 0;
-            bool preview = false;
-            uint1 *pbuf = (uint1*)datagram.data();
-
-            if(!ValidateStreamHeader(pbuf, datagram.length(), source_cid, source_name, priority,
-                    start_code, reserved, sequence, options, universe, slot_count, pdata))
-            {
-                // Recieved a packet but not valid. Log and discard
-                qDebug() << "Invalid Packet";
-                continue;
-            }
-
-        // Listen to preview?
-        preview = (PREVIEW_DATA_OPTION == (options & PREVIEW_DATA_OPTION));
-        if ((preview) && !Preferences::getInstance()->GetBlindVisualizer())
-        {
-            qDebug() << "Ignore preview";
-            return;
-        }
-
-        sACNBasicSourceInfo *info = 0;
-        int univIndex = universe - m_start;
-        if (
-                (univIndex > m_universes.count())
-                 || (univIndex < 0)
-            ) { continue; }
-
-            if(!m_universes[univIndex]->sourcesByCid.contains(source_cid))
-            {
-                info = new sACNBasicSourceInfo(m_universes[univIndex]);
-                info->cid = source_cid;
-            }
-            else
-            {
-                info = m_universes[univIndex]->sourcesByCid.value(source_cid);
-                info->timeout.restart();
-            }
-
-            info->address = sender;
-            info->name = source_name;
-
-            if(!m_universes[univIndex]->sourcesByCid.contains(source_cid))
-            {
-                // We are adding the source for this universe
-                QModelIndex parent = index(m_start - universe, 0);
-                int firstRow = m_universes[univIndex]->sources.count()+1;
-                int lastRow = firstRow;
-                beginInsertRows(parent, firstRow, lastRow);
-                m_universes[univIndex]->sources << info;
-                m_universes[univIndex]->sourcesByCid[source_cid] = info;
-                endInsertRows();
-            }
-
-        }
-    }
+    // We are adding the source for this universe
+    QModelIndex parent = index(m_start - m_universes[univIndex]->universe, 0);
+    int firstRow = m_universes[univIndex]->sources.count()+1;
+    int lastRow = firstRow;
+    beginInsertRows(parent, firstRow, lastRow);
+    m_universes[univIndex]->sources << info;
+    m_universes[univIndex]->sourcesByCid[source->src_cid] = info;
+    endInsertRows();
 }
 
-void sACNUniverseListModel::checkTimeouts()
+void sACNUniverseListModel::sourceChanged(sACNSource *source)
 {
-    foreach(sACNUniverseInfo *info, m_universes)
-    {
-        for(int row=0; row<info->sources.count(); row++)
-        {
-            sACNBasicSourceInfo *source = info->sources[row];
-            if(source->timeout.elapsed() > 5000)
-            {
-                beginRemoveRows( createIndex(info->universe - m_start, 0),
-                            row, row);
-                info->sources.removeAll(source);
-                info->sourcesByCid.remove(source->cid);
-                delete source;
-                endRemoveRows();
-            }
-        }
-    }
+    int univIndex = source->universe - m_start;
+    if (
+            (univIndex > m_universes.count())
+            ||
+            (univIndex < 0)
+        ) { return; }
+
+    // Update existing source
+    sACNBasicSourceInfo *info = Q_NULLPTR;
+    if (m_universes.count() + 1 < univIndex) {return;}
+    info = m_universes[univIndex]->sourcesByCid.value(source->src_cid);
+    if (info == Q_NULLPTR) {
+        // Try to (re)add...
+        sourceOnline(source);
+        sourceChanged(source);
+        info = m_universes[univIndex]->sourcesByCid.value(source->src_cid);
+        if (info == Q_NULLPTR) { return; }
+    };
+    info->address = source->ip;
+    info->name = source->name;
+
+    // Redraw entire universe
+    QModelIndex parent = index(m_start - m_universes[univIndex]->universe, 0);
+    QModelIndex topLeft = parent.sibling(0,0);
+    QModelIndex bottomRight = parent.sibling(m_universes[univIndex]->sources.count(), 0);
+    emit dataChanged(topLeft, bottomRight);
+}
+
+void sACNUniverseListModel::sourceOffline(sACNSource *source)
+{
+    int univIndex = source->universe - m_start;
+    if (
+            (univIndex > m_universes.count())
+            ||
+            (univIndex < 0)
+        ) { return; }
+
+    // Remove existing source
+    sACNBasicSourceInfo *info = Q_NULLPTR;
+    info = m_universes[univIndex]->sourcesByCid.value(source->src_cid);
+    if (info == Q_NULLPTR) { return; }
+
+    QModelIndex parent = index(m_start - m_universes[univIndex]->universe, 0);
+    int first = m_universes[univIndex]->sources.indexOf(info);
+    int last = first;
+    beginRemoveRows(parent, first, last);
+
+    m_universes[univIndex]->sources.removeAll(info);
+    m_universes[univIndex]->sourcesByCid.remove(source->src_cid);
+    delete info;
+
+    endRemoveRows();
 }
 
 int sACNUniverseListModel::indexToUniverse(const QModelIndex &index)

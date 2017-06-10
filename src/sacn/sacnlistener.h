@@ -17,6 +17,7 @@
 #define SACNLISTENER_H
 
 #include <QObject>
+#include <QThread>
 #include <vector>
 #include <list>
 #include <QTimer>
@@ -50,14 +51,14 @@ class sACNListener : public QObject
 {
     Q_OBJECT
 public:
-    sACNListener(QObject *parent = 0);
+    sACNListener(int universe, QObject *parent = 0);
     virtual ~sACNListener();
 
     /**
      * @brief universe
      * @return the universe which this listener is listening for
      */
-    int universe() {return m_universe;};
+    int universe() {return m_universe;}
     /**
      * @brief mergedLevels
      * @return an sACNMergerdSourceList, a list of merged address structures, allowing you to see
@@ -65,15 +66,22 @@ public:
      */
     sACNMergedSourceList mergedLevels() { return m_merged_levels;}
 
-    int sourceCount() { return m_sources.size();};
-    sACNSource *source(int index) { return m_sources[index];};
+    int sourceCount() { return m_sources.size();}
+    sACNSource *source(int index) { return m_sources[index];}
+
+    /**
+     *  @brief processDatagram Process a suspected sACN datagram.
+     * This allows other listeners to pass on unicast datagrams for other universes
+     */
+    void processDatagram(QByteArray data, QHostAddress receiver, QHostAddress sender);
 
     // Diagnostic - the number of merge operations per second
-    int mergesPerSecond() { return m_mergesPerSecond;};
+
+    int mergesPerSecond() { return (m_mergesPerSecond > 0) ? m_mergesPerSecond : 0;}
 public slots:
-    void startReception(int universe);
-    void monitorAddress(int address) { m_monitoredChannels.insert(address);};
-    void unMonitorAddress(int address) { m_monitoredChannels.remove(address);};
+    void startReception();
+    void monitorAddress(int address) { m_monitoredChannels.insert(address);}
+    void unMonitorAddress(int address) { m_monitoredChannels.remove(address);}
 signals:
     void sourceFound(sACNSource *source);
     void sourceLost(sACNSource *source);
@@ -84,7 +92,7 @@ private slots:
     void readPendingDatagrams();
     void performMerge();
     void checkSourceExpiration();
-    void checkSampleExpiration();
+    void sampleExpiration();
 private:
     std::list<sACNRxSocket *> m_sockets;
     std::vector<sACNSource *> m_sources;
@@ -95,14 +103,13 @@ private:
     int m_ssHLL;
     // Are we in the initial sampling state
     bool m_isSampling;
-    ttimer m_sampleTimer;
     QTimer *m_initalSampleTimer;
     QTimer *m_mergeTimer;
     QElapsedTimer m_elapsedTime;
     int m_predictableTimerValue;
     QSet<int> m_monitoredChannels;
     bool m_mergeAll; // A flag to initiate a complete remerge of everything
-    int m_mergesPerSecond;
+    unsigned int m_mergesPerSecond;
     int m_mergeCounter;
     QElapsedTimer m_mergesPerSecondTimer;
 };
