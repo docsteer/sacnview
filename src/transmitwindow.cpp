@@ -41,15 +41,19 @@ transmitwindow::transmitwindow(QWidget *parent) :
 
     ui->sbUniverse->setMinimum(1);
     ui->sbUniverse->setMaximum(MAX_SACN_UNIVERSE);
+    ui->sbUniverse->setWrapping(true);
 
     ui->sbPriority->setMinimum(MIN_SACN_PRIORITY);
     ui->sbPriority->setMaximum(MAX_SACN_PRIORITY);
     ui->sbPriority->setValue(DEFAULT_SACN_PRIORITY);
+    ui->sbPriority->setWrapping(true);
 
     ui->sbFadeRangeEnd->setMinimum(MIN_DMX_ADDRESS);
     ui->sbFadeRangeEnd->setMaximum(MAX_DMX_ADDRESS);
+    ui->sbFadeRangeEnd->setWrapping(true);
     ui->sbFadeRangeStart->setMinimum(MIN_DMX_ADDRESS);
     ui->sbFadeRangeStart->setMaximum(MAX_DMX_ADDRESS);
+    ui->sbFadeRangeStart->setWrapping(true);
 
     ui->leSourceName->setText(Preferences::getInstance()->GetDefaultTransmitName());
 
@@ -368,6 +372,7 @@ void transmitwindow::on_btnFxStart_pressed()
 void transmitwindow::on_btnEditPerChan_pressed()
 {
     ConfigurePerChanPrioDlg dlg;
+    dlg.setWindowTitle(tr("Per address priority universe %1").arg(ui->sbUniverse->value()));
     dlg.setData(m_perAddressPriorities);
     int result = dlg.exec();
     if(result==QDialog::Accepted)
@@ -523,33 +528,14 @@ void transmitwindow::on_dlFadeRate_valueChanged(int value)
 
 void transmitwindow::on_sbFadeRangeStart_valueChanged(int value)
 {
-
     if(m_fxEngine)
         m_fxEngine->setStartAddress(value-1);
 }
 
 void transmitwindow::on_sbFadeRangeEnd_valueChanged(int value)
 {
-
     if(m_fxEngine)
         m_fxEngine->setEndAddress(value-1);
-}
-
-
-void transmitwindow::on_sbFadeRangeStart_editingFinished()
-{
-    if(ui->sbFadeRangeStart->value() > ui->sbFadeRangeEnd->value())
-    {
-        ui->sbFadeRangeEnd->setValue(ui->sbFadeRangeStart->value());
-    }
-}
-
-void transmitwindow::on_sbFadeRangeEnd_editingFinished()
-{
-    if(ui->sbFadeRangeEnd->value() < ui->sbFadeRangeStart->value())
-    {
-        ui->sbFadeRangeStart->setValue(ui->sbFadeRangeEnd->value());
-    }
 }
 
 void transmitwindow::radioFadeMode_toggled(bool checked)

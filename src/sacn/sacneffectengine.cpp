@@ -113,7 +113,7 @@ void sACNEffectEngine::setStartAddress(quint16 start)
         }
         m_start = start;
         if(m_start > m_end)
-            m_end = m_start;
+            std::swap(m_start, m_end);
     }
 }
 
@@ -134,7 +134,7 @@ void sACNEffectEngine::setEndAddress(quint16 end)
         }
         m_end = end;
         if(m_end < m_start)
-            m_start = m_end;
+            std::swap(m_start, m_end);
     }
 }
 

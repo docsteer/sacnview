@@ -19,7 +19,7 @@
      <item>
       <widget class="QLabel" name="lblAddress">
        <property name="text">
-        <string>Address 1, Priority = </string>
+        <string>Address ?, Priority = </string>
        </property>
       </widget>
      </item>

@@ -87,6 +87,7 @@ void MultiUniverse::on_btnAddRow_pressed()
     sb->setMinimum(MIN_SACN_UNIVERSE);
     sb->setMaximum(MAX_SACN_UNIVERSE);
     sb->setValue(m_senders.last()->universe());
+    sb->setWrapping(true);
     ui->tableWidget->setCellWidget(row, COL_UNIVERSE, sb);
     m_widgetToFxEngine[sb] = m_fxEngines.last();
     m_widgetToSender[sb] = m_senders.last();
@@ -97,6 +98,7 @@ void MultiUniverse::on_btnAddRow_pressed()
     sb->setMinimum(MIN_DMX_ADDRESS);
     sb->setMaximum(MAX_DMX_ADDRESS);
     sb->setValue(MIN_DMX_ADDRESS);
+    sb->setWrapping(true);
     ui->tableWidget->setCellWidget(row, COL_STARTADDR, sb);
     m_widgetToFxEngine[sb] = m_fxEngines.last();
     m_widgetToSender[sb] = m_senders.last();
@@ -107,6 +109,7 @@ void MultiUniverse::on_btnAddRow_pressed()
     sb->setMinimum(MIN_DMX_ADDRESS);
     sb->setMaximum(MAX_DMX_ADDRESS);
     sb->setValue(MAX_DMX_ADDRESS);
+    sb->setWrapping(true);
     ui->tableWidget->setCellWidget(row, COL_ENDADDR, sb);
     m_widgetToFxEngine[sb] = m_fxEngines.last();
     m_widgetToSender[sb] = m_senders.last();
@@ -118,6 +121,7 @@ void MultiUniverse::on_btnAddRow_pressed()
     sb->setMinimum(MIN_SACN_PRIORITY);
     sb->setMaximum(MAX_SACN_PRIORITY);
     sb->setValue(m_senders.last()->perSourcePriority());
+    sb->setWrapping(true);
     ui->tableWidget->setCellWidget(row, COL_PRIORITY, sb);
     connect(sb, SIGNAL(valueChanged(int)), this, SLOT(priorityChanged(int)));
     m_widgetToFxEngine[sb] = m_fxEngines.last();
