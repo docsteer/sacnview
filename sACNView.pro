@@ -16,12 +16,12 @@
 QT       += core gui network multimedia
 
 macx {
-QMAKE_MAC_SDK = macosx10.12
-ICON = res/icon.icns
+    QMAKE_MAC_SDK = macosx10.12
+    ICON = res/icon.icns
 }
 
 !msvc {
-        QMAKE_CXXFLAGS += -std=gnu++0x
+    QMAKE_CXXFLAGS += -std=gnu++0x
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -36,12 +36,15 @@ GIT_DATE_DAY = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --dat
 GIT_DATE_DATE = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%d\" --format=\"%cd\" $$GIT_VERSION)
 GIT_DATE_MONTH = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%b\" --format=\"%cd\" $$GIT_VERSION)
 GIT_DATE_YEAR = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%Y\" --format=\"%cd\" $$GIT_VERSION)
+GIT_TAG = $$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --abbrev=0 --always --tags)
+GIT_SHA1 = $$system(git --git-dir $$PWD/.git --work-tree $$PWD rev-parse --short HEAD)
 
-DEFINES += GIT_CURRENT_SHA1=\\\"$$GIT_VERSION\\\"
+DEFINES += GIT_CURRENT_SHA1=\\\"$$GIT_SHA1\\\"
 DEFINES += GIT_DATE_DAY=\\\"$$GIT_DATE_DAY\\\"
 DEFINES += GIT_DATE_DATE=\\\"$$GIT_DATE_DATE\\\"
 DEFINES += GIT_DATE_MONTH=\\\"$$GIT_DATE_MONTH\\\"
 DEFINES += GIT_DATE_YEAR=\\\"$$GIT_DATE_YEAR\\\"
+DEFINES += VERSION=\\\"$$GIT_TAG\\\"
 
 SOURCES += src/main.cpp\
     src/mdimainwindow.cpp \
@@ -141,24 +144,57 @@ isEmpty(TARGET_EXT) {
 
 win32 {
     DEPLOY_COMMAND = windeployqt
-    DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/deploy
-    DEPLOY_TARGET = $${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT}
+    DEPLOY_DIR = $$system_path($${_PRO_FILE_PWD_}/install/deploy)
+    DEPLOY_TARGET = $$system_path($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT})
     DEPLOY_OPT = --dir $${DEPLOY_DIR}
     DEPLOY_CLEANUP = $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR}
+    DEPLOY_INSTALLER = makensis /DPRODUCT_VERSION="$$GIT_VERSION" $$system_path($${_PRO_FILE_PWD_}/install/win/install.nsi)
 }
 macx {
     DEPLOY_COMMAND = macdeployqt
-    DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/
-    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${_PRO_FILE_PWD_}/install/mac/sACNView.dmg
+    DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/mac
+    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/ACNView.dmg
     DEPLOY_TARGET = $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
     DEPLOY_CLEANUP = $${_PRO_FILE_PWD_}/install/mac/create-dmg --volname "sACNView_Installer" --volicon "$${_PRO_FILE_PWD_}/res/icon.icns"
     DEPLOY_CLEANUP += --background "$${_PRO_FILE_PWD_}/res/mac_install_bg.png" --window-pos 200 120 --window-size 800 400 --icon-size 100 --icon sACNView.app 200 190 --hide-extension sACNView.app --app-drop-link 600 185
     DEPLOY_CLEANUP += $${_PRO_FILE_PWD_}/install/mac/sACNView.dmg $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
+}
+unix {
+    DEB_SANITIZED_VERSION = $$system(echo $$GIT_VERSION | sed 's/[a-zA-Z]//')
+
+    DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/linux
+    DEPLOY_TARGET = $${DEPLOY_DIR}/AppDir/$${TARGET}
+
+    DEPLOY_COMMAND = $${OUT_PWD}/linuxdeployqt
+    DEPLOY_OPT = -appimage -verbose=2
+
+    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/*.AppImage
+    PRE_DEPLOY_COMMAND += && $${QMAKE_DEL_FILE} $${DEPLOY_TARGET}
+    PRE_DEPLOY_COMMAND += && wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" -O $${DEPLOY_COMMAND}
+    PRE_DEPLOY_COMMAND += && chmod a+x $${DEPLOY_COMMAND}
+    PRE_DEPLOY_COMMAND += && unset LD_LIBRARY_PATH
+    PRE_DEPLOY_COMMAND += && $$QMAKE_COPY $${OUT_PWD}/$${TARGET} $${DEPLOY_TARGET}
+    PRE_DEPLOY_COMMAND += && $$QMAKE_COPY $${DEPLOY_DIR}/usr/share/applications/sacnview.desktop $${DEPLOY_DIR}/AppDir/sacnview.desktop
+    PRE_DEPLOY_COMMAND += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/Logo.png $${DEPLOY_DIR}/AppDir/sacnview.png
+
+    DEPLOY_CLEANUP = $$QMAKE_COPY $${OUT_PWD}/$${TARGET}*.AppImage $${DEPLOY_DIR}/$${TARGET}_$${DEB_SANITIZED_VERSION}.AppImage
+
+    DEPLOY_INSTALLER = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/*.deb
+    DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/LICENSE $${DEPLOY_DIR}/COPYRIGHT
+    DEPLOY_INSTALLER += && $$QMAKE_COPY $${DEPLOY_DIR}/$${TARGET}_$${DEB_SANITIZED_VERSION}.AppImage $${DEPLOY_DIR}/opt/sacnview/sacnview.AppImage
+    DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/icon_16.png $${DEPLOY_DIR}/usr/share/icons/hicolor/16x16/apps/sacnview.png
+    DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/icon_24.png $${DEPLOY_DIR}/usr/share/icons/hicolor/24x24/apps/sacnview.png
+    DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/icon_32.png $${DEPLOY_DIR}/usr/share/icons/hicolor/32x32/apps/sacnview.png
+    DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/icon_48.png $${DEPLOY_DIR}/usr/share/icons/hicolor/48x48/apps/sacnview.png
+    DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/icon_256.png $${DEPLOY_DIR}/usr/share/icons/hicolor/256x256/apps/sacnview.png
+    DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/Logo.png $${DEPLOY_DIR}/usr/share/icons/hicolor/scalable/apps/sacnview.png
+    DEPLOY_INSTALLER += && cd $${DEPLOY_DIR}
+    DEPLOY_INSTALLER += && fpm -s dir -t deb --deb-meta-file $${DEPLOY_DIR}/COPYRIGHT -n $${TARGET} -v $${DEB_SANITIZED_VERSION} opt/ usr/
 }
 
 CONFIG( release , debug | release) {
     QMAKE_POST_LINK += $${PRE_DEPLOY_COMMAND} $$escape_expand(\\n\\t)
     QMAKE_POST_LINK += $${DEPLOY_COMMAND} $${DEPLOY_TARGET} $${DEPLOY_OPT}
     QMAKE_POST_LINK += $$escape_expand(\\n\\t) $${DEPLOY_CLEANUP}
+    QMAKE_POST_LINK += $$escape_expand(\\n\\t) $${DEPLOY_INSTALLER}
 }
-
