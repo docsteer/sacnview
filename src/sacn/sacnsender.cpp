@@ -253,7 +253,7 @@ CStreamServer::CStreamServer()
     connect(m_thread, &QThread::finished, this, &QObject::deleteLater);
     m_tickTimer = new QTimer(this);
     m_tickTimer->setInterval(10);
-    connect(m_tickTimer, SIGNAL(timeout()), this, SLOT(Tick()));
+    connect(m_tickTimer, SIGNAL(timeout()), this, SLOT(Tick()), Qt::DirectConnection);
     m_tickTimer->start();
     this->moveToThread(m_thread);
     m_thread->start();
