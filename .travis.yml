@@ -17,4 +17,4 @@ script:
 
 after_success:
   - FILE=$(readlink -f install/linux/sACNView_*AppImage)
-  - curl --upload-file .$FILE https://transfer.sh/$(basename $FILE)
+  - curl --upload-file $FILE https://transfer.sh/$(basename $FILE)
