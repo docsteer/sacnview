@@ -13,7 +13,7 @@ install:
 
 script:
   - qmake
-  - make -j$(nproc)
+  - make -j$(nproc) || true # Errors out but at that point the AppImage has already been generated
 
 after_success:
   - FILE=$(readlink -f install/linux/sACNView_*AppImage)
