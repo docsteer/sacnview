@@ -159,7 +159,7 @@ macx {
     DEPLOY_CLEANUP += --background "$${_PRO_FILE_PWD_}/res/mac_install_bg.png" --window-pos 200 120 --window-size 800 400 --icon-size 100 --icon sACNView.app 200 190 --hide-extension sACNView.app --app-drop-link 600 185
     DEPLOY_CLEANUP += $${_PRO_FILE_PWD_}/install/mac/sACNView.dmg $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
 }
-unix {
+linux {
     DEB_SANITIZED_VERSION = $$system(echo $$GIT_VERSION | sed 's/[a-zA-Z]//')
 
     DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/linux
