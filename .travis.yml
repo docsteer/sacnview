@@ -12,9 +12,8 @@ install:
     - source /opt/qt*/bin/qt*-env.sh
 
 script:
-  - qmake PREFIX=/usr
+  - qmake
   - make -j$(nproc)
-  - make INSTALL_ROOT=appdir install
 
 after_success:
   - FILE=$(readlink -f install/linux/sACNView_*AppImage)
