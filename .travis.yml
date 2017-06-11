@@ -14,13 +14,8 @@ install:
 script:
   - qmake PREFIX=/usr
   - make -j$(nproc)
-  - make INSTALL_ROOT=appdir install ; find appdir/
+  - make INSTALL_ROOT=appdir install
 
 after_success:
-  - wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" 
-  - chmod a+x linuxdeployqt*.AppImage
-  - unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
-  - ./linuxdeployqt*.AppImage ./appdir/usr/share/applications/*.desktop -bundle-non-qt-libs
-  - ./linuxdeployqt*.AppImage ./appdir/usr/share/applications/*.desktop -appimage
-  - find ./appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
-  - curl --upload-file ./sACNView*.AppImage https://transfer.sh/sACNView-git.$(git rev-parse --short HEAD)-x86_64.AppImage
+  - FILE=$(readlink -f install/linux/sACNView_*AppImage)
+  - curl --upload-file .$FILE https://transfer.sh/$(basename $FILE)
