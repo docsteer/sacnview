@@ -14,6 +14,7 @@ install:
 script:
   - qmake
   - make -j$(nproc) || true # Errors out but at that point the AppImage has already been generated
+  # Interestingly, the whole linuxdeployqt handling is done in the .pro file
 
 after_success:
   - FILE=$(readlink -f install/linux/sACNView_*AppImage)
