@@ -4,3 +4,4 @@ description: sACNView, a tool for sending and receiving the Streaming ACN contro
 show_downloads: true
 windows_url: https://github.com/docsteer/sacnview/releases/download/v2.0.0-RC2/sACNView_2.0.0.RC.2.exe
 mac_url: https://github.com/docsteer/sacnview/releases/download/v2.0.0-RC2/sACNView.dmg
+linux_url: https://github.com/docsteer/sacnview/releases/download/v2.0.0-RC2/sacnview_2.0.0-RC2_amd64.deb
