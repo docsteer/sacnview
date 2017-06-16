@@ -2,9 +2,18 @@
 ---
 
 @import "{{ site.theme }}";
+
+a.button {
+  width: 126px;
+}
+
 #download-win span {
   background: transparent url(../images/win-icon.png) 12px 50% no-repeat;
 }
 #download-mac span {
   background: transparent url(../images/mac-icon.png) 12px 50% no-repeat;
+}
+
+#download-linux span {
+  background: transparent url(../images/linux-icon.png) 12px 50% no-repeat;
 }
