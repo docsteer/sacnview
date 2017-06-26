@@ -22,7 +22,9 @@
 #include <QApplication>
 #include <QNetworkInterface>
 #include <QProcess>
+#include <QMessageBox>
 #include "sacnsender.h"
+#include "firewallcheck.h"
 
 int main(int argc, char *argv[])
 {
@@ -33,6 +35,7 @@ int main(int argc, char *argv[])
     a.setOrganizationName("sACNView");
     a.setOrganizationDomain("tomsteer.net");
 
+    bool newInterface = false;
     if(!Preferences::getInstance()->defaultInterfaceAvailable())
     {
         NICSelectDialog d;
@@ -42,8 +45,9 @@ int main(int argc, char *argv[])
         {
             Preferences::getInstance()->setNetworkInterface(d.getSelectedInterface());
         }
-    }
 
+        newInterface = true;
+    }
 
     // Changed to heap rather than stack,
     // so that we can destroy before cleaning up the singletons
@@ -53,6 +57,29 @@ int main(int argc, char *argv[])
         w->show();
     else
         w->showMaximized();
+
+    // Check firewall if not newly selected
+    if (!newInterface) {
+        foreach (QNetworkAddressEntry ifaceAddr, Preferences::getInstance()->networkInterface().addressEntries())
+        {
+            if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol)
+            {
+                FwCheck::FwCheck_t fw = FwCheck::isFWBlocked(ifaceAddr.ip());
+                QMessageBox msgBox;
+                msgBox.setIcon(QMessageBox::Warning);
+                msgBox.setStandardButtons(QMessageBox::Ok);
+                if (fw.allowed == false) {
+                    msgBox.setText(QObject::tr("Incoming connections to this application are blocked by the firewall"));
+                    msgBox.exec();
+                } else {
+                    if (fw.restricted == true) {
+                        msgBox.setText(QObject::tr("Incoming connections to this application are restricted by the firewall"));
+                        msgBox.exec();
+                   }
+                }
+            }
+        }
+    }
 
     int result = a.exec();
 
