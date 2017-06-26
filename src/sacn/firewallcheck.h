@@ -3,7 +3,7 @@
 
 namespace FwCheck {
     struct FwCheck_t {
-        bool allowed = false;
+        bool allowed = true;
         bool restricted = false;
     };
     FwCheck_t isFWBlocked(QHostAddress ip);
