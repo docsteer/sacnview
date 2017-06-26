@@ -4,8 +4,11 @@
 #include <QDir>
 #include "firewallcheck.h"
 #include "streamcommon.h"
+
+#ifdef Q_OS_WIN
 #include "netfw.h"
 #include "Objbase.h"
+#endif
 
 FwCheck::FwCheck_t FwCheck::isFWBlocked(QHostAddress ip)
 {
