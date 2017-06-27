@@ -274,11 +274,12 @@ void sACNEffectEngine::timerTick()
     case FxChase:
         if(m_index > m_end)
             m_index = m_start;
+        QMetaObject::invokeMethod(m_sender, "setLevelRange",
+                                  Q_ARG(quint16, m_start),
+                                  Q_ARG(quint16, m_end),
+                                  Q_ARG(quint8, 0));
         QMetaObject::invokeMethod(m_sender, "setLevel", Q_ARG(quint16, m_index),
                                   Q_ARG(quint8, 255));
-        if(m_index>m_start)
-            QMetaObject::invokeMethod(m_sender, "setLevel", Q_ARG(quint16, m_index-1),
-                                      Q_ARG(quint8, 0));
         break;
 
     case FxManual:
