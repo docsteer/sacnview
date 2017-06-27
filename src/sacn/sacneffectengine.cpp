@@ -70,6 +70,8 @@ void sACNEffectEngine::setMode(sACNEffectEngine::FxMode mode)
                     this,"setMode", Q_ARG(sACNEffectEngine::FxMode, mode));
     else
         m_mode = mode;
+
+    clear();
 }
 
 void sACNEffectEngine::start()
@@ -93,7 +95,11 @@ void sACNEffectEngine::pause()
 
 void sACNEffectEngine::clear()
 {
-
+    QMetaObject::invokeMethod(
+                m_sender,"setLevelRange",
+                Q_ARG(quint16, MIN_DMX_ADDRESS - 1),
+                Q_ARG(quint16, MAX_DMX_ADDRESS - 1),
+                Q_ARG(quint8, 0));
 }
 
 void sACNEffectEngine::setStartAddress(quint16 start)
