@@ -23,6 +23,7 @@
 #include <QNetworkInterface>
 #include <QProcess>
 #include "sacnsender.h"
+#include "versioncheck.h"
 
 int main(int argc, char *argv[])
 {
@@ -32,6 +33,9 @@ int main(int argc, char *argv[])
     a.setApplicationVersion(VERSION);
     a.setOrganizationName("sACNView");
     a.setOrganizationDomain("tomsteer.net");
+
+    // Check web (if avaliable) for new version
+    VersionCheck version;
 
     if(!Preferences::getInstance()->defaultInterfaceAvailable())
     {
@@ -43,7 +47,6 @@ int main(int argc, char *argv[])
             Preferences::getInstance()->setNetworkInterface(d.getSelectedInterface());
         }
     }
-
 
     // Changed to heap rather than stack,
     // so that we can destroy before cleaning up the singletons
