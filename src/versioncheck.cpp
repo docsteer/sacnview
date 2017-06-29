@@ -57,7 +57,7 @@ void VersionCheck::replyFinished (QNetworkReply *reply)
                             QMessageBox msgBox;
                             msgBox.setIcon(QMessageBox::Information);
                             msgBox.setStandardButtons(QMessageBox::Ok);
-                            msgBox.setText(QObject::tr("A new version of sACNView is avaliable!"));
+                            msgBox.setText(QObject::tr("A new version of sACNView is available!"));
                             QString detailText = QObject::tr("This can be downloaded from:\nhttps://docsteer.github.io/sacnview/");
                             detailText.append(QString("\nInstalled: %1").arg(VERSION));
                             detailText.append(QString("\nAvailable: %2").arg(jObj["tag_name"].toString()));
