@@ -201,17 +201,17 @@ void BigDisplay::on_spinBox_16_Fine_editingFinished()
     setupAddressMonitors();
 }
 
-void BigDisplay::on_spinBox_Colour_1_editingFinished()
+void BigDisplay::on_spinBox_RGB_1_editingFinished()
 {
     setupAddressMonitors();
 }
 
-void BigDisplay::on_spinBox_Colour_2_editingFinished()
+void BigDisplay::on_spinBox_RGB_2_editingFinished()
 {
     setupAddressMonitors();
 }
 
-void BigDisplay::on_spinBox_Colour_3_editingFinished()
+void BigDisplay::on_spinBox_RGB_3_editingFinished()
 {
     setupAddressMonitors();
 }

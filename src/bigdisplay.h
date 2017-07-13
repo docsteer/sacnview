@@ -37,9 +37,9 @@ private slots:
     void on_spinBox_8_editingFinished();
     void on_spinBox_16_Coarse_editingFinished();
     void on_spinBox_16_Fine_editingFinished();
-    void on_spinBox_Colour_1_editingFinished();
-    void on_spinBox_Colour_2_editingFinished();
-    void on_spinBox_Colour_3_editingFinished();
+    void on_spinBox_RGB_1_editingFinished();
+    void on_spinBox_RGB_2_editingFinished();
+    void on_spinBox_RGB_3_editingFinished();
 };
 
 #endif // BIGDISPLAY_H
