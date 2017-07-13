@@ -81,9 +81,10 @@ SOURCES += src/main.cpp\
     src/flickerfinderinfoform.cpp \
     src/sacn/sacnsocket.cpp \
     src/logwindow.cpp \
-    src/sacn/firewallcheck.cpp
+    src/versioncheck.cpp \
+    src/sacn/firewallcheck.cpp \
     src/bigdisplay.cpp
-	
+
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
     src/universeview.h \
@@ -118,8 +119,9 @@ HEADERS  += src/mdimainwindow.h \
     src/flickerfinderinfoform.h \
     src/sacn/sacnsocket.h \
     src/logwindow.h \
-    src/sacn/firewallcheck.h
-    src/bigdisplay.h
+    src/versioncheck.h \
+    src/sacn/firewallcheck.h \
+    src/bigdisplay.h 
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \

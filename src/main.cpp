@@ -24,6 +24,7 @@
 #include <QProcess>
 #include <QMessageBox>
 #include "sacnsender.h"
+#include "versioncheck.h"
 #include "firewallcheck.h"
 
 int main(int argc, char *argv[])
@@ -35,6 +36,11 @@ int main(int argc, char *argv[])
     a.setApplicationVersion(VERSION);
     a.setOrganizationName("sACNView");
     a.setOrganizationDomain("tomsteer.net");
+
+
+    // Check web (if avaliable) for new version
+    VersionCheck version;
+
 
     bool newInterface = false;
     if(!Preferences::getInstance()->defaultInterfaceAvailable())
