@@ -70,6 +70,8 @@ void sACNEffectEngine::setMode(sACNEffectEngine::FxMode mode)
                     this,"setMode", Q_ARG(sACNEffectEngine::FxMode, mode));
     else
         m_mode = mode;
+
+    clear();
 }
 
 void sACNEffectEngine::start()
@@ -93,7 +95,11 @@ void sACNEffectEngine::pause()
 
 void sACNEffectEngine::clear()
 {
-
+    QMetaObject::invokeMethod(
+                m_sender,"setLevelRange",
+                Q_ARG(quint16, MIN_DMX_ADDRESS - 1),
+                Q_ARG(quint16, MAX_DMX_ADDRESS - 1),
+                Q_ARG(quint8, 0));
 }
 
 void sACNEffectEngine::setStartAddress(quint16 start)
@@ -274,11 +280,12 @@ void sACNEffectEngine::timerTick()
     case FxChase:
         if(m_index > m_end)
             m_index = m_start;
+        QMetaObject::invokeMethod(m_sender, "setLevelRange",
+                                  Q_ARG(quint16, m_start),
+                                  Q_ARG(quint16, m_end),
+                                  Q_ARG(quint8, 0));
         QMetaObject::invokeMethod(m_sender, "setLevel", Q_ARG(quint16, m_index),
                                   Q_ARG(quint8, 255));
-        if(m_index>m_start)
-            QMetaObject::invokeMethod(m_sender, "setLevel", Q_ARG(quint16, m_index-1),
-                                      Q_ARG(quint8, 0));
         break;
 
     case FxManual:
