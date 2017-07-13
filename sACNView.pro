@@ -24,6 +24,10 @@ macx {
     QMAKE_CXXFLAGS += -std=gnu++0x
 }
 
+win32 {
+    LIBS += -lole32 -loleaut32
+}
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = sACNView
@@ -77,6 +81,7 @@ SOURCES += src/main.cpp\
     src/flickerfinderinfoform.cpp \
     src/sacn/sacnsocket.cpp \
     src/logwindow.cpp \
+    src/sacn/firewallcheck.cpp
     src/bigdisplay.cpp
 	
 HEADERS  += src/mdimainwindow.h \
@@ -113,6 +118,7 @@ HEADERS  += src/mdimainwindow.h \
     src/flickerfinderinfoform.h \
     src/sacn/sacnsocket.h \
     src/logwindow.h \
+    src/sacn/firewallcheck.h
     src/bigdisplay.h
 
 FORMS    += ui/mdimainwindow.ui \
