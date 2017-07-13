@@ -80,6 +80,7 @@ transmitwindow::transmitwindow(QWidget *parent) :
         connect(button, SIGNAL(pressed()), this, SLOT(presetButtonPressed()));
     }
     QToolButton *recordButton = new QToolButton(this);
+    m_presetButtons << recordButton;
     recordButton->setCheckable(true);
     recordButton->setIcon(QIcon(":/icons/record.png"));
     layout->addWidget(recordButton);
@@ -606,6 +607,7 @@ void transmitwindow::presetButtonPressed()
         foreach(QToolButton *btn, m_presetButtons)
         {
             btn->setStyleSheet(QString(""));
+            btn->setChecked(false);
         }
 
     }
@@ -631,7 +633,7 @@ void transmitwindow::recordButtonPressed(bool on)
     {
         foreach(QToolButton *btn, m_presetButtons)
         {
-            btn->setStyleSheet(QString("background-color: red;"));
+            if (!btn->isChecked()) btn->setStyleSheet(QString("background-color: red;"));
         }
     }
     else
