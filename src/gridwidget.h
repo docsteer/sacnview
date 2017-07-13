@@ -45,16 +45,20 @@ public:
      * @brief selectedCell returns the currently selected cell, or -1 if no cell is selected
      * @return the selected cell, or -1 if no cell selected
      */
-    int selectedCell() const { return m_selectedAddress;};
+    int selectedCell() const { return m_selectedAddress; }
 signals:
     // The user changed the selected address. -1 means no selected address
     void selectedCellChanged(int cell);
+    // User double clicked on a cell.
+    void cellDoubleClick(quint16 address);
+
 protected:
     virtual void paintEvent(QPaintEvent *event);
     virtual QSize minimumSizeHint() const;
     virtual QSize sizeHint() const;
     virtual void mousePressEvent(QMouseEvent *event);
     virtual void mouseMoveEvent(QMouseEvent *event);
+    virtual void mouseDoubleClickEvent(QMouseEvent *event);
 
     // Returns the cell under point, -1 for none
     int cellHitTest(const QPoint &point);

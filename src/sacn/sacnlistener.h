@@ -80,8 +80,14 @@ public:
     int mergesPerSecond() { return (m_mergesPerSecond > 0) ? m_mergesPerSecond : 0;}
 public slots:
     void startReception();
-    void monitorAddress(int address) { m_monitoredChannels.insert(address);}
-    void unMonitorAddress(int address) { m_monitoredChannels.remove(address);}
+    void monitorAddress(int address) {
+        QMutexLocker locker(&m_monitoredChannelsMutex);
+        m_monitoredChannels.insert(address);
+    }
+    void unMonitorAddress(int address) {
+        QMutexLocker locker(&m_monitoredChannelsMutex);
+        m_monitoredChannels.remove(address);
+    }
 signals:
     void sourceFound(sACNSource *source);
     void sourceLost(sACNSource *source);
@@ -107,6 +113,7 @@ private:
     QTimer *m_mergeTimer;
     QElapsedTimer m_elapsedTime;
     int m_predictableTimerValue;
+    QMutex m_monitoredChannelsMutex;
     QSet<int> m_monitoredChannels;
     bool m_mergeAll; // A flag to initiate a complete remerge of everything
     unsigned int m_mergesPerSecond;

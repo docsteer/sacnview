@@ -52,8 +52,8 @@ sACNSource::sACNSource()
     doing_per_channel = false;  //If true, we are tracking per-channel priority messages for this source
     isPreview = false;
     universe = 0;
-    memset(level_array, -1, 512);
-    memset(priority_array, -1, 512);
+    std::fill(level_array, level_array + sizeof(level_array), 0);
+    std::fill(priority_array, priority_array + sizeof(priority_array), 0);
     priority = 0;
     fpsTimer.start();
     fpsCounter = 0;

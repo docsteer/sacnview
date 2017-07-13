@@ -27,11 +27,12 @@
           {% if site.show_downloads %}
           <a href="{{ site.windows_url }}" id="download-win" class="button"><span>Windows</span></a>
           <a href="{{ site.mac_url }}" id="download-mac" class="button"><span>macOS</span></a>
+          <a href="{{ site.linux_url }}" id="download-linux" class="button"><span>Linux</span></a>
           {% endif %}
 	  {% if site.github.is_project_page %}
-          <a href="{{ site.github.repository_url }}" id="view-on-github" class="button"><span>View on GitHub</span></a>
+          <a href="{{ site.github.repository_url }}" id="view-on-github" class="button"><span>Source</span></a>
 	  {% else %}
-          <a href="{{ site.github.owner_url }}" id="view-on-github" class="button"><span>View on GitHub</span></a>
+          <a href="{{ site.github.owner_url }}" id="view-on-github" class="button"><span>Source</span></a>
 	  {% endif %}
         </section>
         <hr>

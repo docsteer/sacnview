@@ -82,6 +82,7 @@ SOURCES += src/main.cpp\
     src/sacn/sacnsocket.cpp \
     src/logwindow.cpp \
     src/sacn/firewallcheck.cpp
+    src/bigdisplay.cpp
 	
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -118,6 +119,7 @@ HEADERS  += src/mdimainwindow.h \
     src/sacn/sacnsocket.h \
     src/logwindow.h \
     src/sacn/firewallcheck.h
+    src/bigdisplay.h
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
@@ -130,7 +132,8 @@ FORMS    += ui/mdimainwindow.ui \
     ui/snapshot.ui \
     ui/multiuniverse.ui \
     ui/flickerfinderinfoform.ui \
-    ui/logwindow.ui
+    ui/logwindow.ui \
+    ui/bigdisplay.ui
 
 RESOURCES += \
     res/resources.qrc
