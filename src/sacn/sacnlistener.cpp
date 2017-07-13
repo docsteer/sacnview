@@ -472,12 +472,15 @@ void sACNListener::performMerge()
 
     memset(addresses_to_merge, -1, sizeof(int) * 512);
 
-    foreach(int chan, m_monitoredChannels)
     {
-        QPointF data;
-        data.setX(m_elapsedTime.nsecsElapsed()/1000000.0);
-        data.setY(mergedLevels().at(chan).level);
-        emit dataReady(chan, data);
+        QMutexLocker locker(&m_monitoredChannelsMutex);
+        foreach(int chan, m_monitoredChannels)
+        {
+            QPointF data;
+            data.setX(m_elapsedTime.nsecsElapsed()/1000000.0);
+            data.setY(mergedLevels().at(chan).level);
+            emit dataReady(chan, data);
+        }
     }
 
     if(m_mergesPerSecondTimer.hasExpired(1000))
