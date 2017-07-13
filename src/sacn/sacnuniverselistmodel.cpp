@@ -172,6 +172,7 @@ void sACNUniverseListModel::sourceOnline(sACNSource *source)
     info->name = source->name == NULL ? tr("????") : source->name;
 
     // We are adding the source for this universe
+    QWriteLocker locker(&rwlock_ModelIndex);
     QModelIndex parent = index(m_start - m_universes[univIndex]->universe, 0);
     int firstRow = m_universes[univIndex]->sources.count()+1;
     int lastRow = firstRow;
@@ -205,6 +206,7 @@ void sACNUniverseListModel::sourceChanged(sACNSource *source)
     info->name = source->name;
 
     // Redraw entire universe
+    QWriteLocker locker(&rwlock_ModelIndex);
     QModelIndex parent = index(m_start - m_universes[univIndex]->universe, 0);
     QModelIndex topLeft = parent.sibling(0,0);
     QModelIndex bottomRight = parent.sibling(m_universes[univIndex]->sources.count(), 0);
@@ -213,6 +215,8 @@ void sACNUniverseListModel::sourceChanged(sACNSource *source)
 
 void sACNUniverseListModel::sourceOffline(sACNSource *source)
 {
+    QWriteLocker locker(&rwlock_ModelIndex);
+
     int univIndex = source->universe - m_start;
     if (
             (univIndex > m_universes.count())

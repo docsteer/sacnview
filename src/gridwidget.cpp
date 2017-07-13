@@ -194,6 +194,16 @@ void GridWidget::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
+void GridWidget::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    QWidget::mousePressEvent(event);
+    if(event->buttons() & Qt::LeftButton)
+    {
+        quint16 address = cellHitTest(event->pos());
+        emit cellDoubleClick(address);
+    }
+}
+
 void GridWidget::setCellColor(int cell, const QColor &color)
 {
     m_colors[cell] = color;

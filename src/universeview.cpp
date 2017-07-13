@@ -22,6 +22,7 @@
 #include "flickerfinderinfoform.h"
 #include "logwindow.h"
 #include "mdimainwindow.h"
+#include "bigdisplay.h"
 
 #include <QFileDialog>
 #include <QStandardPaths>
@@ -56,6 +57,7 @@ UniverseView::UniverseView(QWidget *parent) :
     m_logger = NULL;
     ui->setupUi(this);
     connect(ui->universeDisplay, SIGNAL(selectedCellChanged(int)), this, SLOT(selectedAddressChanged(int)));
+    connect(ui->universeDisplay, SIGNAL(cellDoubleClick(quint16)), this, SLOT(openBigDisplay(quint16)));
 
 
     ui->btnGo->setEnabled(true);
@@ -266,6 +268,14 @@ void UniverseView::selectedAddressChanged(int address)
     }
 
     ui->teInfo->setPlainText(info);
+}
+
+void UniverseView::openBigDisplay(quint16 address)
+{
+    MDIMainWindow *mainWindow = dynamic_cast<MDIMainWindow *>(m_parentWindow);
+    if(!mainWindow) return;
+    BigDisplay *w = new BigDisplay(ui->sbUniverse->value(), address, mainWindow);
+    mainWindow->showWidgetAsMdiWindow(w);
 }
 
 void UniverseView::on_btnPause_pressed()
