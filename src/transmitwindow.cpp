@@ -120,8 +120,8 @@ transmitwindow::transmitwindow(QWidget *parent) :
     ui->gbFaders->setLayout(mainLayout);
 
     // Set up fader start spinbox
-    ui->sbFadersStart->setMinimum(1);
-    ui->sbFadersStart->setMaximum(MAX_DMX_ADDRESS - NUM_SLIDERS + 1);
+    ui->sbFadersStart->setMinimum(MIN_DMX_ADDRESS);
+    ui->sbFadersStart->setMaximum(MAX_DMX_ADDRESS);
 
 
     ui->gbFaders->adjustSize();
@@ -237,6 +237,13 @@ void transmitwindow::on_sliderMoved(int value)
 
 void transmitwindow::on_sbFadersStart_valueChanged(int value)
 {
+    int maxValue = MAX_DMX_ADDRESS - NUM_SLIDERS + 1;
+    if (value > maxValue)
+    {
+        ui->sbFadersStart->setValue(maxValue);
+        return;
+    }
+
     for(int i=0; i<m_sliders.count(); i++)
     {
         QSlider *slider = m_sliders[i];
