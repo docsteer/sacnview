@@ -52,6 +52,8 @@ BigDisplay::BigDisplay(int universe, quint16 address, QWidget *parent) :
     m_listener = sACNManager::getInstance()->getListener(m_universe);
     connect(m_listener.data(), SIGNAL(dataReady(int, QPointF)), this, SLOT(dataReady(int, QPointF)));
 
+    m_data = 0;
+
     setupAddressMonitors();
 }
 
@@ -72,78 +74,118 @@ void BigDisplay::setupAddressMonitors()
     m_listener->monitorAddress(ui->spinBox_RGB_3->value() - 1);
 }
 
+void BigDisplay::displayData()
+{
+    QPalette palette = ui->lcdNumber->palette();
+    QColor colour(m_data | 0xFF000000);
+
+    // Display format
+    if(ui->tabWidget->currentIndex() == tabModes_bit8 |
+          ui->tabWidget->currentIndex() == tabModes_bit16  )
+    {
+        ui->lcdNumber->setDigitCount(5);
+        palette.setColor(QPalette::WindowText, Qt::red);
+        ui->lcdNumber->setPalette(palette);
+
+        switch (Preferences::getInstance()->GetDisplayFormat())
+        {
+            default:
+            case Preferences::DECIMAL:
+            {
+                ui->lcdNumber->setMode(QLCDNumber::Dec);
+                ui->lcdNumber->display((int)m_data);
+                break;
+            }
+            case Preferences::HEXADECIMAL:
+            {
+                ui->lcdNumber->setMode(QLCDNumber::Hex);
+                ui->lcdNumber->display((int)m_data);
+                break;
+            }
+            case Preferences::PERCENT:
+            {
+                ui->lcdNumber->setMode(QLCDNumber::Dec);
+                // Display percent with an optional fraction
+                if(ui->tabWidget->currentIndex() == tabModes_bit8)
+                {
+                    ui->lcdNumber->display(HTOPT[m_data & 0xFF]);
+                }
+                else
+                {
+                    int percent = HTOPT[(m_data & 0xFF00) >> 8];
+                    int fraction = m_data & 0xFF;
+                    double value = percent + fraction/255.0;
+                    ui->lcdNumber->display(value);
+                }
+                break;
+            }
+        }
+    }
+
+    if(ui->tabWidget->currentIndex() == tabModes_rgb)
+    {
+        // Only ever display RGB as hex
+
+        palette.setColor(QPalette::WindowText, colour);
+        ui->lcdNumber->setPalette(palette);
+        ui->lcdNumber->setDigitCount(6);
+        ui->lcdNumber->setMode(QLCDNumber::Hex);
+        ui->lcdNumber->display((int)m_data);
+    }
+
+
+
+}
+
 void BigDisplay::dataReady(int address, QPointF data)
 {
     bool required = false;
-    int valueMax = 0;
-    int value = -1;
     address++;
-
-    QPalette palette = ui->lcdNumber->palette();
-    QColor colour = palette.windowText().color();
+    quint32 value = data.y();
 
 
     switch (ui->tabWidget->currentIndex())
     {
         case tabModes_bit8:
-        {
-            valueMax = 255;
-            colour.setRgb(Qt::black);
-
             if (address == ui->spinBox_8->value()) {
                 required = true;
-                value = data.y();
+                m_data = data.y();
             }
             break;
-        }
 
         case tabModes_bit16:
-        {
-            valueMax = 65535;
-            colour.setRgb(Qt::black);
-
             if (address == ui->spinBox_16_Coarse->value()) {
                 required = true;
-                value = ui->lcdNumber->intValue() & 0x00FF;
-                value += int(data.y()) << 8;
+                m_data = (m_data & 0x00FF) | (0xFF00 & (value << 8));
             }
 
             if (address == ui->spinBox_16_Fine->value()) {
                 required = true;
-                value = (ui->lcdNumber->intValue() & 0xFF00);
-                value += int(data.y());
+                m_data = (m_data & 0xFF00) | (0x00FF & value);
             }
 
             break;
-        }
 
         case tabModes_rgb:
-        {
             if (address == ui->spinBox_RGB_1->value()) {
                 required = true;
-                colour.setRed(int(data.y()));
+                m_data = (m_data & 0x00FFFFu) | (0xFF0000u & ((quint32)value << 16));
             }
 
             if (address == ui->spinBox_RGB_2->value()) {
                 required = true;
-                colour.setGreen(int(data.y()));
+                m_data = (m_data & 0xFF00FFu) | (0x00FF00u & ((quint32)value << 8));
             }
 
             if (address == ui->spinBox_RGB_3->value()) {
                 required = true;
-                colour.setBlue(int(data.y()));
-
+                m_data = (m_data & 0xFFFF00u) | (0x0000FFu & value);
             }
-
-            value = (colour.red() + colour.green() + colour.blue()) / 3;
-            break;
-        }
+        break;
 
         default:
-        {
-            value = 0;
+            m_data = -1;
             break;
-        };
     }
 
     // Unrequired address?
@@ -153,37 +195,7 @@ void BigDisplay::dataReady(int address, QPointF data)
         setupAddressMonitors();
     }
 
-    if (value < 0)
-    {
-        return;
-    }
-
-    // Display format
-    switch (Preferences::getInstance()->GetDisplayFormat())
-    {
-        default:
-        case Preferences::DECIMAL:
-        {
-            ui->lcdNumber->setMode(QLCDNumber::Dec);
-            break;
-        }
-        case Preferences::HEXADECIMAL:
-        {
-            ui->lcdNumber->setMode(QLCDNumber::Hex);
-            break;
-        }
-        case Preferences::PERCENT:
-        {
-            ui->lcdNumber->setMode(QLCDNumber::Dec);
-            value = (value * 100) / valueMax;
-            break;
-        }
-    }
-
-    palette.setColor(QPalette::WindowText, colour);
-    ui->lcdNumber->setPalette(palette);
-
-    ui->lcdNumber->display(value);
+    displayData();
 }
 
 void BigDisplay::on_spinBox_8_editingFinished()

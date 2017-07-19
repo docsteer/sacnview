@@ -40,6 +40,11 @@ private slots:
     void on_spinBox_RGB_1_editingFinished();
     void on_spinBox_RGB_2_editingFinished();
     void on_spinBox_RGB_3_editingFinished();
+
+private:
+    void displayData();
+
+    quint32 m_data;
 };
 
 #endif // BIGDISPLAY_H
