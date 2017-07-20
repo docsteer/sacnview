@@ -37,6 +37,7 @@
 ; MUI Settings
 !define MUI_ABORTWARNING
 !define MUI_ICON "..\..\res\icon.ico"
+!define MUI_FINISHPAGE_NOAUTOCLOSE
 
 Name "${PRODUCT_NAME}"
 OutFile "${PRODUCT_NAME}_${PRODUCT_VERSION}.exe"
@@ -104,6 +105,17 @@ Section "Main Application" sec01
 	;Same as create shortcut you need to use ${UNINST_EXE} instead of anything else.
 	WriteRegStr ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "UninstallString" "${UNINST_EXE}"
 
+	SimpleFC::AddApplication "sACNView" "$INSTDIR\sACNView.exe" 0 2 "" 1
+	Pop $0
+	
+	IntCmp $0 0 fw_ok
+		DetailPrint "Error adding Firewall Exception"
+		Goto done
+	fw_ok:
+		DetailPrint "Firewall Exception Added OK"
+		Goto done
+	done:
+		DetailPrint "Done"
 SectionEnd
 
 
