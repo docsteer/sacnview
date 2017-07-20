@@ -80,8 +80,8 @@ void BigDisplay::displayData()
     QColor colour(m_data | 0xFF000000);
 
     // Display format
-    if(ui->tabWidget->currentIndex() == tabModes_bit8 |
-          ui->tabWidget->currentIndex() == tabModes_bit16  )
+    if((ui->tabWidget->currentIndex() == tabModes_bit8) |
+          (ui->tabWidget->currentIndex() == tabModes_bit16)  )
     {
         ui->lcdNumber->setDigitCount(5);
         palette.setColor(QPalette::WindowText, Qt::red);
