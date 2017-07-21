@@ -33,6 +33,7 @@
 
 !include MUI.nsh
 !include AdvUninstLog.nsh
+!include WinVer.nsh
 
 ; MUI Settings
 !define MUI_ABORTWARNING
@@ -123,7 +124,12 @@ Function .onInit
 
         ;prepare log always within .onInit function
         !insertmacro UNINSTALL.LOG_PREPARE_INSTALL
-
+		
+		;check the Windows version
+		${IfNot} ${AtLeastWin7}
+		MessageBox MB_OK "Windows 7 or above is required to run sACNView"
+		Quit
+		${EndIf}
 FunctionEnd
 
 
