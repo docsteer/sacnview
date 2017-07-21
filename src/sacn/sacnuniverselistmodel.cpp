@@ -45,6 +45,8 @@ sACNUniverseListModel::sACNUniverseListModel(QObject *parent) : QAbstractItemMod
 {
     m_start = MIN_SACN_UNIVERSE;
 
+    m_displayDDOnlySource = Preferences::getInstance()->GetDisplayDDOnly();
+
     setStartUniverse(m_start);
 }
 
@@ -164,6 +166,9 @@ void sACNUniverseListModel::sourceOnline(sACNSource *source)
             (univIndex < 0)
         ) { return; }
 
+    // Display sources that only transmit 0xdd?
+    if (!m_displayDDOnlySource && !source->doing_dmx) { return; }
+
     // Create sACNBasicSourceInfo copy of sACNSource
     sACNBasicSourceInfo *info = Q_NULLPTR;
     info = new sACNBasicSourceInfo(m_universes[univIndex]);
@@ -190,6 +195,9 @@ void sACNUniverseListModel::sourceChanged(sACNSource *source)
             ||
             (univIndex < 0)
         ) { return; }
+
+    // Display sources that only transmit 0xdd?
+    if (!m_displayDDOnlySource && !source->doing_dmx) { return; }
 
     // Update existing source
     sACNBasicSourceInfo *info = Q_NULLPTR;

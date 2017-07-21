@@ -76,6 +76,7 @@ private:
     int m_start;
     QTimer *m_checkTimeoutTimer;
     QList<QSharedPointer<sACNListener>> m_listeners;
+    bool m_displayDDOnlySource;
 };
 
 #endif // SACNUNIVERSELISTMODEL_H
