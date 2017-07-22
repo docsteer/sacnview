@@ -68,6 +68,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     }
 
     ui->cbDisplayBlind->setChecked(Preferences::getInstance()->GetBlindVisualizer());
+    ui->cbDisplayDDOnlys->setChecked(Preferences::getInstance()->GetDisplayDDOnly());
     ui->cbRestoreWindows->setChecked(Preferences::getInstance()->GetSaveWindowLayout());
 
     ui->leDefaultSourceName->setText(Preferences::getInstance()->GetDefaultTransmitName());
@@ -98,6 +99,8 @@ PreferencesDialog::~PreferencesDialog()
 
 void PreferencesDialog::on_buttonBox_accepted()
 {
+    bool requiresRestart = false;
+
     Preferences *p = Preferences::getInstance();
     int displayFormat=0;
     if(ui->DecimalDisplayFormat->isChecked())
@@ -109,6 +112,10 @@ void PreferencesDialog::on_buttonBox_accepted()
 
     p->SetDisplayFormat(displayFormat);
     p->SetBlindVisualizer(ui->cbDisplayBlind->isChecked());
+
+    if (ui->cbDisplayDDOnlys->isChecked() != p->GetDisplayDDOnly() ) {requiresRestart = true;}
+    p->SetDisplayDDOnly(ui->cbDisplayDDOnlys->isChecked());
+
     p->SetSaveWindowLayout(ui->cbRestoreWindows->isChecked());
 
     int seconds = ui->NumOfHoursOfSacn->value()*60*60 + ui->NumOfMinOfSacn->value()*60 + ui->NumOfSecOfSacn->value();
@@ -127,13 +134,18 @@ void PreferencesDialog::on_buttonBox_accepted()
             {
                 p->setNetworkInterface(m_interfaceList[i]);
 
-                QMessageBox::information(this, tr("Network Interface Changed"),
-                                         tr("After changing the network interface, you will need to restart the application. sACNView will now close and restart"),
-                                         QMessageBox::Ok);
-                p->RESTART_APP = true;
-                qApp->quit();
+                requiresRestart = true;
 
+                break;
             }
         }
+    }
+
+    if (requiresRestart) {
+        QMessageBox::information(this, tr("Restart requied"),
+                                 tr("To apply these preferences, you will need to restart the application. \nsACNView will now close and restart"),
+                                 QMessageBox::Ok);
+        p->RESTART_APP = true;
+        qApp->quit();
     }
 }
