@@ -55,10 +55,11 @@ UniverseView::UniverseView(QWidget *parent) :
     m_parentWindow = parent; // needed as parent() in qobject world isn't..
     m_selectedAddress = -1;
     m_logger = NULL;
+    m_displayDDOnlySource = Preferences::getInstance()->GetDisplayDDOnly();
+
     ui->setupUi(this);
     connect(ui->universeDisplay, SIGNAL(selectedCellChanged(int)), this, SLOT(selectedAddressChanged(int)));
     connect(ui->universeDisplay, SIGNAL(cellDoubleClick(quint16)), this, SLOT(openBigDisplay(quint16)));
-
 
     ui->btnGo->setEnabled(true);
     ui->btnPause->setEnabled(false);
@@ -108,6 +109,9 @@ void UniverseView::sourceChanged(sACNSource *source)
         return;
     }
 
+    // Display sources that only transmit 0xdd?
+    if (!m_displayDDOnlySource && !source->doing_dmx) { return; }
+
     int row = m_sourceToTableRow[source];
     ui->twSources->item(row,COL_NAME)->setText(source->name);
     ui->twSources->item(row,COL_NAME)->setBackgroundColor(Preferences::getInstance()->colorForCID(source->src_cid));
@@ -121,7 +125,11 @@ void UniverseView::sourceChanged(sACNSource *source)
     ui->twSources->item(row,COL_FPS)->setText(QString::number((source->fps)));
     ui->twSources->item(row,COL_SEQ_ERR)->setText(QString::number(source->seqErr));
     ui->twSources->item(row,COL_JUMPS)->setText(QString::number(source->jumps));
-    ui->twSources->item(row,COL_ONLINE)->setText(onlineToString(source->src_valid));
+    if (source->doing_dmx) {
+        ui->twSources->item(row,COL_ONLINE)->setText(onlineToString(source->src_valid));
+    } else {
+        ui->twSources->item(row,COL_ONLINE)->setText(source->src_valid ? tr("No DMX") : onlineToString(source->src_valid));
+    }
     ui->twSources->item(row,COL_VER)->setText(protocolVerToString(source->protocol_version));
     ui->twSources->item(row,COL_DD)->setText(source->doing_per_channel ? tr("Yes") : tr("No"));
 }
@@ -129,6 +137,10 @@ void UniverseView::sourceChanged(sACNSource *source)
 void UniverseView::sourceOnline(sACNSource *source)
 {
     if(!m_listener) return;
+
+    // Display sources that only transmit 0xdd?
+    if (!m_displayDDOnlySource && !source->doing_dmx) { return; }
+
     int row = ui->twSources->rowCount();
     ui->twSources->setRowCount(row+1);
     m_sourceToTableRow[source] = row;
@@ -136,7 +148,7 @@ void UniverseView::sourceOnline(sACNSource *source)
     ui->twSources->setItem(row,COL_NAME,    new QTableWidgetItem() );
     ui->twSources->setItem(row,COL_CID,     new QTableWidgetItem() );
     ui->twSources->setItem(row,COL_PRIO,    new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_PREVIEW,    new QTableWidgetItem() );
+    ui->twSources->setItem(row,COL_PREVIEW, new QTableWidgetItem() );
     ui->twSources->setItem(row,COL_IP,      new QTableWidgetItem() );
     ui->twSources->setItem(row,COL_FPS,     new QTableWidgetItem() );
     ui->twSources->setItem(row,COL_SEQ_ERR, new QTableWidgetItem() );
