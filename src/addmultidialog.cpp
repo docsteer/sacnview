@@ -160,3 +160,8 @@ int AddMultiDialog::priority()
 {
     return ui->sbPriority->value();
 }
+
+void AddMultiDialog::on_dial_valueChanged(int value)
+{
+    on_dial_sliderMoved(value);
+}

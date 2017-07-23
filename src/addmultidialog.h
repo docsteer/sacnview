@@ -45,6 +45,8 @@ private slots:
     void rangeChanged();
     void on_cbEffect_currentIndexChanged(int index);
     void on_dial_sliderMoved(int value);
+    void on_dial_valueChanged(int value);
+
 private:
     Ui::AddMultiDialog *ui;
     void setupFxControl();
