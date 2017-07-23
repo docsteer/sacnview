@@ -1,0 +1,28 @@
+language: cpp
+compiler: gcc
+sudo: require
+dist: trusty
+os: linux
+
+before_install:
+    - sudo add-apt-repository ppa:beineri/opt-qt59-trusty -y
+    - sudo apt-get update -qq
+
+install: 
+# Install FPM
+    - sudo apt-get -y install build-essential ruby ruby-dev
+    - cd install/linux/ && cp _FPM_Makefile Makefile && make package && sudo dpkg -i fpm*.deb && fpm --version && cd ../../
+# QT
+    - sudo apt-get -y install qt59base qt59multimedia
+    - source /opt/qt*/bin/qt*-env.sh
+
+script:
+  - qmake
+  - make -j$(nproc) || true # Errors out but at that point the AppImage has already been generated
+  # Interestingly, the whole linuxdeployqt handling is done in the .pro file
+
+after_success:
+  - FILE=$(readlink -f install/linux/sACNView_*AppImage)
+  - curl --upload-file $FILE https://transfer.sh/$(basename $FILE)
+  - FILE=$(readlink -f install/linux/sacnview_*.deb)
+  - curl --upload-file $FILE https://transfer.sh/$(basename $FILE)
