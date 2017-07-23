@@ -14,6 +14,7 @@
         <file>multi_universe.png</file>
         <file>add.png</file>
         <file>remove.png</file>
+        <file>add_multi.png</file>
     </qresource>
     <qresource prefix="/">
         <file>Logo.png</file>

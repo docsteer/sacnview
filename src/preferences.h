@@ -107,7 +107,7 @@ public:
     QList<MDIWindowInfo> GetSavedWindows();
 
 
-    QString GetFormattedValue(unsigned int nLevelInDecimal);
+    QString GetFormattedValue(unsigned int nLevelInDecimal, bool decorated = false);
 
     void savePreferences();
 
