@@ -83,7 +83,8 @@ SOURCES += src/main.cpp\
     src/logwindow.cpp \
     src/versioncheck.cpp \
     src/sacn/firewallcheck.cpp \
-    src/bigdisplay.cpp
+    src/bigdisplay.cpp \
+    src/addmultidialog.cpp
 
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -121,7 +122,8 @@ HEADERS  += src/mdimainwindow.h \
     src/logwindow.h \
     src/versioncheck.h \
     src/sacn/firewallcheck.h \
-    src/bigdisplay.h 
+    src/bigdisplay.h \ 
+    src/addmultidialog.h
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
@@ -135,7 +137,8 @@ FORMS    += ui/mdimainwindow.ui \
     ui/multiuniverse.ui \
     ui/flickerfinderinfoform.ui \
     ui/logwindow.ui \
-    ui/bigdisplay.ui
+    ui/bigdisplay.ui \
+    ui/addmultidialog.ui
 
 RESOURCES += \
     res/resources.qrc

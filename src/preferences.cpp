@@ -86,18 +86,28 @@ void Preferences::SetDisplayFormat(unsigned int nDisplayFormat)
     return;
 }
 
-QString Preferences::GetFormattedValue(unsigned int nLevelInDecimal)
+QString Preferences::GetFormattedValue(unsigned int nLevelInDecimal, bool decorated)
 {
     Q_ASSERT(nLevelInDecimal<=255);
+    QString result;
     if (m_nDisplayFormat == DECIMAL)
-        return QString::number(nLevelInDecimal, 10);
+    {
+        result = QString::number(nLevelInDecimal, 10);
+    }
     else if (m_nDisplayFormat == PERCENT)
-        return QString::number(HTOPT[nLevelInDecimal], 10);
+    {
+        result = QString::number(HTOPT[nLevelInDecimal], 10);
+        if(decorated) result += QString("%");
+    }
     else if (m_nDisplayFormat == HEXADECIMAL)
-        return QString::number(nLevelInDecimal, 16);
+    {
+        if(decorated) result = QString("0x");
+        result = QString::number(nLevelInDecimal, 16);
+    }
     else
-        return QString ("Err");
+        result = QString ("Err");
 
+    return result;
 }
 
 void Preferences::SetBlindVisualizer (bool bBlindVisualizer)

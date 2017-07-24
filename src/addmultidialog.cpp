@@ -1,0 +1,167 @@
+// Copyright 2016 Tom Barthel-Steer
+// http://www.tomsteer.net
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include "addmultidialog.h"
+#include "ui_addmultidialog.h"
+#include "sacneffectengine.h"
+#include "consts.h"
+#include "preferences.h"
+
+AddMultiDialog::AddMultiDialog(QWidget *parent) :
+    QDialog(parent),
+    ui(new Ui::AddMultiDialog)
+{
+    ui->setupUi(this);
+
+    ui->sbStartAddress->setMinimum(MIN_DMX_ADDRESS);
+    ui->sbEndAddress->setMinimum(MIN_DMX_ADDRESS);
+    ui->sbStartAddress->setMaximum(MAX_DMX_ADDRESS);
+    ui->sbEndAddress->setMaximum(MAX_DMX_ADDRESS);
+
+    ui->sbPriority->setMinimum(MIN_SACN_PRIORITY);
+    ui->sbPriority->setMaximum(MAX_SACN_PRIORITY);
+    ui->sbPriority->setValue(DEFAULT_SACN_PRIORITY);
+
+    ui->sbNumUniverses->setMinimum(1);
+    ui->sbNumUniverses->setMaximum(100);
+    ui->sbStartUniverse->setMinimum(MIN_SACN_UNIVERSE);
+    ui->sbStartUniverse->setMaximum(MAX_SACN_UNIVERSE);
+
+
+    ui->cbEffect->addItems(FX_MODE_DESCRIPTIONS);
+
+
+    connect(ui->sbStartUniverse, SIGNAL(valueChanged(int)), this, SLOT(rangeChanged()));
+    connect(ui->sbNumUniverses, SIGNAL(valueChanged(int)), this, SLOT(rangeChanged()));
+
+    rangeChanged();
+}
+
+AddMultiDialog::~AddMultiDialog()
+{
+    delete ui;
+}
+
+void AddMultiDialog::rangeChanged()
+{
+    int startUniverse = ui->sbStartUniverse->value();
+    int endRange = startUniverse + ui->sbNumUniverses->value() - 1;
+    if(endRange>MAX_SACN_UNIVERSE)
+    {
+        ui->sbStartUniverse->setValue(startUniverse - (endRange - MAX_SACN_UNIVERSE));
+        return;
+    }
+    ui->lbEndRange->setText(tr("(last universe will be %1)").arg(endRange));
+}
+
+void AddMultiDialog::on_cbEffect_currentIndexChanged(int index)
+{
+    sACNEffectEngine::FxMode mode = (sACNEffectEngine::FxMode) index;
+    switch(mode)
+    {
+    case sACNEffectEngine::FxManual:
+        ui->dial->setMinimum(MIN_SACN_LEVEL);
+        ui->dial->setMaximum(MAX_SACN_LEVEL);
+        ui->lbDialFunction->setText(tr("Level"));
+        break;
+
+    case sACNEffectEngine::FxChase:
+    case sACNEffectEngine::FxRamp:
+    case sACNEffectEngine::FxSinewave:
+    case sACNEffectEngine::FxVerticalBar:
+    case sACNEffectEngine::FxHorizontalBar:
+    case sACNEffectEngine::FxDate:
+    case sACNEffectEngine::FxText:
+    default:
+        ui->dial->setMinimum(1);
+        ui->dial->setMaximum(500);
+        ui->lbDialFunction->setText(tr("Rate"));
+        break;
+    }
+
+    on_dial_sliderMoved(ui->dial->value());
+}
+
+void AddMultiDialog::on_dial_sliderMoved(int value)
+{
+    sACNEffectEngine::FxMode mode = (sACNEffectEngine::FxMode) ui->cbEffect->currentIndex();
+    switch(mode)
+    {
+    case sACNEffectEngine::FxManual:
+        ui->lbDialValue->setText(Preferences::getInstance()->GetFormattedValue(value, true));
+        break;
+
+    case sACNEffectEngine::FxChase:
+    case sACNEffectEngine::FxRamp:
+    case sACNEffectEngine::FxSinewave:
+    case sACNEffectEngine::FxVerticalBar:
+    case sACNEffectEngine::FxHorizontalBar:
+    case sACNEffectEngine::FxDate:
+    case sACNEffectEngine::FxText:
+    default:
+        ui->lbDialValue->setText(tr("%1 Hz").arg(value));
+        break;
+    }
+}
+
+int AddMultiDialog::startUniverse()
+{
+    return ui->sbStartUniverse->value();
+}
+
+int AddMultiDialog::universeCount()
+{
+    return ui->sbNumUniverses->value();
+}
+
+sACNEffectEngine::FxMode AddMultiDialog::mode()
+{
+    return (sACNEffectEngine::FxMode) ui->cbEffect->currentIndex();
+}
+
+int AddMultiDialog::startAddress()
+{
+    return qMin(ui->sbEndAddress->value(), ui->sbStartAddress->value());
+}
+
+int AddMultiDialog::endAddress()
+{
+    return qMax(ui->sbEndAddress->value(), ui->sbStartAddress->value());
+}
+
+bool AddMultiDialog::startNow()
+{
+    return ui->cbStartNow->isChecked();
+}
+
+int AddMultiDialog::level()
+{
+    return ui->dial->value();
+}
+
+int AddMultiDialog::rate()
+{
+    return ui->dial->value();
+}
+
+int AddMultiDialog::priority()
+{
+    return ui->sbPriority->value();
+}
+
+void AddMultiDialog::on_dial_valueChanged(int value)
+{
+    on_dial_sliderMoved(value);
+}

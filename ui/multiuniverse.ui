@@ -102,6 +102,20 @@
       </widget>
      </item>
      <item>
+      <widget class="QToolButton" name="btnAddMulti">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../res/resources.qrc">
+         <normaloff>:/icons/add_multi.png</normaloff>:/icons/add_multi.png</iconset>
+       </property>
+       <property name="popupMode">
+        <enum>QToolButton::InstantPopup</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
