@@ -86,24 +86,41 @@ void Preferences::SetDisplayFormat(unsigned int nDisplayFormat)
     return;
 }
 
-QString Preferences::GetFormattedValue(unsigned int nLevelInDecimal)
+QString Preferences::GetFormattedValue(unsigned int nLevelInDecimal, bool decorated)
 {
     Q_ASSERT(nLevelInDecimal<=255);
+    QString result;
     if (m_nDisplayFormat == DECIMAL)
-        return QString::number(nLevelInDecimal, 10);
+    {
+        result = QString::number(nLevelInDecimal, 10);
+    }
     else if (m_nDisplayFormat == PERCENT)
-        return QString::number(HTOPT[nLevelInDecimal], 10);
+    {
+        result = QString::number(HTOPT[nLevelInDecimal], 10);
+        if(decorated) result += QString("%");
+    }
     else if (m_nDisplayFormat == HEXADECIMAL)
-        return QString::number(nLevelInDecimal, 16);
+    {
+        if(decorated) result = QString("0x");
+        result = QString::number(nLevelInDecimal, 16);
+    }
     else
-        return QString ("Err");
+        result = QString ("Err");
 
+    return result;
 }
 
 void Preferences::SetBlindVisualizer (bool bBlindVisualizer)
 {
     Q_ASSERT(bBlindVisualizer == 0 || bBlindVisualizer == 1);
     m_bBlindVisualizer = bBlindVisualizer;
+    return;
+}
+
+void Preferences::SetDisplayDDOnly(bool bDDOnly)
+{
+    Q_ASSERT(bDDOnly == 0 || bDDOnly == 1);
+    m_bDisplayDDOnly = bDDOnly;
     return;
 }
 
@@ -138,6 +155,11 @@ bool Preferences::GetBlindVisualizer()
     return m_bBlindVisualizer;
 }
 
+bool Preferences::GetDisplayDDOnly()
+{
+    return m_bDisplayDDOnly;
+}
+
 QString Preferences::GetDefaultTransmitName()
 {
    return m_sDefaultTransmitName;
@@ -161,6 +183,7 @@ void Preferences::savePreferences()
         settings.setValue(S_MAC_ADDRESS, m_interface.hardwareAddress());
     settings.setValue(S_DISPLAY_FORMAT, QVariant(m_nDisplayFormat));
     settings.setValue(S_BLIND_VISUALIZER, QVariant(m_bBlindVisualizer));
+    settings.setValue(S_DDONLY, QVariant(m_bDisplayDDOnly));
     settings.setValue(S_DEFAULT_SOURCENAME, m_sDefaultTransmitName);
     settings.setValue(S_TIMEOUT, QVariant(m_nNumSecondsOfSacn));
     settings.setValue(S_FLICKERFINDERSHOWINFO, QVariant(m_flickerFinderShowInfo));
@@ -197,6 +220,7 @@ void Preferences::loadPreferences()
 
     m_nDisplayFormat = settings.value(S_DISPLAY_FORMAT, QVariant(DECIMAL)).toInt();
     m_bBlindVisualizer = settings.value(S_BLIND_VISUALIZER, QVariant(true)).toBool();
+    m_bDisplayDDOnly = settings.value(S_DDONLY, QVariant(true)).toBool();
     m_sDefaultTransmitName = settings.value(S_DEFAULT_SOURCENAME, DEFAULT_SOURCE_NAME).toString();
     m_nNumSecondsOfSacn = settings.value(S_TIMEOUT, QVariant(0)).toInt();
     m_flickerFinderShowInfo = settings.value(S_FLICKERFINDERSHOWINFO, QVariant(true)).toBool();

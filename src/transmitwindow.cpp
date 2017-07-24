@@ -80,6 +80,7 @@ transmitwindow::transmitwindow(QWidget *parent) :
         connect(button, SIGNAL(pressed()), this, SLOT(presetButtonPressed()));
     }
     QToolButton *recordButton = new QToolButton(this);
+    m_presetButtons << recordButton;
     recordButton->setCheckable(true);
     recordButton->setIcon(QIcon(":/icons/record.png"));
     layout->addWidget(recordButton);
@@ -119,8 +120,8 @@ transmitwindow::transmitwindow(QWidget *parent) :
     ui->gbFaders->setLayout(mainLayout);
 
     // Set up fader start spinbox
-    ui->sbFadersStart->setMinimum(1);
-    ui->sbFadersStart->setMaximum(MAX_DMX_ADDRESS - NUM_SLIDERS + 1);
+    ui->sbFadersStart->setMinimum(MIN_DMX_ADDRESS);
+    ui->sbFadersStart->setMaximum(MAX_DMX_ADDRESS);
 
 
     ui->gbFaders->adjustSize();
@@ -236,6 +237,13 @@ void transmitwindow::on_sliderMoved(int value)
 
 void transmitwindow::on_sbFadersStart_valueChanged(int value)
 {
+    int maxValue = MAX_DMX_ADDRESS - NUM_SLIDERS + 1;
+    if (value > maxValue)
+    {
+        ui->sbFadersStart->setValue(maxValue);
+        return;
+    }
+
     for(int i=0; i<m_sliders.count(); i++)
     {
         QSlider *slider = m_sliders[i];
@@ -606,6 +614,7 @@ void transmitwindow::presetButtonPressed()
         foreach(QToolButton *btn, m_presetButtons)
         {
             btn->setStyleSheet(QString(""));
+            btn->setChecked(false);
         }
 
     }
@@ -631,7 +640,7 @@ void transmitwindow::recordButtonPressed(bool on)
     {
         foreach(QToolButton *btn, m_presetButtons)
         {
-            btn->setStyleSheet(QString("background-color: red;"));
+            if (!btn->isChecked()) btn->setStyleSheet(QString("background-color: red;"));
         }
     }
     else

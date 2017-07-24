@@ -110,7 +110,7 @@ void sACNListener::checkSourceExpiration()
     {
         if((*it)->src_valid)
         {
-            if((*it)->active.Expired())
+            if((*it)->active.Expired() && (*it)->priority_wait.Expired())
             {
                 (*it)->src_valid = false;
                 CID::CIDIntoString((*it)->src_cid, cidstr);
@@ -291,7 +291,11 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
             //if we've never seen a dmx packet from the source.
             if(!(*it)->doing_dmx)
             {
-                validpacket = false;
+                /* For fault finding an installation which only sends 0xdd for a universe
+                 * (For example: ETC Cobalt does this for, currenlty, unpatched universes with in it's network map)
+                 * We do want to say that having not sent dimmer data is a valid source/packet
+                 */
+                // validpacket = false;
                 (*it)->priority_wait.Reset();  //We don't want to let the priority timer run out
             }
             else if(!(*it)->waited_for_dd && validpacket)
@@ -438,6 +442,25 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
         }
         else if(start_code == STARTCODE_PRIORITY)
         {
+            // Not sending DMX data, so process name and FPS
+            if (ps->doing_dmx == false) {
+
+                if(ps->name!=name)
+                {
+                    ps->name = name;
+                    ps->source_params_change = true;
+                }
+
+                if(ps->fpsTimer.elapsed() >= 1000)
+                {
+                    // Calculate the FPS rate
+                    ps->fpsTimer.restart();
+                    ps->fps = ps->fpsCounter;
+                    ps->fpsCounter = 0;
+                    ps->source_params_change = true;
+                }
+            }
+
             // Copy the last array back
             memcpy(ps->last_priority_array, ps->priority_array, 512);
             // Fill in the new array
@@ -472,12 +495,15 @@ void sACNListener::performMerge()
 
     memset(addresses_to_merge, -1, sizeof(int) * 512);
 
-    foreach(int chan, m_monitoredChannels)
     {
-        QPointF data;
-        data.setX(m_elapsedTime.nsecsElapsed()/1000000.0);
-        data.setY(mergedLevels().at(chan).level);
-        emit dataReady(chan, data);
+        QMutexLocker locker(&m_monitoredChannelsMutex);
+        foreach(int chan, m_monitoredChannels)
+        {
+            QPointF data;
+            data.setX(m_elapsedTime.nsecsElapsed()/1000000.0);
+            data.setY(mergedLevels().at(chan).level);
+            emit dataReady(chan, data);
+        }
     }
 
     if(m_mergesPerSecondTimer.hasExpired(1000))
@@ -551,12 +577,11 @@ void sACNListener::performMerge()
 
     QMultiMap<int, sACNSource*> addressToSourceMap;
 
-
+	// Find the highest priority for the address
     for(std::vector<sACNSource *>::iterator it = m_sources.begin(); it != m_sources.end(); ++it)
     {
         sACNSource *ps = *it;
-
-        // Find the highest priority for the address, ignoring priorities of zero
+ 
         if(ps->src_valid && !ps->active.Expired() && !ps->doing_per_channel)
         {
             // Set the priority array for sources which are not doing per-channel
@@ -573,17 +598,21 @@ void sACNListener::performMerge()
             sACNMergedAddress *pAddr = &m_merged_levels[addresses_to_merge[i]];
             int address = addresses_to_merge[i];
 
-            if (ps->src_valid  && !ps->active.Expired() && ps->priority_array[address] > priorities[address])
-            {
-                // Sources of higher priority
-                priorities[address] = ps->priority_array[address];
-                addressToSourceMap.remove(address);
-                addressToSourceMap.insert(address, ps);
-            }
-            if (ps->src_valid  && !ps->active.Expired() && ps->priority_array[address] == priorities[address])
-            {
-                addressToSourceMap.insert(address, ps);
-            }
+			if (
+					ps->src_valid // Valid Source
+					&& !(ps->priority_array[address] < priorities[address]) // Not lesser priority
+					&& ( (ps->priority_array[address] > 0) || (ps->priority_array[address] == 0 && !ps->doing_per_channel) ) // Priority > 0 if DD
+				)
+			{
+				if (ps->priority_array[address] > priorities[address])
+				{
+					// Source of higher priority
+					priorities[address] = ps->priority_array[address];
+					addressToSourceMap.remove(address);
+				}
+				addressToSourceMap.insert(address, ps);
+			}
+
             if(ps->src_valid && !ps->active.Expired())
                 pAddr->otherSources << ps;
         }

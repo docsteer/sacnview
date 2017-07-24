@@ -36,7 +36,7 @@
    <item alignment="Qt::AlignVCenter">
     <widget class="QGroupBox" name="gbNetworkInterface">
      <property name="title">
-      <string>Network Interface</string>
+      <string>Network Interface*</string>
      </property>
     </widget>
    </item>
@@ -132,6 +132,25 @@
         </property>
         <property name="text">
          <string>Display Blind/Visualizer Data</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="cbDisplayDDOnlys">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Display sources with no DMX Data*</string>
         </property>
        </widget>
       </item>
@@ -284,6 +303,22 @@
      </property>
      <property name="standardButtons">
       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Save</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="lblRestartInfo">
+     <property name="font">
+      <font>
+       <pointsize>7</pointsize>
+       <italic>true</italic>
+      </font>
+     </property>
+     <property name="text">
+      <string>*Application restart required on change  </string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
    </item>

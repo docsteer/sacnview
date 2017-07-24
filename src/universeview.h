@@ -45,6 +45,7 @@ protected slots:
     void sourceChanged(sACNSource *source);
     void levelsChanged();
     void selectedAddressChanged(int address);
+    void openBigDisplay(quint16 address);
     void on_btnStartFlickerFinder_pressed();
     void on_btnLogWindow_pressed();
 protected:
@@ -83,6 +84,7 @@ private:
     QSharedPointer<sACNListener> m_listener;
     MergedUniverseLogger *m_logger;
     QWidget *m_parentWindow;
+    bool m_displayDDOnlySource;
 };
 
 #endif // UNIVERSEVIEW_H

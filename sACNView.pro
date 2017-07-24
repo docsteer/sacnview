@@ -24,6 +24,10 @@ macx {
     QMAKE_CXXFLAGS += -std=gnu++0x
 }
 
+win32 {
+    LIBS += -lole32 -loleaut32
+}
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = sACNView
@@ -76,8 +80,12 @@ SOURCES += src/main.cpp\
     src/multiuniverse.cpp \
     src/flickerfinderinfoform.cpp \
     src/sacn/sacnsocket.cpp \
-    src/logwindow.cpp
-	
+    src/logwindow.cpp \
+    src/versioncheck.cpp \
+    src/sacn/firewallcheck.cpp \
+    src/bigdisplay.cpp \
+    src/addmultidialog.cpp
+
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
     src/universeview.h \
@@ -111,7 +119,11 @@ HEADERS  += src/mdimainwindow.h \
     src/multiuniverse.h \
     src/flickerfinderinfoform.h \
     src/sacn/sacnsocket.h \
-    src/logwindow.h
+    src/logwindow.h \
+    src/versioncheck.h \
+    src/sacn/firewallcheck.h \
+    src/bigdisplay.h \ 
+    src/addmultidialog.h
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
@@ -124,7 +136,9 @@ FORMS    += ui/mdimainwindow.ui \
     ui/snapshot.ui \
     ui/multiuniverse.ui \
     ui/flickerfinderinfoform.ui \
-    ui/logwindow.ui
+    ui/logwindow.ui \
+    ui/bigdisplay.ui \
+    ui/addmultidialog.ui
 
 RESOURCES += \
     res/resources.qrc

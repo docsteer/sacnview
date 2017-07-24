@@ -21,6 +21,7 @@
 #include "consts.h"
 #include "sacnsender.h"
 #include "sacneffectengine.h"
+#include "consts.h"
 
 namespace Ui {
 class MultiUniverse;
@@ -37,6 +38,7 @@ private slots:
     void on_btnAddRow_pressed();
     void on_btnRemoveRow_pressed();
     void on_tableWidget_cellChanged(int row, int column);
+    void on_btnAddMulti_clicked();
 
     void universeChanged(int value);
     void startChanged(int value);
@@ -67,7 +69,9 @@ private:
         COL_CONTROL
     };
 
-    void setupControl(int row, sACNEffectEngine::FxMode mode);
+    void setupControl(int row, sACNEffectEngine::FxMode mode, int value);
+    void addSource(int universe, int min_address, int max_address, sACNEffectEngine::FxMode mode,
+           QString name, bool startSending, int level = 0, int rate = 5, int priority = DEFAULT_SACN_PRIORITY);
 };
 
 #endif // MULTIUNIVERSE_H

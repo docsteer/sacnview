@@ -9,6 +9,7 @@
 #include <QTimer>
 #include <QElapsedTimer>
 #include <QMutex>
+#include <QReadWriteLock>
 #include <list>
 #include "deftypes.h"
 #include "CID.h"
@@ -69,11 +70,13 @@ public slots:
     void sourceOffline(sACNSource *source);
 
 private:
+    mutable QReadWriteLock rwlock_ModelIndex;
     QMutex mutex_readPendingDatagrams;
     QList<sACNUniverseInfo *>m_universes;
     int m_start;
     QTimer *m_checkTimeoutTimer;
     QList<QSharedPointer<sACNListener>> m_listeners;
+    bool m_displayDDOnlySource;
 };
 
 #endif // SACNUNIVERSELISTMODEL_H

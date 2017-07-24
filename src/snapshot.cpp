@@ -202,6 +202,7 @@ void Snapshot::playSnapshot()
             QString postfix = tr(" - Snapshot");
             name.truncate(MAX_SOURCE_NAME_LEN - postfix.length());
             m_senders.last()->setName(name.trimmed() + postfix);
+            m_senders.last()->setPerSourcePriority(m_prioritySpins[i]->value());
         }
 
         m_senders.last()->startSending();

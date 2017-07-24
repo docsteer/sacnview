@@ -28,7 +28,7 @@ aboutDialog::aboutDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    if (VERSION == GIT_CURRENT_SHA1) {
+    if (QString(VERSION) == QString(GIT_CURRENT_SHA1)) {
         ui->DisplayVer->setText(QString("%1").arg(VERSION));
     } else {
         ui->DisplayVer->setText(QString("%1\n%2").arg(VERSION).arg(GIT_CURRENT_SHA1));

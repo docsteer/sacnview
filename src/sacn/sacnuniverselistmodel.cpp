@@ -45,12 +45,15 @@ sACNUniverseListModel::sACNUniverseListModel(QObject *parent) : QAbstractItemMod
 {
     m_start = MIN_SACN_UNIVERSE;
 
+    m_displayDDOnlySource = Preferences::getInstance()->GetDisplayDDOnly();
+
     setStartUniverse(m_start);
 }
 
 void sACNUniverseListModel::setStartUniverse(int start)
 {
-    QMutexLocker locker(&mutex_readPendingDatagrams);
+    QMutexLocker datagram_locker(&mutex_readPendingDatagrams);
+    QWriteLocker modelindex_locker(&rwlock_ModelIndex);
 
     // Limit max value
     static const int startMax = (MAX_SACN_UNIVERSE - NUM_UNIVERSES_LISTED) + 1;
@@ -75,7 +78,9 @@ void sACNUniverseListModel::setStartUniverse(int start)
         // Add the existing sources
         for(int i=0; i<m_listeners.back()->sourceCount(); i++)
         {
+            modelindex_locker.unlock();
             sourceOnline(m_listeners.back()->source(i));
+            modelindex_locker.relock();
         }
 
         connect(m_listeners.back().data(), SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
@@ -146,10 +151,12 @@ QModelIndex sACNUniverseListModel::parent(const QModelIndex &index) const
         return QModelIndex();
 
     sACNBasicSourceInfo *i = static_cast<sACNBasicSourceInfo *>(index.internalPointer());
-    if(i)
+    if(i && rwlock_ModelIndex.tryLockForRead())
     {
         int parentRow = i->parent->universe - m_start;
-        return createIndex(parentRow, 0);
+        QModelIndex ret = createIndex(parentRow, 0);
+        rwlock_ModelIndex.unlock();
+        return ret;
     }
 
     return QModelIndex();
@@ -157,12 +164,18 @@ QModelIndex sACNUniverseListModel::parent(const QModelIndex &index) const
 
 void sACNUniverseListModel::sourceOnline(sACNSource *source)
 {
+    QWriteLocker locker(&rwlock_ModelIndex);
+
+    // In my display range?
     int univIndex = source->universe - m_start;
     if (
             (univIndex > m_universes.count())
             ||
             (univIndex < 0)
         ) { return; }
+
+    // Display sources that only transmit 0xdd?
+    if (!m_displayDDOnlySource && !source->doing_dmx) { return; }
 
     // Create sACNBasicSourceInfo copy of sACNSource
     sACNBasicSourceInfo *info = Q_NULLPTR;
@@ -183,6 +196,9 @@ void sACNUniverseListModel::sourceOnline(sACNSource *source)
 
 void sACNUniverseListModel::sourceChanged(sACNSource *source)
 {
+    QWriteLocker locker(&rwlock_ModelIndex);
+
+    // In my display range?
     int univIndex = source->universe - m_start;
     if (
             (univIndex > m_universes.count())
@@ -190,14 +206,19 @@ void sACNUniverseListModel::sourceChanged(sACNSource *source)
             (univIndex < 0)
         ) { return; }
 
+    // Display sources that only transmit 0xdd?
+    if (!m_displayDDOnlySource && !source->doing_dmx) { return; }
+
     // Update existing source
     sACNBasicSourceInfo *info = Q_NULLPTR;
     if (m_universes.count() + 1 < univIndex) {return;}
     info = m_universes[univIndex]->sourcesByCid.value(source->src_cid);
     if (info == Q_NULLPTR) {
         // Try to (re)add...
+        locker.unlock();
         sourceOnline(source);
         sourceChanged(source);
+        locker.relock();
         info = m_universes[univIndex]->sourcesByCid.value(source->src_cid);
         if (info == Q_NULLPTR) { return; }
     };
@@ -213,6 +234,7 @@ void sACNUniverseListModel::sourceChanged(sACNSource *source)
 
 void sACNUniverseListModel::sourceOffline(sACNSource *source)
 {
+    QWriteLocker locker(&rwlock_ModelIndex);
     int univIndex = source->universe - m_start;
     if (
             (univIndex > m_universes.count())
@@ -239,6 +261,7 @@ void sACNUniverseListModel::sourceOffline(sACNSource *source)
 
 int sACNUniverseListModel::indexToUniverse(const QModelIndex &index)
 {
+    QReadLocker locker(&rwlock_ModelIndex);
     if(!index.isValid())
         return 0;
 
