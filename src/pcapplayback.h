@@ -21,14 +21,19 @@ private slots:
     void on_btnStartPause_clicked();
     void increaseProgress();
     void playbackFinished();
+    void playbackClosed();
     void error(QString errorMessage);
+
+    void on_btnReset_clicked();
 
 private:
     Ui::PcapPlayback *ui;
 
     pcapplaybacksender *sender;
 
-    void updateUIBtns();
+    void openThread();
+    void closeThread();
+    void updateUIBtns(bool clear = false);
 };
 
 #endif // PCAPPLAYBACK_H

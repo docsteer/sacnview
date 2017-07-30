@@ -1,17 +1,42 @@
 #include "pcapplaybacksender.h"
 #include <pcap.h>
 #include <QDebug>
-#include <QNetworkDatagram>
 #include <QtEndian>
-#
 #include "preferences.h"
 
 #include "ethernetstrut.h"
+
+pcapplaybacksender::pcapplaybacksender(QString FileName) :
+    m_running(false),
+    m_shutdown(false),
+    m_filename(FileName),
+    m_pcap_in(Q_NULLPTR),
+    m_pcap_out(Q_NULLPTR)
+{
+    if (!openFile()) {
+        closeFile();
+    }
+}
+
+pcapplaybacksender::~pcapplaybacksender()
+{
+    m_running = false;
+
+    closeFile();
+
+    QMutexLocker mutexOut(&m_pcap_out_Mutex);
+    if (m_pcap_out) {
+        pcap_close(m_pcap_out);
+        m_pcap_out = Q_NULLPTR;
+    }
+}
 
 void pcapplaybacksender::run()
 {
     /* Open output adapter */
     {
+        QMutexLocker mutexOut(&m_pcap_out_Mutex);
+
         char errbuf[PCAP_ERRBUF_SIZE];
 
         // Get required interface
@@ -28,8 +53,14 @@ void pcapplaybacksender::run()
         // See which avaliable interface matches required interface
         for(pcap_if_t *dev = alldevs; dev != NULL; dev = dev->next)
         {
+            // Already have an interface
+            if (m_pcap_out) { break; }
+
             for (pcap_addr *addr = dev->addresses; addr != NULL; addr = addr->next)
             {
+                // Already have an interface
+                if (m_pcap_out) { break; }
+
                 if (addr->addr->sa_family == AF_INET) {
                     // IPv4
                     struct sockaddr_in *ipv4 = (struct sockaddr_in *)addr->addr;
@@ -37,11 +68,15 @@ void pcapplaybacksender::run()
                     // Is this address assigned to the interface required?
                     foreach (QNetworkAddressEntry ifaceAddr, iface.addressEntries())
                     {
+                        // Already have an interface
+                        if (m_pcap_out) { break; }
+
                         if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol)
                         {
-                           if (QHostAddress(qFromBigEndian<quint32>(ipv4->sin_addr.S_un.S_addr)) == ifaceAddr.ip())
-                           {
-                               qDebug() << "PCap Playback: Opening" << dev->name << dev->description << QHostAddress(qFromBigEndian<quint32>(ipv4->sin_addr.S_un.S_addr));
+                            // Selected interface contains the IP of the required interface
+                            if (QHostAddress(qFromBigEndian<quint32>(ipv4->sin_addr.S_un.S_addr)) == ifaceAddr.ip())
+                            {
+                               qDebug() << "PCap Playback: Output" << dev->name << QHostAddress(qFromBigEndian<quint32>(ipv4->sin_addr.S_un.S_addr));
 
                                // Yes this interface!
                                m_pcap_out = pcap_open_live(dev->name, 0, 1, 0, errbuf);
@@ -50,32 +85,34 @@ void pcapplaybacksender::run()
                                    emit error(tr("%1\n%2").arg(errbuf).arg(iface.humanReadableName()));
                                    return;
                                }
-                               break;
-                           }
+                            }
                         }
                     }
                 }
             }
-
-            if (m_pcap_out) break;
         }
+
+        // Clean up
+        pcap_freealldevs(alldevs);
+
+        // Did we get an interface?
         if (!m_pcap_out) {
             error(tr("Unable to open required interface\n%1").arg(iface.humanReadableName()));
             return;
         }
     }
 
-
-    while (true)
+    while (!m_shutdown)
     {
-        QThread::sleep(1);
+        if (m_running && m_pcap_out && m_pcap_in)
+        {
+            QMutexLocker mutexIn(&m_pcap_in_Mutex);
+            QMutexLocker mutexOut(&m_pcap_out_Mutex);
 
-        if (m_running) {
             /* Get next packet and send at correct interval */
             struct pcap_pkthdr *pkt_header;
             const u_char *pkt_data;
-            int ret = pcap_next_ex(m_pcap_in, &pkt_header, &pkt_data);
-            if (ret == 1)
+            if (pcap_next_ex(m_pcap_in, &pkt_header, &pkt_data) == 1)
             {
 //                /* Disect returned packet */
 //                // Headers
@@ -146,7 +183,8 @@ void pcapplaybacksender::run()
                     QThread::msleep(m_pktLastTime.msecsTo(pkt_time));
                 }
 
-                // Send  
+                // Send
+                if (!m_running) { continue; }
                 if (pcap_sendpacket(m_pcap_out, pkt_data, pkt_header->caplen) == 0) {
                     emit packetSent();
                 } else {
@@ -155,18 +193,6 @@ void pcapplaybacksender::run()
                     emit sendingFinished();
                     return;
                 }
-//                QHostAddress dest_ip = QHostAddress(qFromBigEndian<quint32>(ip->ip_dst.s_addr));
-//                quint16 dest_port = qFromBigEndian(udp->uh_dport);
-//                QByteArray qpayload(payload, payload_len);
-//                sACNTxSocket *sendSock = new sACNTxSocket();
-//                sendSock->bindMulticast();
-//                if(sendSock->writeDatagram(qpayload, dest_ip, dest_port) == -1)
-//                {
-//                    qDebug() << "Error sending datagram : " << sendSock->errorString();
-//                } else {
-//                    emit packetSent();
-//                }
-
 
                 // Save time
                 m_pktLastTime = QTime(0,0,0);
@@ -178,44 +204,65 @@ void pcapplaybacksender::run()
                 m_running = false;
                 emit sendingFinished();
             }
+        } else {
+            // Noop
+            QThread::msleep(100);
         }
     }
 }
 
-pcapplaybacksender::pcapplaybacksender(QString FileName) :
-    m_running(false),
-    m_filename(FileName),
-    m_pcap_in(Q_NULLPTR),
-    m_pcap_out(Q_NULLPTR)
+void pcapplaybacksender::quit()
 {
+    m_running = false;
+    m_shutdown = true;
+}
+
+bool pcapplaybacksender::openFile()
+{
+    // Ensure already closed
+    closeFile();
+
     /* Open the capture file */
+    QMutexLocker mutexIn(&m_pcap_in_Mutex);
     char errbuf[PCAP_ERRBUF_SIZE];
     m_pcap_in = pcap_open_offline(m_filename.toUtf8(), errbuf);
     if (!m_pcap_in) {
         emit error(tr("Error opening %1\n%2").arg(QDir::toNativeSeparators(m_filename)).arg(errbuf));
-        return;
+        return false;
     }
+
+    qDebug() << "PCap Playback: Input" << m_filename;
 
     /* Filter to only include sACN packets */
     struct bpf_program fcode;
     const char packet_filter[] = sacn_packet_filter;
     if (pcap_compile(m_pcap_in, &fcode, packet_filter, 1, 0xffffff) != 0)
     {
-        pcap_close(m_pcap_in);
+        closeFile();
         emit error(tr("Error opening %1\npcap_compile failed").arg(QDir::toNativeSeparators(m_filename)));
-        return;
+        return false;
     }
     if (pcap_setfilter(m_pcap_in, &fcode)<0)
     {
-        pcap_close(m_pcap_in);
+        closeFile();
         emit error(tr("Error opening %1\npcap_setfilter failed").arg(QDir::toNativeSeparators(m_filename)));
+        return false;
     }
+
+    return true;
 }
 
-pcapplaybacksender::~pcapplaybacksender()
+void pcapplaybacksender::closeFile()
 {
-    if (m_pcap_in) { pcap_close(m_pcap_in); }
-    if (m_pcap_out) { pcap_close(m_pcap_out); }
+    m_running = false;
+    QMutexLocker mutexIn(&m_pcap_in_Mutex);
+    m_pktLastTime = QTime();
+    if (m_pcap_in) {
+        pcap_close(m_pcap_in);
+        m_pcap_in = Q_NULLPTR;
+    }
+
+    emit sendingClosed();
 }
 
 bool pcapplaybacksender::isRunning()
@@ -235,5 +282,6 @@ void pcapplaybacksender::pause()
 
 void pcapplaybacksender::reset()
 {
-
+    closeFile();
+    openFile();
 }

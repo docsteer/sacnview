@@ -18,31 +18,49 @@ PcapPlayback::PcapPlayback(QWidget *parent) :
 
 PcapPlayback::~PcapPlayback()
 {
+    closeThread();
     delete ui;
+}
+
+void PcapPlayback::openThread()
+{
+    if (sender) {
+        closeThread();
+    }
+
+    /* Create sender thread */
+    sender = new pcapplaybacksender(ui->lblFilename->text());
+    connect(sender, SIGNAL(packetSent()), this, SLOT(increaseProgress()));
+    connect(sender, SIGNAL(sendingFinished()), this, SLOT(playbackFinished()));
+    connect(sender, SIGNAL(sendingClosed()), this, SLOT(playbackClosed()));
+    connect(sender, SIGNAL(error(QString)), this, SLOT(error(QString)));
+    ui->progressBar->reset();
+    sender->start();
+    sender->setPriority(QThread::HighPriority);
+}
+
+void PcapPlayback::closeThread()
+{
+    if (sender) {
+        sender->quit();
+        sender->wait();
+        sender->deleteLater();
+    }
 }
 
 void PcapPlayback::on_btnOpen_clicked()
 {
-    if (sender) {
-        delete sender;
-        sender = Q_NULLPTR;
-    }
-
     /* Select file to open */
     QString fileName = QFileDialog::getOpenFileName(this,
             tr("Open Capture"),
             QDir::homePath(),
-            tr("Pcap Files (*.pcap)"));
+            tr("PCap Files (*.pcap);; PCapNG Files (*.pcapng);; All files (*.*)"));
     if (fileName.isEmpty()) {
         return;
     }
 
     /* Update UI */
-    ui->lblFilename->clear();
-    ui->lblPacketCount->clear();
-    ui->lblTime->clear();
-    ui->progressBar->setValue(0);
-    updateUIBtns();
+    updateUIBtns(true);
 
     /* Open the capture file */
     char errbuf[PCAP_ERRBUF_SIZE];
@@ -97,22 +115,17 @@ void PcapPlayback::on_btnOpen_clicked()
     /* Clean up */
     pcap_close(m_pcap_in);
 
-    /* Create sender thread */
-    sender = new pcapplaybacksender(ui->lblFilename->text());
-    connect(sender, SIGNAL(packetSent()), this, SLOT(increaseProgress()));
-    connect(sender, SIGNAL(sendingFinished()), this, SLOT(playbackFinished()));
-    connect(sender, SIGNAL(error(QString)), this, SLOT(error(QString)));
-    ui->progressBar->setValue(0);
-    sender->start();
+    /* Open Thread */
+    openThread();
 
     /* Update UI */
-    ui->lblPacketCount->setText(tr("%1").arg(pkt_count));
+    ui->lblFileCount->setText(QString("%1").arg(pkt_count));
+    ui->progressBar->setMaximum(pkt_count - 1);
     {
         QTime elasped(0,0,0);
-        ui->lblTime->setText(QString("%1").arg(
+        ui->lblFileTime->setText(QString("%1").arg(
                                  elasped.addMSecs(pkt_start_time.msecsTo(pkt_end_time)).toString("hh:mm:ss.zzz")));
     }
-    ui->progressBar->setMaximum(pkt_count);
     updateUIBtns();
 
 
@@ -122,10 +135,8 @@ void PcapPlayback::on_btnOpen_clicked()
 
 void PcapPlayback::on_btnStartPause_clicked()
 {
-    if (!sender)
+    if (sender)
     {
-        sender->play();
-    } else {
         if (sender->isRunning())
         {
             sender->pause();
@@ -144,6 +155,16 @@ void PcapPlayback::increaseProgress()
 
 void PcapPlayback::playbackFinished()
 {
+    if (ui->chkLoop->isChecked())
+    {
+        on_btnReset_clicked();
+        sender->play();
+    }
+    updateUIBtns();
+}
+
+void PcapPlayback::playbackClosed()
+{
     updateUIBtns();
 }
 
@@ -153,20 +174,34 @@ void PcapPlayback::error(QString errorMessage)
         tr("PCap Playback"),
         errorMessage,
         QMessageBox::Ok);
+
+    closeThread();
+
+    updateUIBtns(true);
 }
 
-void PcapPlayback::updateUIBtns()
+void PcapPlayback::updateUIBtns(bool clear)
 {
+    if (clear)
+    {
+        ui->lblFilename->clear();
+        ui->lblFileCount->clear();
+        ui->lblFileTime->clear();
+        ui->progressBar->reset();
+    }
+
     if (!sender)
     {
        ui->btnOpen->setEnabled(true);
        ui->btnStartPause->setText("Play");
        ui->btnStartPause->setEnabled(false);
        ui->btnReset->setEnabled(false);
+       ui->chkLoop->setEnabled(false);
        return;
     } else {
         ui->btnStartPause->setEnabled(true);
         ui->btnReset->setEnabled(true);
+        ui->chkLoop->setEnabled(true);
     }
 
     if (sender->isRunning())
@@ -177,4 +212,11 @@ void PcapPlayback::updateUIBtns()
         ui->btnStartPause->setText("Play");
         ui->btnOpen->setEnabled(true);
     }
+}
+
+void PcapPlayback::on_btnReset_clicked()
+{
+    updateUIBtns();
+    ui->progressBar->reset();
+    sender->reset();
 }
