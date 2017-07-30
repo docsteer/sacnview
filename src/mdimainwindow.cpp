@@ -23,6 +23,7 @@
 #include "sacnuniverselistmodel.h"
 #include "snapshot.h"
 #include "multiuniverse.h"
+#include "pcapplayback.h"
 
 #include <QMdiSubWindow>
 
@@ -239,4 +240,11 @@ void MDIMainWindow::restoreMdiWindows()
             }
         }
     }
+}
+
+void MDIMainWindow::on_actionPCAPPlayback_triggered()
+{
+    PcapPlayback *pcapPlayback = new PcapPlayback(this);
+    ui->mdiArea->addSubWindow(pcapPlayback);
+    pcapPlayback->show();
 }

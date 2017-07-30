@@ -25,7 +25,13 @@ macx {
 }
 
 win32 {
+    # Firewall Checker
     LIBS += -lole32 -loleaut32
+
+    # WinPCap
+    PCAP_PATH = $${_PRO_FILE_PWD_}/libs/WinPcap-413-173-b4
+    LIBS += -L$${PCAP_PATH}/lib -lwpcap
+    INCLUDEPATH += $${PCAP_PATH}/Include
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -84,7 +90,9 @@ SOURCES += src/main.cpp\
     src/versioncheck.cpp \
     src/sacn/firewallcheck.cpp \
     src/bigdisplay.cpp \
-    src/addmultidialog.cpp
+    src/addmultidialog.cpp \
+    src/pcapplayback.cpp \
+    src/pcapplaybacksender.cpp
 
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -123,7 +131,10 @@ HEADERS  += src/mdimainwindow.h \
     src/versioncheck.h \
     src/sacn/firewallcheck.h \
     src/bigdisplay.h \ 
-    src/addmultidialog.h
+    src/addmultidialog.h \
+    src/pcapplayback.h \
+    src/pcapplaybacksender.h \
+    src/ethernetstrut.h
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
@@ -138,7 +149,8 @@ FORMS    += ui/mdimainwindow.ui \
     ui/flickerfinderinfoform.ui \
     ui/logwindow.ui \
     ui/bigdisplay.ui \
-    ui/addmultidialog.ui
+    ui/addmultidialog.ui \
+    ui/pcapplayback.ui
 
 RESOURCES += \
     res/resources.qrc

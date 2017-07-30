@@ -52,6 +52,8 @@ private slots:
 
     void on_actionMultiUniverse_triggered();
 
+    void on_actionPCAPPlayback_triggered();
+
 private:
     Ui::MDIMainWindow *ui;
     sACNUniverseListModel *m_model;
