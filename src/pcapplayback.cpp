@@ -34,6 +34,8 @@ void PcapPlayback::openThread()
     connect(sender, SIGNAL(sendingFinished()), this, SLOT(playbackFinished()));
     connect(sender, SIGNAL(sendingClosed()), this, SLOT(playbackClosed()));
     connect(sender, SIGNAL(error(QString)), this, SLOT(error(QString)));
+    connect(sender, SIGNAL(finished()), sender, SLOT(deleteLater()));
+    connect(sender, SIGNAL(finished()), this, SLOT(playbackThreadClosed()));
     ui->progressBar->reset();
     sender->start();
     sender->setPriority(QThread::HighPriority);
@@ -41,11 +43,13 @@ void PcapPlayback::openThread()
 
 void PcapPlayback::closeThread()
 {
-    if (sender) {
-        sender->quit();
-        sender->wait();
-        sender->deleteLater();
-    }
+    if (sender) sender->quit();
+}
+
+void PcapPlayback::playbackThreadClosed()
+{
+    sender = Q_NULLPTR;
+    updateUIBtns();
 }
 
 void PcapPlayback::on_btnOpen_clicked()
@@ -97,6 +101,7 @@ void PcapPlayback::on_btnOpen_clicked()
     while (true)
     {
         int ret = pcap_next_ex(m_pcap_in, &pkt_header, &pkt_data);
+        if (ret != 1) break;
 
         if (pkt_count++ == 0) {
             // First packet
@@ -104,8 +109,6 @@ void PcapPlayback::on_btnOpen_clicked()
             pkt_start_time = pkt_start_time.addMSecs((pkt_header->ts.tv_usec / 1000));
         }
 
-        // Done!
-        if (ret != 1) break;
     }
 
     // Get time of last packet
@@ -120,7 +123,7 @@ void PcapPlayback::on_btnOpen_clicked()
 
     /* Update UI */
     ui->lblFileCount->setText(QString("%1").arg(pkt_count));
-    ui->progressBar->setMaximum(pkt_count - 1);
+    ui->progressBar->setMaximum(pkt_count);
     {
         QTime elasped(0,0,0);
         ui->lblFileTime->setText(QString("%1").arg(

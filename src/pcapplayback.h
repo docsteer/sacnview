@@ -22,6 +22,7 @@ private slots:
     void increaseProgress();
     void playbackFinished();
     void playbackClosed();
+    void playbackThreadClosed();
     void error(QString errorMessage);
 
     void on_btnReset_clicked();

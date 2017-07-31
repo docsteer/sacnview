@@ -136,6 +136,9 @@
         <property name="textVisible">
          <bool>true</bool>
         </property>
+        <property name="format">
+         <string>%v / %m Packets</string>
+        </property>
        </widget>
       </item>
       <item>
