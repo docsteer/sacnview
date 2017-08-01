@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QTime>
 #include <QMutexLocker>
+#include <QNetworkDatagram>
 #include "sacn/sacnsocket.h"
 
 #define sacn_packet_filter "ip and udp and dst port 5568 and dst net 239.255.0.0 mask 255.255.6.0"
@@ -49,6 +50,9 @@ private:
     bool m_running;
     bool m_shutdown;
     QTime m_pktLastTime;
+
+    typedef struct pcap_pkthdr pcap_pkthdr_t;
+    QNetworkDatagram createDatagram(pcap_t *hpcap, pcap_pkthdr_t *pkt_header, const unsigned char *pkt_data);
 };
 
 #endif // PCAPPLAYBACKSENDER_H

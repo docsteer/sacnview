@@ -72,8 +72,11 @@ public:
     /**
      *  @brief processDatagram Process a suspected sACN datagram.
      * This allows other listeners to pass on unicast datagrams for other universes
+     *
+     * if alwaysPass is set, then the function will pass on multicast packets to the correct listener, if required.
+     * Unicast packets are always forwared,as we can not ensure which listener these arrive at.
      */
-    void processDatagram(QByteArray data, QHostAddress receiver, QHostAddress sender);
+    void processDatagram(QByteArray data, QHostAddress receiver, QHostAddress sender, bool alwaysPass = false);
 
     // Diagnostic - the number of merge operations per second
 

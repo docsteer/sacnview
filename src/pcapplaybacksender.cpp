@@ -3,7 +3,8 @@
 #include <QDebug>
 #include <QtEndian>
 #include "preferences.h"
-
+#include "sacn/streamingacn.h"
+#include "sacn/sacnlistener.h"
 #include "ethernetstrut.h"
 
 pcapplaybacksender::pcapplaybacksender(QString FileName) :
@@ -114,65 +115,8 @@ void pcapplaybacksender::run()
             const u_char *pkt_data;
             if (pcap_next_ex(m_pcap_in, &pkt_header, &pkt_data) == 1)
             {
-//                /* Disect returned packet */
-//                // Headers
-//                const struct sniff_ethernet *ethernet;
-//                const struct sniff_ip *ip;
-//                const struct sniff_udp *udp;
-//                const char *payload;
-//                unsigned int payload_len = 0;
-
-//                int linkType = pcap_datalink(m_pcap_in);
-//                switch (linkType)
-//                {
-//                    case DLT_EN10MB:
-//                    {
-//                        // Ethernet
-
-//                        // Layer 2
-//                        if (pkt_header->caplen < sizeof(ethernet))
-//                        {
-//                            qDebug() << "PCapPlayback: Missing complete layer 2";
-//                            continue;
-//                        }
-//                        ethernet = (struct sniff_ethernet*)(pkt_data);
-//                        if (qFromBigEndian(ethernet->ether_type) != 0x0800)
-//                        {
-//                            qDebug() << "PCapPlayback: Layer 2 ethertype not IPv4";
-//                            continue;
-//                        }; // IPv4 Only
-
-//                        // Layer 3
-//                        if (pkt_header->caplen < (sizeof(ethernet) + sizeof(ip)))
-//                        {
-//                            qDebug() << "PCapPlayback: Missing complete layer 3";
-//                            continue;
-//                        }
-//                        ip = (struct sniff_ip*)(ethernet + 1);
-
-//                        // Layer 4
-//                        if (pkt_header->caplen < (sizeof(ethernet) + sizeof(ip) + sizeof(udp)))
-//                        {
-//                            qDebug() << "PCapPlayback: Missing layer 4";
-//                            continue;
-//                        }
-//                        udp = (struct sniff_udp*)(ip + 1);
-
-//                        // Payload
-//                        payload = (const char *)(udp + 1);
-//                        payload_len = qFromBigEndian(udp->uh_ulen) - sizeof(udp);
-//                        if (pkt_header->caplen < (sizeof(ethernet) + sizeof(ip) + sizeof(udp) + payload_len))
-//                        {
-//                            qDebug() << "PCapPlayback: Missing Payload";
-//                            continue;
-//                        }
-//                        break;
-//                    }
-
-//                    default:
-//                        // Other, can not handle
-//                        continue;
-//                }
+                // Create QT datagram to send to self
+                QNetworkDatagram pkt_datagram = createDatagram(m_pcap_in, pkt_header, pkt_data);
 
                 // Wait until time
                 if (!m_pktLastTime.isNull())
@@ -183,8 +127,14 @@ void pcapplaybacksender::run()
                     QThread::msleep(m_pktLastTime.msecsTo(pkt_time));
                 }
 
-                // Send
                 if (!m_running) { continue; }
+                /*
+                 * Send to wire
+                 *
+                 * We use libpcap to retain sender IP and MAC when sending on the wire
+                 * MULITICAST_LOOP is not enabled, so this is not recived by me.
+                 * we need a seperate action to display this locally
+                */
                 if (pcap_sendpacket(m_pcap_out, pkt_data, pkt_header->caplen) == 0) {
                     emit packetSent();
                 } else {
@@ -192,6 +142,21 @@ void pcapplaybacksender::run()
                     m_running = false;
                     emit sendingFinished();
                     return;
+                }
+                /* Send to me
+                 *
+                 * Send to any local listener, but set the always pass flag
+                 *
+                 */
+                {
+                    const QHash<int, QWeakPointer<sACNListener> > listenerList = sACNManager::getInstance()->getListenerList();
+                    QSharedPointer<sACNListener> listener = listenerList.begin().value().toStrongRef();
+                    if (listener)
+                        listener->processDatagram(
+                            pkt_datagram.data(),
+                            pkt_datagram.destinationAddress(),
+                            pkt_datagram.senderAddress(),
+                            true);
                 }
 
                 // Save time
@@ -284,4 +249,83 @@ void pcapplaybacksender::reset()
 {
     closeFile();
     openFile();
+}
+
+QNetworkDatagram pcapplaybacksender::createDatagram(pcap_t *hpcap, pcap_pkthdr_t *pkt_header, const unsigned char *pkt_data)
+{
+    /*
+     * Disect packet and create QNetworkDatagram
+     * Hardware addresses are lost
+    */
+
+    int linkType = pcap_datalink(hpcap);
+    switch (linkType)
+    {
+        case DLT_EN10MB: // Ethernet
+        {
+            // Layer 2
+            const struct sniff_ethernet *ethernet;
+            if (pkt_header->caplen < sizeof(ethernet))
+            {
+                qDebug() << "PCapPlayback: Missing complete layer 2";
+                return QNetworkDatagram();;
+            }
+            ethernet = (struct sniff_ethernet*)(pkt_data);
+            if (qFromBigEndian(ethernet->ether_type) != 0x0800)
+            {
+                qDebug() << "PCapPlayback: Layer 2 ethertype not IPv4";
+                return QNetworkDatagram();;
+            }; // IPv4, no vlan
+
+            // Layer 3
+            const struct sniff_ip *ip;
+            if (pkt_header->caplen < (sizeof(ethernet) + sizeof(ip)))
+            {
+                qDebug() << "PCapPlayback: Missing complete layer 3";
+                return QNetworkDatagram();;
+            }
+            ip = (struct sniff_ip*)(ethernet + 1);
+
+            // Layer 4
+            const struct sniff_udp *udp;
+            if (pkt_header->caplen < (sizeof(ethernet) + sizeof(ip) + sizeof(udp)))
+            {
+                qDebug() << "PCapPlayback: Missing layer 4";
+                return QNetworkDatagram();;
+            }
+            udp = (struct sniff_udp*)(ip + 1);
+
+            // Payload
+            const char *payload;
+            unsigned int payload_len = 0;
+            payload = (const char *)(udp + 1);
+            payload_len = qFromBigEndian(udp->uh_ulen) - sizeof(udp);
+            if (pkt_header->caplen < (sizeof(ethernet) + sizeof(ip) + sizeof(udp) + payload_len))
+            {
+                qDebug() << "PCapPlayback: Missing Payload";
+                return QNetworkDatagram();;
+            }
+
+            // Create Datagram
+            /*
+             * Remember: network byte order = big endian
+            */
+            QNetworkDatagram ret;
+            const QHostAddress senderHost = QHostAddress(qFromBigEndian<quint32>(ip->ip_src.S_un.S_addr));
+            quint16 senderPort = qFromBigEndian<quint16>(udp->uh_sport);
+            ret.setSender(senderHost, senderPort);
+
+            const QHostAddress destHost = QHostAddress(qFromBigEndian<quint32>(ip->ip_dst.S_un.S_addr));
+            quint16 destPort = qFromBigEndian<quint16>(udp->uh_dport);
+            ret.setDestination(destHost, destPort);
+
+            ret.setData(QByteArray(payload, payload_len));
+
+            return ret;
+        }
+
+        default:
+            // Other, can not handle
+            return QNetworkDatagram();
+    }
 }
