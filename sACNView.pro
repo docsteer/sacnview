@@ -24,15 +24,29 @@ macx {
     QMAKE_CXXFLAGS += -std=gnu++0x
 }
 
-win32 {
-    # Firewall Checker
-    LIBS += -lole32 -loleaut32
+## External Libs
 
-    # WinPCap
+# Firewall Checker
+win32 {
+    LIBS += -lole32 -loleaut32
+}
+
+#PCap/WinPcap
+win32 {
     PCAP_PATH = $${_PRO_FILE_PWD_}/libs/WinPcap-413-173-b4
-    LIBS += -L$${PCAP_PATH}/lib -lwpcap
+    contains(QT_ARCH, i386) {
+        LIBS += -L$${PCAP_PATH}/lib
+    } else {
+        LIBS += -L$${PCAP_PATH}/lib/x64
+    }
+    LIBS += -lwpcap -lPacket
     INCLUDEPATH += $${PCAP_PATH}/Include
 }
+!win32 {
+    LIBS += -lpcap -lPacket
+}
+
+## Main ##
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -157,6 +171,8 @@ RESOURCES += \
 
 RC_FILE = res/sacnview.rc
 
+## Deploy ###
+
 isEmpty(TARGET_EXT) {
     win32 {
         TARGET_CUSTOM_EXT = .exe
@@ -175,6 +191,13 @@ win32 {
     DEPLOY_OPT = --dir $${DEPLOY_DIR}
     DEPLOY_CLEANUP = $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR}
     DEPLOY_INSTALLER = makensis /DPRODUCT_VERSION="$$GIT_VERSION" $$system_path($${_PRO_FILE_PWD_}/install/win/install.nsi)
+
+    # WinPCap
+    contains(QT_ARCH, i386) {
+        PRE_DEPLOY_COMMAND = $$QMAKE_COPY $$system_path($${PCAP_PATH}/Bin/*) $${DEPLOY_DIR}
+    } else {
+        PRE_DEPLOY_COMMAND = $$QMAKE_COPY $$system_path($${PCAP_PATH}/Bin/x64/*) $${DEPLOY_DIR}
+    }
 }
 macx {
     DEPLOY_COMMAND = macdeployqt
