@@ -23,6 +23,7 @@
 #include <QNetworkInterface>
 #include <QProcess>
 #include <QMessageBox>
+#include <QStatusBar>
 #include "sacnsender.h"
 #include "versioncheck.h"
 #include "firewallcheck.h"
@@ -64,6 +65,11 @@ int main(int argc, char *argv[])
         w->show();
     else
         w->showMaximized();
+
+    // Show interface name on statusbar
+    w->statusBar()->showMessage(QObject::tr("Selected interface: %1").arg(
+                                    Preferences::getInstance()->networkInterface().humanReadableName())
+                                    );
 
     // Check firewall if not newly selected
     if (!newInterface) {
