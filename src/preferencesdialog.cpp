@@ -32,20 +32,19 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 
     foreach(QNetworkInterface interface, interfaces)
     {
-        bool ok = false;
-        // We want interfaces which are IPv4 and can multicast
-        QString ipString;
-        foreach (QNetworkAddressEntry e, interface.addressEntries()) {
-            if(!ipString.isEmpty())
-                ipString.append(",");
-            ipString.append(e.ip().toString());
-            if(e.ip().protocol() == QAbstractSocket::IPv4Protocol)
-               ok = true;
-        }
-        ok = ok & (bool)(interface.flags() | QNetworkInterface::CanMulticast);
-
-        if(ok)
+        // If the interface is ok for use...
+        if(Preferences::getInstance()->interfaceSuitable(&interface))
         {
+            // List IPv4 Addresses
+            QString ipString;
+            foreach (QNetworkAddressEntry e, interface.addressEntries()) {
+                if (e.ip().protocol() == QAbstractSocket::IPv4Protocol) {
+                    if(!ipString.isEmpty())
+                        ipString.append(",");
+                    ipString.append(e.ip().toString());
+                }
+            }
+
             QRadioButton *radio  = new QRadioButton(ui->gbNetworkInterface);
             radio->setText(QString("%1 (%2)")
                            .arg(interface.humanReadableName())

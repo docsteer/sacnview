@@ -15,6 +15,7 @@
 
 #include "nicselectdialog.h"
 #include "ui_nicselectdialog.h"
+#include "preferences.h"
 #include <QNetworkInterface>
 
 NICSelectDialog::NICSelectDialog(QWidget *parent) :
@@ -25,24 +26,20 @@ NICSelectDialog::NICSelectDialog(QWidget *parent) :
     m_selectedInterface = QNetworkInterface();
 
     QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
-
-
     foreach(QNetworkInterface interface, interfaces)
     {
-        bool ok = false;
-        // We want interfaces which are IPv4 and can multicast
-        QString ipString;
-        foreach (QNetworkAddressEntry e, interface.addressEntries()) {
-            if(!ipString.isEmpty())
-                ipString.append(",");
-            ipString.append(e.ip().toString());
-            if(e.ip().protocol() == QAbstractSocket::IPv4Protocol)
-               ok = true;
-        }
-        ok = ok & (bool)(interface.flags() | QNetworkInterface::CanMulticast);
+        // We want interfaces which are up, IPv4, and can multicast
+        if(Preferences::getInstance()->interfaceSuitable(&interface)) {
 
-        if(ok)
-        {
+            QString ipString;
+            foreach (QNetworkAddressEntry e, interface.addressEntries()) {
+                if(e.ip().protocol() == QAbstractSocket::IPv4Protocol) {
+                    if(!ipString.isEmpty())
+                        ipString.append(",");
+                    ipString.append(e.ip().toString());
+                }
+            }
+
             ui->listWidget->addItem(QString("%1 (%2)")
                                     .arg(interface.humanReadableName())
                                     .arg(ipString));

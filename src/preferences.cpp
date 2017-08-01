@@ -172,7 +172,20 @@ unsigned int Preferences::GetNumSecondsOfSacn()
 
 bool Preferences::defaultInterfaceAvailable()
 {
-    return m_interface.isValid();
+    return interfaceSuitable(&m_interface);
+}
+
+bool Preferences::interfaceSuitable(QNetworkInterface *inter)
+{
+    // Up, can multicast, and has IPv4?
+    if (inter->isValid() && inter->IsRunning && inter->IsUp && inter->CanMulticast)
+    {
+        foreach (QNetworkAddressEntry addr, inter->addressEntries()) {
+            if(addr.ip().protocol() == QAbstractSocket::IPv4Protocol)
+               return true;
+        }
+    }
+    return false;
 }
 
 void Preferences::savePreferences()

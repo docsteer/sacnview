@@ -75,9 +75,16 @@ public:
     /**
      * @brief defaultInterfaceAvailable - returns whether the default interface selected by the user
      * is available
-     * @return
+     * @return true/false
      */
     bool defaultInterfaceAvailable();
+
+    /**
+     * @brief interfaceSuitable - returns whether the interface is suitable for sACN
+     * @param inter - the interface to check
+     * @return true/false
+     */
+    bool interfaceSuitable(QNetworkInterface *inter);
 
 
     QColor colorForCID(const CID &cid);
