@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>270</height>
+    <width>610</width>
+    <height>300</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -193,6 +193,16 @@
       <widget class="QLabel" name="lblQtInfo">
        <property name="text">
         <string>qt-info</string>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="lblLibs">
+       <property name="text">
+        <string>libs-info</string>
        </property>
        <property name="wordWrap">
         <bool>true</bool>

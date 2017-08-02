@@ -46,10 +46,13 @@ protected slots:
     void on_btnUnivListForward_pressed();
     void on_sbUniverseList_valueChanged(int value);
     void universeDoubleClick(const QModelIndex &index);
+    void rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end);
 private slots:
     void on_actionAbout_triggered(bool checked);
 
     void on_actionMultiUniverse_triggered();
+
+    void on_actionPCAPPlayback_triggered();
 
 private:
     Ui::MDIMainWindow *ui;

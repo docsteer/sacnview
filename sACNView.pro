@@ -24,9 +24,29 @@ macx {
     QMAKE_CXXFLAGS += -std=gnu++0x
 }
 
+## External Libs
+
+# Firewall Checker
 win32 {
     LIBS += -lole32 -loleaut32
 }
+
+#PCap/WinPcap
+win32 {
+    PCAP_PATH = $${_PRO_FILE_PWD_}/libs/WinPcap-413-173-b4
+    contains(QT_ARCH, i386) {
+        LIBS += -L$${PCAP_PATH}/lib
+    } else {
+        LIBS += -L$${PCAP_PATH}/lib/x64
+    }
+    LIBS += -lwpcap -lPacket
+    INCLUDEPATH += $${PCAP_PATH}/Include
+}
+!win32 {
+    LIBS += -lpcap -lPacket
+}
+
+## Main ##
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -84,7 +104,9 @@ SOURCES += src/main.cpp\
     src/versioncheck.cpp \
     src/sacn/firewallcheck.cpp \
     src/bigdisplay.cpp \
-    src/addmultidialog.cpp
+    src/addmultidialog.cpp \
+    src/pcapplayback.cpp \
+    src/pcapplaybacksender.cpp
 
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -123,7 +145,10 @@ HEADERS  += src/mdimainwindow.h \
     src/versioncheck.h \
     src/sacn/firewallcheck.h \
     src/bigdisplay.h \ 
-    src/addmultidialog.h
+    src/addmultidialog.h \
+    src/pcapplayback.h \
+    src/pcapplaybacksender.h \
+    src/ethernetstrut.h
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
@@ -138,12 +163,15 @@ FORMS    += ui/mdimainwindow.ui \
     ui/flickerfinderinfoform.ui \
     ui/logwindow.ui \
     ui/bigdisplay.ui \
-    ui/addmultidialog.ui
+    ui/addmultidialog.ui \
+    ui/pcapplayback.ui
 
 RESOURCES += \
     res/resources.qrc
 
 RC_FILE = res/sacnview.rc
+
+## Deploy ###
 
 isEmpty(TARGET_EXT) {
     win32 {
@@ -163,6 +191,13 @@ win32 {
     DEPLOY_OPT = --dir $${DEPLOY_DIR}
     DEPLOY_CLEANUP = $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR}
     DEPLOY_INSTALLER = makensis /DPRODUCT_VERSION="$$GIT_VERSION" $$system_path($${_PRO_FILE_PWD_}/install/win/install.nsi)
+
+    # WinPCap
+    contains(QT_ARCH, i386) {
+        PRE_DEPLOY_COMMAND = $$QMAKE_COPY $$system_path($${PCAP_PATH}/Bin/*) $${DEPLOY_DIR}
+    } else {
+        PRE_DEPLOY_COMMAND = $$QMAKE_COPY $$system_path($${PCAP_PATH}/Bin/x64/*) $${DEPLOY_DIR}
+    }
 }
 macx {
     DEPLOY_COMMAND = macdeployqt

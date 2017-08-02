@@ -42,6 +42,7 @@
    <addaction name="actionTranmsit"/>
    <addaction name="actionSnapshot"/>
    <addaction name="actionMultiUniverse"/>
+   <addaction name="actionPCAPPlayback"/>
    <addaction name="separator"/>
    <addaction name="actionSettings"/>
    <addaction name="actionAbout"/>
@@ -203,6 +204,15 @@
    </property>
    <property name="text">
     <string>Send Multiple Universes</string>
+   </property>
+  </action>
+  <action name="actionPCAPPlayback">
+   <property name="icon">
+    <iconset resource="../res/resources.qrc">
+     <normaloff>:/icons/play.png</normaloff>:/icons/play.png</iconset>
+   </property>
+   <property name="text">
+    <string>Playback</string>
    </property>
   </action>
  </widget>

@@ -23,6 +23,7 @@
 #include "sacnuniverselistmodel.h"
 #include "snapshot.h"
 #include "multiuniverse.h"
+#include "pcapplayback.h"
 
 #include <QMdiSubWindow>
 
@@ -40,6 +41,7 @@ MDIMainWindow::MDIMainWindow(QWidget *parent) :
     ui->treeView->setModel(m_model);
     ui->treeView->expandAll();
     connect(ui->treeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(universeDoubleClick(QModelIndex)));
+    connect(m_model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)), this, SLOT(rowsAboutToBeRemoved(QModelIndex,int,int)));
 }
 
 MDIMainWindow::~MDIMainWindow()
@@ -126,6 +128,14 @@ void MDIMainWindow::universeDoubleClick(const QModelIndex &index)
         uniView->startListening(universe);
     }
 
+}
+
+void MDIMainWindow::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end)
+{
+    QModelIndex index = ui->treeView->currentIndex();
+    if ((parent.model() == index.model()) && (index.row() >= start) && (index.row() <= end)) {
+        ui->treeView->clearSelection();
+    }
 }
 
 void MDIMainWindow::on_actionMultiUniverse_triggered()
@@ -230,4 +240,11 @@ void MDIMainWindow::restoreMdiWindows()
             }
         }
     }
+}
+
+void MDIMainWindow::on_actionPCAPPlayback_triggered()
+{
+    PcapPlayback *pcapPlayback = new PcapPlayback(this);
+    ui->mdiArea->addSubWindow(pcapPlayback);
+    pcapPlayback->show();
 }
