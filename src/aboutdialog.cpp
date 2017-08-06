@@ -18,6 +18,7 @@
 #include "consts.h"
 #include "streamingacn.h"
 #include "sacnlistener.h"
+#include <pcap.h>
 
 #include <QTimer>
 #include <QDesktopServices>
@@ -41,6 +42,8 @@ aboutDialog::aboutDialog(QWidget *parent) :
     );
     ui->lblQtInfo->setText(tr("This application uses the Qt Library, version %1, licensed under the <a href=\"http://www.gnu.org/licenses/lgpl.html\">GNU LGPL</a>")
                            .arg(qVersion()));
+    const char *libpcap = pcap_lib_version();
+    ui->lblLibs->setText(libpcap);
 
     connect(ui->lblLicense, SIGNAL(linkActivated(QString)), this, SLOT(openLink(QString)));
     connect(ui->lblQtInfo, SIGNAL(linkActivated(QString)), this, SLOT(openLink(QString)));
