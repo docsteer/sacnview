@@ -30,7 +30,11 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="sbNumUniverses"/>
+         <widget class="QSpinBox" name="sbNumUniverses">
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QLabel" name="label_2">
@@ -40,7 +44,11 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="sbStartUniverse"/>
+         <widget class="QSpinBox" name="sbStartUniverse">
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -93,7 +101,11 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="sbPriority"/>
+         <widget class="QSpinBox" name="sbPriority">
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -121,7 +133,11 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="sbStartAddress"/>
+         <widget class="QSpinBox" name="sbStartAddress">
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QLabel" name="label_6">
@@ -131,7 +147,11 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="sbEndAddress"/>
+         <widget class="QSpinBox" name="sbEndAddress">
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -145,11 +165,11 @@
          </widget>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
           <item>
-           <widget class="QDial" name="dial">
-            <property name="notchesVisible">
-             <bool>true</bool>
+           <widget class="QSlider" name="slLevel">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
            </widget>
           </item>

@@ -24,7 +24,17 @@
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="sbPriority"/>
+      <widget class="QSpinBox" name="sbPriority">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
      </item>
      <item>
       <spacer name="horizontalSpacer">
@@ -47,7 +57,17 @@
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="sbSetAll"/>
+      <widget class="QSpinBox" name="sbSetAll">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
