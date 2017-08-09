@@ -51,6 +51,7 @@ protected slots:
     void on_btnCcPrev_pressed();
     void on_btnCcNext_pressed();
     void on_lcdNumber_valueChanged(int value);
+    void on_lcdNumber_toggleOff();
     void on_tabWidget_currentChanged(int index);
     void on_slChannelCheck_valueChanged(int value);
     void on_btnCcBlink_pressed();
