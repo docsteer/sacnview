@@ -120,6 +120,7 @@ void sACNEffectEngine::setStartAddress(quint16 start)
         m_start = start;
         if(m_start > m_end)
             std::swap(m_start, m_end);
+        qDebug() << "Start " << m_start << " End " << m_end;
     }
 }
 
@@ -141,6 +142,39 @@ void sACNEffectEngine::setEndAddress(quint16 end)
         m_end = end;
         if(m_end < m_start)
             std::swap(m_start, m_end);
+        qDebug() << "Start " << m_start << " End " << m_end;
+    }
+}
+
+void sACNEffectEngine::setRange(quint16 start, quint16 end)
+{
+    // Make this method thread-safe
+    if(QThread::currentThread()!=this->thread())
+        QMetaObject::invokeMethod(
+                    this,"setRange", Q_ARG(quint16, start), Q_ARG(quint16, end));
+    else
+    {
+        if(end < start)
+            std::swap(start, end);
+
+        // Set unused values to 0
+        if(start > m_start)
+        {
+            QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, 0),
+                                      Q_ARG(quint16, start),
+                                      Q_ARG(quint8, 0));
+        }
+        m_start = start;
+
+        if(end < m_end)
+        {
+            QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, end),
+                                      Q_ARG(quint16, MAX_DMX_ADDRESS-1),
+                                      Q_ARG(quint8, 0));
+        }
+        m_end = end;
+
+        qDebug() << "Range start " << m_start << " End " << m_end;
     }
 }
 
