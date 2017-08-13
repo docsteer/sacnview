@@ -138,7 +138,8 @@ FORMS    += ui/mdimainwindow.ui \
     ui/flickerfinderinfoform.ui \
     ui/logwindow.ui \
     ui/bigdisplay.ui \
-    ui/addmultidialog.ui
+    ui/addmultidialog.ui \
+    ui/newversiondialog.ui
 
 RESOURCES += \
     res/resources.qrc
