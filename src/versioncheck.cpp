@@ -135,7 +135,13 @@ void NewVersionDialog::setNewVersionInfo(const QString &info)
 
 void NewVersionDialog::on_btnExitInstall_pressed()
 {
-    bool ok = QProcess::startDetached(m_storagePath);
+    bool ok = false;
+
+#ifdef Q_OS_MAC
+    ok = QProcess::startDetached(QString("open ")+m_storagePath);
+#else
+    ok = QProcess::startDetached(m_storagePath);
+#endif
     if(!ok)
         QMessageBox::warning(this, tr("Couldn't Run Installer"), tr("Unable to run installer - please run %1").arg(m_storagePath));
     qApp->exit();
@@ -143,8 +149,7 @@ void NewVersionDialog::on_btnExitInstall_pressed()
 
 void NewVersionDialog::on_btnCancelDl_pressed()
 {
-    delete m_manager;
-    rejected();
+    reject();
 }
 
 VersionCheck::VersionCheck(QObject *parent):
@@ -192,12 +197,15 @@ void VersionCheck::replyFinished (QNetworkReply *reply)
                             jObj["published_at"].toString(),
                             QString("yyyy-MM-dd'T'hh':'mm':'ss'Z'")
                             ).date();
+                QString remote_version = jObj["tag_name"].toString();
+
+
 #ifdef DEBUG_VERSIONCHECK
                 objectDate = QDate(2199, 12, 12);
+                remote_version = QString("AwesomeVersion");
 #endif
 
-
-                qDebug() << "[Version check] Remote version:" << jObj["tag_name"].toString() << objectDate.toString();
+                qDebug() << "[Version check] Remote version:" << remote_version << objectDate.toString();
 
                 // Find the appropriate download URL for the platform
                 QJsonArray assetsArray = jObj["assets"].toArray();
@@ -217,7 +225,7 @@ void VersionCheck::replyFinished (QNetworkReply *reply)
                 }
 
                 if (myDate.isValid() && objectDate.isValid()) {
-                    if (VERSION != jObj["tag_name"].toString()) {
+                    if (VERSION != remote_version) {
                         if (objectDate > myDate) {
                             // Newer!
                             qDebug() << "[Version check] Remote version" << jObj["tag_name"].toString() << "is newer!";
