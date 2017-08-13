@@ -27,6 +27,7 @@ public:
         CLEAR,
         AND,
         ENTER,
+        ALL_OFF
     };
 
     CommandLine();
@@ -69,6 +70,7 @@ public slots:
     void keyClear();
     void keyAnd();
     void keyEnter();
+    void keyAllOff();
 signals:
     void setLevels(QSet<int> addreses, int level);
 protected:
@@ -85,6 +87,7 @@ public:
     EditableLCDNumber(QWidget *parent);
 signals:
     void valueChanged(int);
+    void toggleOff();
 protected:
     virtual void keyPressEvent(QKeyEvent *event);
 };

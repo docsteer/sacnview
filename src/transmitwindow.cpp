@@ -181,6 +181,7 @@ transmitwindow::transmitwindow(QWidget *parent) :
     connect(ui->kFull,  SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyFull()));
     connect(ui->kThru,  SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyThru()));
     connect(ui->kEnter, SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyEnter()));
+    connect(ui->kAllOff,SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyAllOff()));
 
     connect(ui->teCommandline, SIGNAL(setLevels(QSet<int>,int)), this, SLOT(setLevels(QSet<int>,int)));
 }
@@ -445,6 +446,18 @@ void transmitwindow::on_lcdNumber_valueChanged(int value)
     }
 }
 
+void transmitwindow::on_lcdNumber_toggleOff()
+{
+    if(ui->slChannelCheck->value()==0)
+    {
+        ui->slChannelCheck->setValue(ui->slChannelCheck->maximum());
+    }
+    else
+    {
+        ui->slChannelCheck->setValue(0);
+    }
+}
+
 void transmitwindow::on_slChannelCheck_valueChanged(int value)
 {
     int address = ui->lcdNumber->value();
@@ -536,14 +549,28 @@ void transmitwindow::on_dlFadeRate_valueChanged(int value)
 
 void transmitwindow::on_sbFadeRangeStart_valueChanged(int value)
 {
+    if(value>ui->sbFadeRangeEnd->value())
+    {
+        ui->sbFadeRangeEnd->setValue(value);
+    }
+
     if(m_fxEngine)
-        m_fxEngine->setStartAddress(value-1);
+    {
+        m_fxEngine->setRange(ui->sbFadeRangeStart->value()-1, ui->sbFadeRangeEnd->value()-1);
+    }
 }
 
 void transmitwindow::on_sbFadeRangeEnd_valueChanged(int value)
 {
+    if(value<ui->sbFadeRangeStart->value())
+    {
+        ui->sbFadeRangeStart->setValue(value);
+    }
+
     if(m_fxEngine)
-        m_fxEngine->setEndAddress(value-1);
+    {
+        m_fxEngine->setRange(ui->sbFadeRangeStart->value()-1, ui->sbFadeRangeEnd->value()-1);
+    }
 }
 
 void transmitwindow::radioFadeMode_toggled(bool checked)

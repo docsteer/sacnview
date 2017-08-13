@@ -109,7 +109,17 @@
               </widget>
              </item>
              <item row="1" column="2">
-              <widget class="QSpinBox" name="sbTriggerLevel"/>
+              <widget class="QSpinBox" name="sbTriggerLevel">
+               <property name="minimumSize">
+                <size>
+                 <width>75</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
              </item>
              <item row="0" column="0" colspan="3">
               <widget class="QComboBox" name="cbTriggerMode">
@@ -139,6 +149,15 @@
              </item>
              <item row="2" column="2">
               <widget class="QSpinBox" name="sbTriggerDelay">
+               <property name="minimumSize">
+                <size>
+                 <width>75</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
                <property name="suffix">
                 <string>ms</string>
                </property>
