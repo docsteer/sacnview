@@ -414,6 +414,10 @@ void CommandLineWidget::keyPressEvent(QKeyEvent *e)
     case Qt::Key_O:
         m_commandLine.processKey(CommandLine::ALL_OFF);
         break;
+    case Qt::Key_F:
+        m_commandLine.processKey(CommandLine::FULL);
+        break;
+
     }
 
     displayText();
