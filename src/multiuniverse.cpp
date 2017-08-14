@@ -384,7 +384,7 @@ void MultiUniverse::senderTimedout()
 
 void MultiUniverse::on_btnAddMulti_clicked()
 {
-    AddMultiDialog d;
+    AddMultiDialog d(this);
     int result = d.exec();
 
     if(result!=QDialog::Accepted) return;

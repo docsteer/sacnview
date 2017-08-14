@@ -207,6 +207,27 @@ border-radius: 4px;
        </item>
        <item row="2" column="2">
         <widget class="QPushButton" name="btnEditPerChan">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>10</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>50</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="toolTip">
           <string>Set up per-channel priorities</string>
          </property>
@@ -216,7 +237,11 @@ border-radius: 4px;
         </widget>
        </item>
        <item row="1" column="1" colspan="2">
-        <widget class="QSpinBox" name="sbUniverse"/>
+        <widget class="QSpinBox" name="sbUniverse">
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
        </item>
        <item row="7" column="0" colspan="3">
         <widget class="QGroupBox" name="gbProtocolVersion">
@@ -265,10 +290,23 @@ border-radius: 4px;
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QSpinBox" name="sbPriority"/>
+        <widget class="QSpinBox" name="sbPriority">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
        </item>
        <item row="11" column="0" colspan="3">
         <widget class="QPushButton" name="btnStart">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="text">
           <string>Start</string>
          </property>
@@ -310,7 +348,11 @@ border-radius: 4px;
               </widget>
              </item>
              <item>
-              <widget class="QSpinBox" name="sbFadersStart"/>
+              <widget class="QSpinBox" name="sbFadersStart">
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
              </item>
             </layout>
            </widget>
@@ -840,6 +882,27 @@ border-radius: 4px;
                  </property>
                 </widget>
                </item>
+               <item row="1" column="3">
+                <widget class="QPushButton" name="kAllOff">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <family>Arial</family>
+                   <pointsize>11</pointsize>
+                   <weight>75</weight>
+                   <bold>true</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>ALL OFF</string>
+                 </property>
+                </widget>
+               </item>
               </layout>
              </item>
             </layout>
@@ -1046,14 +1109,12 @@ color: rgb(255, 85, 0);</string>
             </property>
             <property name="minimumSize">
              <size>
-              <width>106</width>
-              <height>86</height>
+              <width>102</width>
+              <height>82</height>
              </size>
             </property>
             <property name="styleSheet">
              <string notr="true">QSpinBox { 
-	border: 3px solid black; 
-	border-radius: 10px;
 	min-height: 80px;
 	min-width: 100px; 
 	font: 18pt &quot;Aria&quot;;
@@ -1062,6 +1123,9 @@ color: rgb(255, 85, 0);</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
+            </property>
+            <property name="keyboardTracking">
+             <bool>false</bool>
             </property>
             <property name="minimum">
              <number>1</number>
@@ -1091,14 +1155,12 @@ color: rgb(255, 85, 0);</string>
            <widget class="QSpinBox" name="sbFadeRangeEnd">
             <property name="minimumSize">
              <size>
-              <width>106</width>
-              <height>86</height>
+              <width>102</width>
+              <height>82</height>
              </size>
             </property>
             <property name="styleSheet">
              <string notr="true">QSpinBox { 
-	border: 3px solid black; 
-	border-radius: 10px;
 	min-height: 80px;
 	min-width: 100px; 
 	font: 18pt &quot;Aria&quot;;
@@ -1107,6 +1169,9 @@ color: rgb(255, 85, 0);</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
+            </property>
+            <property name="keyboardTracking">
+             <bool>false</bool>
             </property>
             <property name="value">
              <number>1</number>

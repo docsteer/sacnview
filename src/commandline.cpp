@@ -9,6 +9,24 @@ CommandLine::CommandLine()
 
 void CommandLine::processKey(Key value)
 {
+    if(value==ALL_OFF)
+    {
+        m_keyStack.clear();
+        m_errorText.clear();
+        m_text.clear();
+        m_addresses.clear();
+        m_keyStack.push(K1);
+        m_keyStack.push(THRU);
+        m_keyStack.push(K5);
+        m_keyStack.push(K1);
+        m_keyStack.push(K2);
+        m_keyStack.push(AT);
+        m_keyStack.push(K0);
+        m_keyStack.push(ENTER);
+        processStack();
+        return;
+
+    }
     if(value==CLEAR && !m_keyStack.isEmpty())
     {
         if(m_terminated)
@@ -209,6 +227,7 @@ void CommandLine::processStack()
             return;
 
         case CLEAR:
+        default:
             break;
         }
     }
@@ -334,6 +353,12 @@ void CommandLineWidget::keyEnter()
     displayText();
 }
 
+void CommandLineWidget::keyAllOff()
+{
+    m_commandLine.processKey(CommandLine::ALL_OFF);
+    displayText();
+}
+
 void CommandLineWidget::keyPressEvent(QKeyEvent *e)
 {
     switch(e->key())
@@ -386,6 +411,13 @@ void CommandLineWidget::keyPressEvent(QKeyEvent *e)
     case Qt::Key_At:
         m_commandLine.processKey(CommandLine::AT);
         break;
+    case Qt::Key_O:
+        m_commandLine.processKey(CommandLine::ALL_OFF);
+        break;
+    case Qt::Key_F:
+        m_commandLine.processKey(CommandLine::FULL);
+        break;
+
     }
 
     displayText();
@@ -420,6 +452,11 @@ void EditableLCDNumber::keyPressEvent(QKeyEvent *event)
             display(buf);
             emit valueChanged(buf);
         }
+        else
+        {
+            display(MAX_DMX_ADDRESS);
+            emit valueChanged(MAX_DMX_ADDRESS);
+        }
         break;
     case Qt::Key_PageUp:
         if(intValue()<MAX_DMX_ADDRESS)
@@ -427,6 +464,11 @@ void EditableLCDNumber::keyPressEvent(QKeyEvent *event)
             buf = intValue()+1;
             display(buf);
             emit valueChanged(buf);
+        }
+        else
+        {
+            display(1);
+            emit valueChanged(1);
         }
         break;
     case Qt::Key_0:
@@ -445,6 +487,9 @@ void EditableLCDNumber::keyPressEvent(QKeyEvent *event)
             display(buf);
             emit valueChanged(buf);
         }
+        break;
+    case Qt::Key_Space:
+        emit toggleOff();
         break;
     default:
         break;

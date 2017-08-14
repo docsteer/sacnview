@@ -2,6 +2,4 @@ theme: jekyll-theme-tactile
 title: sACNView
 description: sACNView, a tool for sending and receiving the Streaming ACN control protocol
 show_downloads: true
-windows_url: https://github.com/docsteer/sacnview/releases/download/v2.0.0-RC3/sACNView_v2.0.0-RC3.exe
-mac_url: https://github.com/docsteer/sacnview/releases/download/v2.0.0-RC3/sACNView.dmg
-linux_url: https://github.com/docsteer/sacnview/releases/download/v2.0.0-RC3/sacnview_2.0.0-RC3_amd64.deb
+
