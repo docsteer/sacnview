@@ -9,7 +9,24 @@
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <title>{{ site.title | default: site.github.repository_name }}</title>
+	<!-- Script updates the links to the latest release -->	
+	<script>
+	$.getJSON('https://api.github.com/repos/docsteer/sacnview/releases', function (data) {
+
+		$.each(data[0].assets, function(index, obj){
+			var download_url = obj.browser_download_url;
+			if( download_url.endsWith('exe'))
+				$('#download-win').attr('href', download_url);
+			if( download_url.endsWith('dmg'))
+				$('#download-mac').attr('href', download_url);
+			if( download_url.endsWith('deb'))
+				$('#download-linux').attr('href', download_url);
+		});
+	});
+	</script>
+
   </head>
 
   <body>
@@ -25,9 +42,9 @@
         </header>
         <section id="downloads" class="clearfix">
           {% if site.show_downloads %}
-          <a href="{{ site.windows_url }}" id="download-win" class="button"><span>Windows</span></a>
-          <a href="{{ site.mac_url }}" id="download-mac" class="button"><span>macOS</span></a>
-          <a href="{{ site.linux_url }}" id="download-linux" class="button"><span>Linux</span></a>
+          <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-win" class="button"><span>Windows</span></a>
+          <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-mac" class="button"><span>macOS</span></a>
+          <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-linux" class="button"><span>Linux</span></a>
           {% endif %}
 	  {% if site.github.is_project_page %}
           <a href="{{ site.github.repository_url }}" id="view-on-github" class="button"><span>Source</span></a>
