@@ -27,6 +27,7 @@
 #include "sacnsender.h"
 #include "versioncheck.h"
 #include "firewallcheck.h"
+#include "ipc.h"
 
 int main(int argc, char *argv[])
 {
@@ -39,10 +40,7 @@ int main(int argc, char *argv[])
     a.setOrganizationDomain("tomsteer.net");
 
 
-    // Check web (if avaliable) for new version
-    VersionCheck version;
-
-
+    // Setup interface
     bool newInterface = false;
     if(!Preferences::getInstance()->defaultInterfaceAvailable())
     {
@@ -61,6 +59,17 @@ int main(int argc, char *argv[])
     // so that we can destroy before cleaning up the singletons
     MDIMainWindow *w = new MDIMainWindow();
     w->restoreMdiWindows();
+
+    // Setup IPC
+    IPC ipc(w);
+    if (!ipc.isListening())
+    {
+        // Single instance only
+        delete w;
+        return -1;
+    }
+
+    // Show window
     if(Preferences::getInstance()->GetSaveWindowLayout())
         w->show();
     else
@@ -70,6 +79,10 @@ int main(int argc, char *argv[])
     w->statusBar()->showMessage(QObject::tr("Selected interface: %1").arg(
                                     Preferences::getInstance()->networkInterface().humanReadableName())
                                     );
+
+
+    // Check web (if avaliable) for new version
+    VersionCheck version;
 
     // Check firewall if not newly selected
     if (!newInterface) {

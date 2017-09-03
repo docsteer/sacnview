@@ -106,7 +106,8 @@ SOURCES += src/main.cpp\
     src/bigdisplay.cpp \
     src/addmultidialog.cpp \
     src/pcapplayback.cpp \
-    src/pcapplaybacksender.cpp
+    src/pcapplaybacksender.cpp \
+    src/ipc.cpp
 
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -148,7 +149,8 @@ HEADERS  += src/mdimainwindow.h \
     src/addmultidialog.h \
     src/pcapplayback.h \
     src/pcapplaybacksender.h \
-    src/ethernetstrut.h
+    src/ethernetstrut.h \
+    src/ipc.h
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
