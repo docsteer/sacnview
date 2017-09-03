@@ -51,7 +51,8 @@ void IPC::foreground()
 
 IPC_Client::IPC_Client(QLocalSocket *client, QObject *parent):
     QObject(parent),
-    m_client(client)
+    m_client(client),
+    m_sender()
 {
     connect(m_client, SIGNAL(disconnected()), this, SLOT(deleteLater()));
     connect(m_client, SIGNAL(readyRead()), this, SLOT(readyRead()));
@@ -66,6 +67,8 @@ IPC_Client::IPC_Client(QLocalSocket *client, QObject *parent):
 IPC_Client::~IPC_Client()
 {
     qDebug() << "IPC" << qint64(m_client) << ": Disconnected";
+    if(m_sender)
+        m_sender->deleteLater();
 }
 
 void IPC_Client::readyRead()
@@ -76,7 +79,6 @@ void IPC_Client::readyRead()
     if (s_data.isEmpty()) return;
     s_data = s_data.simplified();
     s_data = s_data.toUpper();
-    qDebug() << "IPC" << qint64(m_client) << ":" << s_data;
 
     QStringList l_data = s_data.split(',');
     if (l_data.isEmpty()) return;
@@ -109,19 +111,71 @@ void IPC_Client::readyRead()
 
         qDebug() << "IPC" << qint64(m_client) << ": Listening to universe" << universe;
     }
+
+    /*
+     * Send to universe
+     *
+     * SYNTAX: SEND,[Universe Number],[Source Name],[Array of values]
+     *
+     */
+    if (l_data[0] == "SEND")
+    {
+        if (l_data.count() != 4) return;
+
+        int universe = l_data[1].toInt();
+        QString sourceName = l_data[2];
+        QByteArray levels = data.mid(
+                l_data[0].size() + 1 +
+                l_data[1].size() + 1 +
+                l_data[2].size() + 1,
+                MAX_DMX_ADDRESS);
+
+        if(!m_sender)
+        {
+            m_sender = new sACNSentUniverse(universe);
+        }
+
+        if (m_sender->universe() != universe)
+        {
+            qDebug() << "IPC" << qint64(m_client) << ": Sending to universe" << universe;
+            m_sender->setUniverse(universe);
+        }
+
+        if (m_sender->name() != sourceName)
+        {
+            qDebug() << "IPC" << qint64(m_client) << ": Sending as" << sourceName;
+            m_sender->setName(sourceName);
+        }
+
+        if (m_sender->isSending() == false)
+            m_sender->startSending(true);
+
+        for (quint16 n = 0; n < levels.count(); n++)
+        {
+            m_sender->setLevel(n, levels.at(n));
+        }
+    }
 }
 
 void IPC_Client::levelsChanged()
 {
+    /*
+     * Send updated values to pipe
+     *
+     * SYNTAX: UNIVERSE,[Universe Number],[Array of values]
+     *
+     */
+
     sACNMergedSourceList m_sources;
     m_sources = m_listener->mergedLevels();
 
     QString s_data = QString("UNIVERSE,%1,").arg(m_listener->universe());
 
-    for (unsigned int n = 0; n < m_sources.count(); n++)
+    for (int n = 0; n < m_sources.count(); n++)
     {
         s_data.append(QChar(std::max(m_sources[n].level, 0)));
     }
+
     m_client->write(s_data.toLatin1());
     m_client->flush();
 }

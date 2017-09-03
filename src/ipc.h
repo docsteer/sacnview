@@ -6,6 +6,7 @@
 #include <QLocalSocket>
 #include "mdimainwindow.h"
 #include "sacnlistener.h"
+#include "sacnsender.h"
 
 class IPC : public QObject
 {
@@ -34,6 +35,7 @@ public:
 private:
     QLocalSocket *m_client;
     QSharedPointer<sACNListener>m_listener;
+    sACNSentUniverse *m_sender;
 
 private slots:
     void readyRead();
