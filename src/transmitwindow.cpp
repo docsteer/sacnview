@@ -654,8 +654,7 @@ void transmitwindow::presetButtonPressed()
         int addr = ui->sbFadersStart->value()-1;
         for(int i=0; i<m_sliders.count(); i++)
         {
-            m_sliders[i]->setValue(baPreset.at(addr));
-            addr++;
+            m_sliders[i]->setValue(quint8(baPreset.at(addr++)));
         }
     }
 }
