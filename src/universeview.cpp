@@ -123,8 +123,18 @@ void UniverseView::sourceChanged(sACNSource *source)
         ui->twSources->item(row,COL_PREVIEW)->setText(source->isPreview ? tr("Yes") : tr("No"));
     ui->twSources->item(row,COL_IP)->setText(source->ip.toString());
     ui->twSources->item(row,COL_FPS)->setText(QString::number((source->fps)));
-    ui->twSources->item(row,COL_SEQ_ERR)->setText(QString::number(source->seqErr));
-    ui->twSources->item(row,COL_JUMPS)->setText(QString::number(source->jumps));
+    {
+        // Seq Errors
+        QLabel* lbl_SEQ_ERR = qobject_cast<QLabel *>(
+                    ui->twSources->cellWidget(row,COL_SEQ_ERR)->layout()->itemAt(0)->widget());
+        lbl_SEQ_ERR->setText(QString::number(source->seqErr));
+    }
+    {
+        // Jumps
+        QLabel* lbl_SEQ_ERR = qobject_cast<QLabel *>(
+                    ui->twSources->cellWidget(row,COL_JUMPS)->layout()->itemAt(0)->widget());
+        lbl_SEQ_ERR->setText(QString::number(source->jumps));
+    }
     if (source->doing_dmx) {
         ui->twSources->item(row,COL_ONLINE)->setText(onlineToString(source->src_valid));
     } else {
@@ -151,14 +161,67 @@ void UniverseView::sourceOnline(sACNSource *source)
     ui->twSources->setItem(row,COL_PREVIEW, new QTableWidgetItem() );
     ui->twSources->setItem(row,COL_IP,      new QTableWidgetItem() );
     ui->twSources->setItem(row,COL_FPS,     new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_SEQ_ERR, new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_JUMPS,   new QTableWidgetItem() );
+
+    // Seq errors, with reset
+    {
+        QWidget* pWidget = new QWidget();
+        QHBoxLayout* pLayout = new QHBoxLayout(pWidget);
+        pLayout->setAlignment(Qt::AlignCenter);
+        pLayout->setContentsMargins(3,0,0,0);
+
+        // Count
+        QLabel* lbl_seq = new QLabel();
+        lbl_seq->setText(QString::number(0));
+        pLayout->addWidget(lbl_seq);
+
+        // Reset Button
+        QPushButton* btn_seq = new QPushButton();
+        btn_seq->setText(tr("Reset"));
+        pLayout->addWidget(btn_seq);
+
+        // Connect button
+        connect(btn_seq, &QPushButton::clicked, [=]() {
+            source->resetSeqErr();
+            this->sourceChanged(source);
+        });
+
+        // Display!
+        pWidget->setLayout(pLayout);
+        ui->twSources->setCellWidget(row,COL_SEQ_ERR, pWidget);
+    }
+
+    // Jump counter, with reset
+    {
+        QWidget* pWidget = new QWidget();
+        QHBoxLayout* pLayout = new QHBoxLayout(pWidget);
+        pLayout->setAlignment(Qt::AlignCenter);
+        pLayout->setContentsMargins(3,0,0,0);
+
+        // Count
+        QLabel* lbl_jumps = new QLabel();
+        lbl_jumps->setText(QString::number(0));
+        pLayout->addWidget(lbl_jumps);
+
+        // Reset Button
+        QPushButton* btn_jumps = new QPushButton();
+        btn_jumps->setText(tr("Reset"));
+        pLayout->addWidget(btn_jumps);
+
+        // Connect button
+        connect(btn_jumps, &QPushButton::clicked, [=]() {
+            source->resetJumps();
+            this->sourceChanged(source);
+        });
+
+        pWidget->setLayout(pLayout);
+        ui->twSources->setCellWidget(row,COL_JUMPS, pWidget);
+    }
+
     ui->twSources->setItem(row,COL_ONLINE,  new QTableWidgetItem() );
     ui->twSources->setItem(row,COL_VER,     new QTableWidgetItem() );
     ui->twSources->setItem(row,COL_DD,      new QTableWidgetItem() );
 
     sourceChanged(source);
-
 }
 
 void UniverseView::sourceOffline(sACNSource *source)

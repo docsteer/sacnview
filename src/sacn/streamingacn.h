@@ -46,8 +46,9 @@ enum StreamingACNProtocolVersion
 };
 
 
-class sACNSource
+class sACNSource : public QObject
 {
+    Q_OBJECT
 public:
     explicit sACNSource();
     CID src_cid;
@@ -86,6 +87,15 @@ public:
     int jumps;
     // Protocol Version
     StreamingACNProtocolVersion protocol_version;
+
+public slots:
+    void resetSeqErr() {
+        seqErr = 0;
+    }
+
+    void resetJumps() {
+        jumps = 0;
+    }
 };
 
 
