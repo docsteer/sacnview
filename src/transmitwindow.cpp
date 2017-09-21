@@ -27,7 +27,7 @@
 #include <QToolButton>
 #include <QMessageBox>
 
-transmitwindow::transmitwindow(QWidget *parent) :
+transmitwindow::transmitwindow(int universe, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::transmitwindow), m_sender(0)
 {
@@ -41,6 +41,7 @@ transmitwindow::transmitwindow(QWidget *parent) :
 
     ui->sbUniverse->setMinimum(1);
     ui->sbUniverse->setMaximum(MAX_SACN_UNIVERSE);
+    ui->sbUniverse->setValue(universe);
     ui->sbUniverse->setWrapping(true);
 
     ui->sbPriority->setMinimum(MIN_SACN_PRIORITY);

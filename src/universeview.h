@@ -33,7 +33,7 @@ class UniverseView : public QWidget
     Q_OBJECT
 
 public:
-    explicit UniverseView(QWidget *parent = 0);
+    explicit UniverseView(int universe = 1, QWidget *parent = 0);
     ~UniverseView();
     void startListening(int universe);
 protected slots:

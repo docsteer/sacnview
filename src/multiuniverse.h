@@ -32,7 +32,7 @@ class MultiUniverse : public QWidget
     Q_OBJECT
 
 public:
-    explicit MultiUniverse(QWidget *parent = 0);
+    explicit MultiUniverse(int firstUniverse = 1, QWidget *parent = 0);
     ~MultiUniverse();
 private slots:
     void on_btnAddRow_pressed();
@@ -57,6 +57,7 @@ private:
     QHash<QWidget*, sACNEffectEngine *> m_widgetToFxEngine;
     QHash<QWidget*, sACNSentUniverse *> m_widgetToSender;
     QHash<QWidget*, QLabel *> m_widgetToLevelLabel;
+    int m_firstUniverse;
     enum
     {
         COL_ENABLED,

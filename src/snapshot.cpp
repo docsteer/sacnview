@@ -8,11 +8,12 @@
 #include <QSound>
 #include <QSpinBox>
 
-Snapshot::Snapshot(QWidget *parent) :
+Snapshot::Snapshot(int firstUniverse, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Snapshot),
     m_listeners(QList<QSharedPointer<sACNListener>>()),
-    m_senders(QList<sACNSentUniverse *>())
+    m_senders(QList<sACNSentUniverse *>()),
+    m_firstUniverse(firstUniverse)
 {
     ui->setupUi(this);
 
@@ -41,6 +42,8 @@ void Snapshot::on_btnAddRow_pressed()
     sbUniverse->setMaximum(MAX_SACN_UNIVERSE);
     if(m_universeSpins.count()>0)
         sbUniverse->setValue(m_universeSpins.last()->value()+1);
+    else
+        sbUniverse->setValue(m_firstUniverse);
 
     ui->tableWidget->setCellWidget(row, 0, sbUniverse);
     m_universeSpins << sbUniverse;

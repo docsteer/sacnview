@@ -28,7 +28,7 @@ class Snapshot : public QWidget
     };
 
 public:
-    explicit Snapshot(QWidget *parent = 0);
+    explicit Snapshot(int firstUniverse = 1, QWidget *parent = 0);
     ~Snapshot();
 protected slots:
     void counterTick();
@@ -53,6 +53,7 @@ private:
     QList<sACNSentUniverse *>m_senders;
     QList<QSpinBox *> m_universeSpins;
     QList<QSpinBox *> m_prioritySpins;
+    int m_firstUniverse;
 };
 
 #endif // SNAPSHOT_H

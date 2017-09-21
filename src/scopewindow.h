@@ -33,7 +33,7 @@ class ScopeWindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit ScopeWindow(QWidget *parent = 0);
+    explicit ScopeWindow(int universe = 1, QWidget *parent = 0);
     ~ScopeWindow();
 private slots:
     void timebaseChanged(int value);
@@ -61,6 +61,7 @@ private:
         COL_TRIGGER,
         COL_16BIT
     };
+    int m_defaultUniverse;
 };
 
 #endif // SCOPEWINDOW_H
