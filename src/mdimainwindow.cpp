@@ -51,7 +51,7 @@ MDIMainWindow::~MDIMainWindow()
 void MDIMainWindow::on_actionScopeView_triggered(bool checked)
 {
     Q_UNUSED(checked);
-    ScopeWindow *scopeWindow = new ScopeWindow(this);
+    ScopeWindow *scopeWindow = new ScopeWindow(getSelectedUniverse(), this);
     ui->mdiArea->addSubWindow(scopeWindow);
     scopeWindow->show();
 }
@@ -59,7 +59,7 @@ void MDIMainWindow::on_actionScopeView_triggered(bool checked)
 void MDIMainWindow::on_actionRecieve_triggered(bool checked)
 {
     Q_UNUSED(checked);
-    UniverseView *uniView = new UniverseView(this);
+    UniverseView *uniView = new UniverseView(getSelectedUniverse(), this);
     ui->mdiArea->addSubWindow(uniView);
     uniView->show();
 }
@@ -67,7 +67,7 @@ void MDIMainWindow::on_actionRecieve_triggered(bool checked)
 void MDIMainWindow::on_actionTranmsit_triggered(bool checked)
 {
     Q_UNUSED(checked);
-    transmitwindow *trView = new transmitwindow();
+    transmitwindow *trView = new transmitwindow(getSelectedUniverse(), this);
     ui->mdiArea->addSubWindow(trView);
     trView->show();
 }
@@ -75,7 +75,7 @@ void MDIMainWindow::on_actionTranmsit_triggered(bool checked)
 void MDIMainWindow::on_actionSnapshot_triggered(bool checked)
 {
     Q_UNUSED(checked);
-    Snapshot *snapView = new Snapshot();
+    Snapshot *snapView = new Snapshot(getSelectedUniverse(), this);
     ui->mdiArea->addSubWindow(snapView);
     snapView->show();
 }
@@ -121,7 +121,7 @@ void MDIMainWindow::universeDoubleClick(const QModelIndex &index)
 
     if(universe>0)
     {
-        UniverseView *uniView = new UniverseView(this);
+        UniverseView *uniView = new UniverseView(1, this);
         ui->mdiArea->addSubWindow(uniView);
         uniView->show();
         uniView->startListening(universe);
@@ -139,7 +139,7 @@ void MDIMainWindow::rowsAboutToBeRemoved(const QModelIndex &parent, int start, i
 
 void MDIMainWindow::on_actionMultiUniverse_triggered()
 {
-    MultiUniverse *multiUniv = new MultiUniverse(this);
+    MultiUniverse *multiUniv = new MultiUniverse(getSelectedUniverse(), this);
     ui->mdiArea->addSubWindow(multiUniv);
     multiUniv->show();
 }
@@ -189,6 +189,13 @@ void MDIMainWindow::saveMdiWindows()
                 i.geometry = window->saveGeometry();
                 result << i;
             }
+            if(qobject_cast<MultiUniverse*>(window->widget())!=Q_NULLPTR)
+            {
+                MDIWindowInfo i;
+                i.name = "MultiUniverse";
+                i.geometry = window->saveGeometry();
+                result << i;
+            }
         }
 
         p->SetSavedWindows(result);
@@ -208,7 +215,7 @@ void MDIMainWindow::restoreMdiWindows()
         {
             if(window.name=="Scope")
             {
-                ScopeWindow *scopeWindow = new ScopeWindow(this);
+                ScopeWindow *scopeWindow = new ScopeWindow(1, this);
                 QMdiSubWindow *subWindow = ui->mdiArea->addSubWindow(scopeWindow);
                 subWindow->restoreGeometry(window.geometry);
                 scopeWindow->show();
@@ -216,7 +223,7 @@ void MDIMainWindow::restoreMdiWindows()
 
             if(window.name=="Universe")
             {
-                UniverseView *universe = new UniverseView(this);
+                UniverseView *universe = new UniverseView(1, this);
                 QMdiSubWindow *subWindow = ui->mdiArea->addSubWindow(universe);
                 subWindow->restoreGeometry(window.geometry);
                 universe->show();
@@ -224,7 +231,7 @@ void MDIMainWindow::restoreMdiWindows()
 
             if(window.name=="Transmit")
             {
-                transmitwindow *transmit = new transmitwindow(this);
+                transmitwindow *transmit = new transmitwindow(1, this);
                 QMdiSubWindow *subWindow = ui->mdiArea->addSubWindow(transmit);
                 subWindow->restoreGeometry(window.geometry);
                 transmit->show();
@@ -232,11 +239,25 @@ void MDIMainWindow::restoreMdiWindows()
 
             if(window.name=="Snapshot")
             {
-                Snapshot *snapshot = new Snapshot(this);
+                Snapshot *snapshot = new Snapshot(1,this);
                 QMdiSubWindow *subWindow = ui->mdiArea->addSubWindow(snapshot);
                 subWindow->restoreGeometry(window.geometry);
                 snapshot->show();
             }
+            if(window.name=="MultiUniverse")
+            {
+                MultiUniverse *multi = new MultiUniverse(1,this);
+                QMdiSubWindow *subWindow = ui->mdiArea->addSubWindow(multi);
+                subWindow->restoreGeometry(window.geometry);
+                multi->show();
+            }
         }
     }
+}
+
+int MDIMainWindow::getSelectedUniverse()
+{
+    QModelIndex selectedIndex = ui->treeView->currentIndex();
+    int selectedUniverse = m_model->indexToUniverse(selectedIndex);
+    return (selectedUniverse >= MIN_SACN_UNIVERSE && selectedUniverse<=MAX_SACN_UNIVERSE) ? selectedUniverse : 1;
 }
