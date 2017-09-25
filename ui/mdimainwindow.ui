@@ -13,6 +13,40 @@
   <property name="windowTitle">
    <string>sACNView</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QSpinBox {
+border: 1px solid #cfcfcf; 
+height: 22px;
+} 
+
+QSpinBox:disabled{
+border: 1px solid grey;
+}
+
+QSpinBox::up-button {
+subcontrol-position: left;
+width: 22px;
+height: 22px;
+background-color:#cfcfcf;
+border-image: url(:/icons/spin_up.png) 1;
+}
+
+ QSpinBox::up-button:disabled {
+background-color:grey;
+ }
+
+QSpinBox::down-button {
+subcontrol-position: right;
+width: 22px;
+height: 22px;
+background-color:#cfcfcf;
+border-image: url(:/icons/spin_down.png) 1;
+}
+
+QSpinBox::down-button:disabled {
+background-color:grey;
+ }</string>
+  </property>
   <property name="unifiedTitleAndToolBarOnMac">
    <bool>false</bool>
   </property>
@@ -26,8 +60,8 @@
   <widget class="QToolBar" name="mainToolBar">
    <property name="iconSize">
     <size>
-     <width>32</width>
-     <height>32</height>
+     <width>48</width>
+     <height>48</height>
     </size>
    </property>
    <attribute name="toolBarArea">
@@ -88,7 +122,17 @@
         </widget>
        </item>
        <item>
-        <widget class="QSpinBox" name="sbUniverseList"/>
+        <widget class="QSpinBox" name="sbUniverseList">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="frame">
+          <bool>false</bool>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QToolButton" name="btnUnivListForward">

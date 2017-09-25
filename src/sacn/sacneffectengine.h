@@ -72,6 +72,7 @@ public slots:
 
     void setStartAddress(quint16 start);
     void setEndAddress(quint16 end);
+    void setRange(quint16 start, quint16 end);
 
     void setText(QString text);
 

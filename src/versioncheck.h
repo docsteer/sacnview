@@ -16,6 +16,38 @@
 #include <QDate>
 #include <QLocale>
 #include <QMessageBox>
+#include <QDialog>
+
+namespace Ui {
+class NewVersionDialog;
+}
+
+class NewVersionDialog : public QDialog
+{
+    Q_OBJECT
+public:
+    NewVersionDialog(QWidget *parent = Q_NULLPTR);
+
+    void setNewVersionNumber(const QString &version);
+    void setNewVersionInfo(const QString &info);
+    void setDownloadUrl(const QString &url);
+private slots:
+    void on_btnInstall_pressed();
+    void on_btnExitInstall_pressed();
+    void on_btnCancelDl_pressed();
+    void progress(qint64 bytes, qint64 total);
+    void finished();
+    void dataReadyRead();
+private:
+    Ui::NewVersionDialog *ui;
+    QString m_dlUrl;
+    QString m_newVersion;
+    QNetworkAccessManager *m_manager;
+    QNetworkReply *m_reply;
+    QFile m_dlFile;
+    QString m_storagePath;
+    void doDownload(const QUrl &url);
+};
 
 class VersionCheck : public QObject
 {
