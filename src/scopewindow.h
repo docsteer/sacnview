@@ -33,7 +33,7 @@ class ScopeWindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit ScopeWindow(int universe = 1, QWidget *parent = 0);
+    explicit ScopeWindow(int universe = MIN_SACN_UNIVERSE, QWidget *parent = 0);
     ~ScopeWindow();
 private slots:
     void timebaseChanged(int value);

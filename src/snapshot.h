@@ -28,7 +28,7 @@ class Snapshot : public QWidget
     };
 
 public:
-    explicit Snapshot(int firstUniverse = 1, QWidget *parent = 0);
+    explicit Snapshot(int firstUniverse = MIN_SACN_UNIVERSE, QWidget *parent = 0);
     ~Snapshot();
 protected slots:
     void counterTick();

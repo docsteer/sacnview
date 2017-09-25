@@ -32,7 +32,7 @@ class MultiUniverse : public QWidget
     Q_OBJECT
 
 public:
-    explicit MultiUniverse(int firstUniverse = 1, QWidget *parent = 0);
+    explicit MultiUniverse(int firstUniverse = MIN_SACN_UNIVERSE, QWidget *parent = 0);
     ~MultiUniverse();
 private slots:
     void on_btnAddRow_pressed();
