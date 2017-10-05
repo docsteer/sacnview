@@ -43,7 +43,7 @@ win32 {
     INCLUDEPATH += $${PCAP_PATH}/Include
 }
 !win32 {
-    LIBS += -lpcap -lPacket
+    LIBS += -lpcap
 }
 
 ## Main ##

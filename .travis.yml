@@ -9,6 +9,8 @@ before_install:
     - sudo apt-get update -qq
 
 install: 
+# PCap
+    - sudo apt-get -y install libpcap-dev
 # Install FPM
     - sudo apt-get -y install build-essential ruby ruby-dev
     - cd install/linux/ && cp _FPM_Makefile Makefile && make package && sudo dpkg -i fpm*.deb && fpm --version && cd ../../
