@@ -51,7 +51,7 @@ MDIMainWindow::~MDIMainWindow()
 void MDIMainWindow::on_actionScopeView_triggered(bool checked)
 {
     Q_UNUSED(checked);
-    ScopeWindow *scopeWindow = new ScopeWindow(MIN_SACN_UNIVERSE ,this);
+    ScopeWindow *scopeWindow = new ScopeWindow(ui->sbUniverseList->value(), this);
     ui->mdiArea->addSubWindow(scopeWindow);
     scopeWindow->show();
 }
@@ -75,7 +75,7 @@ void MDIMainWindow::on_actionTranmsit_triggered(bool checked)
 void MDIMainWindow::on_actionSnapshot_triggered(bool checked)
 {
     Q_UNUSED(checked);
-    Snapshot *snapView = new Snapshot(MIN_SACN_UNIVERSE, this);
+    Snapshot *snapView = new Snapshot(ui->sbUniverseList->value(), this);
     ui->mdiArea->addSubWindow(snapView);
     snapView->show();
 }
@@ -139,7 +139,7 @@ void MDIMainWindow::rowsAboutToBeRemoved(const QModelIndex &parent, int start, i
 
 void MDIMainWindow::on_actionMultiUniverse_triggered()
 {
-    MultiUniverse *multiUniv = new MultiUniverse(MIN_SACN_UNIVERSE, this);
+    MultiUniverse *multiUniv = new MultiUniverse(ui->sbUniverseList->value(), this);
     ui->mdiArea->addSubWindow(multiUniv);
     multiUniv->show();
 }
