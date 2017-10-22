@@ -41,7 +41,11 @@
 #include <QCoreApplication>
 #include <QThread>
 #include <QSharedPointer>
+#ifdef QT_GUI_LIB
 #include <QMessageBox>
+#else
+#include <QDebug>
+#endif
 
 sACNSource::sACNSource()
 {
@@ -128,10 +132,15 @@ QSharedPointer<sACNListener> sACNManager::getListener(int universe)
     }
     if(strongPointer.isNull())
     {
-        QMessageBox msgBox;
-        msgBox.setText("Unable to allocate listener object\r\n\r\nsACNView must close now");
-        msgBox.exec();
+        #ifdef QT_GUI_LIB
+            QMessageBox msgBox;
+            msgBox.setText("Unable to allocate listener object\r\n\r\nsACNView must close now");
+            msgBox.exec();
+        #else
+            qDebug() << "Unable to allocate listener object\r\n\r\nsACNView must close now";
+        #endif
         qApp->exit(-1);
+
     }
     return strongPointer;
 }
