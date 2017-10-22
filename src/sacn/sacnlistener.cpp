@@ -35,6 +35,9 @@
 //The time during which to sample
 #define SAMPLE_TIME 1500
 
+//Background merge interval
+#define BACKGROUND_MERGE 500
+
 sACNListener::sACNListener(int universe, QObject *parent) : QObject(parent),
     m_universe(universe),
     m_ssHLL(1000),
@@ -86,11 +89,11 @@ void sACNListener::startReception()
     connect(m_initalSampleTimer, SIGNAL(timeout()), this, SLOT(sampleExpiration()), Qt::DirectConnection);
     m_initalSampleTimer->start();
 
-    // Merge is performed whenever the thread has time
+    // Merge is performed whenever a packet arrives and every BACKGROUND_MERGE interval
     m_elapsedTime.start();
     m_mergesPerSecondTimer.start();
     m_mergeTimer = new QTimer(this);
-    m_mergeTimer->setInterval(1);
+    m_mergeTimer->setInterval(BACKGROUND_MERGE);
     connect(m_mergeTimer, SIGNAL(timeout()), this, SLOT(performMerge()), Qt::DirectConnection);
     connect(m_mergeTimer, SIGNAL(timeout()), this, SLOT(checkSourceExpiration()), Qt::DirectConnection);
     m_mergeTimer->start();
@@ -482,6 +485,9 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
             emit sourceChanged(ps);
             ps->source_params_change = false;
         }
+
+        // Merge
+        performMerge();
     }
 }
 
