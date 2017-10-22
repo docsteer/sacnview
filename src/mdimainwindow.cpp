@@ -18,6 +18,7 @@
 #include "scopewindow.h"
 #include "universeview.h"
 #include "transmitwindow.h"
+#include "preferences.h"
 #include "preferencesdialog.h"
 #include "aboutdialog.h"
 #include "sacnuniverselistmodel.h"

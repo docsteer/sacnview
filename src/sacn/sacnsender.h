@@ -33,7 +33,7 @@ class QTimer;
 
 class sACNSentUniverse : public QObject
 {
-    Q_OBJECT;
+    Q_OBJECT
 public:
     // Constructor
     sACNSentUniverse(int universe);
@@ -72,7 +72,7 @@ public slots:
      * @param name the name to set
      */
     void setName(const QString &name);
-    QString name() { return m_name;};
+    QString name() { return m_name; }
 
     /**
      * @brief setPriorityMode - sets the priority mode of sACN to transmit, per-universe or per-address
@@ -99,12 +99,12 @@ public slots:
      * @brief stopSending - stops sending for the selected universe
      */
     void stopSending();
-    bool isSending() const { return m_isSending;};
+    bool isSending() const { return m_isSending; }
     /**
      * @brief setUnicastAddress - sets the address to unicast data to
      * @param Address - a QHostAddress, default QHostAddress means multicast
      */
-    void setUnicastAddress(const QHostAddress &address) { m_unicastAddress = address;};
+    void setUnicastAddress(const QHostAddress &address) { m_unicastAddress = address; }
     /**
      * @brief setProtocolVersion - sets the protocol version
      * @param version - draft or release
@@ -123,7 +123,7 @@ public slots:
      */
     void setUniverse(int universe);
 
-    int universe() { return m_universe;};
+    int universe() { return m_universe; }
 
 signals:
     /**

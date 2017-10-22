@@ -18,7 +18,6 @@
 
 #include <QObject>
 #include <QUdpSocket>
-#include "preferences.h"
 
 class sACNRxSocket : public QUdpSocket
 {

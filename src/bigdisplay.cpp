@@ -1,5 +1,6 @@
 #include "bigdisplay.h"
 #include "ui_bigdisplay.h"
+#include "preferences.h"
 
 BigDisplay::BigDisplay(int universe, quint16 address, QWidget *parent) :
     QWidget(parent),

@@ -33,10 +33,10 @@ public:
     CommandLine();
 
     QString text();
-    QString errorText() { return m_errorText;};
+    QString errorText() { return m_errorText; }
     void processKey(Key value);
-    QSet<int> addresses() { return m_addresses;};
-    int level() { return m_level;};
+    QSet<int> addresses() { return m_addresses; }
+    int level() { return m_level; }
 private:
     QString m_text;
     QString m_errorText;
@@ -82,7 +82,7 @@ private:
 
 class EditableLCDNumber : public QLCDNumber
 {
-    Q_OBJECT;
+    Q_OBJECT
 public:
     EditableLCDNumber(QWidget *parent);
 signals:
