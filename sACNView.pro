@@ -164,7 +164,8 @@ FORMS    += ui/mdimainwindow.ui \
     ui/logwindow.ui \
     ui/bigdisplay.ui \
     ui/newversiondialog.ui \
-    ui/pcapplayback.ui
+    ui/pcapplayback.ui \
+    ui/addmultidialog.ui
 
 RESOURCES += \
     res/resources.qrc
