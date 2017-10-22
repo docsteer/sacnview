@@ -60,6 +60,16 @@ void Preferences::setNetworkInterface(const QNetworkInterface &value)
     }
 }
 
+void Preferences::SetNetworkListenAll(const bool &value)
+{
+    m_interfaceListenAll = value;
+}
+
+bool Preferences::GetNetworkListenAll()
+{
+    return m_interfaceListenAll;
+}
+
 QColor Preferences::colorForCID(const CID &cid)
 {
     if(m_cidToColor.contains(cid))
@@ -202,6 +212,7 @@ void Preferences::savePreferences()
     settings.setValue(S_FLICKERFINDERSHOWINFO, QVariant(m_flickerFinderShowInfo));
     settings.setValue(S_SAVEWINDOWLAYOUT, m_saveWindowLayout);
     settings.setValue(S_MAINWINDOWGEOM, m_mainWindowGeometry);
+    settings.setValue(S_LISTEN_ALL, m_interfaceListenAll);
 
     settings.beginWriteArray(S_SUBWINDOWLIST);
     for(int i=0; i<m_windowInfo.count(); i++)
@@ -231,6 +242,7 @@ void Preferences::loadPreferences()
                 m_interface = i;
     }
 
+    m_interfaceListenAll = settings.value(S_LISTEN_ALL, QVariant(false)).toBool();
     m_nDisplayFormat = settings.value(S_DISPLAY_FORMAT, QVariant(DECIMAL)).toInt();
     m_bBlindVisualizer = settings.value(S_BLIND_VISUALIZER, QVariant(true)).toBool();
     m_bDisplayDDOnly = settings.value(S_DDONLY, QVariant(true)).toBool();

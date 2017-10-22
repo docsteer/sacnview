@@ -245,7 +245,7 @@ void CStreamServer::shutdown()
 
 CStreamServer::CStreamServer()
 {
-    m_sendsock = new sACNTxSocket();
+    m_sendsock = new sACNTxSocket(Preferences::getInstance()->networkInterface());
 
     m_sendsock->bindMulticast();
 

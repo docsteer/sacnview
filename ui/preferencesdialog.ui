@@ -38,6 +38,15 @@
      <property name="title">
       <string>Network Interface*</string>
      </property>
+     <layout class="QVBoxLayout" name="verticalLayout_NetworkInterfaces">
+      <item>
+       <widget class="QCheckBox" name="cbListenAll">
+        <property name="text">
+         <string>Listen on all interfaces (Send only on below)</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item alignment="Qt::AlignVCenter">

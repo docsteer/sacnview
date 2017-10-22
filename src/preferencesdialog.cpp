@@ -28,8 +28,6 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 
 
     QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
-    QVBoxLayout *nicLayout = new QVBoxLayout;
-
     foreach(QNetworkInterface interface, interfaces)
     {
         // If the interface is ok for use...
@@ -52,12 +50,12 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 
             radio->setChecked(Preferences::getInstance()->networkInterface().hardwareAddress() == interface.hardwareAddress());
 
-            nicLayout->addWidget(radio);
+            ui->verticalLayout_NetworkInterfaces->addWidget(radio);
             m_interfaceList << interface;
             m_interfaceButtons << radio;
         }
     }
-    ui->gbNetworkInterface->setLayout(nicLayout);
+    ui->cbListenAll->setChecked(Preferences::getInstance()->GetNetworkListenAll());
 
     switch (Preferences::getInstance()->GetDisplayFormat())
     {
@@ -139,6 +137,9 @@ void PreferencesDialog::on_buttonBox_accepted()
             }
         }
     }
+
+    requiresRestart |= ui->cbListenAll->isChecked() != p->GetNetworkListenAll();
+    p->SetNetworkListenAll(ui->cbListenAll->isChecked());
 
     if (requiresRestart) {
         QMessageBox::information(this, tr("Restart requied"),

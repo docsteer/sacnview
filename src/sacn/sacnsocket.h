@@ -18,24 +18,31 @@
 
 #include <QObject>
 #include <QUdpSocket>
+#include <QNetworkInterface>
 
 class sACNRxSocket : public QUdpSocket
 {
     Q_OBJECT
 public:
-    sACNRxSocket(QObject *parent = Q_NULLPTR);
+    sACNRxSocket(QNetworkInterface iface, QObject *parent = Q_NULLPTR);
 
     bool bindMulticast(quint16 universe);
     bool bindUnicast();
+
+private:
+    QNetworkInterface m_interface;
 };
 
 class sACNTxSocket : public QUdpSocket
 {
     Q_OBJECT
 public:
-    sACNTxSocket(QObject *parent = Q_NULLPTR);
+    sACNTxSocket(QNetworkInterface iface, QObject *parent = Q_NULLPTR);
 
     bool bindMulticast();
+
+private:
+    QNetworkInterface m_interface;
 };
 
 

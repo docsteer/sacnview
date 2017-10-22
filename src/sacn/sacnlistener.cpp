@@ -18,6 +18,7 @@
 #include "preferences.h"
 #include "deftypes.h"
 #include "defpack.h"
+#include "preferences.h"
 #include <QDebug>
 #include <QThread>
 #include <QPoint>
@@ -64,22 +65,20 @@ void sACNListener::startReception()
     // Clear the levels array
     memset(&m_last_levels, -1, 512);
 
-    // Listen multicast
-    m_sockets.push_back(new sACNRxSocket());
-    if (m_sockets.back()->bindMulticast(m_universe)) {
-        connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()), Qt::DirectConnection);
-    } else {
-       // Failed to bind,
-       m_sockets.pop_back();
-    }
+    if (Preferences::getInstance()->GetNetworkListenAll()) {
+        // Listen on ALL interfaces
+        foreach(QNetworkInterface interface, QNetworkInterface::allInterfaces())
+        {
+            // If the interface is ok for use...
+            if(Preferences::getInstance()->interfaceSuitable(&interface))
+            {
+                startInterface(interface);
+            }
+        }
 
-    // Listen unicast
-    m_sockets.push_back(new sACNRxSocket());
-    if (m_sockets.back()->bindUnicast()) {
-        connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()), Qt::DirectConnection);
     } else {
-       // Failed to bind
-       m_sockets.pop_back();
+        // Listen only to selected interface
+        startInterface(Preferences::getInstance()->networkInterface());
     }
 
     // Start intial sampling
@@ -99,6 +98,27 @@ void sACNListener::startReception()
     m_mergeTimer->start();
 }
 
+void sACNListener::startInterface(QNetworkInterface iface)
+{
+    // Listen multicast
+    m_sockets.push_back(new sACNRxSocket(iface));
+    if (m_sockets.back()->bindMulticast(m_universe)) {
+        connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()), Qt::DirectConnection);
+    } else {
+       // Failed to bind,
+       m_sockets.pop_back();
+    }
+
+    // Listen unicast
+    m_sockets.push_back(new sACNRxSocket(iface));
+    if (m_sockets.back()->bindUnicast()) {
+        connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()), Qt::DirectConnection);
+    } else {
+       // Failed to bind
+       m_sockets.pop_back();
+    }
+
+}
 
 void sACNListener::sampleExpiration()
 {

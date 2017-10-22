@@ -40,6 +40,7 @@ static const QString S_MAINWINDOWGEOM("Main Window Geometry");
 static const QString S_SUBWINDOWLIST("Sub Window");
 static const QString S_SUBWINDOWNAME("SubWindow Name");
 static const QString S_SUBWINDOWGEOM("SubWindow Geometry");
+static const QString S_LISTEN_ALL("Listen All");
 
 
 struct MDIWindowInfo
@@ -100,6 +101,7 @@ public:
     void SetSaveWindowLayout(bool value);
     void SetMainWindowGeometry(const QByteArray &value);
     void SetSavedWindows(QList<MDIWindowInfo> values);
+    void SetNetworkListenAll(const bool &value);
 
     unsigned int GetDisplayFormat();
     unsigned int GetMaxLevel();
@@ -112,6 +114,7 @@ public:
     bool GetSaveWindowLayout();
     QByteArray GetMainWindowGeometry();
     QList<MDIWindowInfo> GetSavedWindows();
+    bool GetNetworkListenAll();
 
 
     QString GetFormattedValue(unsigned int nLevelInDecimal, bool decorated = false);
@@ -127,6 +130,7 @@ private:
     ~Preferences();
     static Preferences *m_instance;
     QNetworkInterface m_interface;
+    bool m_interfaceListenAll;
     QHash<CID, QColor> m_cidToColor;
 
     unsigned int m_nDisplayFormat;

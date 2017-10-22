@@ -103,6 +103,7 @@ private slots:
     void checkSourceExpiration();
     void sampleExpiration();
 private:
+    void startInterface(QNetworkInterface iface);
     std::list<sACNRxSocket *> m_sockets;
     std::vector<sACNSource *> m_sources;
     int m_last_levels[512];
