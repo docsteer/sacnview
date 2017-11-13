@@ -40,7 +40,7 @@ struct sACNMergedAddress
     bool changedSinceLastMerge;
 };
 
-typedef QList<sACNMergedAddress> sACNMergedSourceList;
+typedef QVector<sACNMergedAddress> sACNMergedSourceList;
 
 /**
  * @brief The sACNListener class is used to listen to  a universe of sACN.
