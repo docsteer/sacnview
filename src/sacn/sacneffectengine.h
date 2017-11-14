@@ -20,7 +20,6 @@
 #include <QImage>
 #include <QPixmap>
 #include "sacnsender.h"
-#include "sacn/ACNShare/deftypes.h"
 
 static const QStringList FX_MODE_DESCRIPTIONS = { "Manual",
         "Ramp",
@@ -59,8 +58,8 @@ public:
     sACNEffectEngine::FxMode mode() { return m_mode;};
     qreal rate() { return m_rate;};
 signals:
-    void setLevel(uint2 address, uint1 value);
-    void setLevel(uint2 start, uint2 end, uint1 value);
+    void setLevel(quint16 address, quint8 value);
+    void setLevel(quint16 start, quint16 end, quint8 value);
     void fxLevelChange(int level);
     void textImageChanged(QPixmap pixmap);
 public slots:
@@ -92,13 +91,13 @@ private:
     DateStyle m_dateStyle;
     QString m_text;
     qreal m_rate;
-    uint2 m_start;
-    uint2 m_end;
-    uint2 m_index;
-    uint1 m_data;
-    uint1 m_manualLevel;
+    quint16 m_start;
+    quint16 m_end;
+    quint16 m_index;
+    quint8 m_data;
+    quint8 m_manualLevel;
     QImage m_renderedImage;
-    uint1 *m_image;
+    quint8 *m_image;
     int m_imageWidth;
 
     // Render a single line of variable width text

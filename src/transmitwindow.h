@@ -21,7 +21,6 @@
 #include <QLabel>
 #include <QSlider>
 #include <QToolButton>
-#include "deftypes.h"
 #include "consts.h"
 
 class sACNSentUniverse;
@@ -89,8 +88,8 @@ private:
     QList<QLabel *> m_sliderLabels;
     QList<QToolButton *> m_presetButtons;
     sACNSentUniverse *m_sender;
-    uint1 m_perAddressPriorities[MAX_DMX_ADDRESS];
-    uint1 m_levels[MAX_DMX_ADDRESS];
+    quint8 m_perAddressPriorities[MAX_DMX_ADDRESS];
+    quint8 m_levels[MAX_DMX_ADDRESS];
     QTimer *m_blinkTimer;
     bool m_blink;
     sACNEffectEngine *m_fxEngine;

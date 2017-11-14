@@ -113,7 +113,6 @@ HEADERS  += src/mdimainwindow.h \
     src/universeview.h \
     src/sacn/ACNShare/CID.h \
     src/sacn/ACNShare/defpack.h \
-    src/sacn/ACNShare/deftypes.h \
     src/sacn/ACNShare/ipaddr.h \
     src/sacn/ACNShare/tock.h \
     src/sacn/ACNShare/VHD.h \

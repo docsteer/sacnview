@@ -16,7 +16,6 @@
 #ifndef UNIVERSEDISPLAY_H
 #define UNIVERSEDISPLAY_H
 
-#include "deftypes.h"
 #include "sacnlistener.h"
 #include "gridwidget.h"
 #include "consts.h"

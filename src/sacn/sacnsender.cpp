@@ -17,7 +17,6 @@
 #include <vector>
 #include <set>
 
-#include "deftypes.h"
 #include "CID.h"
 #include "ipaddr.h"
 #include "tock.h"
@@ -55,7 +54,7 @@ sACNSentUniverse::~sACNSentUniverse()
 
 void sACNSentUniverse::startSending(bool preview)
 {
-    uint1 options = 0;
+    quint8 options = 0;
 
     CStreamServer *streamServer = CStreamServer::getInstance();
     if(m_cid.isNull())
@@ -75,7 +74,7 @@ void sACNSentUniverse::startSending(bool preview)
 
     if(m_priorityMode == pmPER_ADDRESS_PRIORITY)
     {
-        uint1 *pslots;
+        quint8 *pslots;
         streamServer->CreateUniverse(m_cid, qPrintable(m_name), 0, options, 0, 0xDD, m_universe, 512, pslots, m_priorityHandle);
         memcpy(pslots, m_perChannelPriorities, sizeof(m_perChannelPriorities));
         streamServer->SetUniverseDirty(m_priorityHandle);
@@ -183,12 +182,12 @@ void sACNSentUniverse::setPriorityMode(PriorityMode mode)
     m_priorityMode = mode;
 }
 
-void sACNSentUniverse::setPerChannelPriorities(uint1 *priorities)
+void sACNSentUniverse::setPerChannelPriorities(quint8 *priorities)
 {
     memcpy(m_perChannelPriorities, priorities, sizeof(m_perChannelPriorities));
 }
 
-void sACNSentUniverse::setPerSourcePriority(uint1 priority)
+void sACNSentUniverse::setPerSourcePriority(quint8 priority)
 {
     m_priority = priority;
     if(m_isSending)
@@ -277,7 +276,7 @@ CStreamServer::~CStreamServer()
 //Returns a pointer to the storage location for the universe, adding if
 //need be.
 //The newly-added location contains sequence number 0.
-uint1* CStreamServer::GetPSeq(const CID &cid, uint2 universe)
+quint8* CStreamServer::GetPSeq(const CID &cid, quint16 universe)
 {
     cidanduniverse identifier(cid, universe);
 
@@ -287,7 +286,7 @@ uint1* CStreamServer::GetPSeq(const CID &cid, uint2 universe)
         ++it->second.first;
         return it->second.second;
     }
-    uint1 * p = new uint1;
+    quint8 * p = new quint8;
     if(!p)
         return NULL;
     *p = 0;
@@ -297,7 +296,7 @@ uint1* CStreamServer::GetPSeq(const CID &cid, uint2 universe)
 
 //Removes a reference to the storage location for the universe, removing
 //completely if need be.
-void CStreamServer::RemovePSeq(const CID &cid, uint2 universe)
+void CStreamServer::RemovePSeq(const CID &cid, quint16 universe)
 {
     cidanduniverse identifier(cid, universe);
 
@@ -345,7 +344,7 @@ void CStreamServer::Tick()
                 ++it->inactive_count;
 
             //Add the sequence number and send
-            uint1 *pseq = GetPSeq(it->cid, it->number);
+            quint8 *pseq = GetPSeq(it->cid, it->number);
             SetStreamHeaderSequence(it->psend, *pseq, it->draft);
             (*pseq)++;
 
@@ -380,8 +379,8 @@ void CStreamServer::Tick()
 //  send_intervalms intervals (again defaulted for DMX).  Note that even if you are not using the
 //  inactivity logic, send_intervalms expiry will trigger a resend of the current universe packet.
 //Data on this universe will not be initially sent until marked dirty.
-bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_name, uint1 priority, uint2 reserved, uint1 options, uint1 start_code,
-                                     uint2 universe, uint2 slot_count, uint1*& pslots, uint& handle,
+bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_name, quint8 priority, quint16 reserved, quint8 options, quint8 start_code,
+                                     quint16 universe, quint16 slot_count, quint8*& pslots, uint& handle,
                                         bool ignore_inactivity_logic, uint send_intervalms, CIPAddr unicastAddress, bool draft)
 {
     QMutexLocker locker(&m_writeMutex);
@@ -395,7 +394,7 @@ bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_nam
     else
         sendsize += STREAM_HEADER_SIZE;
 
-    uint1* pbuf = new uint1 [sendsize];
+    quint8* pbuf = new quint8 [sendsize];
     if(!pbuf)
         return false;
     memset(pbuf, 0, sendsize);
@@ -477,7 +476,7 @@ void CStreamServer::SendUniverseNow(uint handle)
     //Basically, a copy of the sending part of Tick
 
     universe* puni = &m_multiverse[handle];
-    uint1 *pseq = GetPSeq(puni->cid, puni->number);
+    quint8 *pseq = GetPSeq(puni->cid, puni->number);
     SetStreamHeaderSequence(puni->psend, *pseq, puni->draft);
     (*pseq)++;
 
@@ -537,7 +536,7 @@ void CStreamServer::setUniverseName(uint handle, const char *name)
 }
 
 
-void CStreamServer::setUniversePriority(uint handle, uint1 priority)
+void CStreamServer::setUniversePriority(uint handle, quint8 priority)
 {
     if(m_multiverse[handle].psend && m_multiverse[handle].draft)
     {

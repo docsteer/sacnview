@@ -18,7 +18,6 @@
 #include <QNetworkAddressEntry>
 #include <QDebug>
 #include <QThread>
-#include "deftypes.h"
 #include "ipaddr.h"
 #include "streamcommon.h"
 

@@ -17,7 +17,6 @@
 #include "ui_transmitwindow.h"
 
 #include "consts.h"
-#include "sacn/ACNShare/deftypes.h"
 #include "sacn/ACNShare/ipaddr.h"
 #include "sacn/streamcommon.h"
 #include "sacn/sacnsender.h"

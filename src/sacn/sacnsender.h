@@ -25,7 +25,6 @@
 #include "streamingacn.h"
 #include "streamcommon.h"
 #include "tock.h"
-#include "deftypes.h"
 #include "consts.h"
 #include "sacnsocket.h"
 
@@ -83,13 +82,13 @@ public slots:
      * @brief setPerChannelPriorities - sets the per-channel priority data for the source
      * @param priorities - a pointer to an array of priority values, must be 512 bytes
      */
-    void setPerChannelPriorities(uint1 *priorities);
+    void setPerChannelPriorities(quint8 *priorities);
     /**
      * @brief setPerSourcePriority - sets the per-source priority for the source
      * @param priority - the priority value
      */
-    void setPerSourcePriority(uint1 priority);
-    uint1 perSourcePriority() { return m_priority;};
+    void setPerSourcePriority(quint8 priority);
+    quint8 perSourcePriority() { return m_priority;};
     /**
      * @brief startSending - starts sending for the selected universe
      * @param (Optional) preview - set the preview flag?
@@ -140,13 +139,13 @@ private:
     // The handle for the CStreamServer universe of priority data
     uint m_priorityHandle;
     // The pointer to the data
-    uint1 *m_slotData;
+    quint8 *m_slotData;
     // The priority
-    uint1 m_priority;
+    quint8 m_priority;
     // Source name
     QString m_name;
     // Universe
-    uint2 m_universe;
+    quint16 m_universe;
     // FX speed
     int m_fx_speed;
     // The CID
@@ -154,7 +153,7 @@ private:
     // Priority mode
     PriorityMode m_priorityMode;
     // Per-channel priorities
-    uint1 m_perChannelPriorities[MAX_DMX_ADDRESS];
+    quint8 m_perChannelPriorities[MAX_DMX_ADDRESS];
     // Unicast
     QHostAddress m_unicastAddress;
     // Protocol Version
@@ -206,9 +205,9 @@ public:
   //  send_intervalms intervals (again defaulted for DMX).  Note that even if you are not using the
   //  inactivity logic, send_intervalms expiry will trigger a resend of the current universe packet.
   //Data on this universe will not be initially sent until marked dirty.
-  bool CreateUniverse(const CID& source_cid, const char* source_name, uint1 priority,
-                       uint2 reserved, uint1 options, uint1 start_code,
-                              uint2 universe, uint2 slot_count, uint1*& pslots, uint& handle,
+  bool CreateUniverse(const CID& source_cid, const char* source_name, quint8 priority,
+                       quint16 reserved, quint8 options, quint8 start_code,
+                              quint16 universe, quint16 slot_count, quint8*& pslots, uint& handle,
                               bool ignore_inactivity_logic = IGNORE_INACTIVE_DMX,
                               uint send_intervalms = SEND_INTERVAL_DMX, CIPAddr unicastAddress = CIPAddr(), bool draft = false);
 
@@ -240,13 +239,13 @@ public:
 
 
   void setUniverseName(uint handle, const char *name);
-  void setUniversePriority(uint handle, uint1 priority);
+  void setUniversePriority(uint handle, quint8 priority);
 
   //Use this to destroy a priority universe.
   void DEBUG_DESTROY_PRIORITY_UNIVERSE(uint handle);
 
   /*DEBUG USAGE ONLY --causes packets to be "dropped" on a particular universe*/
-  void DEBUG_DROP_PACKET(uint handle, uint1 decrement);
+  void DEBUG_DROP_PACKET(uint handle, quint8 decrement);
 
    //sets the preview_data bit of the options field
    virtual void OptionsPreviewData(uint handle, bool preview);
@@ -269,29 +268,29 @@ private:
     QThread *m_thread;
 
 
-    typedef std::pair<CID, uint2> cidanduniverse;
+    typedef std::pair<CID, quint16> cidanduniverse;
     //Each universe shares its sequence numbers across start codes.
     //This is the central storage location, along with a refcount
-    typedef std::pair<int, uint1*> seqref;
+    typedef std::pair<int, quint8*> seqref;
     std::map<cidanduniverse, seqref > m_seqmap;
     typedef std::map<cidanduniverse, seqref >::iterator seqiter;
 
     //Returns a pointer to the storage location for the universe, adding if need be.
     //The newly-added location contains sequence number 0.
-    uint1* GetPSeq(const CID &cid, uint2 universe);
+    quint8* GetPSeq(const CID &cid, quint16 universe);
 
     //Removes a reference to the storage location for the universe, removing completely if need be.
-    void RemovePSeq(const CID &cid, uint2 universe);
+    void RemovePSeq(const CID &cid, quint16 universe);
 
     //Each universe is just the full buffer and some state
     struct universe
     {
-        uint2 number;           //The universe number
-        uint1 start_code;       //The start code
+        quint16 number;           //The universe number
+        quint8 start_code;       //The start code
         uint handle;            //The handle.  This is needed to help deletions.
-        uint1 num_terminates;   //The number of consecutive times the
+        quint8 num_terminates;   //The number of consecutive times the
                                 //stream_terminated option flag has been set.
-        uint1* psend;           //The full sending buffer, which the user can access the data portion.
+        quint8* psend;           //The full sending buffer, which the user can access the data portion.
                                 //If NULL, this is not an active universe (just a hole in the vector)
         uint sendsize;
         bool isdirty;

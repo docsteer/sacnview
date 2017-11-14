@@ -20,7 +20,6 @@
 #include <QHostAddress>
 #include <QNetworkInterface>
 #include <QColor>
-#include "deftypes.h"
 #include "CID.h"
 #include "consts.h"
 

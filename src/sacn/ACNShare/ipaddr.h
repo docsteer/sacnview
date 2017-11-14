@@ -32,18 +32,15 @@
 #ifndef _IPADDR_H_
 #define _IPADDR_H_
 
-#ifndef _DEFTYPES_H_
-#error "#include error: ipaddr.h requires deftypes.h"
-#endif
-
+#include <QtGlobal>
 #include <QHostAddress>
 
 //The run-time identifier of a NIC interface, used wherever a NIC needs to be identified.  
 typedef int netintid;
 const netintid NETID_INVALID = -1;
 
-typedef uint2 IPPort;
-typedef uint4 IPv4;
+typedef quint16 IPPort;
+typedef quint32 IPv4;
 
 class CIPAddr
 {
@@ -55,7 +52,7 @@ public:
 	
 	CIPAddr();			//The default is an all zero address and port, invalid interface
 	CIPAddr(netintid id, IPPort port, IPv4 addr);  //Construct from a port, v4 address, and interface
-	CIPAddr(netintid id, IPPort port, const uint1* addr);  //Construct from a port, v6 address, and interface
+    CIPAddr(netintid id, IPPort port, const quint8* addr);  //Construct from a port, v6 address, and interface
 	CIPAddr(const CIPAddr& addr);
     CIPAddr(const QHostAddress &address); // Construct from a QHostAddress
 	virtual ~CIPAddr();
@@ -74,8 +71,8 @@ public:
 	bool IsV4Address() const;
 	void SetV4Address(IPv4 addr);
 	IPv4 GetV4Address() const;
-	void SetV6Address(const uint1* addr);
-	const uint1* GetV6Address() const;
+    void SetV6Address(const quint8* addr);
+    const quint8* GetV6Address() const;
 
 	bool IsMulticastAddress() const;
 
@@ -98,7 +95,7 @@ public:
 private:
 	netintid m_netid;
 	IPPort m_port;
-	uint1 m_addr [ADDRBYTES];  //Address in big endian format -- upper bytes all 0's for ipv4
+    quint8 m_addr [ADDRBYTES];  //Address in big endian format -- upper bytes all 0's for ipv4
 };
 
 bool operator<(const CIPAddr& a1, const CIPAddr& a2);
