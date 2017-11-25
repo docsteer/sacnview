@@ -30,14 +30,15 @@
 
 int main(int argc, char *argv[])
 {
+    #ifndef Q_OS_LINUX
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
+    #endif
     QApplication a(argc, argv);
 
     a.setApplicationName(APP_NAME);
     a.setApplicationVersion(VERSION);
     a.setOrganizationName("sACNView");
     a.setOrganizationDomain("tomsteer.net");
-
 
     // Check web (if avaliable) for new version
     VersionCheck version;
