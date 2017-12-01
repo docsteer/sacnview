@@ -50,9 +50,11 @@ transmitwindow::transmitwindow(QWidget *parent) :
 
     ui->sbFadeRangeEnd->setMinimum(MIN_DMX_ADDRESS);
     ui->sbFadeRangeEnd->setMaximum(MAX_DMX_ADDRESS);
+    ui->sbFadeRangeEnd->setValue(MAX_DMX_ADDRESS);
     ui->sbFadeRangeEnd->setWrapping(true);
     ui->sbFadeRangeStart->setMinimum(MIN_DMX_ADDRESS);
     ui->sbFadeRangeStart->setMaximum(MAX_DMX_ADDRESS);
+    ui->sbFadeRangeStart->setValue(MIN_DMX_ADDRESS);
     ui->sbFadeRangeStart->setWrapping(true);
 
     ui->leSourceName->setText(Preferences::getInstance()->GetDefaultTransmitName());
