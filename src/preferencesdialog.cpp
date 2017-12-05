@@ -86,6 +86,9 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         ui->gbTransmitTimeout->setChecked(false);
     }
 
+    ui->cbTheme->clear();
+    ui->cbTheme->addItems(Preferences::ThemeDescriptions);
+    ui->cbTheme->setCurrentIndex((int)Preferences::getInstance()->GetTheme());
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -140,6 +143,13 @@ void PreferencesDialog::on_buttonBox_accepted()
 
     requiresRestart |= ui->cbListenAll->isChecked() != p->GetNetworkListenAll();
     p->SetNetworkListenAll(ui->cbListenAll->isChecked());
+
+    Preferences::Theme theme = (Preferences::Theme)ui->cbTheme->currentIndex();
+    if(p->GetTheme()!=theme)
+    {
+        p->SetTheme(theme);
+        requiresRestart = true;
+    }
 
     if (requiresRestart) {
         QMessageBox::information(this, tr("Restart requied"),

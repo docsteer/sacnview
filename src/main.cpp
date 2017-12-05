@@ -24,9 +24,11 @@
 #include <QProcess>
 #include <QMessageBox>
 #include <QStatusBar>
+#include <QStyleFactory>
 #include "sacnsender.h"
 #include "versioncheck.h"
 #include "firewallcheck.h"
+#include "theme/darkstyle.h"
 
 int main(int argc, char *argv[])
 {
@@ -57,6 +59,14 @@ int main(int argc, char *argv[])
 
         newInterface = true;
     }
+
+
+    a.setStyle(QStyleFactory::create("Fusion"));
+    if(Preferences::getInstance()->GetTheme() == Preferences::THEME_DARK)
+    {
+        a.setStyle(new DarkStyle);
+    }
+
 
     // Changed to heap rather than stack,
     // so that we can destroy before cleaning up the singletons
