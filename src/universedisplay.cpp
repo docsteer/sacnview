@@ -17,13 +17,25 @@
 #include "preferences.h"
 
 
-UniverseDisplay::UniverseDisplay(QWidget *parent) : GridWidget(parent)
+UniverseDisplay::UniverseDisplay(QWidget *parent)
+    : GridWidget(parent)
+    , m_sources(512, sACNMergedAddress())
+    , m_flickerFinder(false)
+    , m_showChannelPriority(false)
 {
-    for(int i=0; i<512; i++)
-        m_sources << sACNMergedAddress();
     memset(m_flickerFinderLevels, 0, MAX_DMX_ADDRESS);
     memset(m_flickerFinderHasChanged, 0, MAX_DMX_ADDRESS);
-    m_flickerFinder = false;
+}
+
+void UniverseDisplay::setShowChannelPriority(bool enable)
+{
+    if (m_showChannelPriority == enable)
+        return;
+    m_showChannelPriority = enable;
+    emit showChannelPriorityChanged(enable);
+    m_cellHeight = m_showChannelPriority ? (18 * 2) : 18;
+    // Refresh
+    levelsChanged();
 }
 
 void UniverseDisplay::setUniverse(int universe)
@@ -49,7 +61,13 @@ void UniverseDisplay::levelsChanged()
     {
         if(m_sources[i].winningSource)
         {
-            setCellValue(i, p->GetFormattedValue(m_sources[i].level));
+            QString cellText(p->GetFormattedValue(m_sources[i].level));
+            if (m_showChannelPriority)
+            {
+                cellText.append('\n');
+                cellText.append(QString::number(m_sources[i].winningSource->priority_array[i]));
+            }
+            setCellValue(i, cellText);
 
             if(m_flickerFinder)
             {

@@ -65,8 +65,10 @@ protected:
 
 private:
     int m_selectedAddress;
-    QList<QColor> m_colors;
+    QVector<QColor> m_colors;
     QStringList m_values;
+protected:
+    int m_cellHeight;
 };
 
 #endif // GRIDWIDGET_H
