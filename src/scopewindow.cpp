@@ -50,9 +50,10 @@ static const QList<int> TIMEBASES({
     5,
 });
 
-ScopeWindow::ScopeWindow(QWidget *parent) :
+ScopeWindow::ScopeWindow(int universe, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::ScopeWindow)
+    ui(new Ui::ScopeWindow),
+    m_defaultUniverse(universe)
 {
     ui->setupUi(this);
     ui->dlTimebase->setMinimum(0);
@@ -118,7 +119,7 @@ void ScopeWindow::on_btnStop_pressed()
 void ScopeWindow::on_btnAddChannel_pressed()
 {
     int rowNumber =  m_channels.count();
-    ScopeChannel *channel = new ScopeChannel(1, rowNumber % 512);
+    ScopeChannel *channel = new ScopeChannel(m_defaultUniverse, rowNumber % 512);
 
     QColor col((Qt::GlobalColor)COLOURS[rowNumber % COLOURS.count()]);
     channel->setColor(col);
