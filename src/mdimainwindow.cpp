@@ -262,6 +262,7 @@ void MDIMainWindow::on_actionPCAPPlayback_triggered()
     PcapPlayback *pcapPlayback = new PcapPlayback(this);
     ui->mdiArea->addSubWindow(pcapPlayback);
     pcapPlayback->show();
+}
 
 int MDIMainWindow::getSelectedUniverse()
 {

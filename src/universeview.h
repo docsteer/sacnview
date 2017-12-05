@@ -17,7 +17,7 @@
 #define UNIVERSEVIEW_H
 
 #include <QWidget>
-
+#include "consts.h"
 #include "mergeduniverselogger.h"
 
 class sACNListener;

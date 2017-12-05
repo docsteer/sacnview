@@ -23,6 +23,7 @@ class QTableWidgetItem;
 #include <QWidget>
 #include <QButtonGroup>
 #include "sacnlistener.h"
+#include "consts.h"
 
 namespace Ui {
 class ScopeWindow;
