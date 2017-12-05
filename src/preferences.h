@@ -41,7 +41,6 @@ static const QString S_SUBWINDOWNAME("SubWindow Name");
 static const QString S_SUBWINDOWGEOM("SubWindow Geometry");
 static const QString S_LISTEN_ALL("Listen All");
 
-
 struct MDIWindowInfo
 {
     QString name;
@@ -59,6 +58,14 @@ public:
             HEXADECIMAL = 2,
             TOTAL_NUM_OF_FORMATS = 3
         };
+
+    enum Theme {
+        THEME_LIGHT,
+        THEME_DARK,
+        TOTAL_NUM_OF_THEMES
+    };
+    static const QStringList ThemeDescriptions;
+
 
     /**
      * @brief getInstance - returns the instance of the Preferences class
@@ -101,6 +108,7 @@ public:
     void SetMainWindowGeometry(const QByteArray &value);
     void SetSavedWindows(QList<MDIWindowInfo> values);
     void SetNetworkListenAll(const bool &value);
+    void SetTheme(Theme theme);
 
     unsigned int GetDisplayFormat();
     unsigned int GetMaxLevel();
@@ -114,12 +122,12 @@ public:
     QByteArray GetMainWindowGeometry();
     QList<MDIWindowInfo> GetSavedWindows();
     bool GetNetworkListenAll();
-
+    Theme GetTheme();
 
     QString GetFormattedValue(unsigned int nLevelInDecimal, bool decorated = false);
 
     void savePreferences();
-
+    void applyTheme(Theme theme);
 
     bool RESTART_APP;
 public slots:
@@ -142,6 +150,7 @@ private:
     bool m_saveWindowLayout;
     QByteArray m_mainWindowGeometry;
     QList<MDIWindowInfo> m_windowInfo;
+    Theme m_theme;
 
     void loadPreferences();
 

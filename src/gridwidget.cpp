@@ -16,6 +16,9 @@
 #include "gridwidget.h"
 #include <QPainter>
 #include <QMouseEvent>
+#include <QPalette>
+#include <QApplication>
+#include <QStyle>
 
 #define FIRST_COL_WIDTH 60
 #define ROW_COUNT 16
@@ -54,6 +57,7 @@ void GridWidget::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
     QPainter painter(this);
+    QPalette pal = qApp->style()->standardPalette();
 
     qreal wantedHeight = CELL_HEIGHT * (ROW_COUNT + 1);
     qreal wantedWidth = FIRST_COL_WIDTH + CELL_WIDTH * COL_COUNT;
@@ -66,9 +70,9 @@ void GridWidget::paintEvent(QPaintEvent *event)
     painter.translate((width()-minScale*wantedWidth) /2,0);
     painter.scale(minScale,minScale);
 
-    painter.fillRect(QRectF(0,0, wantedWidth, wantedHeight), QBrush(QColor("#FFF")));
+    painter.fillRect(QRectF(0,0, wantedWidth, wantedHeight), pal.background());
 
-    painter.setPen(textColor);
+    painter.setPen(pal.color(QPalette::Text));
     painter.setFont(QFont("Segoe UI", 8));
     for(int row=1; row<ROW_COUNT+1; row++)
     {

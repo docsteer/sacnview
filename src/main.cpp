@@ -24,6 +24,7 @@
 #include <QProcess>
 #include <QMessageBox>
 #include <QStatusBar>
+#include <QStyleFactory>
 #include "sacnsender.h"
 #include "versioncheck.h"
 #include "firewallcheck.h"
@@ -57,6 +58,10 @@ int main(int argc, char *argv[])
 
         newInterface = true;
     }
+
+
+    a.setStyle(QStyleFactory::create("Fusion"));
+
 
     // Changed to heap rather than stack,
     // so that we can destroy before cleaning up the singletons

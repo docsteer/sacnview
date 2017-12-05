@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>500</height>
+    <width>420</width>
+    <height>570</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -35,6 +35,12 @@
    </property>
    <item alignment="Qt::AlignVCenter">
     <widget class="QGroupBox" name="gbNetworkInterface">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="title">
       <string>Network Interface*</string>
      </property>
@@ -52,7 +58,7 @@
    <item alignment="Qt::AlignVCenter">
     <widget class="QGroupBox" name="gbDisplayFormat">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+      <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -66,8 +72,39 @@
      <property name="title">
       <string>Display Options</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
+     <layout class="QFormLayout" name="formLayout">
+      <item row="6" column="1">
+       <widget class="QComboBox" name="cbTheme"/>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Theme</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QCheckBox" name="cbRestoreWindows">
+        <property name="text">
+         <string>Restore windows on application restart</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QRadioButton" name="HexDisplayFormat">
+        <property name="text">
+         <string>Hexadecimal (00-FF)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QRadioButton" name="PercentDisplayFormat">
+        <property name="text">
+         <string>Percent (0-100)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
        <widget class="QRadioButton" name="DecimalDisplayFormat">
         <property name="enabled">
          <bool>true</bool>
@@ -77,34 +114,13 @@
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QRadioButton" name="PercentDisplayFormat">
-        <property name="text">
-         <string>Percent (0-100)</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="HexDisplayFormat">
-        <property name="text">
-         <string>Hexadecimal (00-FF)</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="cbRestoreWindows">
-        <property name="text">
-         <string>Restore windows on application restart</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </widget>
    </item>
    <item alignment="Qt::AlignVCenter">
     <widget class="QGroupBox" name="gbRecieveOptions">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+      <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -128,7 +144,7 @@
       <item>
        <widget class="QCheckBox" name="cbDisplayBlind">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -147,7 +163,7 @@
       <item>
        <widget class="QCheckBox" name="cbDisplayDDOnlys">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -311,6 +327,19 @@
       </item>
      </layout>
     </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
    </item>
    <item alignment="Qt::AlignVCenter">
     <widget class="QDialogButtonBox" name="buttonBox">

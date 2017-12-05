@@ -15,6 +15,9 @@
 
 #include <Qt>
 #include <QSettings>
+#include <QPalette>
+#include <QStyle>
+#include <QApplication>
 #include "preferences.h"
 #include "consts.h"
 
@@ -22,6 +25,8 @@
 static const QColor mixColor = QColor("coral");
 
 Preferences *Preferences::m_instance = NULL;
+
+const QStringList Preferences::ThemeDescriptions = QStringList{"Light Theme", "Dark Theme"};
 
 Preferences::Preferences()
 {
@@ -198,6 +203,17 @@ bool Preferences::interfaceSuitable(QNetworkInterface *inter)
     return false;
 }
 
+void Preferences::SetTheme(Theme theme)
+{
+    m_theme = theme;
+    applyTheme(theme);
+}
+
+Preferences::Theme Preferences::GetTheme()
+{
+    return m_theme;
+}
+
 void Preferences::savePreferences()
 {
     QSettings settings;
@@ -327,4 +343,33 @@ void Preferences::SetSavedWindows(QList<MDIWindowInfo> values)
 QList<MDIWindowInfo> Preferences::GetSavedWindows()
 {
     return m_windowInfo;
+}
+
+void Preferences::applyTheme(Theme theme)
+{
+    QPalette pal = qApp->style()->standardPalette();
+
+    switch(theme)
+    {
+    case THEME_DARK:
+        pal.setColor(QPalette::Window, QColor(53,53,53));
+        pal.setColor(QPalette::WindowText, Qt::white);
+        pal.setColor(QPalette::Base, QColor(25,25,25));
+        pal.setColor(QPalette::AlternateBase, QColor(53,53,53));
+        pal.setColor(QPalette::ToolTipBase, Qt::white);
+        pal.setColor(QPalette::ToolTipText, Qt::white);
+        pal.setColor(QPalette::Text, Qt::white);
+        pal.setColor(QPalette::Button, QColor(53,53,53));
+        pal.setColor(QPalette::ButtonText, Qt::white);
+        pal.setColor(QPalette::BrightText, Qt::red);
+        pal.setColor(QPalette::Link, QColor(42, 130, 218));
+        pal.setColor(QPalette::Highlight, QColor(42, 130, 218));
+        pal.setColor(QPalette::HighlightedText, Qt::black);
+        break;
+    case THEME_LIGHT:
+    default:
+        break;
+    }
+
+    qApp->setPalette(pal);
 }
