@@ -25,9 +25,10 @@
 #include "consts.h"
 #include "addmultidialog.h"
 
-MultiUniverse::MultiUniverse(QWidget *parent) :
+MultiUniverse::MultiUniverse(int firstUniverse, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::MultiUniverse)
+    ui(new Ui::MultiUniverse),
+    m_firstUniverse(firstUniverse)
 {
     ui->setupUi(this);
 }
@@ -148,7 +149,7 @@ void MultiUniverse::addSource(int universe, int min_address, int max_address,
 
 void MultiUniverse::on_btnAddRow_pressed()
 {
-    int nextUniverse = 1;
+    int nextUniverse = m_firstUniverse;
     if(m_senders.count()>0)
         nextUniverse = m_senders.last()->universe() + 1;
 

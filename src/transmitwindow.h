@@ -35,7 +35,7 @@ class transmitwindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit transmitwindow(QWidget *parent = 0);
+    explicit transmitwindow(int universe = MIN_SACN_UNIVERSE, QWidget *parent = 0);
     ~transmitwindow();
     static const int BLINK_TIME = 1000;
     static const int NUM_SLIDERS = 24;

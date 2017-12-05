@@ -24,7 +24,7 @@ border: 1px solid grey;
 }
 
 QSpinBox::up-button {
-subcontrol-position: left;
+subcontrol-position: right;
 width: 22px;
 height: 22px;
 background-color:#cfcfcf;
@@ -36,7 +36,7 @@ background-color:grey;
  }
 
 QSpinBox::down-button {
-subcontrol-position: right;
+subcontrol-position: left;
 width: 22px;
 height: 22px;
 background-color:#cfcfcf;

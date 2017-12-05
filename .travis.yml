@@ -20,7 +20,7 @@ install:
 
 script:
   - qmake
-  - make -j$(nproc) || true # Errors out but at that point the AppImage has already been generated
+  - make -j$(nproc)
   # Interestingly, the whole linuxdeployqt handling is done in the .pro file
 
 after_success:

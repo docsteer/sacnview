@@ -57,6 +57,7 @@ private slots:
 private:
     Ui::MDIMainWindow *ui;
     sACNUniverseListModel *m_model;
+    int getSelectedUniverse();
 };
 
 #endif // MDIMAINWINDOW_H
