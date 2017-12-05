@@ -324,7 +324,7 @@
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">background: blue;</string>
+       <string notr="true"/>
       </property>
      </widget>
     </widget>

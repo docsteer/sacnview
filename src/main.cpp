@@ -28,6 +28,7 @@
 #include "sacnsender.h"
 #include "versioncheck.h"
 #include "firewallcheck.h"
+#include "theme/darkstyle.h"
 
 int main(int argc, char *argv[])
 {
@@ -61,6 +62,10 @@ int main(int argc, char *argv[])
 
 
     a.setStyle(QStyleFactory::create("Fusion"));
+    if(Preferences::getInstance()->GetTheme() == Preferences::THEME_DARK)
+    {
+        a.setStyle(new DarkStyle);
+    }
 
 
     // Changed to heap rather than stack,

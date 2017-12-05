@@ -1,0 +1,1 @@
+Dark Theme from https://github.com/Jorgen-VikingGod/Qt-Frameless-Window-DarkStyle

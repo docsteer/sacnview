@@ -206,7 +206,6 @@ bool Preferences::interfaceSuitable(QNetworkInterface *inter)
 void Preferences::SetTheme(Theme theme)
 {
     m_theme = theme;
-    applyTheme(theme);
 }
 
 Preferences::Theme Preferences::GetTheme()
@@ -229,6 +228,7 @@ void Preferences::savePreferences()
     settings.setValue(S_SAVEWINDOWLAYOUT, m_saveWindowLayout);
     settings.setValue(S_MAINWINDOWGEOM, m_mainWindowGeometry);
     settings.setValue(S_LISTEN_ALL, m_interfaceListenAll);
+    settings.setValue(S_THEME, m_theme);
 
     settings.beginWriteArray(S_SUBWINDOWLIST);
     for(int i=0; i<m_windowInfo.count(); i++)
@@ -267,6 +267,7 @@ void Preferences::loadPreferences()
     m_flickerFinderShowInfo = settings.value(S_FLICKERFINDERSHOWINFO, QVariant(true)).toBool();
     m_saveWindowLayout = settings.value(S_SAVEWINDOWLAYOUT, QVariant(false)).toBool();
     m_mainWindowGeometry = settings.value(S_MAINWINDOWGEOM, QVariant(QByteArray())).toByteArray();
+    m_theme = (Theme) settings.value(S_THEME, QVariant((int)THEME_LIGHT)).toInt();
 
     m_windowInfo.clear();
     int size = settings.beginReadArray(S_SUBWINDOWLIST);
@@ -343,33 +344,4 @@ void Preferences::SetSavedWindows(QList<MDIWindowInfo> values)
 QList<MDIWindowInfo> Preferences::GetSavedWindows()
 {
     return m_windowInfo;
-}
-
-void Preferences::applyTheme(Theme theme)
-{
-    QPalette pal = qApp->style()->standardPalette();
-
-    switch(theme)
-    {
-    case THEME_DARK:
-        pal.setColor(QPalette::Window, QColor(53,53,53));
-        pal.setColor(QPalette::WindowText, Qt::white);
-        pal.setColor(QPalette::Base, QColor(25,25,25));
-        pal.setColor(QPalette::AlternateBase, QColor(53,53,53));
-        pal.setColor(QPalette::ToolTipBase, Qt::white);
-        pal.setColor(QPalette::ToolTipText, Qt::white);
-        pal.setColor(QPalette::Text, Qt::white);
-        pal.setColor(QPalette::Button, QColor(53,53,53));
-        pal.setColor(QPalette::ButtonText, Qt::white);
-        pal.setColor(QPalette::BrightText, Qt::red);
-        pal.setColor(QPalette::Link, QColor(42, 130, 218));
-        pal.setColor(QPalette::Highlight, QColor(42, 130, 218));
-        pal.setColor(QPalette::HighlightedText, Qt::black);
-        break;
-    case THEME_LIGHT:
-    default:
-        break;
-    }
-
-    qApp->setPalette(pal);
 }

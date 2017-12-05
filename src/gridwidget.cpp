@@ -27,8 +27,6 @@
 #define CELL_WIDTH 25
 #define CELL_COUNT 512
 
-static const QColor gridLineColor = QColor::fromRgb(0xc0, 0xc0, 0xc0);
-static const QColor textColor = QColor::fromRgb(0x0, 0x0, 0x0);
 
 GridWidget::GridWidget(QWidget *parent) : QWidget(parent)
 {
@@ -57,7 +55,7 @@ void GridWidget::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
     QPainter painter(this);
-    QPalette pal = qApp->style()->standardPalette();
+    QPalette pal = this->palette();
 
     qreal wantedHeight = CELL_HEIGHT * (ROW_COUNT + 1);
     qreal wantedWidth = FIRST_COL_WIDTH + CELL_WIDTH * COL_COUNT;
@@ -70,7 +68,7 @@ void GridWidget::paintEvent(QPaintEvent *event)
     painter.translate((width()-minScale*wantedWidth) /2,0);
     painter.scale(minScale,minScale);
 
-    painter.fillRect(QRectF(0,0, wantedWidth, wantedHeight), pal.background());
+    painter.fillRect(QRectF(0,0, wantedWidth, wantedHeight), pal.color(QPalette::Base));
 
     painter.setPen(pal.color(QPalette::Text));
     painter.setFont(QFont("Segoe UI", 8));
@@ -107,7 +105,7 @@ void GridWidget::paintEvent(QPaintEvent *event)
 
         }
 
-    painter.setPen(gridLineColor);
+    painter.setPen(pal.color(QPalette::AlternateBase));
 
     for(int row=0; row<ROW_COUNT + 1; row++)
     {
@@ -128,7 +126,7 @@ void GridWidget::paintEvent(QPaintEvent *event)
         int col = m_selectedAddress % 32;
         int row = m_selectedAddress / 32;
         QRect textRect(FIRST_COL_WIDTH + col*CELL_WIDTH, (row+1)*CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
-        painter.setPen(QColor(Qt::black));
+        painter.setPen(pal.color(QPalette::Highlight));
         painter.drawRect(textRect);
     }
 }

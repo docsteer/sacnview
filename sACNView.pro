@@ -106,7 +106,8 @@ SOURCES += src/main.cpp\
     src/bigdisplay.cpp \
     src/addmultidialog.cpp \
     src/pcapplayback.cpp \
-    src/pcapplaybacksender.cpp
+    src/pcapplaybacksender.cpp \
+    src/theme/darkstyle.cpp
 
 HEADERS  += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -147,7 +148,8 @@ HEADERS  += src/mdimainwindow.h \
     src/addmultidialog.h \
     src/pcapplayback.h \
     src/pcapplaybacksender.h \
-    src/ethernetstrut.h
+    src/ethernetstrut.h \
+    src/theme/darkstyle.h
 
 FORMS    += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
@@ -167,7 +169,8 @@ FORMS    += ui/mdimainwindow.ui \
     ui/addmultidialog.ui
 
 RESOURCES += \
-    res/resources.qrc
+    res/resources.qrc \
+    src/theme/darkstyle.qrc
 
 RC_FILE = res/sacnview.rc
 

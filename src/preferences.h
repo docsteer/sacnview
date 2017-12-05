@@ -40,6 +40,7 @@ static const QString S_SUBWINDOWLIST("Sub Window");
 static const QString S_SUBWINDOWNAME("SubWindow Name");
 static const QString S_SUBWINDOWGEOM("SubWindow Geometry");
 static const QString S_LISTEN_ALL("Listen All");
+static const QString S_THEME("Theme");
 
 struct MDIWindowInfo
 {
@@ -127,7 +128,6 @@ public:
     QString GetFormattedValue(unsigned int nLevelInDecimal, bool decorated = false);
 
     void savePreferences();
-    void applyTheme(Theme theme);
 
     bool RESTART_APP;
 public slots:
