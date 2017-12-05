@@ -23,21 +23,20 @@
 #define FIRST_COL_WIDTH 60
 #define ROW_COUNT 16
 #define COL_COUNT 32
-#define CELL_HEIGHT 18
 #define CELL_WIDTH 25
 #define CELL_COUNT 512
 
 
-GridWidget::GridWidget(QWidget *parent) : QWidget(parent)
+GridWidget::GridWidget(QWidget *parent)
+    : QWidget(parent)
+    , m_selectedAddress(-1)
+    , m_colors(CELL_COUNT, Qt::white)
+    , m_cellHeight(18)
 {
-    m_selectedAddress = -1;
-
     for(int i=0; i<CELL_COUNT; i++)
     {
-        m_colors << QColor(Qt::white);
         m_values << QString();
     }
-
 }
 
 QSize GridWidget::minimumSizeHint() const
@@ -57,7 +56,7 @@ void GridWidget::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     QPalette pal = this->palette();
 
-    qreal wantedHeight = CELL_HEIGHT * (ROW_COUNT + 1);
+    qreal wantedHeight = m_cellHeight * (ROW_COUNT + 1);
     qreal wantedWidth = FIRST_COL_WIDTH + CELL_WIDTH * COL_COUNT;
 
     qreal scaleWidth = width()/wantedWidth;
@@ -74,7 +73,7 @@ void GridWidget::paintEvent(QPaintEvent *event)
     painter.setFont(QFont("Segoe UI", 8));
     for(int row=1; row<ROW_COUNT+1; row++)
     {
-        QRect textRect(0, row*CELL_HEIGHT, FIRST_COL_WIDTH, CELL_HEIGHT);
+        QRect textRect(0, row*m_cellHeight, FIRST_COL_WIDTH, m_cellHeight);
         QString rowLabel = QString("%1 - %2")
                 .arg(1+(row-1)*32)
                 .arg((row)*32);
@@ -82,7 +81,7 @@ void GridWidget::paintEvent(QPaintEvent *event)
     }
     for(int col=0; col<COL_COUNT; col++)
     {
-        QRect textRect(FIRST_COL_WIDTH + col*CELL_WIDTH, 0, CELL_WIDTH, CELL_HEIGHT);
+        QRect textRect(FIRST_COL_WIDTH + col*CELL_WIDTH, 0, CELL_WIDTH, m_cellHeight);
         QString rowLabel = QString("%1")
                 .arg(col+1);
         painter.drawText(textRect, rowLabel, QTextOption(Qt::AlignHCenter | Qt::AlignVCenter));
@@ -91,7 +90,7 @@ void GridWidget::paintEvent(QPaintEvent *event)
         for(int col=0; col<COL_COUNT; col++)
         {
             int address = row*COL_COUNT + col;
-            QRect textRect(FIRST_COL_WIDTH + col*CELL_WIDTH, (row+1)*CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
+            QRect textRect(FIRST_COL_WIDTH + col*CELL_WIDTH, (row+1)*m_cellHeight, CELL_WIDTH, m_cellHeight);
             QString value = m_values[address];
 
             if(!value.isEmpty())
@@ -109,8 +108,8 @@ void GridWidget::paintEvent(QPaintEvent *event)
 
     for(int row=0; row<ROW_COUNT + 1; row++)
     {
-        QPoint start(0, row*CELL_HEIGHT);
-        QPoint end(wantedWidth, row*CELL_HEIGHT);
+        QPoint start(0, row*m_cellHeight);
+        QPoint end(wantedWidth, row*m_cellHeight);
         painter.drawLine(start, end);
     }
     for(int col=0; col<COL_COUNT + 1; col++)
@@ -125,7 +124,7 @@ void GridWidget::paintEvent(QPaintEvent *event)
     {
         int col = m_selectedAddress % 32;
         int row = m_selectedAddress / 32;
-        QRect textRect(FIRST_COL_WIDTH + col*CELL_WIDTH, (row+1)*CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
+        QRect textRect(FIRST_COL_WIDTH + col*CELL_WIDTH, (row+1)*m_cellHeight, CELL_WIDTH, m_cellHeight);
         painter.setPen(pal.color(QPalette::Highlight));
         painter.drawRect(textRect);
     }
@@ -133,7 +132,7 @@ void GridWidget::paintEvent(QPaintEvent *event)
 
 int GridWidget::cellHitTest(const QPoint &point)
 {
-    qreal wantedHeight = CELL_HEIGHT * (ROW_COUNT + 1);
+    qreal wantedHeight = m_cellHeight * (ROW_COUNT + 1);
     qreal wantedWidth = FIRST_COL_WIDTH + CELL_WIDTH * COL_COUNT;
 
     qreal scaleWidth = width()/wantedWidth;

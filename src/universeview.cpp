@@ -61,6 +61,11 @@ UniverseView::UniverseView(QWidget *parent) :
     connect(ui->universeDisplay, SIGNAL(selectedCellChanged(int)), this, SLOT(selectedAddressChanged(int)));
     connect(ui->universeDisplay, SIGNAL(cellDoubleClick(quint16)), this, SLOT(openBigDisplay(quint16)));
 
+    connect(ui->btnShowPriority, &QPushButton::toggled,
+            ui->universeDisplay, &UniverseDisplay::setShowChannelPriority);
+    connect(ui->universeDisplay, &UniverseDisplay::showChannelPriorityChanged,
+            ui->btnShowPriority, &QPushButton::setChecked);
+
     ui->btnGo->setEnabled(true);
     ui->btnPause->setEnabled(false);
     ui->sbUniverse->setEnabled(true);
