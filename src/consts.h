@@ -21,6 +21,10 @@
 #define APP_NAME        "sACNView"
 #define AUTHOR          "Tom Barthel-Steer\r\nMarcus Birkin\r\nHans Hinrichsen\r\nMatt Kerr"
 
+// If this is a full release, only show the newer version message for other full releases
+// If this is prerelease, show all newer versions
+#define PRERELEASE      false
+
 #define nNumOfSecPerHour 3600
 #define nNumberOfSecPerMin 60
 #define nNumOfMinPerHour 60
