@@ -5,4 +5,4 @@ Exec=/opt/sacnview/sACNView2.AppImage
 Icon=sacnview
 Comment=Streaming ACN Viewer mark2
 Terminal=false
-Categories=Network
+Categories=Network; 
