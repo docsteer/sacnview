@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 
 
     // Check web (if avaliable) for new version
-    //VersionCheck version;
+    VersionCheck version;
 
 
     bool newInterface = false;
