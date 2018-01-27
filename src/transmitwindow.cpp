@@ -344,6 +344,7 @@ void transmitwindow::on_btnStart_pressed()
             m_fxEngine = new sACNEffectEngine();
             connect(m_fxEngine, SIGNAL(fxLevelChange(int)), ui->slFadeLevel, SLOT(setValue(int)));
             connect(m_fxEngine, SIGNAL(textImageChanged(QPixmap)), ui->lblTextImage, SLOT(setPixmap(QPixmap)));
+            m_fxEngine->setRange(ui->sbFadeRangeStart->value()-1, ui->sbFadeRangeEnd->value()-1);
         }
         m_fxEngine->setSender(m_sender);
     }
