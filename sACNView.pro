@@ -24,8 +24,23 @@ macx {
     QMAKE_CXXFLAGS += -std=gnu++0x
 }
 
+## External Libs
+
+# Firewall Checker
 win32 {
     LIBS += -lole32 -loleaut32
+}
+
+# OpenSSL
+win32 {
+    # https://wiki.openssl.org/index.php/Binaries
+    contains(QT_ARCH, i386) {
+        OPENSSL_PATH = $${_PRO_FILE_PWD_}/libs/openssl-1.0.2n-i386-win32
+    } else {
+        OPENSSL_PATH = $${_PRO_FILE_PWD_}/libs/openssl-1.0.2n-x64_86-win64
+    }
+    LIBS += "$$OPENSSL_PATH/libeay32.dll"
+    LIBS += "$$OPENSSL_PATH/ssleay32.dll"
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
