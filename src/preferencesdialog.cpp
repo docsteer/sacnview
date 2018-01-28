@@ -36,13 +36,14 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         // We want interfaces which are IPv4 and can multicast
         QString ipString;
         foreach (QNetworkAddressEntry e, interface.addressEntries()) {
-            if(!ipString.isEmpty())
-                ipString.append(",");
-            ipString.append(e.ip().toString());
-            if(e.ip().protocol() == QAbstractSocket::IPv4Protocol)
-               ok = true;
+            if ((e.ip().protocol() == QAbstractSocket::IPv4Protocol)
+                & (bool)(interface.flags() | QNetworkInterface::CanMulticast)) {
+                ok = true;
+                if(!ipString.isEmpty())
+                    ipString.append(",");
+                ipString.append(e.ip().toString());
+            }
         }
-        ok = ok & (bool)(interface.flags() | QNetworkInterface::CanMulticast);
 
         if(ok)
         {
