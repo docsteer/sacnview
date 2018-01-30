@@ -35,20 +35,30 @@ TEMPLATE = app
 
 INCLUDEPATH += src src/sacn src/sacn/ACNShare
 
-GIT_VERSION = $$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --always --tags)
-GIT_DATE_DAY = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%a\" --format=\"%cd\" $$GIT_VERSION)
-GIT_DATE_DATE = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%d\" --format=\"%cd\" $$GIT_VERSION)
-GIT_DATE_MONTH = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%b\" --format=\"%cd\" $$GIT_VERSION)
-GIT_DATE_YEAR = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%Y\" --format=\"%cd\" $$GIT_VERSION)
-GIT_TAG = $$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --abbrev=0 --always --tags)
-GIT_SHA1 = $$system(git --git-dir $$PWD/.git --work-tree $$PWD rev-parse --short HEAD)
+GIT_COMMAND = git --git-dir $$shell_quote($$PWD/.git) --work-tree $$shell_quote($$PWD)
+GIT_VERSION = $$system($$GIT_COMMAND describe --always --tags)
+GIT_DATE_DAY = $$system($$GIT_COMMAND show -s --date=format:\"%a\" --format=\"%cd\" $$GIT_VERSION)
+GIT_DATE_DATE = $$system($$GIT_COMMAND show -s --date=format:\"%d\" --format=\"%cd\" $$GIT_VERSION)
+GIT_DATE_MONTH = $$system($$GIT_COMMAND show -s --date=format:\"%b\" --format=\"%cd\" $$GIT_VERSION)
+GIT_DATE_YEAR = $$system($$GIT_COMMAND show -s --date=format:\"%Y\" --format=\"%cd\" $$GIT_VERSION)
+GIT_TAG = $$system($$GIT_COMMAND describe --abbrev=0 --always --tags)
+GIT_SHA1 = $$system($$GIT_COMMAND rev-parse --short HEAD)
 
 DEFINES += GIT_CURRENT_SHA1=\\\"$$GIT_VERSION\\\"
 DEFINES += GIT_DATE_DAY=\\\"$$GIT_DATE_DAY\\\"
 DEFINES += GIT_DATE_DATE=\\\"$$GIT_DATE_DATE\\\"
 DEFINES += GIT_DATE_MONTH=\\\"$$GIT_DATE_MONTH\\\"
 DEFINES += GIT_DATE_YEAR=\\\"$$GIT_DATE_YEAR\\\"
-DEFINES += VERSION=\\\"$$GIT_TAG\\\"
+lessThan(QT_MAJOR_VERSION, 6):lessThan(QT_MINOR_VERSION, 7) {
+    # Windows XP Special Build
+    QMAKE_LFLAGS_WINDOWS = /SUBSYSTEM:WINDOWS,5.01
+    DEFINES += _ATL_XP_TARGETING
+    DEFINES += VERSION=\\\"$$GIT_TAG-WindowsXP\\\"
+    TARGET_WINXP = 1
+} else {
+    DEFINES += VERSION=\\\"$$GIT_TAG\\\"
+    TARGET_WINXP = 0
+}
 
 SOURCES += src/main.cpp\
     src/mdimainwindow.cpp \
@@ -158,12 +168,18 @@ isEmpty(TARGET_EXT) {
 }
 
 win32 {
+    equals(TARGET_WINXP, "1") {
+        PRODUCT_VERSION = "$$GIT_VERSION-WindowsXP"
+    } else {
+        PRODUCT_VERSION = "$$GIT_VERSION"
+    }
+
     DEPLOY_COMMAND = windeployqt
-    DEPLOY_DIR = $$system_path($${_PRO_FILE_PWD_}/install/deploy)
-    DEPLOY_TARGET = $$system_path($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT})
+    DEPLOY_DIR = $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/deploy))
+    DEPLOY_TARGET = $$shell_quote($$system_path($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT}))
     DEPLOY_OPT = --dir $${DEPLOY_DIR}
     DEPLOY_CLEANUP = $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR}
-    DEPLOY_INSTALLER = makensis /DPRODUCT_VERSION="$$GIT_VERSION" $$system_path($${_PRO_FILE_PWD_}/install/win/install.nsi)
+    DEPLOY_INSTALLER = makensis /DPRODUCT_VERSION="$${PRODUCT_VERSION}" /DTARGET_WINXP="$${TARGET_WINXP}" $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/win/install.nsi))
 }
 macx {
     VERSION = $$system(echo $$GIT_VERSION | sed 's/[a-zA-Z]//')
