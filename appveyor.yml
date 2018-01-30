@@ -20,7 +20,7 @@ image: Visual Studio 2015
 
 environment:
   matrix:
-    - QT_Ver: 5.9
+    - QT_Ver: 5.9.4
     - QT_Ver: 5.6
 
 # build platform, i.e. x86, x64, Any CPU. This setting is optional.
