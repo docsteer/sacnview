@@ -208,11 +208,11 @@ win32 {
         PRODUCT_VERSION = "$$GIT_VERSION"
     }
 
-    DEPLOY_COMMAND = windeployqt
-    DEPLOY_OPT = --dir $${DEPLOY_DIR}
-
     DEPLOY_DIR = $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/deploy))
     DEPLOY_TARGET = $$shell_quote($$system_path($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT}))
+
+    DEPLOY_COMMAND = windeployqt
+    DEPLOY_OPT = --dir $${DEPLOY_DIR}
 
     PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}\*.* /S /Q $$escape_expand(\\n\\t)
     PRE_DEPLOY_COMMAND += $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR} $$escape_expand(\\n\\t)
