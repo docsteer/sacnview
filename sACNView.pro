@@ -38,7 +38,13 @@ win32 {
 # OpenSSL
 win32 {
     # https://wiki.openssl.org/index.php/Binaries
+    equals(QT_MAJOR_VERSION, 5):equals(QT_MINOR_VERSION, 6) { #https://wiki.qt.io/Qt_5.6_Tools_and_Versions
+        OPENSSL_VERS = 1.0.2g
+    }
     equals(QT_MAJOR_VERSION, 5):equals(QT_MINOR_VERSION, 9) { #https://wiki.qt.io/Qt_5.9_Tools_and_Versions
+        OPENSSL_VERS = 1.0.2j
+    }
+    equals(QT_MAJOR_VERSION, 5):equals(QT_MINOR_VERSION, 10) { #https://wiki.qt.io/Qt_5.10_Tools_and_Versions
         OPENSSL_VERS = 1.0.2j
     }
     contains(QT_ARCH, i386) {
@@ -76,6 +82,8 @@ win32 {
         DEFINES += VERSION=\\\"$$GIT_TAG\\\"
         TARGET_WINXP = 0
     }
+} else {
+    DEFINES += VERSION=\\\"$$GIT_TAG\\\"
 }
 
 ## Project includes
@@ -200,15 +208,15 @@ win32 {
         PRODUCT_VERSION = "$$GIT_VERSION"
     }
 
+    DEPLOY_COMMAND = windeployqt
+    DEPLOY_OPT = --dir $${DEPLOY_DIR}
+
     DEPLOY_DIR = $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/deploy))
     DEPLOY_TARGET = $$shell_quote($$system_path($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT}))
 
     PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}\*.* /S /Q $$escape_expand(\\n\\t)
     PRE_DEPLOY_COMMAND += $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR} $$escape_expand(\\n\\t)
     PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$shell_quote($$system_path($$OPENSSL_PATH/*.dll)) $${DEPLOY_DIR} $$escape_expand(\\n\\t) # OpenSSL
-
-    DEPLOY_COMMAND = windeployqt
-    DEPLOY_OPT = --dir $${DEPLOY_DIR}
 
     DEPLOY_INSTALLER = makensis /DPRODUCT_VERSION="$${PRODUCT_VERSION}" /DTARGET_WINXP="$${TARGET_WINXP}" $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/win/install.nsi))
 }
@@ -232,6 +240,9 @@ linux {
     DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/linux
     DEPLOY_TARGET = $${DEPLOY_DIR}/AppDir/$${TARGET}
 
+    DEPLOY_COMMAND = $${OUT_PWD}/linuxdeployqt
+    DEPLOY_OPT = -appimage -verbose=2
+
     PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/*.AppImage
     PRE_DEPLOY_COMMAND += && $${QMAKE_DEL_FILE} $${DEPLOY_TARGET}
     PRE_DEPLOY_COMMAND += && wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" -O $${DEPLOY_COMMAND}
@@ -240,9 +251,6 @@ linux {
     PRE_DEPLOY_COMMAND += && $$QMAKE_COPY $${OUT_PWD}/$${TARGET} $${DEPLOY_TARGET}
     PRE_DEPLOY_COMMAND += && $$QMAKE_COPY $${DEPLOY_DIR}/usr/share/applications/sacnview.desktop $${DEPLOY_DIR}/AppDir/sacnview.desktop
     PRE_DEPLOY_COMMAND += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/Logo.png $${DEPLOY_DIR}/AppDir/sacnview.png
-
-    DEPLOY_COMMAND = $${OUT_PWD}/linuxdeployqt
-    DEPLOY_OPT = -appimage -verbose=2
 
     DEPLOY_CLEANUP = $$QMAKE_COPY $${OUT_PWD}/$${TARGET}*.AppImage $${DEPLOY_DIR}/
 
