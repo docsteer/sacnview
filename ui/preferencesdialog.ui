@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>500</height>
+    <width>465</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+   <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -19,7 +19,7 @@
   <property name="minimumSize">
    <size>
     <width>400</width>
-    <height>500</height>
+    <height>600</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -35,6 +35,12 @@
    </property>
    <item alignment="Qt::AlignVCenter">
     <widget class="QGroupBox" name="gbNetworkInterface">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="title">
       <string>Network Interface*</string>
      </property>
@@ -43,7 +49,7 @@
    <item alignment="Qt::AlignVCenter">
     <widget class="QGroupBox" name="gbDisplayFormat">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+      <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -95,7 +101,7 @@
    <item alignment="Qt::AlignVCenter">
     <widget class="QGroupBox" name="gbRecieveOptions">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+      <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -103,13 +109,13 @@
      <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>70</height>
+       <height>80</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>50</height>
+       <height>16777215</height>
       </size>
      </property>
      <property name="title">
@@ -119,7 +125,7 @@
       <item>
        <widget class="QCheckBox" name="cbDisplayBlind">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -127,7 +133,7 @@
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>30</height>
+          <height>16777215</height>
          </size>
         </property>
         <property name="text">
@@ -138,7 +144,7 @@
       <item>
        <widget class="QCheckBox" name="cbDisplayDDOnlys">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -146,7 +152,7 @@
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>30</height>
+          <height>16777215</height>
          </size>
         </property>
         <property name="text">
@@ -160,7 +166,7 @@
    <item alignment="Qt::AlignVCenter">
     <widget class="QGroupBox" name="gbTransmitOptions">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+      <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -178,7 +184,7 @@
       <item>
        <widget class="QGroupBox" name="gbTransmitName">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -189,6 +195,15 @@
         <layout class="QVBoxLayout" name="verticalLayout_5">
          <item>
           <widget class="QLineEdit" name="leDefaultSourceName">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>sACNView</string>
+           </property>
            <property name="maxLength">
             <number>63</number>
            </property>
@@ -203,7 +218,7 @@
       <item>
        <widget class="QGroupBox" name="gbTransmitTimeout">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>

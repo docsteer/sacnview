@@ -132,6 +132,10 @@ void sACNListener::checkSourceExpiration()
 
 void sACNListener::readPendingDatagrams()
 {
+    #if (QT_VERSION == QT_VERSION_CHECK(5, 9, 3))
+        #error "QT5.9.3 QUdpSocket::readDatagram Returns incorrect infomation: https://bugreports.qt.io/browse/QTBUG-64784"
+    #endif
+
     // Check all sockets
     foreach (sACNRxSocket* m_socket, m_sockets)
     {

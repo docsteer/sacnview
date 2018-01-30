@@ -23,7 +23,7 @@
 
 // If this is a full release, only show the newer version message for other full releases
 // If this is prerelease, show all newer versions
-#define PRERELEASE      false
+#define PRERELEASE      true
 
 #define nNumOfSecPerHour 3600
 #define nNumberOfSecPerMin 60

@@ -36,6 +36,9 @@ Makefile*
 #Linux libs
 *.so.*
 
+#Libs
+!libs/**
+
 #Binary Output
 *.exe
 *.zip

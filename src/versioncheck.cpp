@@ -23,7 +23,9 @@ NewVersionDialog::NewVersionDialog(QWidget *parent) : QDialog(parent), ui(new Ui
 {
     ui->setupUi(this);
     ui->stackedWidget->setCurrentIndex(0);
-    setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+    #if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
+        setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+    #endif
     connect(ui->btnLater, SIGNAL(pressed()), this, SLOT(reject()));
     m_manager = new QNetworkAccessManager(this);
 }

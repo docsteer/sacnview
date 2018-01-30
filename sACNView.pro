@@ -14,6 +14,10 @@
 ## limitations under the License.
 
 QT       += core gui network multimedia
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
+TARGET = sACNView
+TEMPLATE = app
 
 macx {
     QMAKE_MAC_SDK = macosx10.12
@@ -24,31 +28,69 @@ macx {
     QMAKE_CXXFLAGS += -std=gnu++0x
 }
 
+## External Libs
+
+# Firewall Checker
 win32 {
     LIBS += -lole32 -loleaut32
 }
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+# OpenSSL
+win32 {
+    # https://wiki.openssl.org/index.php/Binaries
+    equals(QT_MAJOR_VERSION, 5):equals(QT_MINOR_VERSION, 6) { #https://wiki.qt.io/Qt_5.6_Tools_and_Versions
+        OPENSSL_VERS = 1.0.2g
+    }
+    equals(QT_MAJOR_VERSION, 5):equals(QT_MINOR_VERSION, 9) { #https://wiki.qt.io/Qt_5.9_Tools_and_Versions
+        OPENSSL_VERS = 1.0.2j
+    }
+    equals(QT_MAJOR_VERSION, 5):equals(QT_MINOR_VERSION, 10) { #https://wiki.qt.io/Qt_5.10_Tools_and_Versions
+        OPENSSL_VERS = 1.0.2j
+    }
+    contains(QT_ARCH, i386) {
+        OPENSSL_PATH = $${_PRO_FILE_PWD_}/libs/openssl-$${OPENSSL_VERS}-i386-win32
+    } else {
+        OPENSSL_PATH = $${_PRO_FILE_PWD_}/libs/openssl-$${OPENSSL_VERS}-x64_86-win64
+    }
+}
 
-TARGET = sACNView
-TEMPLATE = app
+## Version defines
 
-INCLUDEPATH += src src/sacn src/sacn/ACNShare
-
-GIT_VERSION = $$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --always --tags)
-GIT_DATE_DAY = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%a\" --format=\"%cd\" $$GIT_VERSION)
-GIT_DATE_DATE = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%d\" --format=\"%cd\" $$GIT_VERSION)
-GIT_DATE_MONTH = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%b\" --format=\"%cd\" $$GIT_VERSION)
-GIT_DATE_YEAR = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%Y\" --format=\"%cd\" $$GIT_VERSION)
-GIT_TAG = $$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --abbrev=0 --always --tags)
-GIT_SHA1 = $$system(git --git-dir $$PWD/.git --work-tree $$PWD rev-parse --short HEAD)
+GIT_COMMAND = git --git-dir $$shell_quote($$PWD/.git) --work-tree $$shell_quote($$PWD)
+GIT_VERSION = $$system($$GIT_COMMAND describe --always --tags)
+GIT_DATE_DAY = $$system($$GIT_COMMAND show -s --date=format:\"%a\" --format=\"%cd\" $$GIT_VERSION)
+GIT_DATE_DATE = $$system($$GIT_COMMAND show -s --date=format:\"%d\" --format=\"%cd\" $$GIT_VERSION)
+GIT_DATE_MONTH = $$system($$GIT_COMMAND show -s --date=format:\"%b\" --format=\"%cd\" $$GIT_VERSION)
+GIT_DATE_YEAR = $$system($$GIT_COMMAND show -s --date=format:\"%Y\" --format=\"%cd\" $$GIT_VERSION)
+GIT_TAG = $$system($$GIT_COMMAND describe --abbrev=0 --always --tags)
+GIT_SHA1 = $$system($$GIT_COMMAND rev-parse --short HEAD)
 
 DEFINES += GIT_CURRENT_SHA1=\\\"$$GIT_VERSION\\\"
 DEFINES += GIT_DATE_DAY=\\\"$$GIT_DATE_DAY\\\"
 DEFINES += GIT_DATE_DATE=\\\"$$GIT_DATE_DATE\\\"
 DEFINES += GIT_DATE_MONTH=\\\"$$GIT_DATE_MONTH\\\"
 DEFINES += GIT_DATE_YEAR=\\\"$$GIT_DATE_YEAR\\\"
-DEFINES += VERSION=\\\"$$GIT_TAG\\\"
+
+# Windows XP Special Build?
+win32 {
+    lessThan(QT_MAJOR_VERSION, 6):lessThan(QT_MINOR_VERSION, 7) {
+        QMAKE_LFLAGS_WINDOWS = /SUBSYSTEM:WINDOWS,5.01
+        DEFINES += _ATL_XP_TARGETING
+        DEFINES += VERSION=\\\"$$GIT_TAG-WindowsXP\\\"
+        TARGET_WINXP = 1
+    } else {
+        DEFINES += VERSION=\\\"$$GIT_TAG\\\"
+        TARGET_WINXP = 0
+    }
+} else {
+    DEFINES += VERSION=\\\"$$GIT_TAG\\\"
+}
+
+## Project includes
+
+INCLUDEPATH += src src/sacn src/sacn/ACNShare
+
+## Sources
 
 SOURCES += src/main.cpp\
     src/mdimainwindow.cpp \
@@ -146,6 +188,8 @@ RESOURCES += \
 
 RC_FILE = res/sacnview.rc
 
+## Deploy
+
 isEmpty(TARGET_EXT) {
     win32 {
         TARGET_CUSTOM_EXT = .exe
@@ -158,22 +202,37 @@ isEmpty(TARGET_EXT) {
 }
 
 win32 {
+    equals(TARGET_WINXP, "1") {
+        PRODUCT_VERSION = "$$GIT_VERSION-WindowsXP"
+    } else {
+        PRODUCT_VERSION = "$$GIT_VERSION"
+    }
+
+    DEPLOY_DIR = $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/deploy))
+    DEPLOY_TARGET = $$shell_quote($$system_path($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT}))
+
     DEPLOY_COMMAND = windeployqt
-    DEPLOY_DIR = $$system_path($${_PRO_FILE_PWD_}/install/deploy)
-    DEPLOY_TARGET = $$system_path($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT})
     DEPLOY_OPT = --dir $${DEPLOY_DIR}
-    DEPLOY_CLEANUP = $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR}
-    DEPLOY_INSTALLER = makensis /DPRODUCT_VERSION="$$GIT_VERSION" $$system_path($${_PRO_FILE_PWD_}/install/win/install.nsi)
+
+    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}\*.* /S /Q $$escape_expand(\\n\\t)
+    PRE_DEPLOY_COMMAND += $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR} $$escape_expand(\\n\\t)
+    PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$shell_quote($$system_path($$OPENSSL_PATH/*.dll)) $${DEPLOY_DIR} $$escape_expand(\\n\\t) # OpenSSL
+
+    DEPLOY_INSTALLER = makensis /DPRODUCT_VERSION="$${PRODUCT_VERSION}" /DTARGET_WINXP="$${TARGET_WINXP}" $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/win/install.nsi))
 }
 macx {
     VERSION = $$system(echo $$GIT_VERSION | sed 's/[a-zA-Z]//')
-    DEPLOY_COMMAND = macdeployqt
+
     DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/mac
-    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/sACNView*.dmg
     DEPLOY_TARGET = $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
-    DEPLOY_CLEANUP = $${_PRO_FILE_PWD_}/install/mac/create-dmg --volname "sACNView_Installer" --volicon "$${_PRO_FILE_PWD_}/res/icon.icns"
-    DEPLOY_CLEANUP += --background "$${_PRO_FILE_PWD_}/res/mac_install_bg.png" --window-pos 200 120 --window-size 800 400 --icon-size 100 --icon $${TARGET}$${TARGET_CUSTOM_EXT} 200 190 --hide-extension $${TARGET}$${TARGET_CUSTOM_EXT} --app-drop-link 600 185
-    DEPLOY_CLEANUP += $${DEPLOY_DIR}/sACNView_$${VERSION}.dmg $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
+
+    DEPLOY_COMMAND = macdeployqt
+
+    DEPLOY_CLEANUP = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/sACNView*.dmg
+
+    DEPLOY_INSTALLER = $${_PRO_FILE_PWD_}/install/mac/create-dmg --volname "sACNView_Installer" --volicon "$${_PRO_FILE_PWD_}/res/icon.icns"
+    DEPLOY_INSTALLER += --background "$${_PRO_FILE_PWD_}/res/mac_install_bg.png" --window-pos 200 120 --window-size 800 400 --icon-size 100 --icon $${TARGET}$${TARGET_CUSTOM_EXT} 200 190 --hide-extension $${TARGET}$${TARGET_CUSTOM_EXT} --app-drop-link 600 185
+    DEPLOY_INSTALLER += $${DEPLOY_DIR}/sACNView_$${VERSION}.dmg $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
 }
 linux {
     VERSION = $$system(echo $$GIT_VERSION | sed 's/[a-zA-Z]//')
@@ -212,7 +271,7 @@ linux {
 
 CONFIG( release , debug | release) {
     QMAKE_POST_LINK += $${PRE_DEPLOY_COMMAND} $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $${DEPLOY_COMMAND} $${DEPLOY_TARGET} $${DEPLOY_OPT}
-    QMAKE_POST_LINK += $$escape_expand(\\n\\t) $${DEPLOY_CLEANUP}
-    QMAKE_POST_LINK += $$escape_expand(\\n\\t) $${DEPLOY_INSTALLER}
+    QMAKE_POST_LINK += $${DEPLOY_COMMAND} $${DEPLOY_TARGET} $${DEPLOY_OPT} $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $${DEPLOY_CLEANUP} $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $${DEPLOY_INSTALLER} $$escape_expand(\\n\\t)
 }
