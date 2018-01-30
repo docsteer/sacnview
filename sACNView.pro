@@ -14,6 +14,10 @@
 ## limitations under the License.
 
 QT       += core gui network multimedia
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
+TARGET = sACNView
+TEMPLATE = app
 
 macx {
     QMAKE_MAC_SDK = macosx10.12
@@ -34,21 +38,17 @@ win32 {
 # OpenSSL
 win32 {
     # https://wiki.openssl.org/index.php/Binaries
-    contains(QT_ARCH, i386) {
-        OPENSSL_PATH = $${_PRO_FILE_PWD_}/libs/openssl-1.0.2n-i386-win32
-    } else {
-        OPENSSL_PATH = $${_PRO_FILE_PWD_}/libs/openssl-1.0.2n-x64_86-win64
+    equals(QT_MAJOR_VERSION, 5):equals(QT_MINOR_VERSION, 9) { #https://wiki.qt.io/Qt_5.9_Tools_and_Versions
+        OPENSSL_VERS = 1.0.2j
     }
-    LIBS += "$$OPENSSL_PATH/libeay32.dll"
-    LIBS += "$$OPENSSL_PATH/ssleay32.dll"
+    contains(QT_ARCH, i386) {
+        OPENSSL_PATH = $${_PRO_FILE_PWD_}/libs/openssl-$${OPENSSL_VERS}-i386-win32
+    } else {
+        OPENSSL_PATH = $${_PRO_FILE_PWD_}/libs/openssl-$${OPENSSL_VERS}-x64_86-win64
+    }
 }
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
-TARGET = sACNView
-TEMPLATE = app
-
-INCLUDEPATH += src src/sacn src/sacn/ACNShare
+## Version defines
 
 GIT_COMMAND = git --git-dir $$shell_quote($$PWD/.git) --work-tree $$shell_quote($$PWD)
 GIT_VERSION = $$system($$GIT_COMMAND describe --always --tags)
@@ -65,6 +65,12 @@ DEFINES += GIT_DATE_DATE=\\\"$$GIT_DATE_DATE\\\"
 DEFINES += GIT_DATE_MONTH=\\\"$$GIT_DATE_MONTH\\\"
 DEFINES += GIT_DATE_YEAR=\\\"$$GIT_DATE_YEAR\\\"
 DEFINES += VERSION=\\\"$$GIT_TAG\\\"
+
+## Project includes
+
+INCLUDEPATH += src src/sacn src/sacn/ACNShare
+
+## Sources
 
 SOURCES += src/main.cpp\
     src/mdimainwindow.cpp \
@@ -162,6 +168,8 @@ RESOURCES += \
 
 RC_FILE = res/sacnview.rc
 
+## Deploy
+
 isEmpty(TARGET_EXT) {
     win32 {
         TARGET_CUSTOM_EXT = .exe
@@ -174,21 +182,28 @@ isEmpty(TARGET_EXT) {
 }
 
 win32 {
-    DEPLOY_COMMAND = windeployqt
     DEPLOY_DIR = $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/deploy))
     DEPLOY_TARGET = $$shell_quote($$system_path($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT}))
+
+    DEPLOY_COMMAND = windeployqt
     DEPLOY_OPT = --dir $${DEPLOY_DIR}
-    DEPLOY_CLEANUP = $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR}
+
+    PRE_DEPLOY_COMMAND = $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR} $$escape_expand(\\n\\t)
+    PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$shell_quote($$system_path($$OPENSSL_PATH/*.dll)) $${DEPLOY_DIR} $$escape_expand(\\n\\t) # OpenSSL
+
     DEPLOY_INSTALLER = makensis /DPRODUCT_VERSION="$$GIT_VERSION" $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/win/install.nsi))
 }
 macx {
-    DEPLOY_COMMAND = macdeployqt
     DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/mac
-    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/ACNView.dmg
     DEPLOY_TARGET = $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
-    DEPLOY_CLEANUP = $${_PRO_FILE_PWD_}/install/mac/create-dmg --volname "sACNView_Installer" --volicon "$${_PRO_FILE_PWD_}/res/icon.icns"
-    DEPLOY_CLEANUP += --background "$${_PRO_FILE_PWD_}/res/mac_install_bg.png" --window-pos 200 120 --window-size 800 400 --icon-size 100 --icon sACNView.app 200 190 --hide-extension sACNView.app --app-drop-link 600 185
-    DEPLOY_CLEANUP += $${_PRO_FILE_PWD_}/install/mac/sACNView.dmg $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
+
+    DEPLOY_COMMAND = macdeployqt
+
+    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/ACNView.dmg
+
+    DEPLOY_INSTALLER = $${_PRO_FILE_PWD_}/install/mac/create-dmg --volname "sACNView_Installer" --volicon "$${_PRO_FILE_PWD_}/res/icon.icns"
+    DEPLOY_INSTALLER += --background "$${_PRO_FILE_PWD_}/res/mac_install_bg.png" --window-pos 200 120 --window-size 800 400 --icon-size 100 --icon sACNView.app 200 190 --hide-extension sACNView.app --app-drop-link 600 185
+    DEPLOY_INSTALLER += $${_PRO_FILE_PWD_}/install/mac/sACNView.dmg $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
 }
 linux {
     VERSION = $$system(echo $$GIT_VERSION | sed 's/[a-zA-Z]//')
@@ -227,7 +242,7 @@ linux {
 
 CONFIG( release , debug | release) {
     QMAKE_POST_LINK += $${PRE_DEPLOY_COMMAND} $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $${DEPLOY_COMMAND} $${DEPLOY_TARGET} $${DEPLOY_OPT}
-    QMAKE_POST_LINK += $$escape_expand(\\n\\t) $${DEPLOY_CLEANUP}
-    QMAKE_POST_LINK += $$escape_expand(\\n\\t) $${DEPLOY_INSTALLER}
+    QMAKE_POST_LINK += $${DEPLOY_COMMAND} $${DEPLOY_TARGET} $${DEPLOY_OPT} $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $${DEPLOY_CLEANUP} $$escape_expand(\\n\\t)
+    QMAKE_POST_LINK += $${DEPLOY_INSTALLER} $$escape_expand(\\n\\t)
 }
