@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
                 || (systemInfo.kernelVersion().startsWith(QString("5.2")))) // Windows XP 64bit
             {
                 msgBox.setIcon(QMessageBox::Information);
-                msgBox.setText(QObject::tr("This binary is intended for Windows XP only\r\nThere are major issues mixed IPv4 and IPv6 enviroments\r\n\r\nPlease ensure IPv6 is disabled"));
+                msgBox.setText(QObject::tr("This binary is intended for Windows XP only\r\nThere are major issues in mixed IPv4 and IPv6 enviroments\r\n\r\nPlease ensure IPv6 is disabled"));
                 msgBox.exec();
             } else {
                 msgBox.setIcon(QMessageBox::Critical);
