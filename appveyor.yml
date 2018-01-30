@@ -18,6 +18,8 @@ image: Visual Studio 2015
 #       build configuration       #
 #---------------------------------#
 
+version: '{build}'
+
 environment:
   matrix:
     - QT_Ver: 5.9.4
@@ -34,9 +36,6 @@ build:
 
   # MSBuild verbosity level
   verbosity: detailed
-
-init:
-  - appveyor UpdateBuild -Version %APPVEYOR_REPO_COMMIT%"
 
 install:
   # MSVC Paths
