@@ -15,20 +15,24 @@
   </property>
   <property name="styleSheet">
    <string notr="true">QSpinBox {
-border: 1px solid #cfcfcf; 
+border: 1px solid palette(mid); 
 height: 22px;
-} 
+}
+
+QSpinBox:focus {
+border: 1px solid palette(highlight); 
+}
 
 QSpinBox:disabled{
-border: 1px solid grey;
+border: 1px solid palette(dark);
 }
 
 QSpinBox::up-button {
 subcontrol-position: right;
 width: 22px;
 height: 22px;
-background-color:#cfcfcf;
-border-image: url(:/icons/spin_up.png) 1;
+background-color:palette(button);
+border-image: url(:/icons/spin_up_dark.png) 1;
 }
 
  QSpinBox::up-button:disabled {
@@ -39,8 +43,8 @@ QSpinBox::down-button {
 subcontrol-position: left;
 width: 22px;
 height: 22px;
-background-color:#cfcfcf;
-border-image: url(:/icons/spin_down.png) 1;
+background-color:palette(button);
+border-image: url(:/icons/spin_down_dark.png) 1;
 }
 
 QSpinBox::down-button:disabled {
