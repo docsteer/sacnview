@@ -14,6 +14,8 @@
 ; See the License for the specific language governing permissions and
 ; limitations under the License.
 
+SetCompressor /SOLID lzma
+
 !define PRODUCT_NAME "sACNView"
 !define PRODUCT_PUBLISHER "Tom Barthel-Steer"
 !define PRODUCT_WEB_SITE "http://www.tomsteer.net"
@@ -39,6 +41,10 @@
 !define MUI_ABORTWARNING
 !define MUI_ICON "..\..\res\icon.ico"
 !define MUI_FINISHPAGE_NOAUTOCLOSE
+
+; MSVC RunTime
+!define MSVC_EXE "vcredist_x86.exe"
+!define MSVC_OPT "/install /passive /norestart" 
 
 Name "${PRODUCT_NAME}"
 OutFile "${PRODUCT_NAME}_${PRODUCT_VERSION}.exe"
@@ -96,6 +102,11 @@ Section "Main Application" sec01
 ;close the opened previously uninstall log macros block.
 	!insertmacro UNINSTALL.LOG_CLOSE_INSTALL
 
+	;Visual Studio runtime requirements
+	DetailPrint "Installing MSVC Redistributables"
+	ExecWait '"$INSTDIR\${MSVC_EXE}" ${MSVC_OPT}'
+	
+	;Shortcuts
 	CreateDirectory '$SMPROGRAMS\${PRODUCT_NAME}'
 	CreateShortcut '$SMPROGRAMS\${PRODUCT_NAME}\sACNView.lnk' '$INSTDIR\sACNView.exe'
 	;create shortcut for uninstaller always use ${UNINST_EXE} instead of uninstall.exe
