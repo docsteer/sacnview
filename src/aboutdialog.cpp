@@ -94,6 +94,21 @@ aboutDialog::aboutDialog(QWidget *parent) :
                 m_universeDetails.last().treeMergesPerSecond->setText(0, tr("Merges per second"));
                 m_universeDetails.last().treeMergesPerSecond->setText(1, "-");
             }
+
+            // Bind status (Child)
+            {
+                m_universeDetails.last().treeMergesBindStatus = new QTreeWidgetItem(m_universeDetails.last().treeUniverse);
+                m_universeDetails.last().treeMergesBindStatus->setText(0, tr("Bind status"));
+
+                m_universeDetails.last().treeMergesBindStatusUnicast = new QTreeWidgetItem(m_universeDetails.last().treeMergesBindStatus);
+                m_universeDetails.last().treeMergesBindStatusUnicast->setText(0, tr("Unicast"));
+                bindStatus(m_universeDetails.last().treeMergesBindStatusUnicast, listener->getBindStatus().unicast);
+
+                m_universeDetails.last().treeMergesBindStatusMulticast = new QTreeWidgetItem(m_universeDetails.last().treeMergesBindStatus);
+                m_universeDetails.last().treeMergesBindStatusMulticast->setText(0, tr("Multicast"));
+                bindStatus(m_universeDetails.last().treeMergesBindStatusMulticast, listener->getBindStatus().multicast);
+
+            }
         }
     }
 
@@ -106,7 +121,6 @@ aboutDialog::aboutDialog(QWidget *parent) :
 aboutDialog::~aboutDialog()
 {
     foreach (universeDetails universeDetail, m_universeDetails) {
-        delete universeDetail.treeMergesPerSecond;
         delete universeDetail.treeUniverse;
     }
 
@@ -127,6 +141,23 @@ void aboutDialog::updateDisplay()
 void aboutDialog::openLink(QString link)
 {
     QDesktopServices::openUrl(QUrl(link));
+}
+
+void aboutDialog::bindStatus(QTreeWidgetItem *treeItem, sACNListener::eBindStatus bindStatus)
+{
+    QString bindString;
+    switch (bindStatus) {
+    case sACNListener::BIND_UNKNOWN:
+        bindString = QString(tr("Unknown"));
+        break;
+    case sACNListener::BIND_OK:
+        bindString = QString(tr("OK"));
+        break;
+    case sACNListener::BIND_FAILED:
+        bindString = QString(tr("Failed"));
+        break;
+    }
+    treeItem->setText(1, bindString);
 }
 
 void aboutDialog::on_twDiag_expanded(const QModelIndex &index)

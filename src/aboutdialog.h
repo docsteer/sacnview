@@ -52,9 +52,13 @@ private:
         QSharedPointer<sACNListener> listener;
         QTreeWidgetItem* treeUniverse;
         QTreeWidgetItem* treeMergesPerSecond;
+        QTreeWidgetItem* treeMergesBindStatus;
+        QTreeWidgetItem* treeMergesBindStatusUnicast;
+        QTreeWidgetItem* treeMergesBindStatusMulticast;
     };
-
     QList<universeDetails> m_universeDetails;
+
+    void bindStatus(QTreeWidgetItem *treeItem, sACNListener::eBindStatus bindStatus);
 };
 
 #endif // ABOUTDIALOG_H
