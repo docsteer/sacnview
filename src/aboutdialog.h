@@ -16,7 +16,11 @@
 #ifndef ABOUTDIALOG_H
 #define ABOUTDIALOG_H
 
+#include "streamingacn.h"
+#include "sacnlistener.h"
 #include <QDialog>
+#include <QTreeWidgetItem>
+#include <QTreeWidget>
 
 namespace Ui {
 class aboutDialog;
@@ -33,10 +37,24 @@ public:
 private slots:
     void updateDisplay();
     void openLink(QString link);
+
+    void on_twDiag_expanded(const QModelIndex &index);
+    void on_twDiag_collapsed(const QModelIndex &index);
+
 private:
     Ui::aboutDialog *ui;
     QTimer *m_displayTimer;
 
+    struct universeDetails
+    {
+        universeDetails() {}
+
+        QSharedPointer<sACNListener> listener;
+        QTreeWidgetItem* treeUniverse;
+        QTreeWidgetItem* treeMergesPerSecond;
+    };
+
+    QList<universeDetails> m_universeDetails;
 };
 
 #endif // ABOUTDIALOG_H
