@@ -52,23 +52,29 @@ aboutDialog::aboutDialog(QWidget *parent) :
     ui->twDiag->header()->hide();
 
     // Get listener list
-    const QHash<int, QWeakPointer<sACNListener>> listenerList =
-            sACNManager::getInstance()->getListenerList();
+    const auto listenerList = sACNManager::getInstance()->getListenerList();
 
-    // Sort
-    QMap<int, QWeakPointer<sACNListener>> listenerListSorted;
-    QHashIterator<int, QWeakPointer<sACNListener>> hi(listenerList);
-    while (hi.hasNext()) {
-        hi.next();
-        listenerListSorted.insert(hi.key(), hi.value());
-    }
+    // Sort list
+    struct {
+            bool operator()(const QWeakPointer<sACNListener> &a, const QWeakPointer<sACNListener> &b) const
+            {
+                auto aStrong = a.toStrongRef();
+                auto bStrong = b.toStrongRef();
+                if (aStrong && bStrong)
+                    return aStrong->universe() < bStrong->universe();
+                else if (!aStrong)
+                    return true;
+                else
+                    return false;
+            }
+        } listenerSortbyUni;
+    auto listenerListSorted = listenerList.values();
+    std::sort(listenerListSorted.begin(), listenerListSorted.end(), listenerSortbyUni);
 
     // Display Sorted!
-    QMapIterator<int, QWeakPointer<sACNListener>> mi(listenerListSorted);
-    while (mi.hasNext()) {
-        mi.next();
+    for (QWeakPointer<sACNListener> weakListener : listenerListSorted) {
 
-        QSharedPointer<sACNListener> listener = mi.value().toStrongRef();
+        QSharedPointer<sACNListener> listener(weakListener);
         if (listener) {
             int universe = listener->universe();
 
@@ -110,7 +116,7 @@ aboutDialog::~aboutDialog()
 
 void aboutDialog::updateDisplay()
 {
-    foreach (universeDetails universeDetail, m_universeDetails) {
+    for (universeDetails universeDetail : m_universeDetails) {
         // Update merges per second
         auto merges = universeDetail.listener->mergesPerSecond();
         if (merges > 0)
@@ -141,3 +147,4 @@ void aboutDialog::on_twDiag_collapsed(const QModelIndex &index)
         ui->twDiag->resizeColumnToContents(n);
     }
 }
+
