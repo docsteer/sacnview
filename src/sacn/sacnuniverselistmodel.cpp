@@ -83,6 +83,7 @@ void sACNUniverseListModel::setStartUniverse(int start)
             modelindex_locker.relock();
         }
 
+        connect(m_listeners.back().data(), SIGNAL(listenerStarted(int)), this, SLOT(listenerStarted(int)));
         connect(m_listeners.back().data(), SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
         connect(m_listeners.back().data(), SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
         connect(m_listeners.back().data(), SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
@@ -123,7 +124,22 @@ QVariant sACNUniverseListModel::data(const QModelIndex &index, int role) const
             return tr("%1 (%2)").arg(info->name).arg(info->address.toString());
         }
         else
-            return QVariant(tr("Universe %1").arg(index.row() + m_start));
+        {
+            auto universeIdx = index.row();
+            int universe = universeIdx + m_start;
+            auto listener = sACNManager::getInstance()->getListener(universe);
+
+            QString displayString = tr("Universe %1").arg(universe);
+
+            // Universe bind issues
+            bool bindOk = (listener->getBindStatus().multicast != listener->BIND_FAILED);
+            bindOk &= (listener->getBindStatus().unicast != listener->BIND_FAILED);
+
+            if (bindOk)
+                return QVariant(displayString);
+            else
+                return QVariant(displayString.append(QString(tr(" -- Interface Error"))));
+        }
     }
     return QVariant();
 }
@@ -160,6 +176,13 @@ QModelIndex sACNUniverseListModel::parent(const QModelIndex &index) const
     }
 
     return QModelIndex();
+}
+
+void sACNUniverseListModel::listenerStarted(int universe)
+{
+    Q_UNUSED(universe);
+    beginResetModel();
+    endResetModel();
 }
 
 void sACNUniverseListModel::sourceOnline(sACNSource *source)

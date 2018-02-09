@@ -95,6 +95,9 @@ void sACNListener::startReception()
     connect(m_mergeTimer, SIGNAL(timeout()), this, SLOT(performMerge()), Qt::DirectConnection);
     connect(m_mergeTimer, SIGNAL(timeout()), this, SLOT(checkSourceExpiration()), Qt::DirectConnection);
     m_mergeTimer->start();
+
+    // Everything is set
+    emit listenerStarted(m_universe);
 }
 
 void sACNListener::startInterface(QNetworkInterface iface)
@@ -103,20 +106,23 @@ void sACNListener::startInterface(QNetworkInterface iface)
     m_sockets.push_back(new sACNRxSocket(iface));
     if (m_sockets.back()->bindMulticast(m_universe)) {
         connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()), Qt::DirectConnection);
+        m_bindStatus.multicast = eBindStatus::BIND_OK;
     } else {
        // Failed to bind,
        m_sockets.pop_back();
+       m_bindStatus.multicast = eBindStatus::BIND_FAILED;
     }
 
     // Listen unicast
     m_sockets.push_back(new sACNRxSocket(iface));
     if (m_sockets.back()->bindUnicast()) {
         connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()), Qt::DirectConnection);
+        m_bindStatus.unicast = eBindStatus::BIND_OK;
     } else {
        // Failed to bind
        m_sockets.pop_back();
+       m_bindStatus.unicast = eBindStatus::BIND_FAILED;
     }
-
 }
 
 void sACNListener::sampleExpiration()
