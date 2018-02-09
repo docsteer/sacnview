@@ -179,3 +179,10 @@ void aboutDialog::on_twDiag_collapsed(const QModelIndex &index)
     }
 }
 
+
+void aboutDialog::on_aboutDialog_finished(int result)
+{
+    Q_UNUSED(result);
+
+    this->deleteLater();
+}

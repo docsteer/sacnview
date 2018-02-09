@@ -41,6 +41,8 @@ private slots:
     void on_twDiag_expanded(const QModelIndex &index);
     void on_twDiag_collapsed(const QModelIndex &index);
 
+    void on_aboutDialog_finished(int result);
+
 private:
     Ui::aboutDialog *ui;
     QTimer *m_displayTimer;
