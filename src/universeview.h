@@ -48,6 +48,7 @@ protected slots:
     void openBigDisplay(quint16 address);
     void on_btnStartFlickerFinder_pressed();
     void on_btnLogWindow_pressed();
+    void listenerStarted(int universe);
 protected:
     virtual void resizeEvent(QResizeEvent *event);
     virtual void showEvent(QShowEvent *event);
@@ -77,6 +78,8 @@ private:
 
     void setUiForLoggingState(LOG_STATE state);
     void resizeColumns();
+    bool m_bindWarningShown = false;
+    void checkBind();
 
     Ui::UniverseView *ui;
     QHash<sACNSource *, int> m_sourceToTableRow;

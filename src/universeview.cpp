@@ -85,6 +85,8 @@ void UniverseView::startListening(int universe)
     ui->btnPause->setEnabled(true);
     ui->sbUniverse->setEnabled(false);
     m_listener = sACNManager::getInstance()->getListener(universe);
+    connect(m_listener.data(), SIGNAL(listenerStarted(int)), this, SLOT(listenerStarted(int)));
+    checkBind();
     ui->universeDisplay->setUniverse(universe);
 
     // Add the existing sources
@@ -92,7 +94,6 @@ void UniverseView::startListening(int universe)
     {
         sourceOnline(m_listener->source(i));
     }
-
     connect(m_listener.data(), SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
     connect(m_listener.data(), SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
     connect(m_listener.data(), SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
@@ -105,6 +106,29 @@ void UniverseView::startListening(int universe)
 void UniverseView::on_btnGo_pressed()
 {
     startListening(ui->sbUniverse->value());
+}
+
+void UniverseView::checkBind()
+{
+    bool bindOk(m_listener->getBindStatus().multicast != sACNListener::BIND_FAILED);
+    bindOk &= m_listener->getBindStatus().unicast != sACNListener::BIND_FAILED;
+
+    if (bindOk || m_bindWarningShown)
+        return;
+
+    QMessageBox msgBox;
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setText(tr("Errors binding to interface\r\n\r\nResults will be inaccurate\r\nPossible reasons include permission issues\r\nor other applications\r\n\r\nSee diagnostics for more info"));
+    m_bindWarningShown = true;
+    msgBox.exec();
+}
+
+void UniverseView::listenerStarted(int universe)
+{
+    Q_UNUSED(universe);
+
+    checkBind();
 }
 
 void UniverseView::sourceChanged(sACNSource *source)
@@ -366,6 +390,7 @@ void UniverseView::on_btnPause_pressed()
     ui->btnGo->setEnabled(true);
     ui->btnPause->setEnabled(false);
     ui->sbUniverse->setEnabled(true);
+    m_bindWarningShown = false;
 }
 
 void UniverseView::on_btnLogToFile_pressed()
