@@ -16,12 +16,11 @@
 #include "aboutdialog.h"
 #include "ui_aboutdialog.h"
 #include "consts.h"
-#include "streamingacn.h"
-#include "sacnlistener.h"
 #include <pcap.h>
 
 #include <QTimer>
 #include <QDesktopServices>
+#include <QUrl>
 
 aboutDialog::aboutDialog(QWidget *parent) :
     QDialog(parent),
@@ -48,6 +47,72 @@ aboutDialog::aboutDialog(QWidget *parent) :
     connect(ui->lblLicense, SIGNAL(linkActivated(QString)), this, SLOT(openLink(QString)));
     connect(ui->lblQtInfo, SIGNAL(linkActivated(QString)), this, SLOT(openLink(QString)));
 
+    // Setup diagnostics tree
+    ui->twDiag->setColumnCount(2);
+    ui->twDiag->header()->hide();
+
+    // Get listener list
+    const auto listenerList = sACNManager::getInstance()->getListenerList();
+
+    // Sort list
+    struct {
+            bool operator()(const QWeakPointer<sACNListener> &a, const QWeakPointer<sACNListener> &b) const
+            {
+                auto aStrong = a.toStrongRef();
+                auto bStrong = b.toStrongRef();
+                if (aStrong && bStrong)
+                    return aStrong->universe() < bStrong->universe();
+                else if (!aStrong)
+                    return true;
+                else
+                    return false;
+            }
+        } listenerSortbyUni;
+    auto listenerListSorted = listenerList.values();
+    std::sort(listenerListSorted.begin(), listenerListSorted.end(), listenerSortbyUni);
+
+    // Display Sorted!
+    for (QWeakPointer<sACNListener> weakListener : listenerListSorted) {
+
+        QSharedPointer<sACNListener> listener(weakListener);
+        if (listener) {
+            int universe = listener->universe();
+
+            // Save listener
+            m_universeDetails.append(universeDetails());
+            m_universeDetails.last().listener = listener;
+
+            // Universe Number Text (Parent)
+            {
+                m_universeDetails.last().treeUniverse =  new QTreeWidgetItem(ui->twDiag);
+                m_universeDetails.last().treeUniverse->setText(0, QString(tr("Universe %1")).arg(universe));
+            }
+
+            // Merges per second (Child)
+            {
+                m_universeDetails.last().treeMergesPerSecond = new QTreeWidgetItem(m_universeDetails.last().treeUniverse);
+                m_universeDetails.last().treeMergesPerSecond->setText(0, tr("Merges per second"));
+                m_universeDetails.last().treeMergesPerSecond->setText(1, "-");
+            }
+
+            // Bind status (Child)
+            {
+                m_universeDetails.last().treeMergesBindStatus = new QTreeWidgetItem(m_universeDetails.last().treeUniverse);
+                m_universeDetails.last().treeMergesBindStatus->setText(0, tr("Bind status"));
+
+                m_universeDetails.last().treeMergesBindStatusUnicast = new QTreeWidgetItem(m_universeDetails.last().treeMergesBindStatus);
+                m_universeDetails.last().treeMergesBindStatusUnicast->setText(0, tr("Unicast"));
+                bindStatus(m_universeDetails.last().treeMergesBindStatusUnicast, listener->getBindStatus().unicast);
+
+                m_universeDetails.last().treeMergesBindStatusMulticast = new QTreeWidgetItem(m_universeDetails.last().treeMergesBindStatus);
+                m_universeDetails.last().treeMergesBindStatusMulticast->setText(0, tr("Multicast"));
+                bindStatus(m_universeDetails.last().treeMergesBindStatusMulticast, listener->getBindStatus().multicast);
+
+            }
+        }
+    }
+    resizeDiagColumn();
+
     m_displayTimer = new QTimer(this);
     connect(m_displayTimer, SIGNAL(timeout()), this, SLOT(updateDisplay()));
     m_displayTimer->start(1000);
@@ -56,35 +121,71 @@ aboutDialog::aboutDialog(QWidget *parent) :
 
 aboutDialog::~aboutDialog()
 {
+    foreach (universeDetails universeDetail, m_universeDetails) {
+        delete universeDetail.treeUniverse;
+    }
+
     m_displayTimer->deleteLater();
     delete ui;
 }
 
 void aboutDialog::updateDisplay()
 {
-    ui->teDiag->clear();
-
-    const QHash<int, QWeakPointer<sACNListener> > listenerList =
-            sACNManager::getInstance()->getListenerList();
-
-    QString data;
-    data.append(QString("Reciever Threads : %1\n").arg(listenerList.count()));
-
-    QHashIterator<int, QWeakPointer<sACNListener> > i(listenerList);
-    while (i.hasNext()) {
-        i.next();
-        QSharedPointer<sACNListener> listener = i.value().toStrongRef();
-        if (listener) {
-            data.append(QString("Universe %1\tMerges per second %2\n")
-                        .arg(i.key())
-                        .arg(listener->mergesPerSecond()));
-        }
+    for (universeDetails universeDetail : m_universeDetails) {
+        // Update merges per second
+        auto merges = universeDetail.listener->mergesPerSecond();
+        if (merges > 0)
+            universeDetail.treeMergesPerSecond->setText(1, QString("%1").arg(merges));
     }
-
-    ui->teDiag->setPlainText(data);
 }
 
 void aboutDialog::openLink(QString link)
 {
     QDesktopServices::openUrl(QUrl(link));
+}
+
+void aboutDialog::bindStatus(QTreeWidgetItem *treeItem, sACNListener::eBindStatus bindStatus)
+{
+    QString bindString;
+    switch (bindStatus) {
+    case sACNListener::BIND_UNKNOWN:
+        bindString = QString(tr("Unknown"));
+        break;
+    case sACNListener::BIND_OK:
+        bindString = QString(tr("OK"));
+        break;
+    case sACNListener::BIND_FAILED:
+        bindString = QString(tr("Failed"));
+        break;
+    }
+    treeItem->setText(1, bindString);
+}
+
+void aboutDialog::resizeDiagColumn()
+{
+    // Resize coloums
+    for (int n = 0; n< ui->twDiag->columnCount(); n++) {
+        ui->twDiag->resizeColumnToContents(n);
+    }
+}
+
+void aboutDialog::on_twDiag_expanded(const QModelIndex &index)
+{
+    Q_UNUSED(index);
+
+    resizeDiagColumn();
+}
+void aboutDialog::on_twDiag_collapsed(const QModelIndex &index)
+{
+    Q_UNUSED(index);
+
+    resizeDiagColumn();
+}
+
+
+void aboutDialog::on_aboutDialog_finished(int result)
+{
+    Q_UNUSED(result);
+
+    this->deleteLater();
 }
