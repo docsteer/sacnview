@@ -111,6 +111,7 @@ aboutDialog::aboutDialog(QWidget *parent) :
             }
         }
     }
+    resizeDiagColumn();
 
     m_displayTimer = new QTimer(this);
     connect(m_displayTimer, SIGNAL(timeout()), this, SLOT(updateDisplay()));
@@ -160,23 +161,25 @@ void aboutDialog::bindStatus(QTreeWidgetItem *treeItem, sACNListener::eBindStatu
     treeItem->setText(1, bindString);
 }
 
-void aboutDialog::on_twDiag_expanded(const QModelIndex &index)
+void aboutDialog::resizeDiagColumn()
 {
-    Q_UNUSED(index);
-
     // Resize coloums
     for (int n = 0; n< ui->twDiag->columnCount(); n++) {
         ui->twDiag->resizeColumnToContents(n);
     }
 }
+
+void aboutDialog::on_twDiag_expanded(const QModelIndex &index)
+{
+    Q_UNUSED(index);
+
+    resizeDiagColumn();
+}
 void aboutDialog::on_twDiag_collapsed(const QModelIndex &index)
 {
     Q_UNUSED(index);
 
-    // Resize coloums
-    for (int n = 0; n< ui->twDiag->columnCount(); n++) {
-        ui->twDiag->resizeColumnToContents(n);
-    }
+    resizeDiagColumn();
 }
 
 
