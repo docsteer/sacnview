@@ -13,9 +13,9 @@
     <title>{{ site.title | default: site.github.repository_name }}</title>
 	<!-- Script updates the links to the latest release -->	
 	<script>
-	$.getJSON('https://api.github.com/repos/docsteer/sacnview/releases', function (data) {
+	$.getJSON('https://api.github.com/repos/docsteer/sacnview/releases/latest', function (data) {
 
-		$.each(data[0].assets, function(index, obj){
+		$.each(data.assets, function(index, obj){
 			var download_url = obj.browser_download_url;
 			if( download_url.endsWith('exe'))
 				$('#download-win').attr('href', download_url);
