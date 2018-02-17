@@ -11,7 +11,7 @@
     <![endif]-->
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <title>{{ site.title | default: site.github.repository_name }}</title>
-	<!-- Script updates the links to the latest release -->	
+	<!-- Script updates the links to the latest release -->
 	<script>
 	$.getJSON('https://api.github.com/repos/docsteer/sacnview/releases/latest', function (data) {
 
@@ -61,7 +61,6 @@
 	<img src="./assets/images/icon.png" style="display:block; margin:auto; padding:10px" />
 
 	<div class="inner">
-
         <header>
           <h1>{{ site.title | default: site.github.repository_name }}</h1>
           <h2>{{ site.description | default: site.github.project_tagline }}</h2>
@@ -72,20 +71,23 @@
           <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-win" class="button"><span>Windows</span></a>
           <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-mac" class="button"><span>macOS</span></a>
           <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-linux" class="button"><span>Linux</span></a>
-
+        </section>
+        <section id="pre-downloads" class="clearfix">
           <div id="prerelease-download" style="display:none">
             <h1 id="name_prerelease"></h1>
             <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-win" class="button"><span>Windows</span></a>
-            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-winxp" class="button"><span>Windows XP</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-winxp" class="button"><span>Win XP</span></a>
             <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-mac" class="button"><span>macOS</span></a>
             <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-linux" class="button"><span>Linux</span></a>
           </div>
+        </section>
           {% endif %}
+        <section id="source" class="clearfix">
 	  {% if site.github.is_project_page %}
           <h2 id="name_prerelease">Source</h2>
           <a href="{{ site.github.repository_url }}" id="view-on-github" class="button"><span>Source</span></a>
 	  {% else %}
-          <h2 id="name_prerelease">Source</h2>
+          </br><h2 id="name_prerelease">Source</h2>
           <a href="{{ site.github.owner_url }}" id="view-on-github" class="button"><span>Source</span></a>
 	  {% endif %}
         </section>
