@@ -35,9 +35,9 @@ sACNUniverseInfo::~sACNUniverseInfo()
     sourcesByCid.clear();
 }
 
-sACNBasicSourceInfo::sACNBasicSourceInfo(sACNUniverseInfo *p)
+sACNBasicSourceInfo::sACNBasicSourceInfo(sACNUniverseInfo *p):
+    universe(p->universe)
 {
-    parent = p;
 }
 
 
@@ -150,11 +150,13 @@ QModelIndex sACNUniverseListModel::parent(const QModelIndex &index) const
     if(!index.isValid())
         return QModelIndex();
 
-    sACNBasicSourceInfo *i = static_cast<sACNBasicSourceInfo *>(index.internalPointer());
+    QModelIndex myIndex = index;
+    sACNBasicSourceInfo *i = static_cast<sACNBasicSourceInfo *>(myIndex.internalPointer());
     if(i && rwlock_ModelIndex.tryLockForRead())
     {
-        int parentRow = i->parent->universe - m_start;
+        int parentRow = i->universe - m_start;
         QModelIndex ret = createIndex(parentRow, 0);
+
         rwlock_ModelIndex.unlock();
         return ret;
     }
@@ -185,7 +187,7 @@ void sACNUniverseListModel::sourceOnline(sACNSource *source)
     info->name = source->name == NULL ? tr("????") : source->name;
 
     // We are adding the source for this universe
-    QModelIndex parent = index(m_start - m_universes[univIndex]->universe, 0);
+    QModelIndex parent = index(m_start - info->universe, 0);
     int firstRow = m_universes[univIndex]->sources.count()+1;
     int lastRow = firstRow;
     beginInsertRows(parent, firstRow, lastRow);
@@ -274,7 +276,7 @@ int sACNUniverseListModel::indexToUniverse(const QModelIndex &index)
     sACNBasicSourceInfo *i = static_cast<sACNBasicSourceInfo *>(index.internalPointer());
     if(i)
     {
-        return i->parent->universe;
+        return i->universe;
     }
 
     return 0;
