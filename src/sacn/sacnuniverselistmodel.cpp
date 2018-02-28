@@ -97,7 +97,6 @@ int sACNUniverseListModel::rowCount(const QModelIndex &parent) const
     if(parent.isValid() && parent.internalPointer()==NULL)
     {
         return m_universes[parent.row()]->sources.count();
-
     }
     if(!parent.isValid())
     {
@@ -150,8 +149,7 @@ QModelIndex sACNUniverseListModel::parent(const QModelIndex &index) const
     if(!index.isValid())
         return QModelIndex();
 
-    QModelIndex myIndex = index;
-    sACNBasicSourceInfo *i = static_cast<sACNBasicSourceInfo *>(myIndex.internalPointer());
+    sACNBasicSourceInfo *i = static_cast<sACNBasicSourceInfo *>(index.internalPointer());
     if(i && rwlock_ModelIndex.tryLockForRead())
     {
         int parentRow = i->universe - m_start;
