@@ -96,6 +96,8 @@ int sACNUniverseListModel::rowCount(const QModelIndex &parent) const
 {
     if(parent.isValid() && parent.internalPointer()==NULL)
     {
+        if (parent.row() >= m_universes.count() || parent.row() < 0)
+            return 0;
         return m_universes[parent.row()]->sources.count();
     }
     if(!parent.isValid())
@@ -135,6 +137,8 @@ QModelIndex sACNUniverseListModel::index(int row, int column, const QModelIndex 
         return createIndex(row, column);
     if(parent.isValid() && !parent.parent().isValid())
     {
+        if (parent.row() >= m_universes.count() || parent.row() < 0)
+            return QModelIndex();
         if(m_universes[parent.row()]->sources.count() >= row)
         {
             return createIndex(row, column, m_universes[parent.row()]->sources.at(row));
