@@ -45,15 +45,19 @@ FwCheck::FwCheck_t FwCheck::isFWBlocked(QHostAddress ip)
                     &allowed,
                     &restricted
                     );
+
+        ret.allowed = (VARIANT_TRUE  == allowed.boolVal);
+        ret.restricted = (VARIANT_TRUE  == restricted.boolVal);
     }
 
     // Clean up
-    SysFreeString(bstrFilename);
-    SysFreeString(bstrIpaddress);
-    fwMgr->Release();
+    if(bstrFilename)
+        SysFreeString(bstrFilename);
+    if(bstrIpaddress)
+        SysFreeString(bstrIpaddress);
+    if(fwMgr)
+        fwMgr->Release();
 
-    ret.allowed = (VARIANT_TRUE  == allowed.boolVal);
-    ret.restricted = (VARIANT_TRUE  == restricted.boolVal);
 #else //Q_WS_WIN
     Q_UNUSED(ip);
 #endif
