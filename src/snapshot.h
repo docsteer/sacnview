@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QtMultimedia/QSound>
 #include <QSpinBox>
+#include <QToolButton>
 #include "streamingacn.h"
 #include "consts.h"
 
@@ -37,9 +38,16 @@ protected slots:
     void on_btnAddRow_pressed();
     void on_btnRemoveRow_pressed();
     void senderTimedOut();
+    void pauseSourceButtonPressed();
 protected:
     virtual void resizeEvent(QResizeEvent *event);
 private:
+    enum {
+        COL_BUTTON,
+        COL_UNIVERSE,
+        COL_PRIORITY,
+        COLCOUNT
+    };
     void setState(state s);
     void saveSnapshot();
     void playSnapshot();
@@ -53,6 +61,7 @@ private:
     QList<sACNSentUniverse *>m_senders;
     QList<QSpinBox *> m_universeSpins;
     QList<QSpinBox *> m_prioritySpins;
+    QList<QToolButton *> m_enableButtons;
     int m_firstUniverse;
 };
 
