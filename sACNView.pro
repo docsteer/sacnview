@@ -52,6 +52,9 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = sACNView
 TEMPLATE = app
+DESCRIPTION = $$shell_quote("A tool for sending and receiving the Streaming ACN control protocol")
+URL = $$shell_quote("https://docsteer.github.io/sacnview/")
+LICENSE = $$shell_quote("Apache 2.0")
 
 INCLUDEPATH += src src/sacn src/sacn/ACNShare
 
@@ -242,7 +245,7 @@ linux {
     DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/icon_256.png $${DEPLOY_DIR}/usr/share/icons/hicolor/256x256/apps/sacnview.png
     DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/Logo.png $${DEPLOY_DIR}/usr/share/icons/hicolor/scalable/apps/sacnview.png
     DEPLOY_INSTALLER += && cd $${DEPLOY_DIR}
-    DEPLOY_INSTALLER += && fpm -s dir -t deb --deb-meta-file $${DEPLOY_DIR}/COPYRIGHT -n $${TARGET} -v $${DEB_SANITIZED_VERSION} opt/ usr/
+    DEPLOY_INSTALLER += && fpm -s dir -t deb --deb-meta-file $${DEPLOY_DIR}/COPYRIGHT --license $${LICENSE} --name $${TARGET} --version $${DEB_SANITIZED_VERSION} --description $${DESCRIPTION} --url $${URL} opt/ usr/
 }
 
 CONFIG( release , debug | release) {
