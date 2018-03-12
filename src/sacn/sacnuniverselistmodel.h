@@ -26,8 +26,8 @@ public:
     QHostAddress address;
     QString name;
     CID cid;
-    sACNUniverseInfo *parent;
     QElapsedTimer timeout;
+    int universe;
 };
 
 class sACNUniverseInfo
