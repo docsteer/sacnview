@@ -5,14 +5,17 @@
 
 #ifdef Q_OS_WIN
 static const QString OS_FILE_IDENTIFIER = ".exe";
+static const QString OS_EXE_HANDLER = "";
 #endif
 
 #ifdef Q_OS_MACOS
 static const QString OS_FILE_IDENTIFIER = ".dmg";
+static const QString OS_EXE_HANDLER = "open";
 #endif
 
 #ifdef Q_OS_LINUX
 static const QString OS_FILE_IDENTIFIER = ".deb";
+static const QString OS_EXE_HANDLER = "xdg-open";
 #endif
 
 
@@ -136,12 +139,11 @@ void NewVersionDialog::setNewVersionInfo(const QString &info)
 void NewVersionDialog::on_btnExitInstall_pressed()
 {
     bool ok = false;
+    if (!OS_EXE_HANDLER.isEmpty())
+        ok = QProcess::startDetached(OS_EXE_HANDLER, QStringList(m_storagePath));
+    else
+        ok = QProcess::startDetached(m_storagePath);
 
-#ifdef Q_OS_MAC
-    ok = QProcess::startDetached(QString("open ")+m_storagePath);
-#else
-    ok = QProcess::startDetached(m_storagePath);
-#endif
     if(!ok)
         QMessageBox::warning(this, tr("Couldn't Run Installer"), tr("Unable to run installer - please run %1").arg(m_storagePath));
     qApp->exit();
