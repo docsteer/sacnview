@@ -3,6 +3,11 @@
 
 @import "{{ site.theme }}";
 
+/* Make the inner wide enough for 4 buttons */
+.inner {
+    width: 640px;
+}
+
 a.button {
   width: 126px;
 }
