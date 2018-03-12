@@ -13,6 +13,18 @@
     <title>{{ site.title | default: site.github.repository_name }}</title>
 	<!-- Script updates the links to the latest release -->
 	<script>
+    
+    <!-- Polyfill for older ECMAScript -->
+    if (!String.prototype.endsWith) {
+        String.prototype.endsWith = function(search, this_len) {
+            if (this_len === undefined || this_len > this.length) {
+                this_len = this.length;
+            }
+            return this.substring(this_len - search.length, this_len) === search;
+        };
+    }
+    
+    
 	$.getJSON('https://api.github.com/repos/docsteer/sacnview/releases/latest', function (data) {
 
     document.getElementById("name_release").innerHTML = data.name;
@@ -27,9 +39,9 @@
 				$('#download-linux').attr('href', download_url);
 		});
 	});
-	</script>
-
-  <script>
+  
+  
+  
   $.getJSON('https://api.github.com/repos/docsteer/sacnview/releases', function (data) {
 
     document.getElementById("name_prerelease").innerHTML = data[0].name;
