@@ -8,10 +8,10 @@ This is sACNView mark 2, which supplants the original version.
 Use the buttons at the top of this page to download and install the program for your operating system
 
 # Supported Platforms
-*Windows 7 or newer
-*Windows XP (separate build)
-*MacOS 10.10 or newer
-*Linux (Debian based e.g. Ubuntu)
+* Windows 7 or newer
+* Windows XP (separate build)
+* MacOS 10.10 or newer
+* Linux (Debian based e.g. Ubuntu)
 
 # How to Use
 See the [Documentation](./documentation.html) page for information on how to use the application
