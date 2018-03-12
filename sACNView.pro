@@ -72,7 +72,16 @@ DEFINES += GIT_DATE_DAY=\\\"$$GIT_DATE_DAY\\\"
 DEFINES += GIT_DATE_DATE=\\\"$$GIT_DATE_DATE\\\"
 DEFINES += GIT_DATE_MONTH=\\\"$$GIT_DATE_MONTH\\\"
 DEFINES += GIT_DATE_YEAR=\\\"$$GIT_DATE_YEAR\\\"
-DEFINES += VERSION=\\\"$$GIT_TAG\\\"
+lessThan(QT_MAJOR_VERSION, 6):lessThan(QT_MINOR_VERSION, 7) {
+    # Windows XP Special Build
+    QMAKE_LFLAGS_WINDOWS = /SUBSYSTEM:WINDOWS,5.01
+    DEFINES += _ATL_XP_TARGETING
+    DEFINES += VERSION=\\\"$$GIT_TAG-WindowsXP\\\"
+    TARGET_WINXP = 1
+} else {
+    DEFINES += VERSION=\\\"$$GIT_TAG\\\"
+    TARGET_WINXP = 0
+}
 
 SOURCES += src/main.cpp\
     src/mdimainwindow.cpp \
@@ -192,12 +201,18 @@ isEmpty(TARGET_EXT) {
 }
 
 win32 {
+    equals(TARGET_WINXP, "1") {
+        PRODUCT_VERSION = "$$GIT_VERSION-WindowsXP"
+    } else {
+        PRODUCT_VERSION = "$$GIT_VERSION"
+    }
+
     DEPLOY_COMMAND = windeployqt
     DEPLOY_DIR = $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/deploy))
     DEPLOY_TARGET = $$shell_quote($$system_path($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT}))
     DEPLOY_OPT = --dir $${DEPLOY_DIR}
     DEPLOY_CLEANUP = $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR}
-    DEPLOY_INSTALLER = makensis /DPRODUCT_VERSION="$$GIT_VERSION" $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/win/install.nsi))
+    DEPLOY_INSTALLER = makensis /DPRODUCT_VERSION="$${PRODUCT_VERSION}" /DTARGET_WINXP="$${TARGET_WINXP}" $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/win/install.nsi))
 
     # WinPCap
     contains(QT_ARCH, i386) {

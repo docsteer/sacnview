@@ -43,7 +43,11 @@ bool sACNRxSocket::bindMulticast(quint16 universe)
     if (ok)
     {
         #if (QT_VERSION <= QT_VERSION_CHECK(5, 8, 0))
-        #error setMulticastInterface() fails to bind to correct interface on systems running IPV4 and IPv6 with QT <= 5.8.0
+            #ifdef Q_OS_WIN
+                #pragma message("setMulticastInterface() fails to bind to correct interface on systems running IPV4 and IPv6 with QT <= 5.8.0")
+            #else
+                #error setMulticastInterface() fails to bind to correct interface on systems running IPV4 and IPv6 with QT <= 5.8.0
+            #endif
         #endif
         setMulticastInterface(m_interface);
         ok |= joinMulticastGroup(QHostAddress(addr.GetV4Address()), m_interface);

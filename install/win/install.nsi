@@ -139,9 +139,16 @@ Function .onInit
         !insertmacro UNINSTALL.LOG_PREPARE_INSTALL
 		
 		;check the Windows version
-		${IfNot} ${AtLeastWin7}
-		MessageBox MB_OK "Windows 7 or above is required to run sACNView"
-		Quit
+		${If} ${TARGET_WINXP} == '1'
+			${IfNot} ${IsWinXP}
+			MessageBox MB_OK "Windows XP is required to run this special build of sACNView"
+			Quit
+			${EndIf}
+		${Else}
+			${IfNot} ${AtLeastWin7}
+			MessageBox MB_OK "Windows 7 or above is required to run sACNView"
+			Quit
+			${EndIf}
 		${EndIf}
 FunctionEnd
 
