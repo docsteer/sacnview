@@ -207,13 +207,14 @@ win32 {
     }
 }
 macx {
+    VERSION = $$system(echo $$GIT_VERSION | sed 's/[a-zA-Z]//')
     DEPLOY_COMMAND = macdeployqt
     DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/mac
-    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/ACNView.dmg
+    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/sACNView*.dmg
     DEPLOY_TARGET = $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
     DEPLOY_CLEANUP = $${_PRO_FILE_PWD_}/install/mac/create-dmg --volname "sACNView_Installer" --volicon "$${_PRO_FILE_PWD_}/res/icon.icns"
-    DEPLOY_CLEANUP += --background "$${_PRO_FILE_PWD_}/res/mac_install_bg.png" --window-pos 200 120 --window-size 800 400 --icon-size 100 --icon sACNView.app 200 190 --hide-extension sACNView.app --app-drop-link 600 185
-    DEPLOY_CLEANUP += $${_PRO_FILE_PWD_}/install/mac/sACNView.dmg $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
+    DEPLOY_CLEANUP += --background "$${_PRO_FILE_PWD_}/res/mac_install_bg.png" --window-pos 200 120 --window-size 800 400 --icon-size 100 --icon $${TARGET}$${TARGET_CUSTOM_EXT} 200 190 --hide-extension $${TARGET}$${TARGET_CUSTOM_EXT} --app-drop-link 600 185
+    DEPLOY_CLEANUP += $${DEPLOY_DIR}/sACNView_$${VERSION}.dmg $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
 }
 linux {
     DEB_SANITIZED_VERSION = $$system(echo $$GIT_VERSION | sed 's/[a-zA-Z]//')

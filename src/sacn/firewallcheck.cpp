@@ -63,8 +63,9 @@ FwCheck::FwCheck_t FwCheck::isFWBlocked(QHostAddress ip)
 
     ret.allowed = (VARIANT_TRUE  == allowed.boolVal);
     ret.restricted = (VARIANT_TRUE  == restricted.boolVal);
-#else
+#else //Q_WS_WIN
     Q_UNUSED(ip);
 #endif
+
     return ret;
 }
