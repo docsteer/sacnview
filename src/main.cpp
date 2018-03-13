@@ -44,16 +44,13 @@ int main(int argc, char *argv[])
 
     // Windows XP Support
     #ifdef Q_OS_WIN
-        #if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
-            #pragma message("This binary is intended for Windows >= 7")
-        #endif
-        #if (QT_VERSION < QT_VERSION_CHECK(5, 7, 0))
+        #if (TARGET_WINXP)
             #pragma message("This binary is intended for Windows XP ONLY")
             QSysInfo systemInfo;
             QMessageBox msgBox;
             msgBox.setStandardButtons(QMessageBox::Ok);
             if (
-                    (systemInfo.kernelVersion().startsWith(QString("5.1"))) // Windows XP 32bit
+                (systemInfo.kernelVersion().startsWith(QString("5.1"))) // Windows XP 32bit
                 || (systemInfo.kernelVersion().startsWith(QString("5.2")))) // Windows XP 64bit
             {
                 msgBox.setIcon(QMessageBox::Information);
@@ -66,6 +63,8 @@ int main(int argc, char *argv[])
                 a.exit();
                 return -1;
             }
+        #else
+            #pragma message("This binary is intended for Windows >= 7")
         #endif
     #endif
 

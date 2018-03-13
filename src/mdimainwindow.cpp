@@ -24,9 +24,13 @@
 #include "sacnuniverselistmodel.h"
 #include "snapshot.h"
 #include "multiuniverse.h"
+#include "xpwarning.h"
+#ifndef TARGET_WINXP
 #include "pcapplayback.h"
+#endif
 
 #include <QMdiSubWindow>
+
 
 MDIMainWindow::MDIMainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -259,9 +263,14 @@ void MDIMainWindow::restoreMdiWindows()
 
 void MDIMainWindow::on_actionPCAPPlayback_triggered()
 {
+    if (XPOnlyFeature())
+        return;
+
+#ifndef TARGET_WINXP
     PcapPlayback *pcapPlayback = new PcapPlayback(this);
     ui->mdiArea->addSubWindow(pcapPlayback);
     pcapPlayback->show();
+#endif
 }
 
 int MDIMainWindow::getSelectedUniverse()

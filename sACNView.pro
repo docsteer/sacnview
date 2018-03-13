@@ -32,6 +32,20 @@ macx {
 QMAKE_CXXFLAGS += /Zi
 QMAKE_LFLAGS += /INCREMENTAL:NO /Debug
 
+# Windows XP Special Build?
+win32 {
+    lessThan(QT_MAJOR_VERSION, 6):lessThan(QT_MINOR_VERSION, 7) {
+        QMAKE_LFLAGS_WINDOWS = /SUBSYSTEM:WINDOWS,5.01
+        DEFINES += _ATL_XP_TARGETING
+        DEFINES += VERSION=\\\"$$GIT_TAG-WindowsXP\\\"
+        TARGET_WINXP = 1
+        DEFINES += TARGET_WINXP
+    } else {
+        DEFINES += VERSION=\\\"$$GIT_TAG\\\"
+        TARGET_WINXP = 0
+    }
+}
+
 ## External Libs
 
 # Firewall Checker
@@ -41,14 +55,23 @@ win32 {
 
 #PCap/WinPcap
 win32 {
-    PCAP_PATH = $${_PRO_FILE_PWD_}/libs/WinPcap-413-173-b4
-    contains(QT_ARCH, i386) {
-        LIBS += -L$${PCAP_PATH}/lib
-    } else {
-        LIBS += -L$${PCAP_PATH}/lib/x64
+    # Not for Windows XP Build
+    equals(TARGET_WINXP, 0) {
+        PCAP_PATH = $${_PRO_FILE_PWD_}/libs/WinPcap-413-173-b4
+        contains(QT_ARCH, i386) {
+            LIBS += -L$${PCAP_PATH}/lib
+        } else {
+            LIBS += -L$${PCAP_PATH}/lib/x64
+        }
+        LIBS += -lwpcap -lPacket
+        INCLUDEPATH += $${PCAP_PATH}/Include
+
+        SOURCES += src/pcapplayback.cpp \
+            src/pcapplaybacksender.cpp
+        HEADERS += src/pcapplayback.h \
+            src/pcapplaybacksender.h
+        FORMS += ui/pcapplayback.ui
     }
-    LIBS += -lwpcap -lPacket
-    INCLUDEPATH += $${PCAP_PATH}/Include
 }
 !win32 {
     LIBS += -lpcap
@@ -100,19 +123,6 @@ DEFINES += GIT_DATE_DATE=\\\"$$GIT_DATE_DATE\\\"
 DEFINES += GIT_DATE_MONTH=\\\"$$GIT_DATE_MONTH\\\"
 DEFINES += GIT_DATE_YEAR=\\\"$$GIT_DATE_YEAR\\\"
 
-# Windows XP Special Build?
-win32 {
-    lessThan(QT_MAJOR_VERSION, 6):lessThan(QT_MINOR_VERSION, 7) {
-        QMAKE_LFLAGS_WINDOWS = /SUBSYSTEM:WINDOWS,5.01
-        DEFINES += _ATL_XP_TARGETING
-        DEFINES += VERSION=\\\"$$GIT_TAG-WindowsXP\\\"
-        TARGET_WINXP = 1
-    } else {
-        DEFINES += VERSION=\\\"$$GIT_TAG\\\"
-        TARGET_WINXP = 0
-    }
-}
-
 ## Project includes
 
 INCLUDEPATH += src src/sacn src/sacn/ACNShare
@@ -154,11 +164,9 @@ SOURCES += src/main.cpp\
     src/sacn/firewallcheck.cpp \
     src/bigdisplay.cpp \
     src/addmultidialog.cpp \
-    src/pcapplayback.cpp \
-    src/pcapplaybacksender.cpp \
     src/theme/darkstyle.cpp
 
-HEADERS  += src/mdimainwindow.h \
+HEADERS += src/mdimainwindow.h \
     src/scopewindow.h \
     src/universeview.h \
     src/sacn/ACNShare/CID.h \
@@ -195,12 +203,11 @@ HEADERS  += src/mdimainwindow.h \
     src/sacn/firewallcheck.h \
     src/bigdisplay.h \ 
     src/addmultidialog.h \
-    src/pcapplayback.h \
-    src/pcapplaybacksender.h \
     src/ethernetstrut.h \
-    src/theme/darkstyle.h
+    src/theme/darkstyle.h \
+    src/xpwarning.h
 
-FORMS    += ui/mdimainwindow.ui \
+FORMS += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
     ui/universeview.ui \
     ui/nicselectdialog.ui \
@@ -214,7 +221,6 @@ FORMS    += ui/mdimainwindow.ui \
     ui/logwindow.ui \
     ui/bigdisplay.ui \
     ui/newversiondialog.ui \
-    ui/pcapplayback.ui \
     ui/addmultidialog.ui
 
 RESOURCES += \
@@ -237,7 +243,7 @@ isEmpty(TARGET_EXT) {
 }
 
 win32 {
-    equals(TARGET_WINXP, "1") {
+    equals($${TARGET_WINXP}, "1") {
         PRODUCT_VERSION = "$$GIT_VERSION-WindowsXP"
     } else {
         PRODUCT_VERSION = "$$GIT_VERSION"
