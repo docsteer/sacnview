@@ -18,6 +18,9 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = sACNView
 TEMPLATE = app
+DESCRIPTION = $$shell_quote("A tool for sending and receiving the Streaming ACN control protocol")
+URL = $$shell_quote("https://docsteer.github.io/sacnview/")
+LICENSE = $$shell_quote("Apache 2.0")
 
 macx {
     QMAKE_MAC_SDK = macosx10.12
@@ -27,6 +30,23 @@ macx {
 !msvc {
     QMAKE_CXXFLAGS += -std=gnu++0x
 }
+
+# Version defines
+
+GIT_COMMAND = git --git-dir $$shell_quote($$PWD/.git) --work-tree $$shell_quote($$PWD)
+GIT_VERSION = $$system($$GIT_COMMAND describe --always --tags)
+GIT_DATE_DAY = $$system($$GIT_COMMAND show -s --date=format:\"%a\" --format=\"%cd\" $$GIT_VERSION)
+GIT_DATE_DATE = $$system($$GIT_COMMAND show -s --date=format:\"%d\" --format=\"%cd\" $$GIT_VERSION)
+GIT_DATE_MONTH = $$system($$GIT_COMMAND show -s --date=format:\"%b\" --format=\"%cd\" $$GIT_VERSION)
+GIT_DATE_YEAR = $$system($$GIT_COMMAND show -s --date=format:\"%Y\" --format=\"%cd\" $$GIT_VERSION)
+GIT_TAG = $$system($$GIT_COMMAND describe --abbrev=0 --always --tags)
+GIT_SHA1 = $$system($$GIT_COMMAND rev-parse --short HEAD)
+
+DEFINES += GIT_CURRENT_SHA1=\\\"$$GIT_VERSION\\\"
+DEFINES += GIT_DATE_DAY=\\\"$$GIT_DATE_DAY\\\"
+DEFINES += GIT_DATE_DATE=\\\"$$GIT_DATE_DATE\\\"
+DEFINES += GIT_DATE_MONTH=\\\"$$GIT_DATE_MONTH\\\"
+DEFINES += GIT_DATE_YEAR=\\\"$$GIT_DATE_YEAR\\\"
 
 # Debug symbols
 QMAKE_CXXFLAGS += /Zi
@@ -71,6 +91,12 @@ win32 {
         HEADERS += src/pcapplayback.h \
             src/pcapplaybacksender.h
         FORMS += ui/pcapplayback.ui
+
+        contains(QT_ARCH, i386) {
+            PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$system_path($${PCAP_PATH}/Bin/*) $${DEPLOY_DIR}
+        } else {
+            PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$system_path($${PCAP_PATH}/Bin/x64/*) $${DEPLOY_DIR}
+        }
     }
 }
 !win32 {
@@ -95,33 +121,6 @@ win32 {
         OPENSSL_PATH = $${_PRO_FILE_PWD_}/libs/openssl-$${OPENSSL_VERS}-x64_86-win64
     }
 }
-
-## Main ##
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
-TARGET = sACNView
-TEMPLATE = app
-DESCRIPTION = $$shell_quote("A tool for sending and receiving the Streaming ACN control protocol")
-URL = $$shell_quote("https://docsteer.github.io/sacnview/")
-LICENSE = $$shell_quote("Apache 2.0")
-
-## Version defines
-
-GIT_COMMAND = git --git-dir $$shell_quote($$PWD/.git) --work-tree $$shell_quote($$PWD)
-GIT_VERSION = $$system($$GIT_COMMAND describe --always --tags)
-GIT_DATE_DAY = $$system($$GIT_COMMAND show -s --date=format:\"%a\" --format=\"%cd\" $$GIT_VERSION)
-GIT_DATE_DATE = $$system($$GIT_COMMAND show -s --date=format:\"%d\" --format=\"%cd\" $$GIT_VERSION)
-GIT_DATE_MONTH = $$system($$GIT_COMMAND show -s --date=format:\"%b\" --format=\"%cd\" $$GIT_VERSION)
-GIT_DATE_YEAR = $$system($$GIT_COMMAND show -s --date=format:\"%Y\" --format=\"%cd\" $$GIT_VERSION)
-GIT_TAG = $$system($$GIT_COMMAND describe --abbrev=0 --always --tags)
-GIT_SHA1 = $$system($$GIT_COMMAND rev-parse --short HEAD)
-
-DEFINES += GIT_CURRENT_SHA1=\\\"$$GIT_VERSION\\\"
-DEFINES += GIT_DATE_DAY=\\\"$$GIT_DATE_DAY\\\"
-DEFINES += GIT_DATE_DATE=\\\"$$GIT_DATE_DATE\\\"
-DEFINES += GIT_DATE_MONTH=\\\"$$GIT_DATE_MONTH\\\"
-DEFINES += GIT_DATE_YEAR=\\\"$$GIT_DATE_YEAR\\\"
 
 ## Project includes
 
@@ -252,7 +251,7 @@ win32 {
     DEPLOY_DIR = $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/deploy))
     DEPLOY_TARGET = $$shell_quote($$system_path($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT}))
 
-    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}\*.* /S /Q $$escape_expand(\\n\\t)
+    PRE_DEPLOY_COMMAND += $${QMAKE_DEL_FILE} $${DEPLOY_DIR}\*.* /S /Q $$escape_expand(\\n\\t)
     PRE_DEPLOY_COMMAND += $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR} $$escape_expand(\\n\\t)
     PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$shell_quote($$system_path($$OPENSSL_PATH/*.dll)) $${DEPLOY_DIR} $$escape_expand(\\n\\t) # OpenSSL
 
@@ -260,13 +259,6 @@ win32 {
     DEPLOY_OPT = --dir $${DEPLOY_DIR}
 
     DEPLOY_INSTALLER = makensis /DPRODUCT_VERSION="$${PRODUCT_VERSION}" /DTARGET_WINXP="$${TARGET_WINXP}" $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/win/install.nsi))
-
-    # WinPCap
-    contains(QT_ARCH, i386) {
-        PRE_DEPLOY_COMMAND = $$QMAKE_COPY $$system_path($${PCAP_PATH}/Bin/*) $${DEPLOY_DIR}
-    } else {
-        PRE_DEPLOY_COMMAND = $$QMAKE_COPY $$system_path($${PCAP_PATH}/Bin/x64/*) $${DEPLOY_DIR}
-    }
 }
 macx {
     VERSION = $$system(echo $$GIT_VERSION | sed 's/[a-zA-Z]//')
@@ -288,7 +280,7 @@ linux {
     DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/linux
     DEPLOY_TARGET = $${DEPLOY_DIR}/AppDir/$${TARGET}
 
-    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/*.AppImage
+    PRE_DEPLOY_COMMAND += $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/*.AppImage
     PRE_DEPLOY_COMMAND += && $${QMAKE_DEL_FILE} $${DEPLOY_TARGET}
     PRE_DEPLOY_COMMAND += && wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" -O $${DEPLOY_COMMAND}
     PRE_DEPLOY_COMMAND += && chmod a+x $${DEPLOY_COMMAND}
