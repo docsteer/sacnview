@@ -28,6 +28,10 @@ macx {
     QMAKE_CXXFLAGS += -std=gnu++0x
 }
 
+# Debug symbols
+QMAKE_CXXFLAGS += /Zi
+QMAKE_LFLAGS += /INCREMENTAL:NO /Debug
+
 ## External Libs
 
 # Firewall Checker
