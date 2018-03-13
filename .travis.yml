@@ -39,6 +39,8 @@ matrix:
         before_install:
           - brew update
         install:
+          # PCap
+          - brew install libpcap
           # QT
           - brew install qt
           - brew link --force qt
