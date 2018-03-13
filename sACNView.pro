@@ -49,8 +49,10 @@ DEFINES += GIT_DATE_MONTH=\\\"$$GIT_DATE_MONTH\\\"
 DEFINES += GIT_DATE_YEAR=\\\"$$GIT_DATE_YEAR\\\"
 
 # Debug symbols
-QMAKE_CXXFLAGS += /Zi
-QMAKE_LFLAGS += /INCREMENTAL:NO /Debug
+win32 {
+    QMAKE_CXXFLAGS += /Zi
+    QMAKE_LFLAGS += /INCREMENTAL:NO /Debug
+}
 
 # Windows XP Special Build?
 win32 {
@@ -64,6 +66,8 @@ win32 {
         DEFINES += VERSION=\\\"$$GIT_TAG\\\"
         TARGET_WINXP = 0
     }
+} else {
+    DEFINES += VERSION=\\\"$$GIT_TAG\\\"
 }
 
 ## External Libs

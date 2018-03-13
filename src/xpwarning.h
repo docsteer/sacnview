@@ -7,7 +7,7 @@
  *  Returns true if Windows XP
  */
 bool XPOnlyFeature() {
-    #ifdef TARGET_WINXP)
+    #ifdef TARGET_WINXP
         QMessageBox msgBox;
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.setIcon(QMessageBox::Information);
