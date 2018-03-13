@@ -29,8 +29,10 @@ macx {
 }
 
 # Debug symbols
-QMAKE_CXXFLAGS += /Zi
-QMAKE_LFLAGS += /INCREMENTAL:NO /Debug
+win32 {
+    QMAKE_CXXFLAGS += /Zi
+    QMAKE_LFLAGS += /INCREMENTAL:NO /Debug
+}
 
 ## External Libs
 
