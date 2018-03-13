@@ -288,10 +288,13 @@ macx {
     DEPLOY_INSTALLER += $${DEPLOY_DIR}/sACNView_$${VERSION}.dmg $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
 }
 linux {
-    DEB_SANITIZED_VERSION = $$system(echo $$GIT_VERSION | sed 's/[a-zA-Z]//')
+    VERSION = $$system(echo $$GIT_VERSION | sed 's/[a-zA-Z]//')
 
     DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/linux
     DEPLOY_TARGET = $${DEPLOY_DIR}/AppDir/$${TARGET}
+
+    DEPLOY_COMMAND = $${OUT_PWD}/linuxdeployqt
+    DEPLOY_OPT = -appimage -verbose=2
 
     PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/*.AppImage
     PRE_DEPLOY_COMMAND += && $${QMAKE_DEL_FILE} $${DEPLOY_TARGET}
@@ -302,14 +305,13 @@ linux {
     PRE_DEPLOY_COMMAND += && $$QMAKE_COPY $${DEPLOY_DIR}/usr/share/applications/sacnview.desktop $${DEPLOY_DIR}/AppDir/sacnview.desktop
     PRE_DEPLOY_COMMAND += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/Logo.png $${DEPLOY_DIR}/AppDir/sacnview.png
 
-    DEPLOY_COMMAND = $${OUT_PWD}/linuxdeployqt
-    DEPLOY_OPT = -appimage -verbose=2
-
     DEPLOY_CLEANUP = $$QMAKE_COPY $${OUT_PWD}/$${TARGET}*.AppImage $${DEPLOY_DIR}/
 
     DEPLOY_INSTALLER = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/*.deb
+    DEPLOY_INSTALLER += && $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/opt/sacnview/*.AppImage
     DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/LICENSE $${DEPLOY_DIR}/COPYRIGHT
-    DEPLOY_INSTALLER += && $$QMAKE_COPY $${DEPLOY_DIR}/$${TARGET}_$${DEB_SANITIZED_VERSION}.AppImage $${DEPLOY_DIR}/opt/sacnview/sacnview.AppImage
+    DEPLOY_INSTALLER += && $$QMAKE_COPY $${DEPLOY_DIR}/$${TARGET}*.AppImage $${DEPLOY_DIR}/opt/sacnview/
+    DEPLOY_INSTALLER += && ln -s $${TARGET}*.AppImage $${DEPLOY_DIR}/opt/sacnview/sACNView2.AppImage
     DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/icon_16.png $${DEPLOY_DIR}/usr/share/icons/hicolor/16x16/apps/sacnview.png
     DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/icon_24.png $${DEPLOY_DIR}/usr/share/icons/hicolor/24x24/apps/sacnview.png
     DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/icon_32.png $${DEPLOY_DIR}/usr/share/icons/hicolor/32x32/apps/sacnview.png
@@ -317,7 +319,7 @@ linux {
     DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/icon_256.png $${DEPLOY_DIR}/usr/share/icons/hicolor/256x256/apps/sacnview.png
     DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/Logo.png $${DEPLOY_DIR}/usr/share/icons/hicolor/scalable/apps/sacnview.png
     DEPLOY_INSTALLER += && cd $${DEPLOY_DIR}
-    DEPLOY_INSTALLER += && fpm -s dir -t deb --deb-meta-file $${DEPLOY_DIR}/COPYRIGHT --license $${LICENSE} --name $${TARGET} --version $${DEB_SANITIZED_VERSION} --description $${DESCRIPTION} --url $${URL} opt/ usr/
+    DEPLOY_INSTALLER += && fpm -s dir -t deb --deb-meta-file $${DEPLOY_DIR}/COPYRIGHT --license $${LICENSE} --name $${TARGET} --version $${VERSION}  --description $${DESCRIPTION} --url $${URL} opt/ usr/
 }
 
 CONFIG( release , debug | release) {
