@@ -99,6 +99,12 @@ win32 {
 }
 !win32 {
     LIBS += -lpcap
+
+    SOURCES += src/pcapplayback.cpp \
+        src/pcapplaybacksender.cpp
+    HEADERS += src/pcapplayback.h \
+        src/pcapplaybacksender.h
+    FORMS += ui/pcapplayback.ui
 }
 
 # OpenSSL
