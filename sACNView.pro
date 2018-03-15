@@ -130,7 +130,7 @@ win32 {
 
 ## Project includes
 
-INCLUDEPATH += src src/sacn src/sacn/ACNShare
+INCLUDEPATH += src src/sacn src/sacn/ACNShare libs/breakpad/src/
 
 ## Sources
 
