@@ -25,10 +25,12 @@
 #include <QMessageBox>
 #include <QStatusBar>
 #include <QStyleFactory>
+#include <QStandardPaths>
 #include "sacnsender.h"
 #include "versioncheck.h"
 #include "firewallcheck.h"
 #include "theme/darkstyle.h"
+#include "crash_handler.h"
 
 int main(int argc, char *argv[])
 {
@@ -41,6 +43,10 @@ int main(int argc, char *argv[])
     a.setApplicationVersion(VERSION);
     a.setOrganizationName("sACNView");
     a.setOrganizationDomain("tomsteer.net");
+
+    // Breakpad Crash Handler
+    Breakpad::CrashHandler::instance()->Init(QStandardPaths::writableLocation(QStandardPaths::TempLocation));
+
 
     // Windows XP Support
     #ifdef Q_OS_WIN

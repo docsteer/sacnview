@@ -16,6 +16,8 @@
 QT       += core gui network multimedia
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+include("libs/breakpad/breakpad.pri")
+
 TARGET = sACNView
 TEMPLATE = app
 DESCRIPTION = $$shell_quote("A tool for sending and receiving the Streaming ACN control protocol")
@@ -74,7 +76,7 @@ win32 {
 
 # Firewall Checker
 win32 {
-    LIBS += -lole32 -loleaut32
+    LIBS += -lole32 -loleaut32 -luser32
 }
 
 #PCap/WinPcap
@@ -167,7 +169,8 @@ SOURCES += src/main.cpp\
     src/sacn/firewallcheck.cpp \
     src/bigdisplay.cpp \
     src/addmultidialog.cpp \
-    src/theme/darkstyle.cpp
+    src/theme/darkstyle.cpp \
+    src/crash_handler.cpp
 
 HEADERS += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -208,7 +211,8 @@ HEADERS += src/mdimainwindow.h \
     src/addmultidialog.h \
     src/ethernetstrut.h \
     src/theme/darkstyle.h \
-    src/xpwarning.h
+    src/xpwarning.h \
+    src/crash_handler.h
 
 FORMS += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
