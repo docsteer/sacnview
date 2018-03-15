@@ -16,8 +16,6 @@
 QT       += core gui network multimedia
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-include("libs/breakpad/breakpad.pri")
-
 TARGET = sACNView
 TEMPLATE = app
 DESCRIPTION = $$shell_quote("A tool for sending and receiving the Streaming ACN control protocol")
@@ -55,6 +53,9 @@ win32 {
     QMAKE_CXXFLAGS += /Zi
     QMAKE_LFLAGS += /INCREMENTAL:NO /Debug
 }
+unix {
+    QMAKE_CXXFLAGS += -g
+}
 
 # Windows XP Special Build?
 win32 {
@@ -73,6 +74,14 @@ win32 {
 }
 
 ## External Libs
+
+# Breakpad
+BREAKPAD_PATH = $$shell_quote($$system_path($${_PRO_FILE_PWD_}/libs/breakpad))
+INCLUDEPATH += $${BREAKPAD_PATH}/src
+linux {
+    system(cd $${BREAKPAD_PATH} && ./configure && make)
+    LIBS += $${BREAKPAD_PATH}/src/client/linux/libbreakpad_client.a
+}
 
 # Firewall Checker
 win32 {
@@ -130,7 +139,7 @@ win32 {
 
 ## Project includes
 
-INCLUDEPATH += src src/sacn src/sacn/ACNShare libs/breakpad/src/
+INCLUDEPATH += src src/sacn src/sacn/ACNShare
 
 ## Sources
 
