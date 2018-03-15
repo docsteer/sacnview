@@ -77,7 +77,7 @@ win32 {
 
 # Breakpad
 BREAKPAD_PATH = $$shell_quote($$system_path($${_PRO_FILE_PWD_}/libs/breakpad))
-INCLUDEPATH += $${BREAKPAD_PATH}/src
+INCLUDEPATH += $$shell_quote($$system_path($${BREAKPAD_PATH}/src))
 linux {
     system(cd $${BREAKPAD_PATH} && ./configure && make)
     LIBS += $${BREAKPAD_PATH}/src/client/linux/libbreakpad_client.a
