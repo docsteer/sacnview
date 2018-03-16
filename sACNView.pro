@@ -76,16 +76,26 @@ win32 {
 ## External Libs
 
 # Breakpad
-BREAKPAD_PATH = $$shell_quote($$system_path($${_PRO_FILE_PWD_}/libs/breakpad))
-INCLUDEPATH += $$shell_quote($$system_path($${BREAKPAD_PATH}/src))
+BREAKPAD_PATH = $$system_path($${_PRO_FILE_PWD_}/libs/breakpad)
+INCLUDEPATH += $$system_path($${BREAKPAD_PATH}/src)
 linux {
     system(cd $${BREAKPAD_PATH} && ./configure && make)
-    LIBS += $${BREAKPAD_PATH}/src/client/linux/libbreakpad_client.a
+    LIBS += -L$${BREAKPAD_PATH}/src/client/linux -lbreakpad_client
+}
+win32 {
+    # Assumes that libbreakpad_client has already been built!!
+    CONFIG(debug, debug|release) {
+        LIBS += -L$${BREAKPAD_PATH}/src/client/windows/Debug/lib
+    } else {
+        LIBS += -L$${BREAKPAD_PATH}/src/client/windows/Release/lib
+    }
+
+    LIBS += -lexception_handler -lcrash_generation_client -lcommon -luser32
 }
 
 # Firewall Checker
 win32 {
-    LIBS += -lole32 -loleaut32 -luser32
+    LIBS += -lole32 -loleaut32
 }
 
 #PCap/WinPcap
