@@ -83,14 +83,20 @@ linux {
     LIBS += -L$${BREAKPAD_PATH}/src/client/linux -lbreakpad_client
 }
 win32 {
-    # Assumes that libbreakpad_client has already been built!!
-    CONFIG(debug, debug|release) {
-        LIBS += -L$${BREAKPAD_PATH}/src/client/windows/Debug/lib
-    } else {
-        LIBS += -L$${BREAKPAD_PATH}/src/client/windows/Release/lib
-    }
-
-    LIBS += -lexception_handler -lcrash_generation_client -lcommon -luser32
+    LIBS += -luser32
+    INCLUDEPATH  += {BREAKPAD_PATH}/src/
+    HEADERS += $${BREAKPAD_PATH}/src/common/windows/string_utils-inl.h \
+        $${BREAKPAD_PATH}/src/common/windows/guid_string.h \
+        $${BREAKPAD_PATH}/src/client/windows/handler/exception_handler.h \
+        $${BREAKPAD_PATH}/src/client/windows/common/ipc_protocol.h \
+        $${BREAKPAD_PATH}/src/google_breakpad/common/minidump_format.h \
+        $${BREAKPAD_PATH}/src/google_breakpad/common/breakpad_types.h \
+        $${BREAKPAD_PATH}/src/client/windows/crash_generation/crash_generation_client.h \
+        $${BREAKPAD_PATH}/src/common/scoped_ptr.h
+    SOURCES += $${BREAKPAD_PATH}/src/client/windows/handler/exception_handler.cc \
+        $${BREAKPAD_PATH}/src/common/windows/string_utils.cc \
+        $${BREAKPAD_PATH}/src/common/windows/guid_string.cc \
+        $${BREAKPAD_PATH}/src/client/windows/crash_generation/crash_generation_client.cc
 }
 
 # Firewall Checker

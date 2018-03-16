@@ -69,8 +69,6 @@ install:
   - mklink /j src breakpad
   - gclient config https://github.com/google/breakpad.git --unmanaged --name=src
   - gclient sync
-  - cd breakpad
-  - msbuild src\client\windows\breakpad_client.sln /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" /m /verbosity:normal /p:Configuration=Release /p:Platform=Win32
   - del %APPVEYOR_BUILD_FOLDER%\libs\src /Q
   - cd %APPVEYOR_BUILD_FOLDER%
 
