@@ -19,6 +19,15 @@ matrix:
               - qt59multimedia
 
         install:
+            # Breakpad
+            - git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
+            - PATH="$HOME/depot_tools:$PATH"
+            - cd libs
+            - ln -s breakpad/ src
+            - gclient config --unmanaged https://github.com/google/breakpad.git
+            - gclient sync
+            - rm src
+            - cd ..
             # PCap
             - sudo apt-get -y install libpcap-dev
             # Install FPM
