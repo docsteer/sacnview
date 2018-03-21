@@ -82,6 +82,8 @@ linux {
     system(cd $${BREAKPAD_PATH} && ./configure && make)
     LIBS += -L$${BREAKPAD_PATH}/src/client/linux -lbreakpad_client
     DEFINES += USE_BREAKPAD
+    HEADERS += src/crash_handler.h
+    SOURCES += src/crash_handler.cpp
 }
 win32 {
     LIBS += -luser32
@@ -93,11 +95,13 @@ win32 {
         $${BREAKPAD_PATH}/src/google_breakpad/common/minidump_format.h \
         $${BREAKPAD_PATH}/src/google_breakpad/common/breakpad_types.h \
         $${BREAKPAD_PATH}/src/client/windows/crash_generation/crash_generation_client.h \
-        $${BREAKPAD_PATH}/src/common/scoped_ptr.h
+        $${BREAKPAD_PATH}/src/common/scoped_ptr.h \
+        src/crash_handler.h
     SOURCES += $${BREAKPAD_PATH}/src/client/windows/handler/exception_handler.cc \
         $${BREAKPAD_PATH}/src/common/windows/string_utils.cc \
         $${BREAKPAD_PATH}/src/common/windows/guid_string.cc \
-        $${BREAKPAD_PATH}/src/client/windows/crash_generation/crash_generation_client.cc
+        $${BREAKPAD_PATH}/src/client/windows/crash_generation/crash_generation_client.cc  \
+        src/crash_handler.cpp
     DEFINES += USE_BREAKPAD
 }
 macx {
@@ -201,8 +205,7 @@ SOURCES += src/main.cpp\
     src/sacn/firewallcheck.cpp \
     src/bigdisplay.cpp \
     src/addmultidialog.cpp \
-    src/theme/darkstyle.cpp \
-    src/crash_handler.cpp
+    src/theme/darkstyle.cpp
 
 HEADERS += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -243,8 +246,7 @@ HEADERS += src/mdimainwindow.h \
     src/addmultidialog.h \
     src/ethernetstrut.h \
     src/theme/darkstyle.h \
-    src/xpwarning.h \
-    src/crash_handler.h
+    src/xpwarning.h
 
 FORMS += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
