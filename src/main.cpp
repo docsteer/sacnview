@@ -30,7 +30,9 @@
 #include "versioncheck.h"
 #include "firewallcheck.h"
 #include "theme/darkstyle.h"
-#include "crash_handler.h"
+#ifdef USE_BREAKPAD
+    #include "crash_handler.h"
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -44,9 +46,10 @@ int main(int argc, char *argv[])
     a.setOrganizationName("sACNView");
     a.setOrganizationDomain("tomsteer.net");
 
+#ifdef USE_BREAKPAD
     // Breakpad Crash Handler
     Breakpad::CrashHandler::instance()->Init(QStandardPaths::writableLocation(QStandardPaths::TempLocation));
-
+#endif
 
     // Windows XP Support
     #ifdef Q_OS_WIN

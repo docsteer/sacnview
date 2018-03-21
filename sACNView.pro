@@ -81,6 +81,7 @@ INCLUDEPATH += $$system_path($${BREAKPAD_PATH}/src)
 linux {
     system(cd $${BREAKPAD_PATH} && ./configure && make)
     LIBS += -L$${BREAKPAD_PATH}/src/client/linux -lbreakpad_client
+    DEFINES += USE_BREAKPAD
 }
 win32 {
     LIBS += -luser32
@@ -97,6 +98,12 @@ win32 {
         $${BREAKPAD_PATH}/src/common/windows/string_utils.cc \
         $${BREAKPAD_PATH}/src/common/windows/guid_string.cc \
         $${BREAKPAD_PATH}/src/client/windows/crash_generation/crash_generation_client.cc
+    DEFINES += USE_BREAKPAD
+}
+macx {
+    # Breakpad is disabled for MacOS as it has been superceded by Crashpad
+    # see https://groups.google.com/a/chromium.org/forum/#!topic/chromium-dev/6eouc7q2j_g
+    DEFINES -= USE_BREAKPAD
 }
 
 # Firewall Checker
