@@ -55,8 +55,6 @@ namespace Breakpad {
         Q_UNUSED(assertion);
         Q_UNUSED(exinfo);
 #endif
-        qDebug("Unfortunately sACNView has encountered an error and must close");
-        qDebug() << "Writing dump file to " << md.path();
 
 #ifdef Q_OS_WIN
         // Show a dialog - use WinAPI
@@ -71,6 +69,9 @@ namespace Breakpad {
                MB_ICONERROR | MB_OK | MB_DEFBUTTON1
            );
 
+#elif defined(Q_OS_LINUX)
+        qDebug("Unfortunately sACNView has encountered an error and must close");
+        qDebug() << "Writing dump file to " << md.path();
 #endif
  
         /*
