@@ -1,3 +1,38 @@
+# Breakpad
+BREAKPAD_PATH = $$system_path($${_PRO_FILE_PWD_}/libs/breakpad)
+INCLUDEPATH += $$system_path($${BREAKPAD_PATH}/src)
+linux {
+    system(cd $${BREAKPAD_PATH} && ./configure && make)
+    LIBS += -L$${BREAKPAD_PATH}/src/client/linux -lbreakpad_client
+    DEFINES += USE_BREAKPAD
+    HEADERS += src/crash_handler.h
+    SOURCES += src/crash_handler.cpp
+}
+win32 {
+    LIBS += -luser32
+    INCLUDEPATH  += {BREAKPAD_PATH}/src/
+    HEADERS += $${BREAKPAD_PATH}/src/common/windows/string_utils-inl.h \
+        $${BREAKPAD_PATH}/src/common/windows/guid_string.h \
+        $${BREAKPAD_PATH}/src/client/windows/handler/exception_handler.h \
+        $${BREAKPAD_PATH}/src/client/windows/common/ipc_protocol.h \
+        $${BREAKPAD_PATH}/src/google_breakpad/common/minidump_format.h \
+        $${BREAKPAD_PATH}/src/google_breakpad/common/breakpad_types.h \
+        $${BREAKPAD_PATH}/src/client/windows/crash_generation/crash_generation_client.h \
+        $${BREAKPAD_PATH}/src/common/scoped_ptr.h \
+        src/crash_handler.h
+    SOURCES += $${BREAKPAD_PATH}/src/client/windows/handler/exception_handler.cc \
+        $${BREAKPAD_PATH}/src/common/windows/string_utils.cc \
+        $${BREAKPAD_PATH}/src/common/windows/guid_string.cc \
+        $${BREAKPAD_PATH}/src/client/windows/crash_generation/crash_generation_client.cc  \
+        src/crash_handler.cpp
+    DEFINES += USE_BREAKPAD
+}
+macx {
+    # Breakpad is disabled for MacOS as it has been superceded by Crashpad
+    # see https://groups.google.com/a/chromium.org/forum/#!topic/chromium-dev/6eouc7q2j_g
+    DEFINES -= USE_BREAKPAD
+}
+
 # Firewall Checker
 win32 {
     LIBS += -lole32 -loleaut32
