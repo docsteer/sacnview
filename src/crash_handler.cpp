@@ -3,6 +3,7 @@
 #include <QtCore/QProcess>
 #include <QtCore/QCoreApplication>
 #include <QString>
+#include <QDebug>
 #ifdef Q_OS_WIN
     #include "Windows.h"
 #endif
@@ -54,7 +55,8 @@ namespace Breakpad {
         Q_UNUSED(assertion);
         Q_UNUSED(exinfo);
 #endif
-        qDebug("BreakpadQt crash");
+        qDebug("Unfortunately sACNView has encountered an error and must close");
+        qDebug() << "Writing dump file to " << md.path();
 
 #ifdef Q_OS_WIN
         // Show a dialog - use WinAPI
