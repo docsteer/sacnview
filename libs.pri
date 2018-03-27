@@ -1,8 +1,18 @@
+LIBS_PATH = $$system_path($${_PRO_FILE_PWD_}/libs)
+
 # Breakpad
-BREAKPAD_PATH = $$system_path($${_PRO_FILE_PWD_}/libs/breakpad)
+BREAKPAD_PATH = $$system_path($${LIBS_PATH}/breakpad)
 INCLUDEPATH += $$system_path($${BREAKPAD_PATH}/src)
 linux {
+    # Pull Breakpad dependencies
+    BREAKPAD_PATH_TEMP = $$system_path($${BREAKPAD_PATH}/../src)
+    system(ln -s $${BREAKPAD_PATH}/ $${BREAKPAD_PATH_TEMP})
+    system(cd $${LIBS_PATH} && $${_PRO_FILE_PWD_}/tools/depot_tools/gclient sync)
+    system(rm $${BREAKPAD_PATH_TEMP})
+
+    # Build
     system(cd $${BREAKPAD_PATH} && ./configure && make)
+
     LIBS += -L$${BREAKPAD_PATH}/src/client/linux -lbreakpad_client
     DEFINES += USE_BREAKPAD
     HEADERS += src/crash_handler.h
