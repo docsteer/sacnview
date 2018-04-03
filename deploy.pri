@@ -27,9 +27,9 @@ win32 {
     # PCap
     equals(TARGET_WINXP, 0) {
         contains(QT_ARCH, i386) {
-            PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$system_path($${PCAP_PATH}/Bin/*) $${DEPLOY_DIR} $$escape_expand(\\n\\t)
+            PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$shell_quote($$system_path($${PCAP_PATH}/Bin/*)) $${DEPLOY_DIR} $$escape_expand(\\n\\t)
         } else {
-            PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$system_path($${PCAP_PATH}/Bin/x64/*) $${DEPLOY_DIR} $$escape_expand(\\n\\t)
+            PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$shell_quote($$system_path($${PCAP_PATH}/Bin/x64/*)) $${DEPLOY_DIR} $$escape_expand(\\n\\t)
         }
     }
 
