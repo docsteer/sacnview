@@ -2,10 +2,11 @@ LIBS_PATH = $$system_path($${_PRO_FILE_PWD_}/libs)
 
 # Breakpad
 BREAKPAD_PATH = $$system_path($${LIBS_PATH}/breakpad)
+BREAKPAD_PATH_TEMP = $$system_path($${BREAKPAD_PATH}/../src)
+DEPOT_TOOLS_PATH = $$system_path($${_PRO_FILE_PWD_}/tools/depot_tools)
 INCLUDEPATH += $$system_path($${BREAKPAD_PATH}/src)
 linux {
     # Pull Breakpad dependencies
-    BREAKPAD_PATH_TEMP = $$system_path($${BREAKPAD_PATH}/../src)
     system(ln -s $${BREAKPAD_PATH}/ $${BREAKPAD_PATH_TEMP})
     system(cd $${LIBS_PATH} && $${_PRO_FILE_PWD_}/tools/depot_tools/gclient sync)
     system(rm $${BREAKPAD_PATH_TEMP})
@@ -19,6 +20,12 @@ linux {
     SOURCES += src/crash_handler.cpp
 }
 win32 {
+    # Pull Breakpad dependencies
+    system(mklink /j $$shell_quote($${BREAKPAD_PATH_TEMP}) $$shell_quote($${BREAKPAD_PATH}))
+    system(cmd /c for %A in ($$shell_quote($${DEPOT_TOOLS_PATH})) do %~sA\update_depot_tools.bat)
+    system(cd $${LIBS_PATH} && cmd /c for %A in ($$shell_quote($${DEPOT_TOOLS_PATH})) do %~sA\gclient sync)
+    system(rd $$shell_quote($${BREAKPAD_PATH_TEMP}) /Q)
+
     LIBS += -luser32
     INCLUDEPATH  += {BREAKPAD_PATH}/src/
     HEADERS += $${BREAKPAD_PATH}/src/common/windows/string_utils-inl.h \
