@@ -7,9 +7,9 @@ DEPOT_TOOLS_PATH = $$system_path($${_PRO_FILE_PWD_}/tools/depot_tools)
 INCLUDEPATH += $$system_path($${BREAKPAD_PATH}/src)
 linux {
     # Pull Breakpad dependencies
-    system(ln -s $${BREAKPAD_PATH}/ $${BREAKPAD_PATH_TEMP})
-    system(cd $${LIBS_PATH} && $${_PRO_FILE_PWD_}/tools/depot_tools/gclient sync)
-    system(rm $${BREAKPAD_PATH_TEMP})
+    system(ln -s $$shell_quote($${BREAKPAD_PATH}) $$shell_quote($${BREAKPAD_PATH_TEMP}))
+    system(cd $$shell_quote($${LIBS_PATH}) && $$shell_quote($${_PRO_FILE_PWD_}/tools/depot_tools/gclient) sync)
+    system(rm $$shell_quote($${BREAKPAD_PATH_TEMP}))
 
     # Build
     system(cd $${BREAKPAD_PATH} && ./configure && make)
