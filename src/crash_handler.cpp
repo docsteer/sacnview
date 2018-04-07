@@ -70,8 +70,12 @@ namespace Breakpad {
            );
 
 #elif defined(Q_OS_LINUX)
-        qDebug("Unfortunately sACNView has encountered an error and must close");
-        qDebug() << "Writing dump file to " << md.path();
+        // Output to stderr
+        fprintf(stderr,
+                "%s\r\n%s %s\r\n",
+                "Unfortunately sACNView encountered an error and needs to close.",
+                "Please sumbit a crash report with the dump file located at",
+                md.path());
 #endif
  
         /*
