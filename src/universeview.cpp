@@ -453,7 +453,6 @@ void UniverseView::on_btnLogWindow_pressed()
 {
     MDIMainWindow *mainWindow = dynamic_cast<MDIMainWindow *>(m_parentWindow);
     if(!mainWindow) return;
-    LogWindow *w = new LogWindow(mainWindow);
-    w->setUniverse(ui->sbUniverse->value());
+    LogWindow *w = new LogWindow(ui->sbUniverse->value(),mainWindow);
     mainWindow->showWidgetAsMdiWindow(w);
 }
