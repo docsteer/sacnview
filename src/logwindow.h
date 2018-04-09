@@ -44,7 +44,9 @@ private:
         Qt::DateFormat dateFormat;
     };
     QList<sTimeFormat> lTimeFormat = {
+    #ifndef TARGET_WINXP
         {tr("ISO8601 w/Ms"), QString(), Qt::ISODateWithMs},
+    #endif
         {tr("ISO8601"), QString(), Qt::ISODate},
         {tr("US 12Hour (sACNView 1)"), "M/d/yyyy h:mm:ss AP", (Qt::DateFormat)NULL},
         {tr("EU 12Hour"), "d/M/yyyy h:mm:ss AP", (Qt::DateFormat)NULL},
