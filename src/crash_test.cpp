@@ -40,18 +40,13 @@ void CrashTest::crashMethod(const int id)
         }
         case 1:
         {
-            int value = 1;
-            value = value / 0;
+            void* jump;
+            ((void(*)())jump)();
             break;
         }
         case 2:
         {
-            int array[1];
-            auto *ptr = array;
-            for (auto n = 0; true; n++)
-            {
-                ptr[n] = 0;
-            }
+            *((int*) 0) = 0;
         }
     }
 
