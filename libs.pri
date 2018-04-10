@@ -6,6 +6,8 @@ BREAKPAD_PATH_TEMP = $$system_path($${BREAKPAD_PATH}/../src)
 DEPOT_TOOLS_PATH = $$system_path($${_PRO_FILE_PWD_}/tools/depot_tools)
 INCLUDEPATH += $$system_path($${BREAKPAD_PATH}/src)
 linux {
+    DEFINES += USE_BREAKPAD
+
     # Pull Breakpad dependencies
     system(ln -s $$shell_quote($${BREAKPAD_PATH}) $$shell_quote($${BREAKPAD_PATH_TEMP}))
     system(cd $$shell_quote($${LIBS_PATH}) && $$shell_quote($${_PRO_FILE_PWD_}/tools/depot_tools/gclient) sync)
@@ -15,11 +17,16 @@ linux {
     system(cd $${BREAKPAD_PATH} && ./configure && make)
 
     LIBS += -L$${BREAKPAD_PATH}/src/client/linux -lbreakpad_client
-    DEFINES += USE_BREAKPAD
-    HEADERS += src/crash_handler.h
-    SOURCES += src/crash_handler.cpp
+
+    HEADERS += src/crash_handler.h \
+        src/crash_test.h
+    SOURCES += src/crash_handler.cpp \
+        src/crash_test.cpp
+    FORMS += ui/crash_test.ui
 }
 win32 {
+    DEFINES += USE_BREAKPAD
+
     # Pull Breakpad dependencies
     system(mklink /j $$shell_quote($${BREAKPAD_PATH_TEMP}) $$shell_quote($${BREAKPAD_PATH}))
     system(cmd /c for %A in ($$shell_quote($${DEPOT_TOOLS_PATH})) do %~sA\update_depot_tools.bat)
@@ -36,13 +43,15 @@ win32 {
         $${BREAKPAD_PATH}/src/google_breakpad/common/breakpad_types.h \
         $${BREAKPAD_PATH}/src/client/windows/crash_generation/crash_generation_client.h \
         $${BREAKPAD_PATH}/src/common/scoped_ptr.h \
-        src/crash_handler.h
+        src/crash_handler.h \
+        src/crash_test.h
     SOURCES += $${BREAKPAD_PATH}/src/client/windows/handler/exception_handler.cc \
         $${BREAKPAD_PATH}/src/common/windows/string_utils.cc \
         $${BREAKPAD_PATH}/src/common/windows/guid_string.cc \
-        $${BREAKPAD_PATH}/src/client/windows/crash_generation/crash_generation_client.cc  \
-        src/crash_handler.cpp
-    DEFINES += USE_BREAKPAD
+        $${BREAKPAD_PATH}/src/client/windows/crash_generation/crash_generation_client.cc \
+        src/crash_handler.cpp \
+        src/crash_test.cpp
+    FORMS += ui/crash_test.ui
 }
 macx {
     # Breakpad is disabled for MacOS as it has been superceded by Crashpad

@@ -32,6 +32,7 @@
 #include "theme/darkstyle.h"
 #ifdef USE_BREAKPAD
     #include "crash_handler.h"
+    #include "crash_test.h"
 #endif
 
 int main(int argc, char *argv[])
@@ -49,6 +50,12 @@ int main(int argc, char *argv[])
 #ifdef USE_BREAKPAD
     // Breakpad Crash Handler
     Breakpad::CrashHandler::instance()->Init(QStandardPaths::writableLocation(QStandardPaths::TempLocation));
+
+    // Breakpad Crash Tester
+    if (qApp->arguments().contains("CRASHTEST", Qt::CaseInsensitive)) {
+        CrashTest *crashwindow = new CrashTest;
+        crashwindow->show();
+    }
 #endif
 
     // Windows XP Support
