@@ -1,9 +1,13 @@
 #include "logwindow.h"
 #include "ui_logwindow.h"
 
+#include "consts.h"
 #include <QDateTime>
 #include <QClipboard>
 #include <QScrollBar>
+#include <QFileDialog>
+#include <QStandardPaths>
+#include <QMessageBox>
 
 LogWindow::LogWindow(int universe, QWidget *parent) :
     QWidget(parent),
@@ -49,6 +53,7 @@ LogWindow::LogWindow(int universe, QWidget *parent) :
 
 LogWindow::~LogWindow()
 {
+    closeLogFile();
     delete ui;
 }
 
@@ -62,9 +67,19 @@ void LogWindow::appendLogLine(QString line) {
         line.prepend(QString("%1: ").arg(QDateTime::currentDateTime().toString(timeFormat)));
     }
 
-    ui->teLog->appendPlainText(line);
-    QScrollBar *sb = ui->teLog->verticalScrollBar();
-    sb->setValue(sb->maximum());
+    // Log to window
+    if (ui->cbLogToWindow->isChecked())
+    {
+        ui->teLog->appendPlainText(line);
+        QScrollBar *sb = ui->teLog->verticalScrollBar();
+        sb->setValue(sb->maximum());
+    }
+
+    // Log to file
+    if (m_fileStream && ui->cbLogToFile->isChecked())
+    {
+        *m_fileStream << line << endl;
+    }
 }
 
 void LogWindow::onLevelsChanged()
@@ -162,7 +177,8 @@ void LogWindow::on_cbLevels_clicked(bool checked)
 
 void LogWindow::on_cbSources_clicked(bool checked)
 {
-    if (checked) {
+    if (checked)
+    {
         connect(m_listener.data(), SIGNAL(sourceFound(sACNSource*)), this, SLOT(onSourceFound(sACNSource*)));
         connect(m_listener.data(), SIGNAL(sourceResumed(sACNSource*)), this, SLOT(onSourceResume(sACNSource*)));
         connect(m_listener.data(), SIGNAL(sourceLost(sACNSource*)), this, SLOT(onSourceLost(sACNSource*)));
@@ -177,4 +193,83 @@ void LogWindow::on_cbDisplayFormat_currentIndexChanged(int index)
 {
     ui->cbOnlyChanged->setEnabled(lDisplayFormat[index].onlyChangedAllowed);
     ui->cbOnlyChanged->setChecked(lDisplayFormat[index].onlyChangedAllowed);
+}
+
+bool LogWindow::openLogFile() {
+    closeLogFile();
+
+    // Setup dialog box
+    QString fileName;
+    QFileDialog dialog(this);
+    dialog.setWindowTitle(APP_NAME);
+    dialog.setDirectory(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
+    dialog.setNameFilter("Log Files (*.log)");
+    dialog.setDefaultSuffix("log");
+    dialog.setFileMode(QFileDialog::AnyFile);
+    dialog.setViewMode(QFileDialog::Detail);
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    if(dialog.exec())
+    {
+        fileName = dialog.selectedFiles().at(0);
+        if(fileName.isEmpty()) {
+            return false;
+        }
+    } else {
+        return false;
+    }
+
+    Q_ASSERT(m_file == nullptr);
+
+    m_file = new QFile(fileName);
+    if (m_file->open(QIODevice::WriteOnly | QIODevice::Truncate))
+    {
+        m_fileStream = new QTextStream(m_file);
+        if (m_fileStream)
+        {
+            QFileInfo fileInfo(m_file->fileName());
+            ui->lblLogToFile->setText(fileInfo.fileName());
+            ui->lblLogToFile->setToolTip(QDir::toNativeSeparators(m_file->fileName()));
+            return true;
+        }
+    }
+
+    // Failed and not canceled...
+    QMessageBox msgBox;
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setText(QObject::tr("Failed to start logging to file\r\nError %1").arg(m_file->error()));
+    msgBox.exec();
+
+    return false;
+}
+
+void LogWindow::closeLogFile() {
+    delete m_fileStream;
+    delete m_file;
+
+    m_fileStream = nullptr;
+    m_file = nullptr;
+
+    ui->lblLogToFile->setText(QString());
+    ui->lblLogToFile->setToolTip(QString());
+}
+
+void LogWindow::on_cbLogToFile_clicked(bool checked)
+{
+    if (checked & !m_fileStream)
+    {
+        on_pbLogToFile_clicked();
+    }
+
+    ui->pbLogToFile->setEnabled(!ui->cbLogToFile->isChecked());
+}
+
+void LogWindow::on_pbLogToFile_clicked()
+{
+    if (!openLogFile())
+    {
+        ui->cbLogToFile->setChecked(false);
+
+        closeLogFile();
+    }
 }

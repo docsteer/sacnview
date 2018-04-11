@@ -31,10 +31,19 @@ private slots:
 
     void on_cbDisplayFormat_currentIndexChanged(int index);
 
+    void on_cbLogToFile_clicked(bool checked);
+
+    void on_pbLogToFile_clicked();
+
 private:
     Ui::LogWindow *ui;
 
     QSharedPointer<sACNListener>m_listener;
+
+    QFile * m_file = nullptr;
+    QTextStream * m_fileStream = nullptr;
+    void closeLogFile();
+    bool openLogFile();
 
     void appendLogLine(QString line);
 
