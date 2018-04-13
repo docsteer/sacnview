@@ -45,7 +45,7 @@ private:
     void closeLogFile();
     bool openLogFile();
 
-    void appendLogLine(QString line);
+    void appendLogLine(QString *line);
 
     struct sTimeFormat {
         QString friendlyName;

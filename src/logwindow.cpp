@@ -57,20 +57,20 @@ LogWindow::~LogWindow()
     delete ui;
 }
 
-void LogWindow::appendLogLine(QString line) {
+void LogWindow::appendLogLine(QString *line) {
     // Prepend Time and date
     if (lTimeFormat[ui->cbTimeFormat->currentIndex()].strFormat.isEmpty()) {
         auto timeFormat = lTimeFormat[ui->cbTimeFormat->currentIndex()].dateFormat;
-        line.prepend(QString("%1: ").arg(QDateTime::currentDateTime().toString(timeFormat)));
+        line->prepend(QString("%1: ").arg(QDateTime::currentDateTime().toString(timeFormat)));
     } else {
         auto timeFormat = lTimeFormat[ui->cbTimeFormat->currentIndex()].strFormat;
-        line.prepend(QString("%1: ").arg(QDateTime::currentDateTime().toString(timeFormat)));
+        line->prepend(QString("%1: ").arg(QDateTime::currentDateTime().toString(timeFormat)));
     }
 
     // Log to window
     if (ui->cbLogToWindow->isChecked())
     {
-        ui->teLog->appendPlainText(line);
+        ui->teLog->appendPlainText(*line);
         QScrollBar *sb = ui->teLog->verticalScrollBar();
         sb->setValue(sb->maximum());
     }
@@ -78,17 +78,19 @@ void LogWindow::appendLogLine(QString line) {
     // Log to file
     if (m_fileStream && ui->cbLogToFile->isChecked())
     {
-        *m_fileStream << line << endl;
+        *m_fileStream << *line << endl;
     }
 }
 
 void LogWindow::onLevelsChanged()
 {
-    QString logLine;
     const QString levelFormat = lDisplayFormat[ui->cbDisplayFormat->currentIndex()].format;
     const bool onlyChanged = ui->cbOnlyChanged->isEnabled() && ui->cbOnlyChanged->isChecked();
     const QChar seperator = lDisplayFormat[ui->cbDisplayFormat->currentIndex()].seperator;
     const sACNMergedSourceList list = m_listener->mergedLevels();
+
+    QString logLine;
+    logLine.reserve(MAX_DMX_ADDRESS * levelFormat.size());
     for(int i=0; i<list.count(); i++)
     {
         sACNMergedAddress a = list.at(i);
@@ -128,7 +130,7 @@ void LogWindow::onLevelsChanged()
         logLine.append(levelData);
     }
 
-    appendLogLine(logLine);
+    appendLogLine(&logLine);
 }
 
 void LogWindow::onSourceFound(sACNSource *source) {
@@ -136,7 +138,7 @@ void LogWindow::onSourceFound(sACNSource *source) {
             .arg(source->name)
             .arg(source->ip.toString());
 
-    appendLogLine(logLine);
+    appendLogLine(&logLine);
 }
 
 void LogWindow::onSourceResume(sACNSource *source) {
@@ -144,7 +146,7 @@ void LogWindow::onSourceResume(sACNSource *source) {
             .arg(source->name)
             .arg(source->ip.toString());
 
-    appendLogLine(logLine);
+    appendLogLine(&logLine);
 }
 
 void LogWindow::onSourceLost(sACNSource *source) {
@@ -152,7 +154,7 @@ void LogWindow::onSourceLost(sACNSource *source) {
             .arg(source->name)
             .arg(source->ip.toString());
 
-    appendLogLine(logLine);
+    appendLogLine(&logLine);
 }
 
 void LogWindow::on_btnCopyClipboard_pressed()
