@@ -15,7 +15,7 @@ LogWindow::LogWindow(int universe, QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // Set universe
+    /* Set universe */
     setWindowTitle(tr("Log - Universe %1").arg(universe));
     m_listener = sACNManager::getInstance()->getListener(universe);
 
@@ -24,7 +24,6 @@ LogWindow::LogWindow(int universe, QWidget *parent) :
     {
         ui->cbTimeFormat->addItem(item.friendlyName);
     }
-
 
     /* Display formats */
     for(const auto &item : lDisplayFormat)
@@ -57,28 +56,35 @@ LogWindow::~LogWindow()
     delete ui;
 }
 
-void LogWindow::appendLogLine(QString *line) {
+void LogWindow::appendLogLine(QString &line) {
+
     // Prepend Time and date
     if (lTimeFormat[ui->cbTimeFormat->currentIndex()].strFormat.isEmpty()) {
         auto timeFormat = lTimeFormat[ui->cbTimeFormat->currentIndex()].dateFormat;
-        line->prepend(QString("%1: ").arg(QDateTime::currentDateTime().toString(timeFormat)));
+        line.prepend(QString("%1: ").arg(QDateTime::currentDateTime().toString(timeFormat)));
     } else {
         auto timeFormat = lTimeFormat[ui->cbTimeFormat->currentIndex()].strFormat;
-        line->prepend(QString("%1: ").arg(QDateTime::currentDateTime().toString(timeFormat)));
+        line.prepend(QString("%1: ").arg(QDateTime::currentDateTime().toString(timeFormat)));
     }
+
 
     // Log to window
     if (ui->cbLogToWindow->isChecked())
     {
-        ui->teLog->appendPlainText(*line);
-        QScrollBar *sb = ui->teLog->verticalScrollBar();
-        sb->setValue(sb->maximum());
+        ui->lvLog->addItem(line);
+
+        // To many lines?
+        if (ui->lvLog->count() > ui->sbLogtoWindowLimit->value())
+        {
+            auto removeCount = ui->lvLog->count() - ui->sbLogtoWindowLimit->value();
+            ui->lvLog->model()->removeRows(0,removeCount);
+        }
     }
 
     // Log to file
     if (m_fileStream && ui->cbLogToFile->isChecked())
     {
-        *m_fileStream << *line << endl;
+        *m_fileStream << line << endl;
     }
 }
 
@@ -130,7 +136,7 @@ void LogWindow::onLevelsChanged()
         logLine.append(levelData);
     }
 
-    appendLogLine(&logLine);
+    appendLogLine(logLine);
 }
 
 void LogWindow::onSourceFound(sACNSource *source) {
@@ -138,7 +144,7 @@ void LogWindow::onSourceFound(sACNSource *source) {
             .arg(source->name)
             .arg(source->ip.toString());
 
-    appendLogLine(&logLine);
+    appendLogLine(logLine);
 }
 
 void LogWindow::onSourceResume(sACNSource *source) {
@@ -146,7 +152,7 @@ void LogWindow::onSourceResume(sACNSource *source) {
             .arg(source->name)
             .arg(source->ip.toString());
 
-    appendLogLine(&logLine);
+    appendLogLine(logLine);
 }
 
 void LogWindow::onSourceLost(sACNSource *source) {
@@ -154,18 +160,22 @@ void LogWindow::onSourceLost(sACNSource *source) {
             .arg(source->name)
             .arg(source->ip.toString());
 
-    appendLogLine(&logLine);
+    appendLogLine(logLine);
 }
 
 void LogWindow::on_btnCopyClipboard_pressed()
 {
     QClipboard *clipboard = QGuiApplication::clipboard();
-    clipboard->setText(ui->teLog->toPlainText());
+    QStringList list;
+    for (  auto item : ui->lvLog->selectionModel()->selectedIndexes() ) {
+        list << item.data().toString();
+    }
+    clipboard->setText(list.join("\n"));
 }
 
 void LogWindow::on_btnClear_pressed()
 {
-    ui->teLog->clear();
+    ui->lvLog->clear();
 }
 
 void LogWindow::on_cbLevels_clicked(bool checked)

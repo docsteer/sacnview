@@ -32,7 +32,6 @@ private slots:
     void on_cbDisplayFormat_currentIndexChanged(int index);
 
     void on_cbLogToFile_clicked(bool checked);
-
     void on_pbLogToFile_clicked();
 
 private:
@@ -45,7 +44,7 @@ private:
     void closeLogFile();
     bool openLogFile();
 
-    void appendLogLine(QString *line);
+    void appendLogLine(QString &line);
 
     struct sTimeFormat {
         QString friendlyName;
