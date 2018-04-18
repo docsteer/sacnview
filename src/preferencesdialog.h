@@ -41,6 +41,7 @@ private:
     Ui::PreferencesDialog *ui;
     QList<QNetworkInterface> m_interfaceList;
     QList<QRadioButton*> m_interfaceButtons;
+    QString convertIpAddress(quint32 address);
 
 };
 
