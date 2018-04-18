@@ -41,7 +41,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
                 ok = true;
                 if(!ipString.isEmpty())
                     ipString.append(",");
-                ipString.append(e.ip().toString());
+                ipString.append(convertIpAddress(e.ip().toIPv4Address()));
             }
         }
 
@@ -97,6 +97,16 @@ PreferencesDialog::~PreferencesDialog()
     delete ui;
 }
 
+// Converts a qipv4address integer to a displayable string.
+QString
+PreferencesDialog::convertIpAddress(quint32 address)
+{
+    return QString("%1.%2.%3.%4")
+            .arg(QString::number(address >> 24 & 0xFF))
+            .arg(QString::number(address >> 16 & 0xFF))
+            .arg(QString::number(address >> 8 & 0xFF))
+            .arg(QString::number(address & 0xFF));
+}
 
 void PreferencesDialog::on_buttonBox_accepted()
 {
