@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QList>
+#include <QFile>
 #include "sacnlistener.h"
 
 namespace Ui {
@@ -37,10 +38,10 @@ private slots:
 private:
     Ui::LogWindow *ui;
 
-    QSharedPointer<sACNListener>m_listener;
+    QSharedPointer<sACNListener> m_listener;
 
-    QFile * m_file = nullptr;
-    QTextStream * m_fileStream = nullptr;
+    QFile *m_file;
+    QTextStream *m_fileStream;
     void closeLogFile();
     bool openLogFile();
 
