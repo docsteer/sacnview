@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QList>
+#include <QFile>
 #include "sacnlistener.h"
 
 namespace Ui {
