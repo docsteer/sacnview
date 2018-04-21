@@ -11,7 +11,10 @@
 
 LogWindow::LogWindow(int universe, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::LogWindow)
+    ui(new Ui::LogWindow),
+    m_file(Q_NULLPTR),
+    m_fileStream(Q_NULLPTR)
+
 {
     ui->setupUi(this);
 

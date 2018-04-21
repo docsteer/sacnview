@@ -39,8 +39,8 @@ private:
 
     QSharedPointer<sACNListener> m_listener;
 
-    QFile *m_file = Q_NULLPTR;
-    QTextStream *m_fileStream = Q_NULLPTR;
+    QFile *m_file;
+    QTextStream *m_fileStream;
     void closeLogFile();
     bool openLogFile();
 
