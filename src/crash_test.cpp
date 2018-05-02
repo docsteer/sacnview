@@ -40,7 +40,7 @@ void CrashTest::crashMethod(const int id)
         }
         case 1:
         {
-            void* jump;
+            void* jump = nullptr;
             ((void(*)())jump)();
             break;
         }
