@@ -20,6 +20,7 @@
 #include <QHostAddress>
 #include <QNetworkInterface>
 #include <QColor>
+#include <QTranslator>
 #include "CID.h"
 #include "consts.h"
 
@@ -41,6 +42,7 @@ static const QString S_SUBWINDOWNAME("SubWindow Name");
 static const QString S_SUBWINDOWGEOM("SubWindow Geometry");
 static const QString S_LISTEN_ALL("Listen All");
 static const QString S_THEME("Theme");
+static const QString S_TRANSLATION("Translation Filename");
 
 struct MDIWindowInfo
 {
@@ -110,6 +112,7 @@ public:
     void SetSavedWindows(QList<MDIWindowInfo> values);
     void SetNetworkListenAll(const bool &value);
     void SetTheme(Theme theme);
+    void SetTranslationFilename(QString filename);
 
     unsigned int GetDisplayFormat();
     unsigned int GetMaxLevel();
@@ -124,6 +127,9 @@ public:
     QList<MDIWindowInfo> GetSavedWindows();
     bool GetNetworkListenAll();
     Theme GetTheme();
+    QString GetTranslationFilename();
+
+    QTranslator* CurrentTranslator = Q_NULLPTR;
 
     QString GetFormattedValue(unsigned int nLevelInDecimal, bool decorated = false);
 
@@ -151,9 +157,9 @@ private:
     QByteArray m_mainWindowGeometry;
     QList<MDIWindowInfo> m_windowInfo;
     Theme m_theme;
+    QString m_translationFilename;
 
     void loadPreferences();
-
 };
 
 #endif // PREFERENCES_H

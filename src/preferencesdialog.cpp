@@ -26,7 +26,10 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    // Populate lang
+    m_translation = new TranslationDialog(Preferences::getInstance()->GetTranslationFilename(), ui->vlLanguage, this);
 
+    // Network interfaces
     QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
     foreach(QNetworkInterface interface, interfaces)
     {

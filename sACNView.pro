@@ -31,6 +31,9 @@ macx {
     QMAKE_CXXFLAGS += -std=gnu++0x
 }
 
+# Translations
+include(translations.pri)
+
 # Version defines
 
 GIT_COMMAND = git --git-dir $$shell_quote($$PWD/.git) --work-tree $$shell_quote($$PWD)
@@ -181,3 +184,6 @@ RC_FILE = res/sacnview.rc
 
 ## Deploy
 include(deploy.pri)
+
+DISTFILES += \
+    translations.pri

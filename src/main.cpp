@@ -29,6 +29,7 @@
 #include "versioncheck.h"
 #include "firewallcheck.h"
 #include "theme/darkstyle.h"
+#include "translations/translationdialog.h"
 
 int main(int argc, char *argv[])
 {
@@ -68,9 +69,19 @@ int main(int argc, char *argv[])
         #endif
     #endif
 
+    // Setup Language
+    {
+        TranslationDialog td;
+        if (Preferences::getInstance()->GetTranslationFilename().isEmpty())
+        {
+            td.exec();
+        } else {
+            td.LoadTranslation(Preferences::getInstance()->GetTranslationFilename());
+        }
+    }
+
     // Check web (if avaliable) for new version
     VersionCheck version;
-
 
     bool newInterface = false;
     if(!Preferences::getInstance()->defaultInterfaceAvailable())
