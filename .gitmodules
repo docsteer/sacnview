@@ -1,0 +1,6 @@
+[submodule "libs/breakpad"]
+	path = libs/breakpad
+	url = https://github.com/google/breakpad.git
+[submodule "tools/depot_tools"]
+	path = tools/depot_tools
+	url = https://chromium.googlesource.com/chromium/tools/depot_tools.git

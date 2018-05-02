@@ -53,6 +53,9 @@ win32 {
     QMAKE_CXXFLAGS += /Zi
     QMAKE_LFLAGS += /INCREMENTAL:NO /Debug
 }
+unix {
+    QMAKE_CXXFLAGS += -g
+}
 
 # Windows XP Special Build?
 win32 {
