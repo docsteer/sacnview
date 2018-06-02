@@ -193,7 +193,10 @@ bool Preferences::defaultInterfaceAvailable()
 bool Preferences::interfaceSuitable(QNetworkInterface *inter)
 {
     // Up, can multicast, and has IPv4?
-    if (inter->isValid() && inter->IsRunning && inter->IsUp && inter->CanMulticast)
+    if (inter->isValid()
+            && inter->flags().testFlag(QNetworkInterface::IsRunning)
+            && inter->flags().testFlag(QNetworkInterface::IsUp)
+            && inter->flags().testFlag(QNetworkInterface::CanMulticast))
     {
         foreach (QNetworkAddressEntry addr, inter->addressEntries()) {
             if(addr.ip().protocol() == QAbstractSocket::IPv4Protocol)
