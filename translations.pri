@@ -15,13 +15,17 @@ FORMS += \
 RESOURCES += \
     $${TRANSLATIONS_DIR}/translations.qrc
 
+# Create/update .ts Files
+qtPrepareTool(LUPDATE, lupdate)
+command = $$LUPDATE $$_PRO_FILE_
+system($$command)|error("Failed to run: $$command")
 
 ## https://appbus.wordpress.com/2016/04/28/howto-translations-i18n/
+# Available translations
 defineReplace(prependAll) {
     for(a,$$1):result += $$2$${a}$$3
     return($$result)
 }
-# Available translations
 tsroot = $$join(TARGET,,,.ts)
 tstarget = $$join(TARGET,,,_)
 TRANSLATIONS = $${TRANSLATIONS_DIR}/$$tsroot

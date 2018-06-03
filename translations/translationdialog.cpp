@@ -16,30 +16,20 @@ TranslationDialog::TranslationDialog(const QString CurrentFilename, QVBoxLayout 
     if (VBoxLayout == Q_NULLPTR)
         VBoxLayout = ui->vlSelectLang;
 
-    // English
-    QRadioButton *rb = new QRadioButton(this);
-    rb->setText("English");
-    rb->setProperty("Filename", "English");
-    rb->setChecked(CurrentFilename.isEmpty() || CurrentFilename == "English");
-    connect(rb, SIGNAL(pressed()), m_signalMapper, SLOT(map()));
-    m_signalMapper->setMapping(rb, "English");
-    VBoxLayout->addWidget(rb);
-
     // Translations
     for (auto translation : Translations::lTranslations)
     {
-        QString filename = ":/" + translation.FileName;
-        if (QFile::exists(filename)) {
-            qDebug() << "[Translate] Found" << filename;
+        if (QFile::exists(translation.FileName)) {
+            qDebug() << "[Translate] Found" << translation.FileName;
             QRadioButton *rb = new QRadioButton(this);
             rb->setText(translation.LanguageName);
-            rb->setProperty("Filename", filename);
-            rb->setChecked(CurrentFilename.contains(filename));
+            rb->setProperty("Filename", translation.FileName);
+            rb->setChecked(CurrentFilename.contains(translation.FileName));
             connect(rb, SIGNAL(pressed()), m_signalMapper, SLOT(map()));
-            m_signalMapper->setMapping(rb, filename);
+            m_signalMapper->setMapping(rb, translation.FileName);
             VBoxLayout->addWidget(rb);
         } else {
-            qDebug() << "[Translate] Not Found" << filename;
+            qDebug() << "[Translate] Not Found" << translation.FileName;
         }
     }
 
