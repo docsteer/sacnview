@@ -2,7 +2,7 @@
 
 const QList<Translations::sTranslations> Translations::lTranslations =
     {
-        {"Français", QStringList{"Tom Wickens"}, "sacnview_fr.qm"},
-        {"Deutsche", QStringList{"Tom Wickens"}, "sacnview_de.qm"},
-        {"Español", QStringList{"Tom Wickens"}, "sacnview_es.qm"}
+        {"Français", QStringList{"Tom Wickens"}, "sACNView_fr.qm"},
+        {"Deutsche", QStringList{"Tom Wickens"}, "sACNView_de.qm"},
+        {"Español", QStringList{"Tom Wickens"}, "sACNView_es.qm"}
     };

@@ -28,7 +28,7 @@ TranslationDialog::TranslationDialog(const QString CurrentFilename, QVBoxLayout 
     // Translations
     for (auto translation : Translations::lTranslations)
     {
-        QString filename = QApplication::applicationDirPath() + "/" + translation.FileName;
+        QString filename = ":/" + translation.FileName;
         if (QFile::exists(filename)) {
             qDebug() << "[Translate] Found" << filename;
             QRadioButton *rb = new QRadioButton(this);

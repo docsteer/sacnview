@@ -1,5 +1,9 @@
-TRANSLATIONS_DIR = $${_PRO_FILE_PWD_}/translations
+# Supported languages
+## **Add new .qm to translations.qrc**
+## **Update translations.cpp**
+LANGUAGES = fr de es
 
+TRANSLATIONS_DIR = $${_PRO_FILE_PWD_}/translations
 SOURCES += \
     $${TRANSLATIONS_DIR}/translationdialog.cpp \
     $${TRANSLATIONS_DIR}/translations.cpp
@@ -8,12 +12,24 @@ HEADERS += \
     $${TRANSLATIONS_DIR}/translations.h
 FORMS += \
     $${TRANSLATIONS_DIR}/translationdialog.ui
+RESOURCES += \
+    $${TRANSLATIONS_DIR}/translations.qrc
 
-# French
-TRANSLATIONS += $$system_path($${TRANSLATIONS_DIR}/sacnview_fr.ts)
 
-# German
-TRANSLATIONS += $$system_path($${TRANSLATIONS_DIR}/sacnview_de.ts)
+## https://appbus.wordpress.com/2016/04/28/howto-translations-i18n/
+defineReplace(prependAll) {
+    for(a,$$1):result += $$2$${a}$$3
+    return($$result)
+}
+# Available translations
+tsroot = $$join(TARGET,,,.ts)
+tstarget = $$join(TARGET,,,_)
+TRANSLATIONS = $${TRANSLATIONS_DIR}/$$tsroot
+TRANSLATIONS += $$prependAll(LANGUAGES, $${TRANSLATIONS_DIR}/$$tstarget, .ts)
 
-# Spanish
-TRANSLATIONS += $$system_path($${TRANSLATIONS_DIR}/sacnview_es.ts)
+# run LRELEASE to generate the qm files
+qtPrepareTool(LRELEASE, lrelease)
+for(tsfile, TRANSLATIONS) {
+    command = $$LRELEASE $$tsfile
+    system($$command)|error("Failed to run: $$command")
+}

@@ -185,5 +185,6 @@ RC_FILE = res/sacnview.rc
 ## Deploy
 include(deploy.pri)
 
+## Translations
 DISTFILES += \
     translations.pri
