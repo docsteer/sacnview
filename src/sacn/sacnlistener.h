@@ -23,6 +23,7 @@
 #include <QTimer>
 #include <QElapsedTimer>
 #include <QPoint>
+#include "consts.h"
 #include "streamingacn.h"
 #include "sacnsocket.h"
 
@@ -129,7 +130,7 @@ private:
     void startInterface(QNetworkInterface iface);
     std::list<sACNRxSocket *> m_sockets;
     std::vector<sACNSource *> m_sources;
-    int m_last_levels[512];
+    int m_last_levels[MAX_DMX_ADDRESS];
     sACNMergedSourceList m_merged_levels;
     int m_universe;
     // The per-source hold last look time

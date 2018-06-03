@@ -62,7 +62,7 @@ void sACNListener::startReception()
     qDebug() << "sACNListener" << QThread::currentThreadId() << ": Starting universe" << m_universe;
 
     // Clear the levels array
-    memset(&m_last_levels, -1, 512);
+    memset(&m_last_levels, -1, sizeof(m_last_levels)/sizeof(m_last_levels[0]));
 
     if (Preferences::getInstance()->GetNetworkListenAll()) {
         // Listen on ALL interfaces
