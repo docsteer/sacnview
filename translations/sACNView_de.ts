@@ -642,7 +642,7 @@ pcap_setfilter failed</source>
     <message>
         <location filename="../ui/preferencesdialog.ui" line="41"/>
         <source>Language</source>
-        <translation type="unfinished"></translation>
+        <translation>Sprache</translation>
     </message>
     <message>
         <location filename="../ui/preferencesdialog.ui" line="80"/>
@@ -1004,7 +1004,8 @@ This feature is unavailable</source>
     <message>
         <location filename="translationdialog.ui" line="56"/>
         <source>OK</source>
-        <translation type="unfinished">OK</translation>
+        <translatorcomment>Ok</translatorcomment>
+        <translation>OK</translation>
     </message>
     <message>
         <source>Apply</source>
