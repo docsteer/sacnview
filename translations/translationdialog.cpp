@@ -5,6 +5,7 @@
 
 #include <QRadioButton>
 #include <QDir>
+#include <QButtonGroup>
 #include <QDebug>
 
 TranslationDialog::TranslationDialog(const QString CurrentFilename, QVBoxLayout *VBoxLayout, QWidget *parent) :
@@ -17,14 +18,21 @@ TranslationDialog::TranslationDialog(const QString CurrentFilename, QVBoxLayout 
         VBoxLayout = ui->vlSelectLang;
 
     // Translations
+    auto *bgTranslations = new QButtonGroup(this);
+    bgTranslations->setExclusive(true);
     for (auto translation : Translations::lTranslations)
     {
         if (QFile::exists(translation.FileName)) {
             qDebug() << "[Translate] Found" << translation.FileName;
             QRadioButton *rb = new QRadioButton(this);
+            bgTranslations->addButton(rb);
             rb->setText(translation.LanguageName);
             rb->setProperty("Filename", translation.FileName);
-            rb->setChecked(CurrentFilename.contains(translation.FileName));
+            // Check current translation, or default
+            if (!CurrentFilename.isEmpty())
+                rb->setChecked(CurrentFilename.contains(translation.FileName));
+            else if (bgTranslations->checkedId() == -1)
+                rb->setChecked(true);
             connect(rb, SIGNAL(pressed()), m_signalMapper, SLOT(map()));
             m_signalMapper->setMapping(rb, translation.FileName);
             VBoxLayout->addWidget(rb);
