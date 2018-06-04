@@ -17,7 +17,7 @@ RESOURCES += \
 
 # Create/update .ts Files
 qtPrepareTool(LUPDATE, lupdate)
-command = $$LUPDATE $$_PRO_FILE_
+command = $$LUPDATE $$shell_quote($$_PRO_FILE_)
 system($$command)|error("Failed to run: $$command")
 
 ## https://appbus.wordpress.com/2016/04/28/howto-translations-i18n/
@@ -34,6 +34,6 @@ TRANSLATIONS += $$prependAll(LANGUAGES, $${TRANSLATIONS_DIR}/$$tstarget, .ts)
 # run LRELEASE to generate the qm files
 qtPrepareTool(LRELEASE, lrelease)
 for(tsfile, TRANSLATIONS) {
-    command = $$LRELEASE $$tsfile
+    command = $$LRELEASE $$shell_quote($$tsfile)
     system($$command)|error("Failed to run: $$command")
 }
