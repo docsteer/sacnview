@@ -605,12 +605,17 @@ pcap_setfilter failed</source>
         <translation>Einstellungen</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="162"/>
+        <location filename="../ui/preferencesdialog.ui" line="41"/>
+        <source>Language*</source>
+        <translation>Sprache</translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="165"/>
         <source>Network Interface*</source>
         <translation>Netzwerkkarte*</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="174"/>
+        <location filename="../ui/preferencesdialog.ui" line="177"/>
         <source>Listen on all interfaces (Send only on below)</source>
         <translation>Auf alle Netzwerkkarten hören (nur auf folgenden senden)</translation>
     </message>
@@ -620,92 +625,91 @@ pcap_setfilter failed</source>
         <translation>Anzeigeeinstellungen</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="132"/>
+        <location filename="../ui/preferencesdialog.ui" line="135"/>
         <source>Theme*</source>
         <translation>Motiv*</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="119"/>
+        <location filename="../ui/preferencesdialog.ui" line="122"/>
         <source>Restore windows on application restart</source>
         <translation>Bei Neustart Fenster wiederherstellen</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="106"/>
+        <location filename="../ui/preferencesdialog.ui" line="109"/>
         <source>Hexadecimal (00-FF)</source>
         <translation>Hexadezimal (00-FF)</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="93"/>
+        <location filename="../ui/preferencesdialog.ui" line="96"/>
         <source>Percent (0-100)</source>
         <translation>Prozent (0-100)</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="41"/>
         <source>Language</source>
-        <translation>Sprache</translation>
+        <translation type="vanished">Sprache</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="80"/>
+        <location filename="../ui/preferencesdialog.ui" line="83"/>
         <source>Decimal (0-255)</source>
         <translation>Dezimal (0-255)</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="194"/>
+        <location filename="../ui/preferencesdialog.ui" line="197"/>
         <source>Recieve Options</source>
         <translation>Empfangseinstellungen</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="212"/>
+        <location filename="../ui/preferencesdialog.ui" line="215"/>
         <source>Display Blind/Visualizer Data</source>
         <translation>Blind/Visualizer-Info Anzeigen</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="225"/>
+        <location filename="../ui/preferencesdialog.ui" line="228"/>
         <source>Display sources with no DMX Data*</source>
         <translation>Quellen anzeigen, wo kein DMX Data vorhanden ist*</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="248"/>
+        <location filename="../ui/preferencesdialog.ui" line="257"/>
         <source>Transmit Options</source>
         <translation>Sendeeinstellungen</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="260"/>
+        <location filename="../ui/preferencesdialog.ui" line="269"/>
         <source>Default Source Name</source>
         <translation>Standard Quellenname</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="291"/>
+        <location filename="../ui/preferencesdialog.ui" line="300"/>
         <source>Stop transmitting sACN after</source>
         <translation>sACN-Sendung unterbrechen nach</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="333"/>
+        <location filename="../ui/preferencesdialog.ui" line="342"/>
         <source>Hours</source>
         <translation>Stunden</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="371"/>
+        <location filename="../ui/preferencesdialog.ui" line="380"/>
         <source>Minutes</source>
         <translation>Minuten</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="409"/>
+        <location filename="../ui/preferencesdialog.ui" line="418"/>
         <source>Seconds</source>
         <translation>Sekunden</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="456"/>
+        <location filename="../ui/preferencesdialog.ui" line="465"/>
         <source>*Application restart required on change  </source>
         <translation>*Bei Einstellungsänderung Neustart erforderlich  </translation>
     </message>
     <message>
-        <location filename="../src/preferencesdialog.cpp" line="158"/>
+        <location filename="../src/preferencesdialog.cpp" line="174"/>
         <source>Restart requied</source>
         <translation>Neustart erforderlich</translation>
     </message>
     <message>
-        <location filename="../src/preferencesdialog.cpp" line="159"/>
+        <location filename="../src/preferencesdialog.cpp" line="175"/>
         <source>To apply these preferences, you will need to restart the application. 
 sACNView will now close and restart</source>
         <translation>Um diese Einstellungen zu speichern, müssen Sie die Software neustarten.
@@ -725,7 +729,7 @@ Es gibt große Probleme mit gemischten IPv4 und IPv6 Umgebungen
 Bitte sorgen Sie dafür, dass IPv6 deaktiviert ist</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="58"/>
+        <location filename="../src/main.cpp" line="68"/>
         <source>This binary is intended for Windows XP only
 There are major issues mixed IPv4 and IPv6 enviroments
 
@@ -733,22 +737,22 @@ Please ensure IPv6 is disabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="62"/>
+        <location filename="../src/main.cpp" line="72"/>
         <source>This binary is intended for Windows XP only</source>
         <translation>Diese Binärdatei ist nur for Windows XP beabsichtig</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="118"/>
+        <location filename="../src/main.cpp" line="117"/>
         <source>Selected interface: %1</source>
         <translation>Gewählte Netzwerkkarte: %1</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="133"/>
+        <location filename="../src/main.cpp" line="132"/>
         <source>Incoming connections to this application are blocked by the firewall</source>
         <translation>Eingehende Verbindungen mit dieser Software werden durch eine Firewall blockiert</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="137"/>
+        <location filename="../src/main.cpp" line="136"/>
         <source>Incoming connections to this application are restricted by the firewall</source>
         <translation>Eingehende Verbindungen mit dieser Software werden durch eine Firewall beschränkt</translation>
     </message>
@@ -1002,10 +1006,9 @@ This feature is unavailable</source>
         <translation>Sprache wählen</translation>
     </message>
     <message>
-        <location filename="translationdialog.ui" line="56"/>
         <source>OK</source>
         <translatorcomment>Ok</translatorcomment>
-        <translation>OK</translation>
+        <translation type="vanished">OK</translation>
     </message>
     <message>
         <source>Apply</source>

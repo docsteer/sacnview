@@ -2,6 +2,7 @@
     <qresource prefix="/">
         <file>sACNView.qm</file>
         <file>sACNView_de.qm</file>
+        <file>sACNView_en.qm</file>
         <file>sACNView_es.qm</file>
         <file>sACNView_fr.qm</file>
     </qresource>

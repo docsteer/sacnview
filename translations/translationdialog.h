@@ -4,7 +4,9 @@
 #include <QDialog>
 #include <QTranslator>
 #include <QVBoxLayout>
-#include <QSignalMapper>
+#include <QButtonGroup>
+#include <QLocale>
+
 
 namespace Ui {
 class TranslationDialog;
@@ -20,7 +22,7 @@ public:
      * @arg CurrentFilename (Optional) - Fullpath to current tranlation file
      * @arg VBoxLayout (Optional) - VBoxLayout to fill with checkboxes, if nullptr a dialog is created and displayed
      */
-    explicit TranslationDialog(const QString CurrentFilename = QString(""), QVBoxLayout *VBoxLayout = Q_NULLPTR, QWidget *parent = 0);
+    explicit TranslationDialog(const QLocale DefaultLocale, QVBoxLayout *VBoxLayout = Q_NULLPTR, QWidget *parent = 0);
     ~TranslationDialog();
 
     /* exec()
@@ -29,15 +31,21 @@ public:
      */
     virtual int exec();
 
-public slots:
-    void LoadTranslation(const QString filename);
+public:
+    bool LoadTranslation(const QLocale locale);
+    bool LoadTranslation() {
+        return LoadTranslation(m_locate);
+    }
+
+    QLocale GetSelectedLocale();
 
 private slots:
-    void on_pbOk_clicked();
+    void on_buttonBox_accepted();
 
 private:
     Ui::TranslationDialog *ui;
-    QSignalMapper* m_signalMapper;
+    QButtonGroup *m_bgTranslations;
+    QLocale m_locate;
 };
 
 #endif // TRANSLATIONDIALOG_H

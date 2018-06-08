@@ -2,8 +2,24 @@
 
 const QList<Translations::sTranslations> Translations::lTranslations =
     {
-        {"English", QStringList{}, ":/sACNView.qm"},
-        {"Français", QStringList{"Tom Wickens"}, ":/sACNView_fr.qm"},
-        {"Deutsch", QStringList{"Tom Wickens"}, ":/sACNView_de.qm"},
-        {"Español", QStringList{"Tom Wickens"}, ":/sACNView_es.qm"}
+        {
+            "English",
+            QLocale::English,
+            QStringList{}
+        },
+        {
+            "Français",
+            QLocale::French,
+            QStringList{"Tom Wickens"}
+        },
+        {
+            "Deutsch",
+            QLocale::German,
+            QStringList{"Tom Wickens"}
+        },
+        {
+            "Español",
+            QLocale::Spanish,
+            QStringList{"Tom Wickens"}
+        }
     };

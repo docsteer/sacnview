@@ -6,43 +6,30 @@
 #include <QRadioButton>
 #include <QDir>
 #include <QButtonGroup>
+#include <QLibraryInfo>
 #include <QDebug>
 
-TranslationDialog::TranslationDialog(const QString CurrentFilename, QVBoxLayout *VBoxLayout, QWidget *parent) :
+TranslationDialog::TranslationDialog(const QLocale DefaultLocale, QVBoxLayout *VBoxLayout, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::TranslationDialog),
-    m_signalMapper(new QSignalMapper(this))
+    m_bgTranslations(new QButtonGroup(this)),
+    m_locate(DefaultLocale)
 {
     ui->setupUi(this);
     if (VBoxLayout == Q_NULLPTR)
         VBoxLayout = ui->vlSelectLang;
 
     // Translations
-    auto *bgTranslations = new QButtonGroup(this);
-    bgTranslations->setExclusive(true);
+    m_bgTranslations->setExclusive(true);
     for (auto translation : Translations::lTranslations)
     {
-        if (QFile::exists(translation.FileName)) {
-            qDebug() << "[Translate] Found" << translation.FileName;
-            QRadioButton *rb = new QRadioButton(this);
-            bgTranslations->addButton(rb);
-            rb->setText(translation.LanguageName);
-            rb->setProperty("Filename", translation.FileName);
-            // Check current translation, or default
-            if (!CurrentFilename.isEmpty())
-                rb->setChecked(CurrentFilename.contains(translation.FileName));
-            else if (bgTranslations->checkedId() == -1)
-                rb->setChecked(true);
-            connect(rb, SIGNAL(pressed()), m_signalMapper, SLOT(map()));
-            m_signalMapper->setMapping(rb, translation.FileName);
-            VBoxLayout->addWidget(rb);
-        } else {
-            qDebug() << "[Translate] Not Found" << translation.FileName;
-        }
+        QRadioButton *rb = new QRadioButton(this);
+        m_bgTranslations->addButton(rb);
+        rb->setText(translation.NativeLanguageName);
+        rb->setProperty("Language", translation.Language);
+        rb->setChecked((translation.Language == DefaultLocale.language()));
+        VBoxLayout->addWidget(rb);
     }
-
-    connect(m_signalMapper, SIGNAL(mapped(QString)),
-            this, SLOT(LoadTranslation(QString)));
 }
 
 TranslationDialog::~TranslationDialog()
@@ -59,25 +46,52 @@ int TranslationDialog::exec()
     return 0;
 }
 
-void TranslationDialog::on_pbOk_clicked()
+bool TranslationDialog::LoadTranslation(const QLocale locale)
 {
-    this->close();
+    // Exists in resource
+    bool ret;
+    for (auto lang : locale.uiLanguages() ) {
+        ret = QFile(QString(":/%1_%2.qm").arg(qApp->applicationName()).arg(lang)).exists();
+        if (ret) break;
+    }
+    if (ret) {
+        qDebug() << "[Translate] Loading " << locale.uiLanguages();
+
+        // Load application translation from resource
+        {
+            QTranslator *translator = new QTranslator();
+            if (translator->load(locale, qApp->applicationName(), "_", ":/", ".qm"))
+                qApp->installTranslator(translator);
+        }
+
+        // Load QT translations
+        {
+            QTranslator *translator = new QTranslator();
+            if (translator->load(locale, "qt", "_", QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+                qApp->installTranslator(translator);
+        }
+        {
+            QTranslator *translator = new QTranslator();
+            if (translator->load(locale, "qtbase", "_", QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+                qApp->installTranslator(translator);
+        }
+
+    } else {
+        qDebug() << "[Translate] Not found requested " << locale.uiLanguages();
+    }
+
+    return ret;
 }
 
-void TranslationDialog::LoadTranslation(const QString filename)
+QLocale TranslationDialog::GetSelectedLocale()
 {
-    if (Preferences::getInstance()->CurrentTranslator)
-        qApp->removeTranslator(Preferences::getInstance()->CurrentTranslator);
-    else
-        Preferences::getInstance()->CurrentTranslator = new QTranslator();
+    return QLocale((QLocale::Language)m_bgTranslations->checkedButton()->property("Language").toInt());
+}
 
-    qDebug() << "[Translate] Selected language file" << filename;
-    Preferences::getInstance()->SetTranslationFilename(filename);
-    if (QFile::exists(filename)) {
-        qDebug() << "[Translate] Loading" << filename;
-        Preferences::getInstance()->CurrentTranslator->load(filename);
-        qApp->installTranslator(Preferences::getInstance()->CurrentTranslator);
-    } else {
-        qDebug() << "[Translate] Not found" << filename;
-    }
+void TranslationDialog::on_buttonBox_accepted()
+{
+    qDebug() << "[Translate] User selected " << GetSelectedLocale().uiLanguages();
+    Preferences::getInstance()->SetLocale(GetSelectedLocale());
+
+    this->close();
 }

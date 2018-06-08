@@ -43,6 +43,16 @@ int main(int argc, char *argv[])
     a.setOrganizationName("sACNView");
     a.setOrganizationDomain("tomsteer.net");
 
+    // Setup Language
+    {
+        TranslationDialog td(Preferences::getInstance()->GetLocale());
+        if (!td.LoadTranslation())
+        {
+            td.exec();
+            td.LoadTranslation(Preferences::getInstance()->GetLocale());
+        }
+    }
+
     // Windows XP Support
     #ifdef Q_OS_WIN
         #if (TARGET_WINXP)
@@ -68,17 +78,6 @@ int main(int argc, char *argv[])
             #pragma message("This binary is intended for Windows >= 7")
         #endif
     #endif
-
-    // Setup Language
-    {
-        TranslationDialog td;
-        if (Preferences::getInstance()->GetTranslationFilename().isEmpty())
-        {
-            td.exec();
-        } else {
-            td.LoadTranslation(Preferences::getInstance()->GetTranslationFilename());
-        }
-    }
 
     // Check web (if avaliable) for new version
     VersionCheck version;

@@ -1,7 +1,7 @@
 # Supported languages
 ## **Add new .qm to translations.qrc**
 ## **Update translations.cpp**
-LANGUAGES = fr de es
+LANGUAGES = en fr de es
 
 TRANSLATIONS_DIR = $${_PRO_FILE_PWD_}/translations
 SOURCES += \

@@ -229,7 +229,7 @@ void Preferences::savePreferences()
     settings.setValue(S_MAINWINDOWGEOM, m_mainWindowGeometry);
     settings.setValue(S_LISTEN_ALL, m_interfaceListenAll);
     settings.setValue(S_THEME, m_theme);
-    settings.setValue(S_TRANSLATION, m_translationFilename);
+    settings.setValue(S_LOCALE, m_locale);
 
     settings.beginWriteArray(S_SUBWINDOWLIST);
     for(int i=0; i<m_windowInfo.count(); i++)
@@ -269,7 +269,7 @@ void Preferences::loadPreferences()
     m_saveWindowLayout = settings.value(S_SAVEWINDOWLAYOUT, QVariant(false)).toBool();
     m_mainWindowGeometry = settings.value(S_MAINWINDOWGEOM, QVariant(QByteArray())).toByteArray();
     m_theme = (Theme) settings.value(S_THEME, QVariant((int)THEME_LIGHT)).toInt();
-    m_translationFilename = settings.value(S_TRANSLATION, QString("")).toString();
+    m_locale = settings.value(S_LOCALE, QLocale::system()).toLocale();
 
     m_windowInfo.clear();
     int size = settings.beginReadArray(S_SUBWINDOWLIST);
@@ -348,12 +348,12 @@ QList<MDIWindowInfo> Preferences::GetSavedWindows()
     return m_windowInfo;
 }
 
-void Preferences::SetTranslationFilename(QString filename)
+void Preferences::SetLocale(QLocale locale)
 {
-    m_translationFilename = filename;
+    m_locale = locale;
 }
 
-QString Preferences::GetTranslationFilename()
+QLocale Preferences::GetLocale()
 {
-    return m_translationFilename;
+    return m_locale;
 }
