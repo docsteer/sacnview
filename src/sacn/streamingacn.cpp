@@ -134,7 +134,7 @@ QSharedPointer<sACNListener> sACNManager::getListener(int universe)
     {
         #ifdef QT_GUI_LIB
             QMessageBox msgBox;
-            msgBox.setText("Unable to allocate listener object\r\n\r\nsACNView must close now");
+            msgBox.setText(tr("Unable to allocate listener object\r\n\r\nsACNView must close now"));
             msgBox.exec();
         #else
             qDebug() << "Unable to allocate listener object\r\n\r\nsACNView must close now";

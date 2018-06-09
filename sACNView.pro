@@ -158,7 +158,8 @@ HEADERS += src/mdimainwindow.h \
     src/addmultidialog.h \
     src/ethernetstrut.h \
     src/theme/darkstyle.h \
-    src/xpwarning.h
+    src/xpwarning.h \
+    src/sacn/e1_11.h
 
 FORMS += ui/mdimainwindow.ui \
     ui/scopewindow.ui \

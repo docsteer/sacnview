@@ -86,6 +86,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         ui->gbTransmitTimeout->setChecked(false);
     }
 
+    ui->cbTxRateOverride->setChecked(Preferences::getInstance()->GetTXRateOverride());
+
     ui->cbTheme->clear();
     ui->cbTheme->addItems(Preferences::ThemeDescriptions);
     ui->cbTheme->setCurrentIndex((int)Preferences::getInstance()->GetTheme());
@@ -124,6 +126,10 @@ void PreferencesDialog::on_buttonBox_accepted()
     p->SetNumSecondsOfSacn(seconds);
 
     p->SetDefaultTransmitName(ui->leDefaultSourceName->text());
+
+    if (ui->cbTxRateOverride->isChecked() != p->GetTXRateOverride())
+        requiresRestart = true;
+    p->SetTXRateOverride(ui->cbTxRateOverride->isChecked());
 
     for(int i=0; i<m_interfaceButtons.count(); i++)
     {

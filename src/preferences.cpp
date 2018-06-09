@@ -232,6 +232,7 @@ void Preferences::savePreferences()
     settings.setValue(S_MAINWINDOWGEOM, m_mainWindowGeometry);
     settings.setValue(S_LISTEN_ALL, m_interfaceListenAll);
     settings.setValue(S_THEME, m_theme);
+    settings.setValue(S_TX_RATE_OVERRIDE, m_txrateoverride);
 
     settings.beginWriteArray(S_SUBWINDOWLIST);
     for(int i=0; i<m_windowInfo.count(); i++)
@@ -271,6 +272,7 @@ void Preferences::loadPreferences()
     m_saveWindowLayout = settings.value(S_SAVEWINDOWLAYOUT, QVariant(false)).toBool();
     m_mainWindowGeometry = settings.value(S_MAINWINDOWGEOM, QVariant(QByteArray())).toByteArray();
     m_theme = (Theme) settings.value(S_THEME, QVariant((int)THEME_LIGHT)).toInt();
+    m_txrateoverride = settings.value(S_TX_RATE_OVERRIDE, QVariant(false)).toBool();
 
     m_windowInfo.clear();
     int size = settings.beginReadArray(S_SUBWINDOWLIST);

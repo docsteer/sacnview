@@ -94,6 +94,7 @@
 #define RLP_PREAMBLE_SIZE 16
 #define RLP_POSTAMBLE_SIZE 0
 #define ACN_IDENTIFIER_SIZE 12
+#define DMX_SLOT_MAX 512
 
 //for support of the early draft
 #define DRAFT_STREAM_HEADER_SIZE 90
