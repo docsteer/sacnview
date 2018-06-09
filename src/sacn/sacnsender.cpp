@@ -42,8 +42,7 @@ sACNSentUniverse::sACNSentUniverse(int universe)
 
 sACNSentUniverse::~sACNSentUniverse()
 {
-    CStreamServer *streamServer = CStreamServer::getInstance();
-    streamServer->DestroyUniverse(m_handle);
+    stopSending();
 
     if(m_checkTimeoutTimer)
     {
