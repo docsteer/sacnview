@@ -1,10 +1,13 @@
+#include <QApplication>
 #include "commandline.h"
 #include "consts.h"
 #include "preferences.h"
 
-CommandLine::CommandLine()
+CommandLine::CommandLine(QObject *parent) : QObject(parent),
+    m_terminated(false),
+    m_clearKeyTimer(new QTimer(this))
 {
-    m_terminated = false;
+    m_clearKeyTimer->setSingleShot(true);
 }
 
 void CommandLine::processKey(Key value)
@@ -38,12 +41,20 @@ void CommandLine::processKey(Key value)
             m_addresses.clear();
             m_terminated = false;
         }
+        else if (m_clearKeyTimer->isActive())
+        {
+            // Double tap, clear line
+            m_keyStack.clear();
+            m_errorText.clear();
+        }
         else
         {
             // Backspace
             m_keyStack.pop();
             m_errorText.clear();
         }
+
+        m_clearKeyTimer->start(QApplication::doubleClickInterval());
     }
     else
     {

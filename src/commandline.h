@@ -6,10 +6,14 @@
 #include <QPlainTextEdit>
 #include <QStack>
 #include <QLCDNumber>
+#include <QTimer>
 
-class CommandLine
+class CommandLine : public QObject
 {
+    Q_OBJECT
 public:
+    explicit CommandLine(QObject *parent = nullptr);
+
     enum Key {
         K0,
         K1,
@@ -30,7 +34,6 @@ public:
         ALL_OFF
     };
 
-    CommandLine();
 
     QString text();
     QString errorText() { return m_errorText; }
@@ -46,6 +49,7 @@ private:
     bool m_terminated;
     QStack<Key> m_previousKeyStack;
     QStack<Key> m_keyStack;
+    QTimer *m_clearKeyTimer;
 };
 
 class CommandLineWidget : public QTextEdit
