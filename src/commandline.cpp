@@ -214,8 +214,18 @@ void CommandLine::processStack()
             m_text.append(QString(" %1 ").arg(K_AND));
             if(numberEntry==0 || state != stChannel)
             {
-                m_errorText = E_SYNTAX;
-                return;
+                if (m_keyStack.count() == 1 && !m_previousKeyStack.isEmpty())
+                {
+                    // Empty command line and selection...use previous
+                    m_keyStack = m_previousKeyStack;
+                    processKey(AND);
+                    return;
+                }
+                else
+                {
+                    m_errorText = E_SYNTAX;
+                    return;
+                }
             }
 
             getSelection(&selection, &numberEntry, &startRange);
