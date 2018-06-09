@@ -381,7 +381,10 @@ void sACNEffectEngine::setManualLevel(int level)
 {
     m_manualLevel = level;
 
-    QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, m_start),
-                              Q_ARG(quint16, m_end),
-                              Q_ARG(quint8, m_manualLevel));
+    if (m_mode == FxManual) {
+        QMetaObject::invokeMethod(m_sender, "setLevelRange",
+                                      Q_ARG(quint16, m_start),
+                                      Q_ARG(quint16, m_end),
+                                      Q_ARG(quint8, m_manualLevel));
+    }
 }
