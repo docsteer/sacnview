@@ -7,6 +7,18 @@
 #include <QStack>
 #include <QLCDNumber>
 #include <QTimer>
+#include <QString>
+
+// Strings
+static const QString K_THRU(QObject::tr("THRU"));
+static const QString K_AT(QObject::tr("AT"));
+static const QString K_FULL(QObject::tr("FULL"));
+static const QString K_CLEAR(QObject::tr("CLEAR"));
+static const QString K_AND(QObject::tr("AND"));
+
+static const QString E_SYNTAX(QObject::tr("Error - syntax error"));
+static const QString E_RANGE(QObject::tr("Error - number out of range"));
+static const QString E_NO_SELECTION(QObject::tr("Error - no selection"));
 
 class CommandLine : public QObject
 {

@@ -140,7 +140,7 @@ void CommandLine::processStack()
                 {
                     // Not a valid entry, would be >512
                     state = stError;
-                    m_errorText = "Error - number out of range";
+                    m_errorText = E_RANGE;
                     return;
                 }
 
@@ -152,17 +152,17 @@ void CommandLine::processStack()
                 {
                     // Not a valid entry, would be >max
                     state = stError;
-                    m_errorText = "Error - number out of range";
+                    m_errorText = E_RANGE;
                     return;
                 }
             }
             break;
 
         case THRU:
-                m_text.append(" THRU ");
+                m_text.append(QString(" %1 ").arg(K_THRU));
                 if(numberEntry==0 || state!=stChannel || startRange!=0)
                 {
-                    m_errorText = "Error - syntax error";
+                    m_errorText = E_SYNTAX;
                     return;
                 }
                 startRange=numberEntry;
@@ -181,10 +181,10 @@ void CommandLine::processStack()
                 return;
             }
 
-            m_text.append(" @ ");
+            m_text.append(QString(" %1 ").arg(K_AT));;
             if(startRange!=0 && numberEntry==0)
             {
-                m_errorText = "Error - syntax error";
+                m_errorText = E_SYNTAX;
                 return;
             }
 
@@ -211,10 +211,10 @@ void CommandLine::processStack()
             break;
 
         case AND:
-            m_text.append(" AND ");
+            m_text.append(QString(" %1 ").arg(K_AND));
             if(numberEntry==0 || state != stChannel)
             {
-                m_errorText = "Error - syntax error";
+                m_errorText = E_SYNTAX;
                 return;
             }
 
@@ -266,20 +266,20 @@ void CommandLine::processStack()
                 }
                 else
                 {
-                    m_errorText = "Error - No selection";
+                    m_errorText = E_NO_SELECTION;
                 }
                 return;
             }
 
-            m_text.append("FULL*");
+            m_text.append(QString("%1*").arg(K_FULL));
             if(startRange!=0 && numberEntry==0)
             {
-                m_errorText = "Error - Syntax Error";
+                m_errorText = E_SYNTAX;
                 return;
             }
             if(state==stLevels && numberEntry!=0)
             {
-                m_errorText = "Error - Syntax Error";
+                m_errorText = E_SYNTAX;
                 return;
             }
             m_level = MAX_SACN_LEVEL;
