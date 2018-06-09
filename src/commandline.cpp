@@ -136,6 +136,17 @@ void CommandLine::processStack()
             break;
 
         case AT:
+            // [@] [@] = [@] [Full]
+            if (
+                m_keyStack.count() > 1 &&
+                m_keyStack.last() == m_keyStack[m_keyStack.count() - 2]
+                )
+            {
+                m_keyStack.pop();
+                processKey(FULL);
+                return;
+            }
+
             m_text.append(" @ ");
             if(startRange!=0 && numberEntry==0)
             {
