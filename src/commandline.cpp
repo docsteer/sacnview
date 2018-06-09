@@ -199,26 +199,44 @@ void CommandLine::processStack()
             return;
 
         case FULL:
-            if(selection.isEmpty() && !m_previousKeyStack.isEmpty())
+            // Anything selected?
+            if(
+                selection.isEmpty()
+                && m_keyStack.size()
+                && !m_keyStack.contains(AT)
+                )
             {
-                m_keyStack = m_previousKeyStack;
-                m_keyStack.push(AT);
-                m_keyStack.push(FULL);
-                processStack();
+                m_keyStack.pop();
+                processKey(AT);
+                processKey(FULL);
+                return;
+            }
+            else if (selection.isEmpty())
+            {
+                // ...Nope nothing
+                // Lets try the previous selection
+                if (!m_previousKeyStack.isEmpty())
+                {
+                    m_keyStack = m_previousKeyStack;
+                    processKey(AT);
+                    processKey(FULL);
+                }
+                else
+                {
+                    m_errorText = "Error - No selection";
+                }
                 return;
             }
 
-            if(state!=stLevels)
-                m_text.append(" @ ");
             m_text.append("FULL*");
             if(startRange!=0 && numberEntry==0)
             {
-                m_errorText = "Error : Syntax Error";
+                m_errorText = "Error - Syntax Error";
                 return;
             }
             if(state==stLevels && numberEntry!=0)
             {
-                m_errorText = "Error : Syntax Error";
+                m_errorText = "Error - Syntax Error";
                 return;
             }
             m_level = MAX_SACN_LEVEL;
