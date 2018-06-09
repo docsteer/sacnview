@@ -71,6 +71,29 @@ void CommandLine::processKey(Key value)
     processStack();
 }
 
+void getSelection(QSet<int> *selection, int *numberEntry, int *startRange)
+{
+    if(*startRange != 0 && *numberEntry != 0)
+    {
+        // Thru
+        if (*numberEntry > *startRange)
+            for(int i = *startRange; i <= *numberEntry; i++)
+                selection->insert(i);
+        else
+            for(int i = *numberEntry; i <= *startRange; i++)
+                selection->insert(i);
+    }
+    else
+    {
+        // Single
+        if(*numberEntry!=0)
+            selection->insert(*numberEntry);
+    }
+
+   *numberEntry = 0;
+   *startRange = 0;
+}
+
 void CommandLine::processStack()
 {
     enum {
@@ -164,16 +187,8 @@ void CommandLine::processStack()
                 m_errorText = "Error - syntax error";
                 return;
             }
-            if(startRange!=0 && numberEntry!=0)
-            {
-                if (numberEntry > startRange)
-                    for(int i=startRange; i<numberEntry; i++)
-                        selection << i;
-                else
-                    for(int i=numberEntry; i<=startRange; i++)
-                        selection << i;
-            }
-            if(numberEntry!=0) selection << numberEntry;
+
+            getSelection(&selection, &numberEntry, &startRange);
 
             if(selection.isEmpty() && !m_previousKeyStack.isEmpty())
             {
@@ -184,8 +199,7 @@ void CommandLine::processStack()
             }
 
             state = stLevels;
-            numberEntry = 0;
-            startRange = 0;
+
             // Copy the entries up to the at to the last addresses
             i=0;
             m_previousKeyStack.clear();
@@ -203,8 +217,11 @@ void CommandLine::processStack()
                 m_errorText = "Error - syntax error";
                 return;
             }
-            selection << numberEntry;
+
+            getSelection(&selection, &numberEntry, &startRange);
             numberEntry = 0;
+            startRange = 0;
+
             break;
 
         case ENTER:
