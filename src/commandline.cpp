@@ -166,8 +166,12 @@ void CommandLine::processStack()
             }
             if(startRange!=0 && numberEntry!=0)
             {
-                for(int i=startRange; i<numberEntry; i++)
-                    selection << i;
+                if (numberEntry > startRange)
+                    for(int i=startRange; i<numberEntry; i++)
+                        selection << i;
+                else
+                    for(int i=numberEntry; i<=startRange; i++)
+                        selection << i;
             }
             if(numberEntry!=0) selection << numberEntry;
 
