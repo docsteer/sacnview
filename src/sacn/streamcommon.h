@@ -193,6 +193,11 @@ bool VerifyStreamHeaderForDraft(quint8* pbuf, uint buflen, CID &source_cid,
 				quint16 &universe, quint16 &slot_count, 
 				quint8* &pdata);
 
+/*
+ * Returns true if contains draft root vector value
+ */
+bool isDraft(quint8* pbuf);
+
 /* 
  * toggles the preview_data bit of the options field to either 1 or 0
  */
