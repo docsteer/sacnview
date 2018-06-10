@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>903</width>
-    <height>525</height>
+    <height>661</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -325,7 +325,7 @@ border-radius: 4px;
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -1109,8 +1109,8 @@ color: rgb(255, 85, 0);</string>
             </property>
             <property name="minimumSize">
              <size>
-              <width>102</width>
-              <height>82</height>
+              <width>106</width>
+              <height>86</height>
              </size>
             </property>
             <property name="styleSheet">
@@ -1155,8 +1155,8 @@ color: rgb(255, 85, 0);</string>
            <widget class="QSpinBox" name="sbFadeRangeEnd">
             <property name="minimumSize">
              <size>
-              <width>102</width>
-              <height>82</height>
+              <width>106</width>
+              <height>86</height>
              </size>
             </property>
             <property name="styleSheet">
@@ -1220,6 +1220,54 @@ color: rgb(255, 85, 0);</string>
                <property name="text">
                 <string>Chase</string>
                </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QFrame" name="fChaseOptions">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_10">
+                <item>
+                 <widget class="QRadioButton" name="rbChaseSnap">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Snap</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="rbChaseSine">
+                  <property name="text">
+                   <string>Sinewave</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="rbChaseRamp">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Fade</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </widget>
              </item>
              <item>

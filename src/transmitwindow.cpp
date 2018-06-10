@@ -160,6 +160,9 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     connect(ui->rbText,     SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
     connect(ui->rbDateTime, SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
     connect(ui->rbChase,    SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
+    connect(ui->rbChaseRamp,SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
+    connect(ui->rbChaseSine,SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
+    connect(ui->rbChaseSnap,SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
 
     connect(ui->rbEuDate, SIGNAL(toggled(bool)), this, SLOT(dateMode_toggled(bool)));
     connect(ui->rbUsDate, SIGNAL(toggled(bool)), this, SLOT(dateMode_toggled(bool)));
@@ -537,6 +540,7 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
         QMetaObject::invokeMethod(
                     m_fxEngine,"start");
         ui->rbFadeManual->setChecked(true);
+        ui->rbChaseSnap->setChecked(true);
         ui->slFadeLevel->setValue(0);
     }
 }
@@ -612,10 +616,18 @@ void transmitwindow::radioFadeMode_toggled(bool checked)
                     m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxDate));
         ui->swFx->setCurrentIndex(2);
     }
+    ui->fChaseOptions->setEnabled(ui->rbChase->isChecked());
     if(ui->rbChase->isChecked())
     {
+        sACNEffectEngine::FxMode mode;
+        if (ui->rbChaseRamp->isChecked())
+            mode = sACNEffectEngine::FxChaseRamp;
+        else if (ui->rbChaseSnap->isChecked())
+             mode = sACNEffectEngine::FxChaseSnap;
+        else if (ui->rbChaseSine->isChecked())
+             mode = sACNEffectEngine::FxChaseSine;
         QMetaObject::invokeMethod(
-                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxChase));
+                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, mode));
         ui->swFx->setCurrentIndex(0);
     }
 }

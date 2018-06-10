@@ -29,18 +29,21 @@ void GetCharacterCoord(unsigned char ch, int *x, int *y)
     *x = ch % 32;
 }
 
-sACNEffectEngine::sACNEffectEngine() : QObject(NULL)
+sACNEffectEngine::sACNEffectEngine() : QObject(NULL),
+  m_sender(Q_NULLPTR),
+  m_mode(FxManual),
+  m_dateStyle(dsEU),
+  m_start(0),
+  m_end(0),
+  m_index(0),
+  m_index_chase(0),
+  m_data(0),
+  m_manualLevel(0),
+  m_renderedImage(QImage(32, 16, QImage::Format_Grayscale8)),
+  m_image(Q_NULLPTR)
 {
     qRegisterMetaType<sACNEffectEngine::FxMode>("sACNEffectEngine::FxMode");
     qRegisterMetaType<sACNEffectEngine::DateStyle>("sACNEffectEngine::DateStyle");
-    m_sender = NULL;
-    m_image = NULL;
-    m_start = 0;
-    m_end = 0;
-    m_manualLevel = 0;
-    m_dateStyle = dsEU;
-    m_mode = FxRamp;
-    m_renderedImage = QImage(32, 16, QImage::Format_Grayscale8);
 
     m_timer = new QTimer(this);
     m_timer->setInterval(1000);
@@ -270,8 +273,12 @@ void sACNEffectEngine::setText(QString text)
 
 void sACNEffectEngine::setDateStyle(sACNEffectEngine::DateStyle style)
 {
-    Q_ASSERT(QThread::currentThread()==this->thread());
-    m_dateStyle = style;
+    // Make this method thread-safe
+    if(QThread::currentThread()!=this->thread())
+            QMetaObject::invokeMethod(
+                        this,"setDateStyle", Q_ARG(sACNEffectEngine::DateStyle, style));
+    else
+        m_dateStyle = style;
 }
 
 void sACNEffectEngine::setRate(qreal hz)
@@ -297,7 +304,8 @@ void sACNEffectEngine::timerTick()
     {
     case FxRamp:
         m_data++;
-        QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, m_start),
+        QMetaObject::invokeMethod(m_sender, "setLevelRange",
+                                  Q_ARG(quint16, m_start),
                                   Q_ARG(quint16, m_end),
                                   Q_ARG(quint8, m_data));
         emit fxLevelChange(m_data);
@@ -306,24 +314,82 @@ void sACNEffectEngine::timerTick()
         if(m_index >= sizeof(sinetable))
             m_index = 0;
         m_data = sinetable[m_index];
-        QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, m_start),
+        QMetaObject::invokeMethod(m_sender, "setLevelRange",
+                                  Q_ARG(quint16, m_start),
                                   Q_ARG(quint16, m_end),
                                   Q_ARG(quint8, m_data));
         emit fxLevelChange(m_data);
         break;
-    case FxChase:
-        if(m_index > m_end)
-            m_index = m_start;
+    case FxChaseSnap:
         QMetaObject::invokeMethod(m_sender, "setLevelRange",
                                   Q_ARG(quint16, m_start),
                                   Q_ARG(quint16, m_end),
                                   Q_ARG(quint8, 0));
-        QMetaObject::invokeMethod(m_sender, "setLevel", Q_ARG(quint16, m_index),
-                                  Q_ARG(quint8, 255));
+        QMetaObject::invokeMethod(m_sender, "setLevel",
+                                  Q_ARG(quint16, m_index_chase),
+                                  Q_ARG(quint8, m_manualLevel));
+
+        if (m_index_chase < m_start)
+            m_index_chase = m_start;
+
+        if(++m_index_chase > m_end)
+            m_index_chase = m_start;
+
+        break;
+
+    case FxChaseRamp:
+        if(m_index > std::numeric_limits<typeof(m_data)>::max())
+        {
+            m_index = std::numeric_limits<typeof(m_data)>::min();
+            if (++m_index_chase > m_end )
+                m_index_chase = m_start;
+        }
+
+        if (m_index_chase < m_start)
+            m_index_chase = m_start;
+
+        m_data = m_index;
+
+        QMetaObject::invokeMethod(m_sender, "setLevelRange",
+                                  Q_ARG(quint16, m_start),
+                                  Q_ARG(quint16, m_end),
+                                  Q_ARG(quint8, 0));
+        QMetaObject::invokeMethod(m_sender, "setLevel",
+                                  Q_ARG(quint16, m_index_chase),
+                                  Q_ARG(quint8, m_data));
+        emit fxLevelChange(m_data);
+
+
+        break;
+
+    case FxChaseSine:
+        if(m_index > sizeof(sinetable))
+        {
+            m_index = 0;
+            if (++m_index_chase > m_end )
+                m_index_chase = m_start;
+        }
+
+        if (m_index_chase < m_start)
+            m_index_chase = m_start;
+
+        m_data = sinetable[m_index];
+
+        QMetaObject::invokeMethod(m_sender, "setLevelRange",
+                                  Q_ARG(quint16, m_start),
+                                  Q_ARG(quint16, m_end),
+                                  Q_ARG(quint8, 0));
+        QMetaObject::invokeMethod(m_sender, "setLevel",
+                                  Q_ARG(quint16, m_index_chase),
+                                  Q_ARG(quint8, m_data));
+        emit fxLevelChange(m_data);
+
+
         break;
 
     case FxManual:
-        QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, m_start),
+        QMetaObject::invokeMethod(m_sender, "setLevelRange",
+                                  Q_ARG(quint16, m_start),
                                   Q_ARG(quint16, m_end),
                                   Q_ARG(quint8, m_manualLevel));
         break;
@@ -363,14 +429,16 @@ void sACNEffectEngine::timerTick()
     case FxVerticalBar:
         if(m_index > 31)
             m_index = 0;
-        QMetaObject::invokeMethod(m_sender, "setVerticalBar", Q_ARG(quint16, m_index),
-                                      Q_ARG(quint8, 255));
+        QMetaObject::invokeMethod(m_sender, "setVerticalBar",
+                                    Q_ARG(quint16, m_index),
+                                    Q_ARG(quint8, 255));
         break;
     case FxHorizontalBar:
         if(m_index > 15)
             m_index = 0;
-        QMetaObject::invokeMethod(m_sender, "setHorizontalBar", Q_ARG(quint16, m_index),
-                                      Q_ARG(quint8, 255));
+        QMetaObject::invokeMethod(m_sender, "setHorizontalBar",
+                                    Q_ARG(quint16, m_index),
+                                    Q_ARG(quint8, 255));
         break;
     }
 }
