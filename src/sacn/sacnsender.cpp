@@ -68,17 +68,24 @@ void sACNSentUniverse::startSending(bool preview)
 
     if(m_unicastAddress.isNull())
         streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, options, STARTCODE_DMX,
-           m_universe, DMX_SLOT_MAX, m_slotData, m_handle, SEND_INTERVAL_DMX, max_tx_rate, CIPAddr(), m_version==StreamingACNProtocolVersion::sACNProtocolDraft );
+                                        m_universe, DMX_SLOT_MAX, m_slotData, m_handle, SEND_INTERVAL_DMX, max_tx_rate,
+                                        CIPAddr(), m_version==StreamingACNProtocolVersion::sACNProtocolDraft
+                                     );
     else
         streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, options, STARTCODE_DMX, m_universe,
-             DMX_SLOT_MAX, m_slotData, m_handle, SEND_INTERVAL_DMX, max_tx_rate, CIPAddr(m_unicastAddress), m_version==StreamingACNProtocolVersion::sACNProtocolDraft );
+                                        DMX_SLOT_MAX, m_slotData, m_handle, SEND_INTERVAL_DMX, max_tx_rate,
+                                        CIPAddr(m_unicastAddress), m_version==StreamingACNProtocolVersion::sACNProtocolDraft
+                                     );
 
     streamServer->SetUniverseDirty(m_handle);
 
     if(m_priorityMode == pmPER_ADDRESS_PRIORITY)
     {
         quint8 *pslots;
-        streamServer->CreateUniverse(m_cid, qPrintable(m_name), 0, options, 0, STARTCODE_PRIORITY, m_universe, DMX_SLOT_MAX, pslots, m_priorityHandle, SEND_INTERVAL_PRIORITY, max_tx_rate);
+        streamServer->CreateUniverse(m_cid, qPrintable(m_name), 0, options, 0, STARTCODE_PRIORITY,
+                                        m_universe, DMX_SLOT_MAX, pslots, m_priorityHandle, SEND_INTERVAL_PRIORITY, max_tx_rate,
+                                        CIPAddr(), m_version==StreamingACNProtocolVersion::sACNProtocolDraft
+                                     );
         memcpy(pslots, m_perChannelPriorities, sizeof(m_perChannelPriorities));
         streamServer->SetUniverseDirty(m_priorityHandle);
     }
