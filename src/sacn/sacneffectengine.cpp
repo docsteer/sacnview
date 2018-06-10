@@ -338,9 +338,9 @@ void sACNEffectEngine::timerTick()
         break;
 
     case FxChaseRamp:
-        if(m_index > std::numeric_limits<typeof(m_data)>::max())
+        if(m_index > std::numeric_limits<decltype(m_data)>::max())
         {
-            m_index = std::numeric_limits<typeof(m_data)>::min();
+            m_index = std::numeric_limits<decltype(m_data)>::min();
             if (++m_index_chase > m_end )
                 m_index_chase = m_start;
         }
