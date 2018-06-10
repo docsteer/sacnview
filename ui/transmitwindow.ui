@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>903</width>
-    <height>661</height>
+    <height>690</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1263,7 +1263,7 @@ color: rgb(255, 85, 0);</string>
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>Fade</string>
+                   <string>Ramp</string>
                   </property>
                  </widget>
                 </item>
