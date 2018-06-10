@@ -64,7 +64,7 @@ void sACNSentUniverse::startSending(bool preview)
         options += PREVIEW_DATA_OPTION;
 
     uint max_tx_rate =
-            Preferences::getInstance()->GetTXRateOverride() ? std::numeric_limits<typeof(max_tx_rate)>::max() : E1_11::MAX_REFRESH_RATE_HZ;
+            Preferences::getInstance()->GetTXRateOverride() ? std::numeric_limits<decltype(max_tx_rate)>::max() : E1_11::MAX_REFRESH_RATE_HZ;
 
     if(m_unicastAddress.isNull())
         streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, options, STARTCODE_DMX,
@@ -360,7 +360,7 @@ void CStreamServer::TickLoop()
                     it->suppresed = false;
                 }
 
-                for (typeof(sendCount) n = 0; n < sendCount; n++ )
+                for (decltype(sendCount) n = 0; n < sendCount; n++ )
                 {
                     //Add the sequence number and send
                     quint8 *pseq = GetPSeq(it->cid, it->number);
@@ -448,7 +448,7 @@ bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_nam
     m_multiverse[handle].isdirty = false;
     m_multiverse[handle].num_terminates=0;
     m_multiverse[handle].send_interval.SetInterval(send_intervalms);
-    m_multiverse[handle].min_interval.SetInterval(1000 / (std::max(send_max_rate, (typeof(send_max_rate))1)));
+    m_multiverse[handle].min_interval.SetInterval(1000 / (std::max(send_max_rate, (decltype(send_max_rate))1)));
     m_multiverse[handle].draft = draft;
     m_multiverse[handle].cid = source_cid;
 
