@@ -91,9 +91,13 @@ signals:
     void setLevels(QSet<int> addreses, int level);
 protected:
     virtual void keyPressEvent(QKeyEvent *e);
+private slots:
+    void flashCursor();
 private:
     CommandLine m_commandLine;
     void displayText();
+    QTimer *m_cursorTimer;
+    bool m_cursorState;
 };
 
 class EditableLCDNumber : public QLCDNumber

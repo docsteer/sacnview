@@ -311,11 +311,34 @@ QString CommandLine::text()
 
 /************************ CommandLineWidget ******************************/
 
-CommandLineWidget::CommandLineWidget(QWidget *parent) : QTextEdit(parent)
+CommandLineWidget::CommandLineWidget(QWidget *parent) : QTextEdit(parent),
+    m_cursorTimer(new QTimer(this)),
+    m_cursorState(true)
 {
     this->setReadOnly(true);
     setStyleSheet("color: rgb(127, 255, 23);background: black;font: 75 12pt \"Courier\";");
     clear();
+
+    // Cursor blinker
+    connect(m_cursorTimer, SIGNAL(timeout()), this, SLOT(flashCursor()));
+    m_cursorTimer->setInterval(300);
+    m_cursorTimer->setSingleShot(false);
+    m_cursorTimer->start();
+}
+
+void CommandLineWidget::flashCursor()
+{
+    if (this->hasFocus())
+    {
+        auto cursor = (m_cursorState == true) ? "_" : "";
+        this->setText(QString("%1%2")
+                        .arg(m_commandLine.text())
+                        .arg(cursor));
+
+        m_cursorState = !m_cursorState;
+    } else {
+        this->setText(m_commandLine.text());
+    }
 }
 
 void CommandLineWidget::displayText()
