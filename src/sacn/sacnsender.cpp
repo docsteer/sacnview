@@ -522,8 +522,13 @@ void CStreamServer::DEBUG_DESTROY_PRIORITY_UNIVERSE(uint handle)
 void CStreamServer::DestroyUniverse(uint handle)
 {
     QMutexLocker locker(&m_writeMutex);
-    if(handle < m_multiverse.size())
-        SetStreamTerminated(m_multiverse[handle].psend, true);
+    if (m_multiverse[handle].draft)
+    {
+          DoDestruction(handle);
+    } else {
+        if(handle < m_multiverse.size())
+            SetStreamTerminated(m_multiverse[handle].psend, true);
+    }
 }
 
 //Perform the logical destruction and cleanup of a universe and its related
