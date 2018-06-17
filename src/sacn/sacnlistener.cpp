@@ -217,7 +217,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
     }
 
     // Unpacks a uint4 from a known big endian buffer
-    int root_vect = UpackB4((quint8*)pbuf + ROOT_VECTOR_ADDR);
+    int root_vect = UpackBUint32((quint8*)pbuf + ROOT_VECTOR_ADDR);
 
     // Packet for the wrong universe on this socket?
     if(m_universe != universe)
@@ -271,7 +271,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
                 ps->priority_wait.SetInterval(WAIT_PRIORITY);
             }
 
-            if((root_vect == ROOT_VECTOR) && ((options & 0x40) == 0x40))
+            if((root_vect == VECTOR_ROOT_E131_DATA) && ((options & 0x40) == 0x40))
             {
               //by setting this flag to false, 0xdd packets that may come in while the terminated data
               //packets come in won't reset the priority_wait timer
@@ -423,8 +423,8 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
         }
 
         StreamingACNProtocolVersion protocolVersion = sACNProtocolUnknown;
-        if(root_vect==ROOT_VECTOR) protocolVersion = sACNProtocolRelease;
-        if(root_vect==DRAFT_ROOT_VECTOR) protocolVersion = sACNProtocolDraft;
+        if(root_vect==VECTOR_ROOT_E131_DATA) protocolVersion = sACNProtocolRelease;
+        if(root_vect==VECTOR_ROOT_E131_DATA_DRAFT) protocolVersion = sACNProtocolDraft;
         if(ps->protocol_version!=protocolVersion)
         {
             ps->protocol_version = protocolVersion;

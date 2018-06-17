@@ -41,7 +41,7 @@ CIPAddr::CIPAddr(netintid id, IPPort port, IPv4 addr)
 	m_port = port;
 	m_netid = id;
 	memset(m_addr, 0, ADDRBYTES - sizeof(IPv4));
-	PackB4(m_addr + ADDRBYTES - sizeof(IPv4), addr);
+	PackBUint32(m_addr + ADDRBYTES - sizeof(IPv4), addr);
 }
 
 //Construct from a port, v6 address, and network interface
@@ -64,7 +64,7 @@ CIPAddr::CIPAddr(const QHostAddress &address)
     m_port = 0;
     m_netid = 0;
     memset(m_addr, 0, ADDRBYTES - sizeof(IPv4));
-    PackB4(m_addr + ADDRBYTES - sizeof(IPv4), address.toIPv4Address());
+    PackBUint32(m_addr + ADDRBYTES - sizeof(IPv4), address.toIPv4Address());
 }
 
 CIPAddr::~CIPAddr()
@@ -114,12 +114,12 @@ bool CIPAddr::IsV4Address() const
 void CIPAddr::SetV4Address(IPv4 addr)
 {
 	memset(m_addr, 0, ADDRBYTES - sizeof(IPv4));
-	PackB4(m_addr + ADDRBYTES - sizeof(IPv4), addr);
+	PackBUint32(m_addr + ADDRBYTES - sizeof(IPv4), addr);
 }
 
 IPv4 CIPAddr::GetV4Address() const
 {
-	return UpackB4(m_addr + ADDRBYTES - sizeof(IPv4));
+	return UpackBUint32(m_addr + ADDRBYTES - sizeof(IPv4));
 }
 
 void CIPAddr::SetV6Address(const quint8* addr)
@@ -213,14 +213,14 @@ CIPAddr CIPAddr::StringToAddr(const char* ptext)
 		num = sscanf(ptext, "[%x:%x:%x:%x:%x:%x:%x:%x]:%d,%d", &v61, &v62, &v63, &v64, &v65,&v66,&v67,&v68,&port, &netint);
 		if(num >= 8)
 		{
-			PackB2(addrbytes, (quint16)v61);
-			PackB2(addrbytes +2, (quint16)v62);
-			PackB2(addrbytes +4, (quint16)v63);
-			PackB2(addrbytes +6, (quint16)v64);
-			PackB2(addrbytes +8, (quint16)v65);
-			PackB2(addrbytes +10, (quint16)v66);
-			PackB2(addrbytes +12, (quint16)v67);
-			PackB2(addrbytes +14, (quint16)v68);
+			PackBUint16(addrbytes, (quint16)v61);
+			PackBUint16(addrbytes +2, (quint16)v62);
+			PackBUint16(addrbytes +4, (quint16)v63);
+			PackBUint16(addrbytes +6, (quint16)v64);
+			PackBUint16(addrbytes +8, (quint16)v65);
+			PackBUint16(addrbytes +10, (quint16)v66);
+			PackBUint16(addrbytes +12, (quint16)v67);
+			PackBUint16(addrbytes +14, (quint16)v68);
 			addr.SetV6Address(addrbytes);
 			if(num >= 9)
 				addr.SetIPPort((IPPort)port);
@@ -251,24 +251,24 @@ void CIPAddr::AddrIntoString(const CIPAddr& addr, char* ptxt, bool showport, boo
 	{
 		if(showint)
 			sprintf(ptxt, "[%04X:%04X:%04X:%04X:%04X:%04X:%04X:%04X]:%d,%d",
-					UpackB2(addrb), UpackB2(addrb + 2),
-					UpackB2(addrb + 4), UpackB2(addrb + 6),
-					UpackB2(addrb + 8), UpackB2(addrb + 10),
-					UpackB2(addrb + 12), UpackB2(addrb + 14),
+					UpackBUint16(addrb), UpackBUint16(addrb + 2),
+					UpackBUint16(addrb + 4), UpackBUint16(addrb + 6),
+					UpackBUint16(addrb + 8), UpackBUint16(addrb + 10),
+					UpackBUint16(addrb + 12), UpackBUint16(addrb + 14),
 					addr.GetIPPort(), addr.GetNetInterface());
 		else if(showport)
 			sprintf(ptxt, "[%04X:%04X:%04X:%04X:%04X:%04X:%04X:%04X]:%d",
-					UpackB2(addrb), UpackB2(addrb + 2),
-					UpackB2(addrb + 4), UpackB2(addrb + 6),
-					UpackB2(addrb + 8), UpackB2(addrb + 10),
-					UpackB2(addrb + 12), UpackB2(addrb + 14),
+					UpackBUint16(addrb), UpackBUint16(addrb + 2),
+					UpackBUint16(addrb + 4), UpackBUint16(addrb + 6),
+					UpackBUint16(addrb + 8), UpackBUint16(addrb + 10),
+					UpackBUint16(addrb + 12), UpackBUint16(addrb + 14),
 					addr.GetIPPort());
 		else
 			sprintf(ptxt, "[%04X:%04X:%04X:%04X:%04X:%04X:%04X:%04X]",
-					UpackB2(addrb), UpackB2(addrb + 2),
-					UpackB2(addrb + 4), UpackB2(addrb + 6),
-					UpackB2(addrb + 8), UpackB2(addrb + 10),
-					UpackB2(addrb + 12), UpackB2(addrb + 14));
+					UpackBUint16(addrb), UpackBUint16(addrb + 2),
+					UpackBUint16(addrb + 4), UpackBUint16(addrb + 6),
+					UpackBUint16(addrb + 8), UpackBUint16(addrb + 10),
+					UpackBUint16(addrb + 12), UpackBUint16(addrb + 14));
 	}
 }
 

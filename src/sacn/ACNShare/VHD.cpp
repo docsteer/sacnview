@@ -34,7 +34,7 @@ const quint8 VHD_D_FLAG = 0x10;
 quint8* VHD_PackFlags(quint8* pbuffer, bool inheritvec, bool inherithead, bool inheritdata)
 {
 	quint8* p = pbuffer;
-	quint8 newbyte = UpackB1(p) & 0x8f;  //Mask out the VHD bits to keep the length intact
+	quint8 newbyte = UpackBUint8(p) & 0x8f;  //Mask out the VHD bits to keep the length intact
 
 	//Update the byte flags
 	if(!inheritvec)
@@ -43,7 +43,7 @@ quint8* VHD_PackFlags(quint8* pbuffer, bool inheritvec, bool inherithead, bool i
 		newbyte |= VHD_H_FLAG;
 	if(!inheritdata)
 		newbyte |= VHD_D_FLAG;
-	PackB1(p, newbyte);
+	PackBUint8(p, newbyte);
 	return pbuffer;
 }
 
@@ -63,21 +63,21 @@ quint8* VHD_PackLength(quint8* pbuffer, quint32 length, bool inclength)
 			++mylen;
 	}
 
-	quint8 newbyte = UpackB1(p) & 0x70;  //Mask out the length bits to keep the other flags intact
+	quint8 newbyte = UpackBUint8(p) & 0x70;  //Mask out the length bits to keep the other flags intact
 	//Set the length bit if necessary
 	if(mylen > VHD_MAXMINLENGTH)
 		newbyte |= VHD_L_FLAG;
 
 	//pack the upper length bits
 	quint8 packbuf[4];  //we have to manipulate the big endian bits
-	PackB4(packbuf, mylen);
+	PackBUint32(packbuf, mylen);
 	if(mylen <= VHD_MAXMINLENGTH)
 	{
 		//Packbuf[0] and [1] should be empty, and the upper bits of [2] should be empty
 		newbyte |= packbuf[2] & 0x0f;
-		PackB1(p, newbyte);
+		PackBUint8(p, newbyte);
 		++p;
-		PackB1(p, packbuf[3]);
+		PackBUint8(p, packbuf[3]);
 		++p;
 	}
 	else
@@ -85,11 +85,11 @@ quint8* VHD_PackLength(quint8* pbuffer, quint32 length, bool inclength)
 		//Packbuf[0] and the upper bits of [1] are ignored
 		//We give a max length constant, so the user is warned
 		newbyte |= (packbuf[1] & 0x0f);
-		PackB1(p, newbyte);
+		PackBUint8(p, newbyte);
 		++p;
-		PackB1(p, packbuf[2]);
+		PackBUint8(p, packbuf[2]);
 		++p;
-		PackB1(p, packbuf[3]);
+		PackBUint8(p, packbuf[3]);
 		++p;
 	}
 	return p;
@@ -103,17 +103,17 @@ quint8* VHD_PackVector(quint8* pbuffer, quint32 vector, uint vecsize)
 	quint8* p = pbuffer;
 	if(vecsize == 1)
 	{
-		PackB1(pbuffer, static_cast<quint8>(vector));
+		PackBUint8(pbuffer, static_cast<quint8>(vector));
 		++p;
 	}
 	else if(vecsize == 2)
 	{
-		PackB2(pbuffer, static_cast<quint16>(vector));
+		PackBUint16(pbuffer, static_cast<quint16>(vector));
 		p += 2;
 	}
 	else
 	{
-		PackB4(pbuffer, vector);
+		PackBUint32(pbuffer, vector);
 		p += 4;
 	}
 	return p;
@@ -133,7 +133,7 @@ const quint8* VHD_GetFlagLength(const quint8* const pbuffer, bool& inheritvec,
 		upackbuf[1] = 0;
 		upackbuf[2] = *pbuffer & 0x0f;
 		upackbuf[3] = *(pbuffer + 1);
-		length = UpackB4(upackbuf);
+		length = UpackBUint32(upackbuf);
 		return pbuffer + 2;	//flag/len byte and len byte
 	}
 	else
@@ -142,7 +142,7 @@ const quint8* VHD_GetFlagLength(const quint8* const pbuffer, bool& inheritvec,
 		upackbuf[1] = *pbuffer & 0x0f;
 		upackbuf[2] = *(pbuffer + 1);
 		upackbuf[3] = *(pbuffer + 2);
-		length = UpackB4(upackbuf);
+		length = UpackBUint32(upackbuf);
 		return pbuffer + 3; //flag/len byte, and 2 len bytes
 	}
 }
@@ -150,18 +150,18 @@ const quint8* VHD_GetFlagLength(const quint8* const pbuffer, bool& inheritvec,
 
 const quint8* VHD_GetVector1(const quint8* const pbuffer, quint8& vector)
 {
-	vector = UpackB1(pbuffer);
+	vector = UpackBUint8(pbuffer);
 	return pbuffer + 1;
 }
 
 const quint8* VHD_GetVector2(const quint8* const pbuffer, quint16& vector)
 {
-	vector = UpackB2(pbuffer);
+	vector = UpackBUint16(pbuffer);
 	return pbuffer + 2;
 }
 
 const quint8* VHD_GetVector4(const quint8* const pbuffer, quint32& vector)
 {
-	vector = UpackB4(pbuffer);
+	vector = UpackBUint32(pbuffer);
 	return pbuffer + 4;
 }
