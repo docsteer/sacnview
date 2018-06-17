@@ -5,14 +5,17 @@
 
 #ifdef Q_OS_WIN
 static const QString OS_FILE_IDENTIFIER = ".exe";
+static const QString OS_EXE_HANDLER = "";
 #endif
 
 #ifdef Q_OS_MACOS
 static const QString OS_FILE_IDENTIFIER = ".dmg";
+static const QString OS_EXE_HANDLER = "open";
 #endif
 
 #ifdef Q_OS_LINUX
 static const QString OS_FILE_IDENTIFIER = ".deb";
+static const QString OS_EXE_HANDLER = "xdg-open";
 #endif
 
 
@@ -23,7 +26,9 @@ NewVersionDialog::NewVersionDialog(QWidget *parent) : QDialog(parent), ui(new Ui
 {
     ui->setupUi(this);
     ui->stackedWidget->setCurrentIndex(0);
-    setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+    #if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
+        setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+    #endif
     connect(ui->btnLater, SIGNAL(pressed()), this, SLOT(reject()));
     m_manager = new QNetworkAccessManager(this);
 }
@@ -136,12 +141,11 @@ void NewVersionDialog::setNewVersionInfo(const QString &info)
 void NewVersionDialog::on_btnExitInstall_pressed()
 {
     bool ok = false;
+    if (!OS_EXE_HANDLER.isEmpty())
+        ok = QProcess::startDetached(OS_EXE_HANDLER, QStringList(m_storagePath));
+    else
+        ok = QProcess::startDetached(m_storagePath);
 
-#ifdef Q_OS_MAC
-    ok = QProcess::startDetached(QString("open ")+m_storagePath);
-#else
-    ok = QProcess::startDetached(m_storagePath);
-#endif
     if(!ok)
         QMessageBox::warning(this, tr("Couldn't Run Installer"), tr("Unable to run installer - please run %1").arg(m_storagePath));
     qApp->exit();
@@ -187,7 +191,7 @@ void VersionCheck::replyFinished (QNetworkReply *reply)
                         QString("%1 %2 %3").arg(GIT_DATE_DATE).arg(GIT_DATE_MONTH).arg(GIT_DATE_YEAR),
                         QString("dd MMM yyyy")
                         );
-            qDebug() << "[Version check] My version:" << VERSION << myDate.toString();
+            qDebug() << "[Version check] My version:" << VERSION << myDate.toString() <<  "Pre Release - " << PRERELEASE;
 
             QJsonArray jArray = jDoc.array();
             foreach (const QJsonValue &jValue, jArray) {
@@ -198,14 +202,14 @@ void VersionCheck::replyFinished (QNetworkReply *reply)
                             QString("yyyy-MM-dd'T'hh':'mm':'ss'Z'")
                             ).date();
                 QString remote_version = jObj["tag_name"].toString();
-
+                bool remote_is_prerelease = jObj["prerelease"].toBool();
 
 #ifdef DEBUG_VERSIONCHECK
                 objectDate = QDate(2199, 12, 12);
                 remote_version = QString("AwesomeVersion");
 #endif
 
-                qDebug() << "[Version check] Remote version:" << remote_version << objectDate.toString();
+                qDebug() << "[Version check] Remote version:" << remote_version << objectDate.toString() << "Pre Release - " << remote_is_prerelease ;
 
                 // Find the appropriate download URL for the platform
                 QJsonArray assetsArray = jObj["assets"].toArray();
@@ -227,16 +231,18 @@ void VersionCheck::replyFinished (QNetworkReply *reply)
                 if (myDate.isValid() && objectDate.isValid()) {
                     if (VERSION != remote_version) {
                         if (objectDate > myDate) {
-                            // Newer!
-                            qDebug() << "[Version check] Remote version" << jObj["tag_name"].toString() << "is newer!";
+                            if (PRERELEASE || !remote_is_prerelease) { // If prerelease, always upgrade; if not, only upgrade to non-prerelease
+                                // Newer!
+                                qDebug() << "[Version check] Remote version" << jObj["tag_name"].toString() << "is newer!";
 
-                            // Tell the user
-                            NewVersionDialog dlg;
-                            dlg.setNewVersionNumber(jObj["tag_name"].toString());
-                            dlg.setNewVersionInfo(jObj["body"].toString());
-                            dlg.setDownloadUrl(downloadUrl);
-                            dlg.exec();
-                            return;
+                                // Tell the user
+                                NewVersionDialog dlg;
+                                dlg.setNewVersionNumber(jObj["tag_name"].toString());
+                                dlg.setNewVersionInfo(jObj["body"].toString());
+                                dlg.setDownloadUrl(downloadUrl);
+                                dlg.exec();
+                                return;
+                            }
                         }
                     }
                 }

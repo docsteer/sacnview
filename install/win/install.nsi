@@ -14,6 +14,8 @@
 ; See the License for the specific language governing permissions and
 ; limitations under the License.
 
+SetCompressor /SOLID lzma
+
 !define PRODUCT_NAME "sACNView"
 !define PRODUCT_PUBLISHER "Tom Barthel-Steer"
 !define PRODUCT_WEB_SITE "http://www.tomsteer.net"
@@ -39,6 +41,10 @@
 !define MUI_ABORTWARNING
 !define MUI_ICON "..\..\res\icon.ico"
 !define MUI_FINISHPAGE_NOAUTOCLOSE
+
+; MSVC RunTime
+!define MSVC_EXE "vcredist_x86.exe"
+!define MSVC_OPT "/install /passive /norestart" 
 
 Name "${PRODUCT_NAME}"
 OutFile "${PRODUCT_NAME}_${PRODUCT_VERSION}.exe"
@@ -96,6 +102,11 @@ Section "Main Application" sec01
 ;close the opened previously uninstall log macros block.
 	!insertmacro UNINSTALL.LOG_CLOSE_INSTALL
 
+	;Visual Studio runtime requirements
+	DetailPrint "Installing MSVC Redistributables"
+	ExecWait '"$INSTDIR\${MSVC_EXE}" ${MSVC_OPT}'
+	
+	;Shortcuts
 	CreateDirectory '$SMPROGRAMS\${PRODUCT_NAME}'
 	CreateShortcut '$SMPROGRAMS\${PRODUCT_NAME}\sACNView.lnk' '$INSTDIR\sACNView.exe'
 	;create shortcut for uninstaller always use ${UNINST_EXE} instead of uninstall.exe
@@ -103,6 +114,8 @@ Section "Main Application" sec01
 
 	WriteRegStr ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "InstallDir" "$INSTDIR"
 	WriteRegStr ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "DisplayName" "${PRODUCT_NAME}"
+	WriteRegStr ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
+	WriteRegStr ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
 	;Same as create shortcut you need to use ${UNINST_EXE} instead of anything else.
 	WriteRegStr ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "UninstallString" "${UNINST_EXE}"
 
@@ -126,9 +139,16 @@ Function .onInit
         !insertmacro UNINSTALL.LOG_PREPARE_INSTALL
 		
 		;check the Windows version
-		${IfNot} ${AtLeastWin7}
-		MessageBox MB_OK "Windows 7 or above is required to run sACNView"
-		Quit
+		${If} ${TARGET_WINXP} == '1'
+			${IfNot} ${IsWinXP}
+			MessageBox MB_OK "Windows XP is required to run this special build of sACNView"
+			Quit
+			${EndIf}
+		${Else}
+			${IfNot} ${AtLeastWin7}
+			MessageBox MB_OK "Windows 7 or above is required to run sACNView"
+			Quit
+			${EndIf}
 		${EndIf}
 FunctionEnd
 

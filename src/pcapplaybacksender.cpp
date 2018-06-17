@@ -6,6 +6,9 @@
 #ifdef Q_OS_UNIX
 #include <sys/socket.h>
 #endif
+#ifdef Q_OS_MACOS
+#include <netinet/in.h>
+#endif
 #include <pcap.h>
 #include <QDebug>
 #include <QtEndian>

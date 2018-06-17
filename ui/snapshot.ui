@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>296</width>
-    <height>322</height>
+    <width>330</width>
+    <height>358</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,6 +26,11 @@
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
      </attribute>
+     <column>
+      <property name="text">
+       <string/>
+      </property>
+     </column>
      <column>
       <property name="text">
        <string>Universe</string>

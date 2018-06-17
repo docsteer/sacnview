@@ -20,22 +20,21 @@
 
 //VHD.cpp		implementation of VHD functions
 
-#include "deftypes.h"
 #include "defpack.h"
 #include "VHD.h"
 
 //Defines for the VHD flags
-const uint1 VHD_L_FLAG = 0x80;
-const uint1 VHD_V_FLAG = 0x40;
-const uint1 VHD_H_FLAG = 0x20;
-const uint1 VHD_D_FLAG = 0x10;
+const quint8 VHD_L_FLAG = 0x80;
+const quint8 VHD_V_FLAG = 0x40;
+const quint8 VHD_H_FLAG = 0x20;
+const quint8 VHD_D_FLAG = 0x10;
 
 //Given a pointer, packs the VHD inheritance flags.  The pointer returned is the 
 //SAME pointer, since it is assumed that length will be packed next
-uint1* VHD_PackFlags(uint1* pbuffer, bool inheritvec, bool inherithead, bool inheritdata)
+quint8* VHD_PackFlags(quint8* pbuffer, bool inheritvec, bool inherithead, bool inheritdata)
 {
-	uint1* p = pbuffer;
-	uint1 newbyte = UpackB1(p) & 0x8f;  //Mask out the VHD bits to keep the length intact
+	quint8* p = pbuffer;
+	quint8 newbyte = UpackB1(p) & 0x8f;  //Mask out the VHD bits to keep the length intact
 
 	//Update the byte flags
 	if(!inheritvec)
@@ -52,10 +51,10 @@ uint1* VHD_PackFlags(uint1* pbuffer, bool inheritvec, bool inherithead, bool inh
 // to the rest of the buffer.  It is assumed that pbuffer contains at 
 // least 3 bytes.  If inclength is true, the resultant length of the flags and
 // length field is added to the length parameter before packing
-uint1* VHD_PackLength(uint1* pbuffer, uint4 length, bool inclength)
+quint8* VHD_PackLength(quint8* pbuffer, quint32 length, bool inclength)
 {	
-	uint1* p = pbuffer;
-	uint4 mylen = length;
+	quint8* p = pbuffer;
+	quint32 mylen = length;
 	if(inclength)
 	{
 		if(length + 1 > VHD_MAXMINLENGTH)
@@ -64,13 +63,13 @@ uint1* VHD_PackLength(uint1* pbuffer, uint4 length, bool inclength)
 			++mylen;
 	}
 
-	uint1 newbyte = UpackB1(p) & 0x70;  //Mask out the length bits to keep the other flags intact
+	quint8 newbyte = UpackB1(p) & 0x70;  //Mask out the length bits to keep the other flags intact
 	//Set the length bit if necessary
 	if(mylen > VHD_MAXMINLENGTH)
 		newbyte |= VHD_L_FLAG;
 
 	//pack the upper length bits
-	uint1 packbuf[4];  //we have to manipulate the big endian bits
+	quint8 packbuf[4];  //we have to manipulate the big endian bits
 	PackB4(packbuf, mylen);
 	if(mylen <= VHD_MAXMINLENGTH)
 	{
@@ -99,17 +98,17 @@ uint1* VHD_PackLength(uint1* pbuffer, uint4 length, bool inclength)
 //Given a pointer and vector size, packs the vector.  
 // The pointer returned is the pointer to the rest of the buffer.
 //It is assumed that pbuffer contains at least 4 bytes.
-uint1* VHD_PackVector(uint1* pbuffer, uint4 vector, uint vecsize)
+quint8* VHD_PackVector(quint8* pbuffer, quint32 vector, uint vecsize)
 {
-	uint1* p = pbuffer;
+	quint8* p = pbuffer;
 	if(vecsize == 1)
 	{
-		PackB1(pbuffer, static_cast<uint1>(vector));
+		PackB1(pbuffer, static_cast<quint8>(vector));
 		++p;
 	}
 	else if(vecsize == 2)
 	{
-		PackB2(pbuffer, static_cast<uint2>(vector));
+		PackB2(pbuffer, static_cast<quint16>(vector));
 		p += 2;
 	}
 	else
@@ -120,14 +119,14 @@ uint1* VHD_PackVector(uint1* pbuffer, uint4 vector, uint vecsize)
 	return p;
 }
 
-const uint1* VHD_GetFlagLength(const uint1* const pbuffer, bool& inheritvec,
-									 bool& inherithead, bool& inheritdata, uint4& length)
+const quint8* VHD_GetFlagLength(const quint8* const pbuffer, bool& inheritvec,
+									 bool& inherithead, bool& inheritdata, quint32& length)
 {
 	inheritvec = (*pbuffer & VHD_V_FLAG) == 0;
 	inherithead = (*pbuffer & VHD_H_FLAG) == 0;
 	inheritdata = (*pbuffer & VHD_D_FLAG) == 0;
 	bool lensmall = (*pbuffer & VHD_L_FLAG) == 0;
-	uint1 upackbuf[4];  //We need to manipulate bits
+	quint8 upackbuf[4];  //We need to manipulate bits
 	if(lensmall)
 	{
 		upackbuf[0] = 0;
@@ -149,19 +148,19 @@ const uint1* VHD_GetFlagLength(const uint1* const pbuffer, bool& inheritvec,
 }
 
 
-const uint1* VHD_GetVector1(const uint1* const pbuffer, uint1& vector)
+const quint8* VHD_GetVector1(const quint8* const pbuffer, quint8& vector)
 {
 	vector = UpackB1(pbuffer);
 	return pbuffer + 1;
 }
 
-const uint1* VHD_GetVector2(const uint1* const pbuffer, uint2& vector)
+const quint8* VHD_GetVector2(const quint8* const pbuffer, quint16& vector)
 {
 	vector = UpackB2(pbuffer);
 	return pbuffer + 2;
 }
 
-const uint1* VHD_GetVector4(const uint1* const pbuffer, uint4& vector)
+const quint8* VHD_GetVector4(const quint8* const pbuffer, quint32& vector)
 {
 	vector = UpackB4(pbuffer);
 	return pbuffer + 4;

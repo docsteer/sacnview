@@ -185,7 +185,7 @@ void sACNEffectEngine::renderText(QString text)
         delete m_image;
     m_imageWidth = 8 * text.length();
     int img_size = 16 * m_imageWidth;
-    m_image = new uint1[img_size];
+    m_image = new quint8[img_size];
 
     memset(m_image, 0, img_size);
     renderText(text, 4, true);
@@ -198,7 +198,7 @@ void sACNEffectEngine::renderText(QString top, QString bottom)
         delete m_image;
     m_imageWidth = 32;
     int img_size = 16 * m_imageWidth;
-    m_image = new uint1[img_size];
+    m_image = new quint8[img_size];
     memset(m_image, 0, img_size);
 
     renderText(top, 1, false);
@@ -381,7 +381,10 @@ void sACNEffectEngine::setManualLevel(int level)
 {
     m_manualLevel = level;
 
-    QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, m_start),
-                              Q_ARG(quint16, m_end),
-                              Q_ARG(quint8, m_manualLevel));
+    if (m_mode == FxManual) {
+        QMetaObject::invokeMethod(m_sender, "setLevelRange",
+                                      Q_ARG(quint16, m_start),
+                                      Q_ARG(quint16, m_end),
+                                      Q_ARG(quint8, m_manualLevel));
+    }
 }

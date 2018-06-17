@@ -18,7 +18,6 @@
 #include <QNetworkInterface>
 #include "streamingacn.h"
 #include "streamcommon.h"
-#include "deftypes.h"
 #include "ipaddr.h"
 #include "preferences.h"
 #include "sacnsocket.h"
@@ -36,9 +35,9 @@ sACNUniverseInfo::~sACNUniverseInfo()
     sourcesByCid.clear();
 }
 
-sACNBasicSourceInfo::sACNBasicSourceInfo(sACNUniverseInfo *p)
+sACNBasicSourceInfo::sACNBasicSourceInfo(sACNUniverseInfo *p):
+    universe(p->universe)
 {
-    parent = p;
 }
 
 
@@ -84,6 +83,7 @@ void sACNUniverseListModel::setStartUniverse(int start)
             modelindex_locker.relock();
         }
 
+        connect(m_listeners.back().data(), SIGNAL(listenerStarted(int)), this, SLOT(listenerStarted(int)));
         connect(m_listeners.back().data(), SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
         connect(m_listeners.back().data(), SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
         connect(m_listeners.back().data(), SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
@@ -97,8 +97,9 @@ int sACNUniverseListModel::rowCount(const QModelIndex &parent) const
 {
     if(parent.isValid() && parent.internalPointer()==NULL)
     {
+        if (parent.row() >= m_universes.count() || parent.row() < 0)
+            return 0;
         return m_universes[parent.row()]->sources.count();
-
     }
     if(!parent.isValid())
     {
@@ -124,7 +125,22 @@ QVariant sACNUniverseListModel::data(const QModelIndex &index, int role) const
             return tr("%1 (%2)").arg(info->name).arg(info->address.toString());
         }
         else
-            return QVariant(tr("Universe %1").arg(index.row() + m_start));
+        {
+            auto universeIdx = index.row();
+            int universe = universeIdx + m_start;
+            auto listener = sACNManager::getInstance()->getListener(universe);
+
+            QString displayString = tr("Universe %1").arg(universe);
+
+            // Universe bind issues
+            bool bindOk = (listener->getBindStatus().multicast != listener->BIND_FAILED);
+            bindOk &= (listener->getBindStatus().unicast != listener->BIND_FAILED);
+
+            if (bindOk)
+                return QVariant(displayString);
+            else
+                return QVariant(displayString.append(QString(tr(" -- Interface Error"))));
+        }
     }
     return QVariant();
 }
@@ -137,6 +153,8 @@ QModelIndex sACNUniverseListModel::index(int row, int column, const QModelIndex 
         return createIndex(row, column);
     if(parent.isValid() && !parent.parent().isValid())
     {
+        if (parent.row() >= m_universes.count() || parent.row() < 0)
+            return QModelIndex();
         if(m_universes[parent.row()]->sources.count() >= row)
         {
             return createIndex(row, column, m_universes[parent.row()]->sources.at(row));
@@ -154,13 +172,21 @@ QModelIndex sACNUniverseListModel::parent(const QModelIndex &index) const
     sACNBasicSourceInfo *i = static_cast<sACNBasicSourceInfo *>(index.internalPointer());
     if(i && rwlock_ModelIndex.tryLockForRead())
     {
-        int parentRow = i->parent->universe - m_start;
+        int parentRow = i->universe - m_start;
         QModelIndex ret = createIndex(parentRow, 0);
+
         rwlock_ModelIndex.unlock();
         return ret;
     }
 
     return QModelIndex();
+}
+
+void sACNUniverseListModel::listenerStarted(int universe)
+{
+    Q_UNUSED(universe);
+    beginResetModel();
+    endResetModel();
 }
 
 void sACNUniverseListModel::sourceOnline(sACNSource *source)
@@ -186,7 +212,7 @@ void sACNUniverseListModel::sourceOnline(sACNSource *source)
     info->name = source->name == NULL ? tr("????") : source->name;
 
     // We are adding the source for this universe
-    QModelIndex parent = index(m_start - m_universes[univIndex]->universe, 0);
+    QModelIndex parent = index(m_start - info->universe, 0);
     int firstRow = m_universes[univIndex]->sources.count()+1;
     int lastRow = firstRow;
     beginInsertRows(parent, firstRow, lastRow);
@@ -275,7 +301,7 @@ int sACNUniverseListModel::indexToUniverse(const QModelIndex &index)
     sACNBasicSourceInfo *i = static_cast<sACNBasicSourceInfo *>(index.internalPointer());
     if(i)
     {
-        return i->parent->universe;
+        return i->universe;
     }
 
     return 0;

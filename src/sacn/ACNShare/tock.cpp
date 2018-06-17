@@ -23,7 +23,6 @@
    Implementation of the platforms-specific part of the tock library.
 */
 
-#include "deftypes.h"
 #include "tock.h"
 #include <QElapsedTimer>
 

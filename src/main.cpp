@@ -24,13 +24,22 @@
 #include <QProcess>
 #include <QMessageBox>
 #include <QStatusBar>
+#include <QStyleFactory>
+#include <QStandardPaths>
 #include "sacnsender.h"
 #include "versioncheck.h"
 #include "firewallcheck.h"
+#include "theme/darkstyle.h"
+#ifdef USE_BREAKPAD
+    #include "crash_handler.h"
+    #include "crash_test.h"
+#endif
 
 int main(int argc, char *argv[])
 {
+    #ifndef Q_OS_LINUX
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
+    #endif
     QApplication a(argc, argv);
 
     a.setApplicationName(APP_NAME);
@@ -38,6 +47,42 @@ int main(int argc, char *argv[])
     a.setOrganizationName("sACNView");
     a.setOrganizationDomain("tomsteer.net");
 
+#ifdef USE_BREAKPAD
+    // Breakpad Crash Handler
+    Breakpad::CrashHandler::instance()->Init(QStandardPaths::writableLocation(QStandardPaths::TempLocation));
+
+    // Breakpad Crash Tester
+    if (qApp->arguments().contains("CRASHTEST", Qt::CaseInsensitive)) {
+        CrashTest *crashwindow = new CrashTest;
+        crashwindow->show();
+    }
+#endif
+
+    // Windows XP Support
+    #ifdef Q_OS_WIN
+        #if (TARGET_WINXP)
+            #pragma message("This binary is intended for Windows XP ONLY")
+            QSysInfo systemInfo;
+            QMessageBox msgBox;
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            if (
+                (systemInfo.kernelVersion().startsWith(QString("5.1"))) // Windows XP 32bit
+                || (systemInfo.kernelVersion().startsWith(QString("5.2")))) // Windows XP 64bit
+            {
+                msgBox.setIcon(QMessageBox::Information);
+                msgBox.setText(QObject::tr("This binary is intended for Windows XP only\r\nThere are major issues mixed IPv4 and IPv6 enviroments\r\n\r\nPlease ensure IPv6 is disabled"));
+                msgBox.exec();
+            } else {
+                msgBox.setIcon(QMessageBox::Critical);
+                msgBox.setText(QObject::tr("This binary is intended for Windows XP only"));
+                msgBox.exec();
+                a.exit();
+                return -1;
+            }
+        #else
+            #pragma message("This binary is intended for Windows >= 7")
+        #endif
+    #endif
 
     // Check web (if avaliable) for new version
     VersionCheck version;
@@ -56,6 +101,14 @@ int main(int argc, char *argv[])
 
         newInterface = true;
     }
+
+
+    a.setStyle(QStyleFactory::create("Fusion"));
+    if(Preferences::getInstance()->GetTheme() == Preferences::THEME_DARK)
+    {
+        a.setStyle(new DarkStyle);
+    }
+
 
     // Changed to heap rather than stack,
     // so that we can destroy before cleaning up the singletons

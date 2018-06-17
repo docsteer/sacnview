@@ -122,6 +122,16 @@
           </layout>
          </item>
          <item>
+          <widget class="QPushButton" name="btnShowPriority">
+           <property name="text">
+            <string>Show Channel Priorities</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="btnStartFlickerFinder">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -324,7 +334,7 @@
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">background: blue;</string>
+       <string notr="true"/>
       </property>
      </widget>
     </widget>

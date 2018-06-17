@@ -14,6 +14,13 @@
 ## limitations under the License.
 
 QT       += core gui network multimedia
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
+TARGET = sACNView
+TEMPLATE = app
+DESCRIPTION = $$shell_quote("A tool for sending and receiving the Streaming ACN control protocol")
+URL = $$shell_quote("https://docsteer.github.io/sacnview/")
+LICENSE = $$shell_quote("Apache 2.0")
 
 macx {
     QMAKE_MAC_SDK = macosx10.12
@@ -24,51 +31,56 @@ macx {
     QMAKE_CXXFLAGS += -std=gnu++0x
 }
 
-## External Libs
+# Version defines
 
-# Firewall Checker
-win32 {
-    LIBS += -lole32 -loleaut32
-}
-
-#PCap/WinPcap
-win32 {
-    PCAP_PATH = $${_PRO_FILE_PWD_}/libs/WinPcap-413-173-b4
-    contains(QT_ARCH, i386) {
-        LIBS += -L$${PCAP_PATH}/lib
-    } else {
-        LIBS += -L$${PCAP_PATH}/lib/x64
-    }
-    LIBS += -lwpcap -lPacket
-    INCLUDEPATH += $${PCAP_PATH}/Include
-}
-!win32 {
-    LIBS += -lpcap
-}
-
-## Main ##
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
-TARGET = sACNView
-TEMPLATE = app
-
-INCLUDEPATH += src src/sacn src/sacn/ACNShare
-
-GIT_VERSION = $$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --always --tags)
-GIT_DATE_DAY = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%a\" --format=\"%cd\" $$GIT_VERSION)
-GIT_DATE_DATE = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%d\" --format=\"%cd\" $$GIT_VERSION)
-GIT_DATE_MONTH = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%b\" --format=\"%cd\" $$GIT_VERSION)
-GIT_DATE_YEAR = $$system(git --git-dir $$PWD/.git --work-tree $$PWD show -s --date=format:\"%Y\" --format=\"%cd\" $$GIT_VERSION)
-GIT_TAG = $$system(git --git-dir $$PWD/.git --work-tree $$PWD describe --abbrev=0 --always --tags)
-GIT_SHA1 = $$system(git --git-dir $$PWD/.git --work-tree $$PWD rev-parse --short HEAD)
+GIT_COMMAND = git --git-dir $$shell_quote($$PWD/.git) --work-tree $$shell_quote($$PWD)
+GIT_VERSION = $$system($$GIT_COMMAND describe --always --tags)
+GIT_DATE_DAY = $$system($$GIT_COMMAND show -s --date=format:\"%a\" --format=\"%cd\" $$GIT_VERSION)
+GIT_DATE_DATE = $$system($$GIT_COMMAND show -s --date=format:\"%d\" --format=\"%cd\" $$GIT_VERSION)
+GIT_DATE_MONTH = $$system($$GIT_COMMAND show -s --date=format:\"%b\" --format=\"%cd\" $$GIT_VERSION)
+GIT_DATE_YEAR = $$system($$GIT_COMMAND show -s --date=format:\"%Y\" --format=\"%cd\" $$GIT_VERSION)
+GIT_TAG = $$system($$GIT_COMMAND describe --abbrev=0 --always --tags)
+GIT_SHA1 = $$system($$GIT_COMMAND rev-parse --short HEAD)
 
 DEFINES += GIT_CURRENT_SHA1=\\\"$$GIT_VERSION\\\"
 DEFINES += GIT_DATE_DAY=\\\"$$GIT_DATE_DAY\\\"
 DEFINES += GIT_DATE_DATE=\\\"$$GIT_DATE_DATE\\\"
 DEFINES += GIT_DATE_MONTH=\\\"$$GIT_DATE_MONTH\\\"
 DEFINES += GIT_DATE_YEAR=\\\"$$GIT_DATE_YEAR\\\"
-DEFINES += VERSION=\\\"$$GIT_TAG\\\"
+
+# Debug symbols
+win32 {
+    QMAKE_CXXFLAGS += /Zi
+    QMAKE_LFLAGS += /INCREMENTAL:NO /Debug
+}
+unix {
+    QMAKE_CXXFLAGS += -g
+}
+
+# Windows XP Special Build?
+win32 {
+    lessThan(QT_MAJOR_VERSION, 6):lessThan(QT_MINOR_VERSION, 7) {
+        QMAKE_LFLAGS_WINDOWS = /SUBSYSTEM:WINDOWS,5.01
+        DEFINES += _ATL_XP_TARGETING
+        DEFINES += VERSION=\\\"$$GIT_TAG-WindowsXP\\\"
+        TARGET_WINXP = 1
+        DEFINES += TARGET_WINXP
+    } else {
+        DEFINES += VERSION=\\\"$$GIT_TAG\\\"
+        TARGET_WINXP = 0
+    }
+} else {
+    DEFINES += VERSION=\\\"$$GIT_TAG\\\"
+}
+
+## External Libs
+include(libs.pri)
+
+## Project includes
+
+INCLUDEPATH += src src/sacn src/sacn/ACNShare
+
+## Sources
 
 SOURCES += src/main.cpp\
     src/mdimainwindow.cpp \
@@ -105,15 +117,13 @@ SOURCES += src/main.cpp\
     src/sacn/firewallcheck.cpp \
     src/bigdisplay.cpp \
     src/addmultidialog.cpp \
-    src/pcapplayback.cpp \
-    src/pcapplaybacksender.cpp
+    src/theme/darkstyle.cpp
 
-HEADERS  += src/mdimainwindow.h \
+HEADERS += src/mdimainwindow.h \
     src/scopewindow.h \
     src/universeview.h \
     src/sacn/ACNShare/CID.h \
     src/sacn/ACNShare/defpack.h \
-    src/sacn/ACNShare/deftypes.h \
     src/sacn/ACNShare/ipaddr.h \
     src/sacn/ACNShare/tock.h \
     src/sacn/ACNShare/VHD.h \
@@ -146,11 +156,11 @@ HEADERS  += src/mdimainwindow.h \
     src/sacn/firewallcheck.h \
     src/bigdisplay.h \ 
     src/addmultidialog.h \
-    src/pcapplayback.h \
-    src/pcapplaybacksender.h \
-    src/ethernetstrut.h
+    src/ethernetstrut.h \
+    src/theme/darkstyle.h \
+    src/xpwarning.h
 
-FORMS    += ui/mdimainwindow.ui \
+FORMS += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
     ui/universeview.ui \
     ui/nicselectdialog.ui \
@@ -164,87 +174,13 @@ FORMS    += ui/mdimainwindow.ui \
     ui/logwindow.ui \
     ui/bigdisplay.ui \
     ui/newversiondialog.ui \
-    ui/pcapplayback.ui \
     ui/addmultidialog.ui
 
 RESOURCES += \
-    res/resources.qrc
+    res/resources.qrc \
+    src/theme/darkstyle.qrc
 
 RC_FILE = res/sacnview.rc
 
-## Deploy ###
-
-isEmpty(TARGET_EXT) {
-    win32 {
-        TARGET_CUSTOM_EXT = .exe
-    }
-    macx {
-        TARGET_CUSTOM_EXT = .app
-    }
-} else {
-    TARGET_CUSTOM_EXT = $${TARGET_EXT}
-}
-
-win32 {
-    DEPLOY_COMMAND = windeployqt
-    DEPLOY_DIR = $$system_path($${_PRO_FILE_PWD_}/install/deploy)
-    DEPLOY_TARGET = $$system_path($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT})
-    DEPLOY_OPT = --dir $${DEPLOY_DIR}
-    DEPLOY_CLEANUP = $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR}
-    DEPLOY_INSTALLER = makensis /DPRODUCT_VERSION="$$GIT_VERSION" $$system_path($${_PRO_FILE_PWD_}/install/win/install.nsi)
-
-    # WinPCap
-    contains(QT_ARCH, i386) {
-        PRE_DEPLOY_COMMAND = $$QMAKE_COPY $$system_path($${PCAP_PATH}/Bin/*) $${DEPLOY_DIR}
-    } else {
-        PRE_DEPLOY_COMMAND = $$QMAKE_COPY $$system_path($${PCAP_PATH}/Bin/x64/*) $${DEPLOY_DIR}
-    }
-}
-macx {
-    DEPLOY_COMMAND = macdeployqt
-    DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/mac
-    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/ACNView.dmg
-    DEPLOY_TARGET = $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
-    DEPLOY_CLEANUP = $${_PRO_FILE_PWD_}/install/mac/create-dmg --volname "sACNView_Installer" --volicon "$${_PRO_FILE_PWD_}/res/icon.icns"
-    DEPLOY_CLEANUP += --background "$${_PRO_FILE_PWD_}/res/mac_install_bg.png" --window-pos 200 120 --window-size 800 400 --icon-size 100 --icon sACNView.app 200 190 --hide-extension sACNView.app --app-drop-link 600 185
-    DEPLOY_CLEANUP += $${_PRO_FILE_PWD_}/install/mac/sACNView.dmg $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
-}
-linux {
-    DEB_SANITIZED_VERSION = $$system(echo $$GIT_VERSION | sed 's/[a-zA-Z]//')
-
-    DEPLOY_DIR = $${_PRO_FILE_PWD_}/install/linux
-    DEPLOY_TARGET = $${DEPLOY_DIR}/AppDir/$${TARGET}
-
-    DEPLOY_COMMAND = $${OUT_PWD}/linuxdeployqt
-    DEPLOY_OPT = -appimage -verbose=2
-
-    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/*.AppImage
-    PRE_DEPLOY_COMMAND += && $${QMAKE_DEL_FILE} $${DEPLOY_TARGET}
-    PRE_DEPLOY_COMMAND += && wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" -O $${DEPLOY_COMMAND}
-    PRE_DEPLOY_COMMAND += && chmod a+x $${DEPLOY_COMMAND}
-    PRE_DEPLOY_COMMAND += && unset LD_LIBRARY_PATH
-    PRE_DEPLOY_COMMAND += && $$QMAKE_COPY $${OUT_PWD}/$${TARGET} $${DEPLOY_TARGET}
-    PRE_DEPLOY_COMMAND += && $$QMAKE_COPY $${DEPLOY_DIR}/usr/share/applications/sacnview.desktop $${DEPLOY_DIR}/AppDir/sacnview.desktop
-    PRE_DEPLOY_COMMAND += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/Logo.png $${DEPLOY_DIR}/AppDir/sacnview.png
-
-    DEPLOY_CLEANUP = $$QMAKE_COPY $${OUT_PWD}/$${TARGET}*.AppImage $${DEPLOY_DIR}/$${TARGET}_$${DEB_SANITIZED_VERSION}.AppImage
-
-    DEPLOY_INSTALLER = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/*.deb
-    DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/LICENSE $${DEPLOY_DIR}/COPYRIGHT
-    DEPLOY_INSTALLER += && $$QMAKE_COPY $${DEPLOY_DIR}/$${TARGET}_$${DEB_SANITIZED_VERSION}.AppImage $${DEPLOY_DIR}/opt/sacnview/sacnview.AppImage
-    DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/icon_16.png $${DEPLOY_DIR}/usr/share/icons/hicolor/16x16/apps/sacnview.png
-    DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/icon_24.png $${DEPLOY_DIR}/usr/share/icons/hicolor/24x24/apps/sacnview.png
-    DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/icon_32.png $${DEPLOY_DIR}/usr/share/icons/hicolor/32x32/apps/sacnview.png
-    DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/icon_48.png $${DEPLOY_DIR}/usr/share/icons/hicolor/48x48/apps/sacnview.png
-    DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/icon_256.png $${DEPLOY_DIR}/usr/share/icons/hicolor/256x256/apps/sacnview.png
-    DEPLOY_INSTALLER += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/Logo.png $${DEPLOY_DIR}/usr/share/icons/hicolor/scalable/apps/sacnview.png
-    DEPLOY_INSTALLER += && cd $${DEPLOY_DIR}
-    DEPLOY_INSTALLER += && fpm -s dir -t deb --deb-meta-file $${DEPLOY_DIR}/COPYRIGHT -n $${TARGET} -v $${DEB_SANITIZED_VERSION} opt/ usr/
-}
-
-CONFIG( release , debug | release) {
-    QMAKE_POST_LINK += $${PRE_DEPLOY_COMMAND} $$escape_expand(\\n\\t)
-    QMAKE_POST_LINK += $${DEPLOY_COMMAND} $${DEPLOY_TARGET} $${DEPLOY_OPT}
-    QMAKE_POST_LINK += $$escape_expand(\\n\\t) $${DEPLOY_CLEANUP}
-    QMAKE_POST_LINK += $$escape_expand(\\n\\t) $${DEPLOY_INSTALLER}
-}
+## Deploy
+include(deploy.pri)
