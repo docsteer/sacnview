@@ -521,13 +521,15 @@ void CStreamServer::DEBUG_DESTROY_PRIORITY_UNIVERSE(uint handle)
 //Not Thread Safe -- Don't call when Tick is called
 void CStreamServer::DestroyUniverse(uint handle)
 {
-    QMutexLocker locker(&m_writeMutex);
-    if (m_multiverse[handle].draft)
+    if(handle < m_multiverse.size())
     {
-          DoDestruction(handle);
-    } else {
-        if(handle < m_multiverse.size())
+        QMutexLocker locker(&m_writeMutex);
+        if (m_multiverse[handle].draft)
+        {
+            DoDestruction(handle);
+        } else {
             SetStreamTerminated(m_multiverse[handle].psend, true);
+        }
     }
 }
 
@@ -535,11 +537,11 @@ void CStreamServer::DestroyUniverse(uint handle)
 //objects.
 void CStreamServer::DoDestruction(uint handle)
 {
-  if(m_multiverse[handle].psend)
+    if((handle < m_multiverse.size()) && m_multiverse[handle].psend)
     {
-      m_multiverse[handle].num_terminates = 0;
-      delete [] m_multiverse[handle].psend;
-      m_multiverse[handle].psend = NULL;
+        m_multiverse[handle].num_terminates = 0;
+        delete [] m_multiverse[handle].psend;
+        m_multiverse[handle].psend = NULL;
     }
 }
 
