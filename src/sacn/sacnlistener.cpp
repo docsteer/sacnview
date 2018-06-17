@@ -271,7 +271,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
                 ps->priority_wait.SetInterval(WAIT_PRIORITY);
             }
 
-            if((root_vect == VECTOR_ROOT_E131_DATA) && ((options & 0x40) == 0x40))
+            if((root_vect == VECTOR_ROOT_E131_DATA) && ((options & STREAM_TERMINATED_OPTION) == STREAM_TERMINATED_OPTION))
             {
               //by setting this flag to false, 0xdd packets that may come in while the terminated data
               //packets come in won't reset the priority_wait timer
