@@ -11,44 +11,98 @@
     <![endif]-->
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <title>{{ site.title | default: site.github.repository_name }}</title>
-	<!-- Script updates the links to the latest release -->	
+	<!-- Script updates the links to the latest release -->
 	<script>
-	$.getJSON('https://api.github.com/repos/docsteer/sacnview/releases', function (data) {
+    
+    <!-- Polyfill for older ECMAScript -->
+    if (!String.prototype.endsWith) {
+        String.prototype.endsWith = function(search, this_len) {
+            if (this_len === undefined || this_len > this.length) {
+                this_len = this.length;
+            }
+            return this.substring(this_len - search.length, this_len) === search;
+        };
+    }
+    
+    
+	$.getJSON('https://api.github.com/repos/docsteer/sacnview/releases/latest', function (data) {
 
-		$.each(data[0].assets, function(index, obj){
+    document.getElementById("name_release").innerHTML = data.name;
+
+		$.each(data.assets, function(index, obj){
 			var download_url = obj.browser_download_url;
-			if( download_url.endsWith('exe'))
+      			if( download_url.endsWith('-WindowsXP.exe'))
+          			$('#download-winxp').attr('href', download_url);
+			else if( download_url.endsWith('exe'))
 				$('#download-win').attr('href', download_url);
-			if( download_url.endsWith('dmg'))
+			else if( download_url.endsWith('dmg'))
 				$('#download-mac').attr('href', download_url);
-			if( download_url.endsWith('deb'))
+			else if( download_url.endsWith('deb'))
 				$('#download-linux').attr('href', download_url);
 		});
 	});
-	</script>
+  
+  
+  
+  $.getJSON('https://api.github.com/repos/docsteer/sacnview/releases', function (data) {
+
+    document.getElementById("name_prerelease").innerHTML = data[0].name;
+
+    $.each(data[0].assets, function(index, obj){
+
+      var download_url = obj.browser_download_url;
+      if( download_url.endsWith('-WindowsXP.exe'))
+          $('#pre-download-winxp').attr('href', download_url);
+      else if( download_url.endsWith('.exe'))
+          $('#pre-download-win').attr('href', download_url);
+      else if( download_url.endsWith('dmg'))
+        $('#pre-download-mac').attr('href', download_url);
+      else if( download_url.endsWith('deb'))
+        $('#pre-download-linux').attr('href', download_url);
+    });
+
+    if (data[0].prerelease == true) {
+      document.getElementById("prerelease-download").style.display = "inline";
+    }
+  });
+  </script>
 
   </head>
 
   <body>
     <div id="container">
-	
-	<img src="./assets/images/icon.png" style="display:block; margin:auto; padding:10px" />
-    
-	<div class="inner">
 
+	<img src="./assets/images/icon.png" style="display:block; margin:auto; padding:10px" />
+
+	<div class="inner">
         <header>
           <h1>{{ site.title | default: site.github.repository_name }}</h1>
           <h2>{{ site.description | default: site.github.project_tagline }}</h2>
         </header>
         <section id="downloads" class="clearfix">
           {% if site.show_downloads %}
+          <h1 id="name_release"></h1>
           <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-win" class="button"><span>Windows</span></a>
+          <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-winxp" class="button"><span>Win XP</span></a>
           <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-mac" class="button"><span>macOS</span></a>
           <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-linux" class="button"><span>Linux</span></a>
+        </section>
+        <section id="pre-downloads" class="clearfix">
+          <div id="prerelease-download" style="display:none">
+            <h1 id="name_prerelease"></h1>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-win" class="button"><span>Windows</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-winxp" class="button"><span>Win XP</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-mac" class="button"><span>macOS</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-linux" class="button"><span>Linux</span></a>
+          </div>
+        </section>
           {% endif %}
+        <section id="source" class="clearfix">
 	  {% if site.github.is_project_page %}
+          <br><h2 id="name_prerelease">Source</h2>
           <a href="{{ site.github.repository_url }}" id="view-on-github" class="button"><span>Source</span></a>
 	  {% else %}
+          <br><h2 id="name_prerelease">Source</h2>
           <a href="{{ site.github.owner_url }}" id="view-on-github" class="button"><span>Source</span></a>
 	  {% endif %}
         </section>

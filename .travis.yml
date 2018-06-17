@@ -1,28 +1,48 @@
 language: cpp
-compiler: gcc
-sudo: require
-dist: trusty
-os: linux
+matrix:
+  include:
+      - os: linux
+        dist: trusty
+        sudo: required
+        compiler: gcc
+        addons:
+          apt:
+            sources:
+              - sourceline: 'ppa:beineri/opt-qt592-trusty'
+            packages:
+              # FPM dependencies
+              - build-essential
+              - ruby
+              - ruby-dev
+              # QT
+              - qt59base
+              - qt59multimedia
 
-before_install:
-    - sudo add-apt-repository ppa:beineri/opt-qt59-trusty -y
-    - sudo apt-get update -qq
+        install:
+            # Install FPM
+            - cd install/linux/ && cp _FPM_Makefile Makefile && make package && sudo dpkg -i fpm*.deb && fpm --version && cd ../../
+            # QT
+            - source /opt/qt*/bin/qt*-env.sh
+        script:
+            - qmake
+            - make -j$(nproc)
+        after_success:
+          - FILE=$(readlink -f install/linux/sACNView_*AppImage)
+          - curl --upload-file $FILE https://transfer.sh/$(basename $FILE)
+          - FILE=$(readlink -f install/linux/sacnview_*.deb)
+          - curl --upload-file $FILE https://transfer.sh/$(basename $FILE)
 
-install: 
-# Install FPM
-    - sudo apt-get -y install build-essential ruby ruby-dev
-    - cd install/linux/ && cp _FPM_Makefile Makefile && make package && sudo dpkg -i fpm*.deb && fpm --version && cd ../../
-# QT
-    - sudo apt-get -y install qt59base qt59multimedia
-    - source /opt/qt*/bin/qt*-env.sh
-
-script:
-  - qmake
-  - make -j$(nproc) || true # Errors out but at that point the AppImage has already been generated
-  # Interestingly, the whole linuxdeployqt handling is done in the .pro file
-
-after_success:
-  - FILE=$(readlink -f install/linux/sACNView_*AppImage)
-  - curl --upload-file $FILE https://transfer.sh/$(basename $FILE)
-  - FILE=$(readlink -f install/linux/sacnview_*.deb)
-  - curl --upload-file $FILE https://transfer.sh/$(basename $FILE)
+      - os: osx
+        osx_image: xcode8.3
+        before_install:
+          - brew update
+        install:
+          # QT
+          - brew install qt
+          - brew link --force qt
+        script:
+          - qmake
+          - make -j4
+        after_success:
+          - FILE=$(echo `pwd`/`ls install/mac/sACNView*.dmg`)
+          - curl --upload-file $FILE https://transfer.sh/$(basename $FILE)

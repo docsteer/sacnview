@@ -3,6 +3,11 @@
 
 @import "{{ site.theme }}";
 
+/* Make the inner wide enough for 4 buttons */
+.inner {
+    width: 640px;
+}
+
 a.button {
   width: 126px;
 }
@@ -10,10 +15,25 @@ a.button {
 #download-win span {
   background: transparent url(../images/win-icon.png) 12px 50% no-repeat;
 }
+#download-winxp span {
+  background: transparent url(../images/winxp-icon.png) 12px 50% no-repeat;
+}
 #download-mac span {
   background: transparent url(../images/mac-icon.png) 12px 50% no-repeat;
 }
-
 #download-linux span {
+  background: transparent url(../images/linux-icon.png) 12px 50% no-repeat;
+}
+
+#pre-download-win span {
+  background: transparent url(../images/win-icon.png) 12px 50% no-repeat;
+}
+#pre-download-winxp span {
+  background: transparent url(../images/winxp-icon.png) 12px 50% no-repeat;
+}
+#pre-download-mac span {
+  background: transparent url(../images/mac-icon.png) 12px 50% no-repeat;
+}
+#pre-download-linux span {
   background: transparent url(../images/linux-icon.png) 12px 50% no-repeat;
 }

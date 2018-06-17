@@ -27,7 +27,7 @@
 #include <QToolButton>
 #include <QMessageBox>
 
-transmitwindow::transmitwindow(QWidget *parent) :
+transmitwindow::transmitwindow(int universe, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::transmitwindow), m_sender(0)
 {
@@ -41,6 +41,7 @@ transmitwindow::transmitwindow(QWidget *parent) :
 
     ui->sbUniverse->setMinimum(1);
     ui->sbUniverse->setMaximum(MAX_SACN_UNIVERSE);
+    ui->sbUniverse->setValue(universe);
     ui->sbUniverse->setWrapping(true);
 
     ui->sbPriority->setMinimum(MIN_SACN_PRIORITY);
@@ -50,9 +51,11 @@ transmitwindow::transmitwindow(QWidget *parent) :
 
     ui->sbFadeRangeEnd->setMinimum(MIN_DMX_ADDRESS);
     ui->sbFadeRangeEnd->setMaximum(MAX_DMX_ADDRESS);
+    ui->sbFadeRangeEnd->setValue(MAX_DMX_ADDRESS);
     ui->sbFadeRangeEnd->setWrapping(true);
     ui->sbFadeRangeStart->setMinimum(MIN_DMX_ADDRESS);
     ui->sbFadeRangeStart->setMaximum(MAX_DMX_ADDRESS);
+    ui->sbFadeRangeStart->setValue(MIN_DMX_ADDRESS);
     ui->sbFadeRangeStart->setWrapping(true);
 
     ui->leSourceName->setText(Preferences::getInstance()->GetDefaultTransmitName());
@@ -342,6 +345,7 @@ void transmitwindow::on_btnStart_pressed()
             m_fxEngine = new sACNEffectEngine();
             connect(m_fxEngine, SIGNAL(fxLevelChange(int)), ui->slFadeLevel, SLOT(setValue(int)));
             connect(m_fxEngine, SIGNAL(textImageChanged(QPixmap)), ui->lblTextImage, SLOT(setPixmap(QPixmap)));
+            m_fxEngine->setRange(ui->sbFadeRangeStart->value()-1, ui->sbFadeRangeEnd->value()-1);
         }
         m_fxEngine->setSender(m_sender);
     }

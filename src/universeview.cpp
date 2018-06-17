@@ -48,7 +48,7 @@ QString protocolVerToString(int value)
     return QString("Unknown");
 }
 
-UniverseView::UniverseView(QWidget *parent) :
+UniverseView::UniverseView(int universe, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::UniverseView)
 {
@@ -64,6 +64,7 @@ UniverseView::UniverseView(QWidget *parent) :
     ui->btnGo->setEnabled(true);
     ui->btnPause->setEnabled(false);
     ui->sbUniverse->setEnabled(true);
+    ui->sbUniverse->setValue(universe);
     setUiForLoggingState(NOT_LOGGING);
 }
 

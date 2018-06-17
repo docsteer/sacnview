@@ -23,7 +23,9 @@ NewVersionDialog::NewVersionDialog(QWidget *parent) : QDialog(parent), ui(new Ui
 {
     ui->setupUi(this);
     ui->stackedWidget->setCurrentIndex(0);
-    setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+    #if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
+        setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+    #endif
     connect(ui->btnLater, SIGNAL(pressed()), this, SLOT(reject()));
     m_manager = new QNetworkAccessManager(this);
 }
@@ -187,7 +189,7 @@ void VersionCheck::replyFinished (QNetworkReply *reply)
                         QString("%1 %2 %3").arg(GIT_DATE_DATE).arg(GIT_DATE_MONTH).arg(GIT_DATE_YEAR),
                         QString("dd MMM yyyy")
                         );
-            qDebug() << "[Version check] My version:" << VERSION << myDate.toString();
+            qDebug() << "[Version check] My version:" << VERSION << myDate.toString() <<  "Pre Release - " << PRERELEASE;
 
             QJsonArray jArray = jDoc.array();
             foreach (const QJsonValue &jValue, jArray) {
@@ -198,14 +200,14 @@ void VersionCheck::replyFinished (QNetworkReply *reply)
                             QString("yyyy-MM-dd'T'hh':'mm':'ss'Z'")
                             ).date();
                 QString remote_version = jObj["tag_name"].toString();
-
+                bool remote_is_prerelease = jObj["prerelease"].toBool();
 
 #ifdef DEBUG_VERSIONCHECK
                 objectDate = QDate(2199, 12, 12);
                 remote_version = QString("AwesomeVersion");
 #endif
 
-                qDebug() << "[Version check] Remote version:" << remote_version << objectDate.toString();
+                qDebug() << "[Version check] Remote version:" << remote_version << objectDate.toString() << "Pre Release - " << remote_is_prerelease ;
 
                 // Find the appropriate download URL for the platform
                 QJsonArray assetsArray = jObj["assets"].toArray();
@@ -227,16 +229,18 @@ void VersionCheck::replyFinished (QNetworkReply *reply)
                 if (myDate.isValid() && objectDate.isValid()) {
                     if (VERSION != remote_version) {
                         if (objectDate > myDate) {
-                            // Newer!
-                            qDebug() << "[Version check] Remote version" << jObj["tag_name"].toString() << "is newer!";
+                            if (PRERELEASE || !remote_is_prerelease) { // If prerelease, always upgrade; if not, only upgrade to non-prerelease
+                                // Newer!
+                                qDebug() << "[Version check] Remote version" << jObj["tag_name"].toString() << "is newer!";
 
-                            // Tell the user
-                            NewVersionDialog dlg;
-                            dlg.setNewVersionNumber(jObj["tag_name"].toString());
-                            dlg.setNewVersionInfo(jObj["body"].toString());
-                            dlg.setDownloadUrl(downloadUrl);
-                            dlg.exec();
-                            return;
+                                // Tell the user
+                                NewVersionDialog dlg;
+                                dlg.setNewVersionNumber(jObj["tag_name"].toString());
+                                dlg.setNewVersionInfo(jObj["body"].toString());
+                                dlg.setDownloadUrl(downloadUrl);
+                                dlg.exec();
+                                return;
+                            }
                         }
                     }
                 }
