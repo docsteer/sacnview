@@ -11,11 +11,13 @@
 Snapshot::Snapshot(int firstUniverse, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Snapshot),
-    m_listeners(QList<QSharedPointer<sACNListener>>()),
-    m_senders(QList<sACNSentUniverse *>()),
+    m_listeners(QList<sACNManager::tListener>()),
+    m_senders(QList<sACNManager::tSender>()),
     m_firstUniverse(firstUniverse)
 {
     ui->setupUi(this);
+
+    m_cid = CID::CreateCid();
 
     m_countdown = new QTimer(this);
     connect(m_countdown, SIGNAL(timeout()), this, SLOT(counterTick()));
@@ -236,26 +238,26 @@ void Snapshot::playSnapshot()
 {
     for(int i=0; i<m_snapshotData.count(); i++)
     {
-        m_senders << new sACNSentUniverse(m_universeSpins[i]->value());
+        m_senders << sACNManager::getInstance()->getSender(m_universeSpins[i]->value(), m_cid);
 
         {
             QString name = Preferences::getInstance()->GetDefaultTransmitName();
             QString postfix = tr(" - Snapshot");
             name.truncate(MAX_SOURCE_NAME_LEN - postfix.length());
-            m_senders.last()->setName(name.trimmed() + postfix);
-            m_senders.last()->setPerSourcePriority(m_prioritySpins[i]->value());
+            m_senders.last().data()->setName(name.trimmed() + postfix);
+            m_senders.last().data()->setPerSourcePriority(m_prioritySpins[i]->value());
         }
 
-        m_senders.last()->startSending();
-        m_senders.last()->setLevel((const quint8*)m_snapshotData[i].constData(), MAX_DMX_ADDRESS);
-        connect(m_senders.last(), SIGNAL(sendingTimeout()), this, SLOT(senderTimedOut()));
+        m_senders.last().data()->startSending();
+        m_senders.last().data()->setLevel((const quint8*)m_snapshotData[i].constData(), MAX_DMX_ADDRESS);
+        connect(m_senders.last().data(), SIGNAL(sendingTimeout()), this, SLOT(senderTimedOut()));
     }
 }
 
 void Snapshot::stopSnapshot()
 {
     for(int i=0; i<m_senders.count(); i++)
-            m_senders[i]->deleteLater();
+            m_senders[i].data()->deleteLater();
     m_senders.clear();
 }
 
@@ -281,7 +283,7 @@ void Snapshot::pauseSourceButtonPressed()
     int index = m_enableButtons.indexOf(btn);
     if(index<0 || index >= m_senders.count()) return;
 
-    sACNSentUniverse *sender = m_senders[index];
+    sACNSentUniverse *sender = m_senders[index].data();
 
     if(sender->isSending())
     {

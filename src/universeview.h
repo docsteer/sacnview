@@ -84,7 +84,7 @@ private:
     Ui::UniverseView *ui;
     QHash<sACNSource *, int> m_sourceToTableRow;
     int m_selectedAddress;
-    QSharedPointer<sACNListener> m_listener;
+    sACNManager::tListener m_listener;
     MergedUniverseLogger *m_logger;
     QWidget *m_parentWindow;
     bool m_displayDDOnlySource;

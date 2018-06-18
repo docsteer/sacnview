@@ -21,8 +21,6 @@
 #include <QDebug>
 #include <QThread>
 #include <QPoint>
-#include <QSharedPointer>
-#include <QWeakPointer>
 
 
 //The amount of ms to wait before a source is considered offline or
@@ -230,7 +228,8 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
             return;
         } else {
             // Unicast, send to releivent listener!
-            const QHash<int, QWeakPointer<sACNListener> > listenerList = sACNManager::getInstance()->getListenerList();
+            decltype(sACNManager::getInstance()->getListenerList()) listenerList
+                    = sACNManager::getInstance()->getListenerList();
             if (listenerList.contains(universe))
                 listenerList[universe].data()->processDatagram(data, receiver, sender);
             return;

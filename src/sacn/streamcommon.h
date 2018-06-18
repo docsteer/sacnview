@@ -47,13 +47,14 @@
 /* 
  * a description of the address space being used
  */
-
+// Root
 #define PREAMBLE_SIZE_ADDR 0
 #define POSTAMBLE_SIZE_ADDR 2
 #define ACN_IDENTIFIER_ADDR 4
 #define ROOT_FLAGS_AND_LENGTH_ADDR 16
 #define ROOT_VECTOR_ADDR 18
 #define CID_ADDR 22
+// Framing
 #define FRAMING_FLAGS_AND_LENGTH_ADDR 38
 #define FRAMING_VECTOR_ADDR 40
 #define SOURCE_NAME_ADDR 44
@@ -62,6 +63,7 @@
 #define SEQ_NUM_ADDR 111
 #define OPTIONS_ADDR 112
 #define UNIVERSE_ADDR 113
+// DMP
 #define DMP_FLAGS_AND_LENGTH_ADDR 115
 #define DMP_VECTOR_ADDR 117
 #define DMP_ADDRESS_AND_DATA_ADDR 118
@@ -70,6 +72,12 @@
 #define PROP_COUNT_ADDR 123
 #define START_CODE_ADDR 125
 #define PROP_VALUES_ADDR (START_CODE_ADDR + 1)
+// Universe Discovery
+#define DISCO_FLAGS_AND_LENGTH_ADDR 112
+#define DISCO_VECTOR_ADDR 114
+#define DISCO_PAGE_ADDR 118
+#define DISCO_LAST_PAGE_ADDR 119
+#define DISCO_LIST_UNIVERSE_ADDR 120
 
 //for support of the early draft:
 #define DRAFT_PRIORITY_ADDR 76
@@ -108,7 +116,7 @@
 #define VECTOR_ROOT_E131_DATA 0x00000004
 #define VECTOR_ROOT_E131_EXTENDED 0x00000008
 // Draft v0.2
-#define VECTOR_ROOT_E131_DATA_DRAFT 3
+#define VECTOR_ROOT_E131_DATA_DRAFT 0x00000003
 
 // Framing
 #define VECTOR_E131_DATA_PACKET 0x00000002
@@ -145,6 +153,9 @@
 ///The payload is the per-channel priority (0-200), 
 //where 0 means "ignore my values on this channel"
 #define STARTCODE_PRIORITY 0xDD     
+
+// Special universes
+#define E131_DISCOVERY_UNIVERSE 64214
 
 #endif
 

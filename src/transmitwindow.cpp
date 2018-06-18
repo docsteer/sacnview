@@ -18,8 +18,7 @@
 
 #include "consts.h"
 #include "sacn/ACNShare/ipaddr.h"
-#include "sacn/streamcommon.h"
-#include "sacn/sacnsender.h"
+#include "sacn/streamingacn.h"
 #include "sacn/sacneffectengine.h"
 #include "configureperchanpriodlg.h"
 #include "preferences.h"
@@ -303,8 +302,8 @@ void transmitwindow::on_btnStart_pressed()
     }
     if(!m_sender)
     {
-        m_sender = new sACNSentUniverse(ui->sbUniverse->value());
-        connect(m_sender, SIGNAL(sendingTimeout()), this, SLOT(sourceTimeout()));
+        m_sender = sACNManager::getInstance()->getSender(ui->sbUniverse->value());
+        connect(m_sender.data(), SIGNAL(sendingTimeout()), this, SLOT(sourceTimeout()));
     }
 
     m_sender->setUnicastAddress(unicast);
@@ -346,7 +345,7 @@ void transmitwindow::on_btnStart_pressed()
             connect(m_fxEngine, SIGNAL(textImageChanged(QPixmap)), ui->lblTextImage, SLOT(setPixmap(QPixmap)));
             m_fxEngine->setRange(ui->sbFadeRangeStart->value()-1, ui->sbFadeRangeEnd->value()-1);
         }
-        m_fxEngine->setSender(m_sender);
+        m_fxEngine->setSender(m_sender.data());
     }
 }
 

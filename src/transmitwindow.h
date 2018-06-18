@@ -22,6 +22,7 @@
 #include <QSlider>
 #include <QToolButton>
 #include "consts.h"
+#include "streamingacn.h"
 
 class sACNSentUniverse;
 class sACNEffectEngine;
@@ -87,7 +88,7 @@ private:
     QList<QSlider *> m_sliders;
     QList<QLabel *> m_sliderLabels;
     QList<QToolButton *> m_presetButtons;
-    sACNSentUniverse *m_sender;
+    sACNManager::tSender m_sender;
     quint8 m_perAddressPriorities[MAX_DMX_ADDRESS];
     quint8 m_levels[MAX_DMX_ADDRESS];
     QTimer *m_blinkTimer;

@@ -166,8 +166,9 @@ void pcapplaybacksender::run()
                  *
                  */
                 {
-                    const QHash<int, QWeakPointer<sACNListener> > listenerList = sACNManager::getInstance()->getListenerList();
-                    QSharedPointer<sACNListener> listener = listenerList.begin().value().toStrongRef();
+                    decltype(sACNManager::getInstance()->getListenerList()) listenerList
+                            = sACNManager::getInstance()->getListenerList();
+                    sACNManager::tListener listener = listenerList.begin().value().toStrongRef();
                     if (listener)
                         listener->processDatagram(
                             pkt_datagram.data(),

@@ -18,6 +18,7 @@
 #include <QNetworkInterface>
 #include "streamingacn.h"
 #include "streamcommon.h"
+#include "sacnlistener.h"
 #include "ipaddr.h"
 #include "preferences.h"
 #include "sacnsocket.h"

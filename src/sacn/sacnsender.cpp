@@ -225,6 +225,21 @@ void sACNSentUniverse::setUniverse(int universe)
         stopSending();
         startSending();
     }
+
+    emit universeChange();
+}
+
+void sACNSentUniverse::setCID(CID cid)
+{
+    if(m_cid==cid) return;
+    m_cid = cid;
+    if(m_isSending)
+    {
+        stopSending();
+        startSending();
+    }
+
+    emit cidChange();
 }
 
 void sACNSentUniverse::doTimeout()

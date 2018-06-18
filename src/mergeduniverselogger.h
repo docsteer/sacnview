@@ -21,12 +21,11 @@
 #ifndef MERGEDUNIVERSELOGGER_H
 #define MERGEDUNIVERSELOGGER_H
 
-#include "sacnlistener.h"
+#include "streamingacn.h"
 
 #include <QFile>
 #include <QTextStream>
 #include <QObject>
-#include <QSharedPointer>
 
 class MergedUniverseLogger : public QObject
 {
@@ -37,7 +36,7 @@ public:
     ~MergedUniverseLogger();
 
 public slots:
-    void start(QString fileName, QSharedPointer<sACNListener> listener);
+    void start(QString fileName, sACNManager::tListener listener);
     void stop();
 
 private slots:
@@ -54,7 +53,7 @@ private:
     QElapsedTimer m_elapsedTimer;
     QFile * m_file;
     QTextStream * m_stream;
-    QSharedPointer<sACNListener> m_listener;
+    sACNManager::tListener m_listener;
 };
 
 #endif // MERGEDUNIVERSELOGGER_H

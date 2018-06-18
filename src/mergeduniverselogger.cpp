@@ -1,4 +1,5 @@
 #include "mergeduniverselogger.h"
+#include "sacnlistener.h"
 
 #include <QDateTime>
 
@@ -16,7 +17,7 @@ MergedUniverseLogger::~MergedUniverseLogger()
     closeFile();
 }
 
-void MergedUniverseLogger::start(QString fileName, QSharedPointer<sACNListener>listener)
+void MergedUniverseLogger::start(QString fileName, sACNManager::tListener listener)
 {
     m_elapsedTimer.start();
     setUpFile(fileName);

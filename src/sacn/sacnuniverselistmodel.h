@@ -2,8 +2,6 @@
 #define SACNUNIVERSELISTMODEL_H
 
 #include <QObject>
-#include <QSharedPointer>
-#include <QWeakPointer>
 #include <QAbstractItemModel>
 #include <QHostAddress>
 #include <QTimer>
@@ -12,7 +10,7 @@
 #include <QReadWriteLock>
 #include <list>
 #include "CID.h"
-#include "sacnlistener.h"
+#include "streamingacn.h"
 
 #define NUM_UNIVERSES_LISTED 20
 
@@ -76,7 +74,7 @@ private:
     QList<bool> m_universeBindOk;
     int m_start;
     QTimer *m_checkTimeoutTimer;
-    QList<QSharedPointer<sACNListener>> m_listeners;
+    QList<sACNManager::tListener> m_listeners;
     bool m_displayDDOnlySource;
 };
 
