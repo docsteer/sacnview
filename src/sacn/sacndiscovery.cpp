@@ -77,21 +77,21 @@ void sacndiscoveryTX::sendDiscoveryPacket()
             memcpy(pbuf.data() + ACN_IDENTIFIER_ADDR, ACN_IDENTIFIER, ACN_IDENTIFIER_SIZE); // ACN Ident
             VHD_PackFlags((quint8*)pbuf.data() + ROOT_FLAGS_AND_LENGTH_ADDR, false, false, false); // Flags
             VHD_PackLength((quint8*)pbuf.data() + ROOT_FLAGS_AND_LENGTH_ADDR,
-                           (pbuf.size() - 1) - (ROOT_FLAGS_AND_LENGTH_ADDR + 1), false); // Length
+                           pbuf.size() - ROOT_FLAGS_AND_LENGTH_ADDR, false); // Length
             PackBUint32((quint8*)pbuf.data() + ROOT_VECTOR_ADDR, VECTOR_ROOT_E131_EXTENDED); // Vector
             cid.Pack((quint8*)pbuf.data() + CID_ADDR); // CID
 
             // Framing layer
             VHD_PackFlags((quint8*)pbuf.data() + FRAMING_FLAGS_AND_LENGTH_ADDR, false, false, false); // Flags
             VHD_PackLength((quint8*)pbuf.data() + FRAMING_FLAGS_AND_LENGTH_ADDR,
-                           (pbuf.size() - 1) - (FRAMING_FLAGS_AND_LENGTH_ADDR + 1), false); // Length
+                           pbuf.size() - FRAMING_FLAGS_AND_LENGTH_ADDR, false); // Length
             PackBUint32((quint8*)pbuf.data() + FRAMING_VECTOR_ADDR, VECTOR_E131_EXTENDED_DISCOVERY); // Vector
             strncpy(pbuf.data() + SOURCE_NAME_ADDR, senderName.toLatin1().constData(), SOURCE_NAME_SIZE - 1); // Source Name
 
             // Universe discovery layer
             VHD_PackFlags((quint8*)pbuf.data() + DISCO_FLAGS_AND_LENGTH_ADDR, false, false, false); // Flags
             VHD_PackLength((quint8*)pbuf.data() + DISCO_FLAGS_AND_LENGTH_ADDR,
-                           (pbuf.size() - 1) - (DISCO_FLAGS_AND_LENGTH_ADDR + 1), false); // Length
+                           pbuf.size() - DISCO_FLAGS_AND_LENGTH_ADDR, false); // Length
             PackBUint32((quint8*)pbuf.data() + DISCO_VECTOR_ADDR, VECTOR_UNIVERSE_DISCOVERY_UNIVERSE_LIST); // Vector
             PackBUint8((quint8*)pbuf.data() + DISCO_PAGE_ADDR, page); // Page
             PackBUint8((quint8*)pbuf.data() + DISCO_PAGE_ADDR, page_count - 1); // Page Count
