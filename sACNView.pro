@@ -117,7 +117,8 @@ SOURCES += src/main.cpp\
     src/sacn/firewallcheck.cpp \
     src/bigdisplay.cpp \
     src/addmultidialog.cpp \
-    src/theme/darkstyle.cpp
+    src/theme/darkstyle.cpp \
+    src/sacn/sacndiscovery.cpp
 
 HEADERS += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -159,7 +160,8 @@ HEADERS += src/mdimainwindow.h \
     src/ethernetstrut.h \
     src/theme/darkstyle.h \
     src/xpwarning.h \
-    src/sacn/e1_11.h
+    src/sacn/e1_11.h \
+    src/sacn/sacndiscovery.h
 
 FORMS += ui/mdimainwindow.ui \
     ui/scopewindow.ui \

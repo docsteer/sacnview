@@ -85,7 +85,8 @@ sACNManager *sACNManager::getInstance()
     return m_instance;
 }
 
-sACNManager::sACNManager() : QObject()
+sACNManager::sACNManager() : QObject(),
+    m_discoverytx(new sacndiscoveryTX(this))
 {
 
 }

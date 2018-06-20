@@ -32,6 +32,7 @@
 
 #include "CID.h"
 #include "tock.h"
+#include "sacndiscovery.h"
 
 // Forward Declarations
 class sACNListener;
@@ -136,6 +137,9 @@ public:
 private slots:
     void senderUniverseChanged();
     void senderCIDChanged();
+
+private:
+    sacndiscoveryTX *m_discoverytx;
 };
 
 #endif // STREAMINGACN_H
