@@ -202,7 +202,8 @@ void UniverseView::sourceOnline(sACNSource *source)
 
         // Reset Button
         QPushButton* btn_seq = new QPushButton();
-        btn_seq->setText(tr("Reset"));
+        btn_seq->setIcon(QIcon(":/icons/clear.png"));
+        btn_seq->setFlat(true);
         pLayout->addWidget(btn_seq);
 
         // Connect button
@@ -230,7 +231,8 @@ void UniverseView::sourceOnline(sACNSource *source)
 
         // Reset Button
         QPushButton* btn_jumps = new QPushButton();
-        btn_jumps->setText(tr("Reset"));
+        btn_jumps->setIcon(QIcon(":/icons/clear.png"));
+        btn_jumps->setFlat(true);
         pLayout->addWidget(btn_jumps);
 
         // Connect button
