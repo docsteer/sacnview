@@ -17,6 +17,7 @@ matrix:
               # QT
               - qt59base
               - qt59multimedia
+              - qt59tools
 
         install:
             # PCap
