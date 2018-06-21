@@ -20,7 +20,6 @@
 #include <QHostAddress>
 #include <QNetworkInterface>
 #include <QColor>
-#include "deftypes.h"
 #include "CID.h"
 #include "consts.h"
 
@@ -40,7 +39,9 @@ static const QString S_MAINWINDOWGEOM("Main Window Geometry");
 static const QString S_SUBWINDOWLIST("Sub Window");
 static const QString S_SUBWINDOWNAME("SubWindow Name");
 static const QString S_SUBWINDOWGEOM("SubWindow Geometry");
-
+static const QString S_LISTEN_ALL("Listen All");
+static const QString S_THEME("Theme");
+static const QString S_TX_RATE_OVERRIDE("TX Rate Override");
 
 struct MDIWindowInfo
 {
@@ -59,6 +60,14 @@ public:
             HEXADECIMAL = 2,
             TOTAL_NUM_OF_FORMATS = 3
         };
+
+    enum Theme {
+        THEME_LIGHT,
+        THEME_DARK,
+        TOTAL_NUM_OF_THEMES
+    };
+    static const QStringList ThemeDescriptions;
+
 
     /**
      * @brief getInstance - returns the instance of the Preferences class
@@ -100,6 +109,9 @@ public:
     void SetSaveWindowLayout(bool value);
     void SetMainWindowGeometry(const QByteArray &value);
     void SetSavedWindows(QList<MDIWindowInfo> values);
+    void SetNetworkListenAll(const bool &value);
+    void SetTheme(Theme theme);
+    void SetTXRateOverride(bool override) { m_txrateoverride = override; }
 
     unsigned int GetDisplayFormat();
     unsigned int GetMaxLevel();
@@ -112,12 +124,13 @@ public:
     bool GetSaveWindowLayout();
     QByteArray GetMainWindowGeometry();
     QList<MDIWindowInfo> GetSavedWindows();
-
+    bool GetNetworkListenAll();
+    Theme GetTheme();
+    bool GetTXRateOverride() { return m_txrateoverride; }
 
     QString GetFormattedValue(unsigned int nLevelInDecimal, bool decorated = false);
 
     void savePreferences();
-
 
     bool RESTART_APP;
 public slots:
@@ -127,6 +140,7 @@ private:
     ~Preferences();
     static Preferences *m_instance;
     QNetworkInterface m_interface;
+    bool m_interfaceListenAll;
     QHash<CID, QColor> m_cidToColor;
 
     unsigned int m_nDisplayFormat;
@@ -139,6 +153,8 @@ private:
     bool m_saveWindowLayout;
     QByteArray m_mainWindowGeometry;
     QList<MDIWindowInfo> m_windowInfo;
+    Theme m_theme;
+    bool m_txrateoverride;
 
     void loadPreferences();
 

@@ -21,7 +21,6 @@
 #include <QLabel>
 #include <QSlider>
 #include <QToolButton>
-#include "deftypes.h"
 #include "consts.h"
 
 class sACNSentUniverse;
@@ -36,7 +35,7 @@ class transmitwindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit transmitwindow(QWidget *parent = 0);
+    explicit transmitwindow(int universe = MIN_SACN_UNIVERSE, QWidget *parent = 0);
     ~transmitwindow();
     static const int BLINK_TIME = 1000;
     static const int NUM_SLIDERS = 24;
@@ -51,6 +50,7 @@ protected slots:
     void on_btnCcPrev_pressed();
     void on_btnCcNext_pressed();
     void on_lcdNumber_valueChanged(int value);
+    void on_lcdNumber_toggleOff();
     void on_tabWidget_currentChanged(int index);
     void on_slChannelCheck_valueChanged(int value);
     void on_btnCcBlink_pressed();
@@ -88,8 +88,8 @@ private:
     QList<QLabel *> m_sliderLabels;
     QList<QToolButton *> m_presetButtons;
     sACNSentUniverse *m_sender;
-    uint1 m_perAddressPriorities[MAX_DMX_ADDRESS];
-    uint1 m_levels[MAX_DMX_ADDRESS];
+    quint8 m_perAddressPriorities[MAX_DMX_ADDRESS];
+    quint8 m_levels[MAX_DMX_ADDRESS];
     QTimer *m_blinkTimer;
     bool m_blink;
     sACNEffectEngine *m_fxEngine;

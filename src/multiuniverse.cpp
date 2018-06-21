@@ -25,9 +25,10 @@
 #include "consts.h"
 #include "addmultidialog.h"
 
-MultiUniverse::MultiUniverse(QWidget *parent) :
+MultiUniverse::MultiUniverse(int firstUniverse, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::MultiUniverse)
+    ui(new Ui::MultiUniverse),
+    m_firstUniverse(firstUniverse)
 {
     ui->setupUi(this);
 }
@@ -148,7 +149,7 @@ void MultiUniverse::addSource(int universe, int min_address, int max_address,
 
 void MultiUniverse::on_btnAddRow_pressed()
 {
-    int nextUniverse = 1;
+    int nextUniverse = m_firstUniverse;
     if(m_senders.count()>0)
         nextUniverse = m_senders.last()->universe() + 1;
 
@@ -272,8 +273,20 @@ void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode, int val
         connect(slider, SIGNAL(valueChanged(int)), this, SLOT(controlSliderMoved(int)));
         }
         break;
-
-    case sACNEffectEngine::FxChase:
+    case sACNEffectEngine::FxChaseSnap:
+        {
+            QWidget *w = dynamic_cast<QWidget *>(sender());
+            if(m_widgetToFxEngine.contains(w))
+            {
+                sACNEffectEngine *e = m_widgetToFxEngine.value(w);
+                e->setManualLevel(255);
+            }
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
+    Q_FALLTHROUGH();
+#endif
+        }
+    case sACNEffectEngine::FxChaseRamp:
+    case sACNEffectEngine::FxChaseSine:
     case sACNEffectEngine::FxRamp:
     case sACNEffectEngine::FxSinewave:
     case sACNEffectEngine::FxVerticalBar:
@@ -384,7 +397,7 @@ void MultiUniverse::senderTimedout()
 
 void MultiUniverse::on_btnAddMulti_clicked()
 {
-    AddMultiDialog d;
+    AddMultiDialog d(this);
     int result = d.exec();
 
     if(result!=QDialog::Accepted) return;

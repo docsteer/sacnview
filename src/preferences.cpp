@@ -15,6 +15,9 @@
 
 #include <Qt>
 #include <QSettings>
+#include <QPalette>
+#include <QStyle>
+#include <QApplication>
 #include "preferences.h"
 #include "consts.h"
 
@@ -22,6 +25,8 @@
 static const QColor mixColor = QColor("coral");
 
 Preferences *Preferences::m_instance = NULL;
+
+const QStringList Preferences::ThemeDescriptions = QStringList{"Light Theme", "Dark Theme"};
 
 Preferences::Preferences()
 {
@@ -58,6 +63,16 @@ void Preferences::setNetworkInterface(const QNetworkInterface &value)
         m_interface = value;
         //emit networkInterfaceChanged();
     }
+}
+
+void Preferences::SetNetworkListenAll(const bool &value)
+{
+    m_interfaceListenAll = value;
+}
+
+bool Preferences::GetNetworkListenAll()
+{
+    return m_interfaceListenAll;
 }
 
 QColor Preferences::colorForCID(const CID &cid)
@@ -178,7 +193,10 @@ bool Preferences::defaultInterfaceAvailable()
 bool Preferences::interfaceSuitable(QNetworkInterface *inter)
 {
     // Up, can multicast, and has IPv4?
-    if (inter->isValid() && inter->IsRunning && inter->IsUp && inter->CanMulticast)
+    if (inter->isValid()
+            && inter->flags().testFlag(QNetworkInterface::IsRunning)
+            && inter->flags().testFlag(QNetworkInterface::IsUp)
+            && inter->flags().testFlag(QNetworkInterface::CanMulticast))
     {
         foreach (QNetworkAddressEntry addr, inter->addressEntries()) {
             if(addr.ip().protocol() == QAbstractSocket::IPv4Protocol)
@@ -186,6 +204,16 @@ bool Preferences::interfaceSuitable(QNetworkInterface *inter)
         }
     }
     return false;
+}
+
+void Preferences::SetTheme(Theme theme)
+{
+    m_theme = theme;
+}
+
+Preferences::Theme Preferences::GetTheme()
+{
+    return m_theme;
 }
 
 void Preferences::savePreferences()
@@ -202,6 +230,9 @@ void Preferences::savePreferences()
     settings.setValue(S_FLICKERFINDERSHOWINFO, QVariant(m_flickerFinderShowInfo));
     settings.setValue(S_SAVEWINDOWLAYOUT, m_saveWindowLayout);
     settings.setValue(S_MAINWINDOWGEOM, m_mainWindowGeometry);
+    settings.setValue(S_LISTEN_ALL, m_interfaceListenAll);
+    settings.setValue(S_THEME, m_theme);
+    settings.setValue(S_TX_RATE_OVERRIDE, m_txrateoverride);
 
     settings.beginWriteArray(S_SUBWINDOWLIST);
     for(int i=0; i<m_windowInfo.count(); i++)
@@ -231,6 +262,7 @@ void Preferences::loadPreferences()
                 m_interface = i;
     }
 
+    m_interfaceListenAll = settings.value(S_LISTEN_ALL, QVariant(false)).toBool();
     m_nDisplayFormat = settings.value(S_DISPLAY_FORMAT, QVariant(DECIMAL)).toInt();
     m_bBlindVisualizer = settings.value(S_BLIND_VISUALIZER, QVariant(true)).toBool();
     m_bDisplayDDOnly = settings.value(S_DDONLY, QVariant(true)).toBool();
@@ -239,6 +271,8 @@ void Preferences::loadPreferences()
     m_flickerFinderShowInfo = settings.value(S_FLICKERFINDERSHOWINFO, QVariant(true)).toBool();
     m_saveWindowLayout = settings.value(S_SAVEWINDOWLAYOUT, QVariant(false)).toBool();
     m_mainWindowGeometry = settings.value(S_MAINWINDOWGEOM, QVariant(QByteArray())).toByteArray();
+    m_theme = (Theme) settings.value(S_THEME, QVariant((int)THEME_LIGHT)).toInt();
+    m_txrateoverride = settings.value(S_TX_RATE_OVERRIDE, QVariant(false)).toBool();
 
     m_windowInfo.clear();
     int size = settings.beginReadArray(S_SUBWINDOWLIST);

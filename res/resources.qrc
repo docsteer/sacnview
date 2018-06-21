@@ -15,6 +15,11 @@
         <file>add.png</file>
         <file>remove.png</file>
         <file>add_multi.png</file>
+        <file>spin_up.png</file>
+        <file>spin_down.png</file>
+        <file>spin_down_dark.png</file>
+        <file>spin_up_dark.png</file>
+        <file>capture_playback.png</file>
     </qresource>
     <qresource prefix="/">
         <file>Logo.png</file>

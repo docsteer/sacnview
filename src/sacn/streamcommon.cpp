@@ -49,15 +49,15 @@ Implementation of the common streaming ACN packing and parsing functions*/
  * Given a buffer, initialize the header, based on the data slot count, 
  * cid, etc. The buffer must be at least STREAM_HEADER_SIZE bytes long
  */
-void InitStreamHeader(uint1* pbuf, const CID &source_cid, 
-		      const char* source_name, uint1 priority, uint2 reserved,
-		      uint1 options, uint1 start_code, uint2 universe, 
-		      uint2 slot_count) 
+void InitStreamHeader(quint8* pbuf, const CID &source_cid, 
+		      const char* source_name, quint8 priority, quint16 reserved,
+		      quint8 options, quint8 start_code, quint16 universe, 
+		      quint16 slot_count) 
 {
   if(!pbuf)
      return;
 
-  uint1* p = pbuf;
+  quint8* p = pbuf;
 
   //root preamble size
   PackB2(p, RLP_PREAMBLE_SIZE);                   
@@ -157,15 +157,15 @@ void InitStreamHeader(uint1* pbuf, const CID &source_cid,
  * This function is included to support legacy code from before 
  * ratification of the standard.
  */
-void InitStreamHeaderForDraft(uint1* pbuf, const CID &source_cid, 
-			      const char* source_name, uint1 priority, 
-                  uint2 /*reserved*/, uint1 /*options*/, uint1 start_code,
-			      uint2 universe, uint2 slot_count) 
+void InitStreamHeaderForDraft(quint8* pbuf, const CID &source_cid, 
+			      const char* source_name, quint8 priority, 
+                  quint16 /*reserved*/, quint8 /*options*/, quint8 start_code,
+			      quint16 universe, quint16 slot_count) 
 {
   if(!pbuf)
      return;
 
-  uint1* p = pbuf;
+  quint8* p = pbuf;
 
   //root preamble size
   PackB2(p, RLP_PREAMBLE_SIZE);                   
@@ -255,7 +255,7 @@ void InitStreamHeaderForDraft(uint1* pbuf, const CID &source_cid,
  * This function is included to support legacy code from before 
  * ratification of the standard.
  */
-void SetStreamHeaderSequence(uint1* pbuf, uint1 seq, bool draft)
+void SetStreamHeaderSequence(quint8* pbuf, quint8 seq, bool draft)
 {
     if(draft && pbuf)
     {
@@ -273,11 +273,11 @@ void SetStreamHeaderSequence(uint1* pbuf, uint1 seq, bool draft)
  * source_space must be of size SOURCE_NAME_SPACE.
  * pdata is the offset into the buffer where the data is stored
  */
-bool ValidateStreamHeader(uint1* pbuf, uint buflen, CID &source_cid, 
-			  char* source_space, uint1 &priority, 
-			  uint1 &start_code, uint2 &reserved, 
-			  uint1 &sequence, uint1 &options, uint2 &universe,
-			  uint2 &slot_count, uint1* &pdata)
+bool ValidateStreamHeader(quint8* pbuf, uint buflen, CID &source_cid, 
+			  char* source_space, quint8 &priority, 
+			  quint8 &start_code, quint16 &reserved, 
+			  quint8 &sequence, quint8 &options, quint16 &universe,
+			  quint16 &slot_count, quint8* &pdata)
 {
   if(!pbuf)
      return false;
@@ -308,11 +308,11 @@ bool ValidateStreamHeader(uint1* pbuf, uint buflen, CID &source_cid,
  * helper function that does the actual validation of a header
  * that carries the post-ratification root vector
  */
-bool VerifyStreamHeader(uint1* pbuf, uint buflen, CID &source_cid, 
-			char* source_space, uint1 &priority, 
-			uint1 &start_code, uint2 &reserved, uint1 &sequence, 
-			uint1 &options, uint2 &universe,
-			uint2 &slot_count, uint1* &pdata)
+bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid, 
+			char* source_space, quint8 &priority, 
+			quint8 &start_code, quint16 &reserved, quint8 &sequence, 
+			quint8 &options, quint16 &universe,
+			quint16 &slot_count, quint8* &pdata)
 {
   if(!pbuf)
      return false;
@@ -387,11 +387,11 @@ bool VerifyStreamHeader(uint1* pbuf, uint buflen, CID &source_cid,
  * This function is included to support legacy code from before 
  * ratification of the standard.
  */
-bool VerifyStreamHeaderForDraft(uint1* pbuf, uint buflen, CID &source_cid, 
-				char* source_space, uint1 &priority, 
-				uint1 &start_code, uint1 &sequence, 
-				uint2 &universe, uint2 &slot_count, 
-				uint1* &pdata)
+bool VerifyStreamHeaderForDraft(quint8* pbuf, uint buflen, CID &source_cid, 
+				char* source_space, quint8 &priority, 
+				quint8 &start_code, quint8 &sequence, 
+				quint16 &universe, quint16 &slot_count, 
+				quint8* &pdata)
 {
   if(!pbuf)
      return false;
@@ -456,14 +456,25 @@ bool VerifyStreamHeaderForDraft(uint1* pbuf, uint buflen, CID &source_cid,
   return true;
 }
 
+/*
+ * Returns true if contains draft root vector value
+ */
+bool isDraft(quint8* pbuf)
+{
+    if(!pbuf)
+        return false;
+    return DRAFT_ROOT_VECTOR == UpackB4(pbuf + ROOT_VECTOR_ADDR);
+}
+
 /* 
  * toggles the preview_data bit of the options field to either 1 or 0
  */
-void SetPreviewData(uint1* pbuf, bool preview)
+void SetPreviewData(quint8* pbuf, bool preview)
 {
+  if (isDraft(pbuf)) return;
   if(pbuf)
   {
-    uint1 current_options = UpackB1(pbuf + OPTIONS_ADDR);
+    quint8 current_options = UpackB1(pbuf + OPTIONS_ADDR);
     //sets "bit 7" to the value of preview
     current_options = (current_options & ~(1 << 7)) | (preview << 7);
     PackB1(pbuf + OPTIONS_ADDR, current_options);
@@ -473,11 +484,12 @@ void SetPreviewData(uint1* pbuf, bool preview)
 /* 
  * toggles the stream_terminated  bit of the options field to either 1 or 0
  */
-void SetStreamTerminated(uint1* pbuf, bool terminated)
+void SetStreamTerminated(quint8* pbuf, bool terminated)
 {
+  if (isDraft(pbuf)) return;
   if(pbuf)
   {
-    uint1 current_options = UpackB1(pbuf + OPTIONS_ADDR);
+    quint8 current_options = UpackB1(pbuf + OPTIONS_ADDR);
     //sets "bit 6" to the value of terminated
     current_options = (current_options & ~(1 << 6)) | (terminated << 6);
     PackB1(pbuf + OPTIONS_ADDR, current_options);
@@ -487,20 +499,21 @@ void SetStreamTerminated(uint1* pbuf, bool terminated)
 /* 
  * returns the stream_terminated  bit of the options field
  */
-bool GetStreamTerminated(uint1* pbuf)
+bool GetStreamTerminated(quint8* pbuf)
 {
+  if (isDraft(pbuf)) return false;
   if(!pbuf)
-     return true;
+     return false;
   int current_options = UpackB1(pbuf + OPTIONS_ADDR);
   return ((current_options & 0x40) == 0x40);
 }
 
 /*Fills in the multicast address and port (not netiface) to use for listening to or sending on a universe*/
-void GetUniverseAddress(uint2 universe, CIPAddr& addr)
+void GetUniverseAddress(quint16 universe, CIPAddr& addr)
 {
 	addr.SetIPPort(STREAM_IP_PORT);
 	//TODO: IPv6 support
-	uint1 addrbuf [CIPAddr::ADDRBYTES];
+	quint8 addrbuf [CIPAddr::ADDRBYTES];
 	memset(addrbuf, 0, CIPAddr::ADDRBYTES);
 	addrbuf[12] = 239;
 	addrbuf[13] = 255;

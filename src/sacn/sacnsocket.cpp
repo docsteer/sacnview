@@ -15,23 +15,21 @@
 
 #include "sacnsocket.h"
 
-#include <QNetworkInterface>
 #include <QNetworkAddressEntry>
 #include <QDebug>
 #include <QThread>
 #include "ipaddr.h"
 #include "streamcommon.h"
 
-sACNRxSocket::sACNRxSocket(QObject *parent) : QUdpSocket(parent)
+sACNRxSocket::sACNRxSocket(QNetworkInterface iface, QObject *parent) :
+    QUdpSocket(parent),
+    m_interface(iface)
 {
-
 }
 
 bool sACNRxSocket::bindMulticast(quint16 universe)
 {
     bool ok = false;
-
-    QNetworkInterface iface = Preferences::getInstance()->networkInterface();
 
     CIPAddr addr;
     GetUniverseAddress(universe, addr);
@@ -45,15 +43,19 @@ bool sACNRxSocket::bindMulticast(quint16 universe)
     if (ok)
     {
         #if (QT_VERSION <= QT_VERSION_CHECK(5, 8, 0))
-        #error setMulticastInterface() fails to bind to correct interface on systems running IPV4 and IPv6 with QT <= 5.8.0
+            #ifdef Q_OS_WIN
+                #pragma message("setMulticastInterface() fails to bind to correct interface on systems running IPV4 and IPv6 with QT <= 5.8.0")
+            #else
+                #error setMulticastInterface() fails to bind to correct interface on systems running IPV4 and IPv6 with QT <= 5.8.0
+            #endif
         #endif
-        setMulticastInterface(iface);
-        ok |= joinMulticastGroup(QHostAddress(addr.GetV4Address()), iface);
+        setMulticastInterface(m_interface);
+        ok |= joinMulticastGroup(QHostAddress(addr.GetV4Address()), m_interface);
     }
 
     if(ok)
     {
-        qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Bound to interface:" << iface.name();
+        qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Bound to interface:" << m_interface.name();
         qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Joining Multicast Group:" << QHostAddress(addr.GetV4Address()).toString();
     }
     else
@@ -70,9 +72,7 @@ bool sACNRxSocket::bindUnicast()
     bool ok = false;
 
     // Bind to first IPv4 address on selected NIC
-    QNetworkInterface iface = Preferences::getInstance()->networkInterface();
-
-    foreach (QNetworkAddressEntry ifaceAddr, iface.addressEntries())
+    foreach (QNetworkAddressEntry ifaceAddr, m_interface.addressEntries())
     {
         if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol)
         {
@@ -95,9 +95,10 @@ bool sACNRxSocket::bindUnicast()
     return ok;
 }
 
-sACNTxSocket::sACNTxSocket(QObject *parent) : QUdpSocket(parent)
+sACNTxSocket::sACNTxSocket(QNetworkInterface iface, QObject *parent) :
+    QUdpSocket(parent),
+    m_interface(iface)
 {
-
 }
 
 bool sACNTxSocket::bindMulticast()
@@ -105,21 +106,18 @@ bool sACNTxSocket::bindMulticast()
     bool ok = false;
 
     // Bind to first IPv4 address on selected NIC
-    QNetworkInterface iface = Preferences::getInstance()->networkInterface();
-
-    foreach (QNetworkAddressEntry ifaceAddr, iface.addressEntries())
+    foreach (QNetworkAddressEntry ifaceAddr, m_interface.addressEntries())
     {
         if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol)
         {
             ok = bind(ifaceAddr.ip());
             setSocketOption(QAbstractSocket::MulticastLoopbackOption, QVariant(1));
-            setMulticastInterface(iface);
+            setMulticastInterface(m_interface);
             qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Bound to IP:" << ifaceAddr.ip().toString();
             break;
         }
     }
   
-
     if(!ok)
         qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Failed to bind TX socket";
 

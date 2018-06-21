@@ -23,6 +23,7 @@
 #include <QTimer>
 #include <QElapsedTimer>
 #include <QPoint>
+#include "consts.h"
 #include "streamingacn.h"
 #include "sacnsocket.h"
 
@@ -40,7 +41,7 @@ struct sACNMergedAddress
     bool changedSinceLastMerge;
 };
 
-typedef QList<sACNMergedAddress> sACNMergedSourceList;
+typedef QVector<sACNMergedAddress> sACNMergedSourceList;
 
 /**
  * @brief The sACNListener class is used to listen to  a universe of sACN.
@@ -64,7 +65,10 @@ public:
      * @return an sACNMergerdSourceList, a list of merged address structures, allowing you to see
      * the result of the merge algorithm together with all the sub-sources, by address
      */
-    sACNMergedSourceList mergedLevels() { return m_merged_levels;}
+    sACNMergedSourceList mergedLevels() {
+        QMutexLocker mergeLocker(&m_merged_levelsMutex);
+        return m_merged_levels;
+    }
 
     int sourceCount() { return m_sources.size();}
     sACNSource *source(int index) { return m_sources[index];}
@@ -81,6 +85,28 @@ public:
     // Diagnostic - the number of merge operations per second
 
     int mergesPerSecond() { return (m_mergesPerSecond > 0) ? m_mergesPerSecond : 0;}
+
+    /**
+     *  @brief getBindStatus Get interface bind status of listener
+     *  @return A struct of bind types and status
+     */
+    enum eBindStatus
+    {
+        BIND_UNKNOWN,
+        BIND_OK,
+        BIND_FAILED
+    };
+    struct sBindStatus
+    {
+        sBindStatus() {
+            unicast = BIND_UNKNOWN;
+            multicast = BIND_UNKNOWN;
+        }
+        eBindStatus unicast;
+        eBindStatus multicast;
+    };
+    sBindStatus getBindStatus() { return m_bindStatus; }
+
 public slots:
     void startReception();
     void monitorAddress(int address) {
@@ -92,8 +118,10 @@ public slots:
         m_monitoredChannels.remove(address);
     }
 signals:
+    void listenerStarted(int universe);
     void sourceFound(sACNSource *source);
     void sourceLost(sACNSource *source);
+    void sourceResumed(sACNSource *source);
     void sourceChanged(sACNSource *source);
     void levelsChanged();
     void dataReady(int address, QPointF data);
@@ -103,10 +131,12 @@ private slots:
     void checkSourceExpiration();
     void sampleExpiration();
 private:
+    void startInterface(QNetworkInterface iface);
     std::list<sACNRxSocket *> m_sockets;
     std::vector<sACNSource *> m_sources;
-    int m_last_levels[512];
+    int m_last_levels[MAX_DMX_ADDRESS];
     sACNMergedSourceList m_merged_levels;
+    QMutex m_merged_levelsMutex;
     int m_universe;
     // The per-source hold last look time
     int m_ssHLL;
@@ -122,6 +152,8 @@ private:
     unsigned int m_mergesPerSecond;
     int m_mergeCounter;
     QElapsedTimer m_mergesPerSecondTimer;
+
+    sBindStatus m_bindStatus;
 };
 
 

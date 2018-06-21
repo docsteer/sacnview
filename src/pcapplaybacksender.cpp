@@ -1,4 +1,14 @@
 #include "pcapplaybacksender.h"
+#ifdef Q_OS_LINUX
+#include <linux/socket.h>
+#include <linux/in.h>
+#endif
+#ifdef Q_OS_UNIX
+#include <sys/socket.h>
+#endif
+#ifdef Q_OS_MACOS
+#include <netinet/in.h>
+#endif
 #include <pcap.h>
 #include <QDebug>
 #include <QtEndian>
@@ -7,12 +17,14 @@
 #include "sacn/sacnlistener.h"
 #include "ethernetstrut.h"
 
+
+
 pcapplaybacksender::pcapplaybacksender(QString FileName) :
-    m_running(false),
-    m_shutdown(false),
     m_filename(FileName),
     m_pcap_in(Q_NULLPTR),
-    m_pcap_out(Q_NULLPTR)
+    m_pcap_out(Q_NULLPTR),
+    m_running(false),
+    m_shutdown(false)
 {
     if (!openFile()) {
         closeFile();
@@ -74,10 +86,15 @@ void pcapplaybacksender::run()
 
                         if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol)
                         {
-                            // Selected interface contains the IP of the required interface
-                            if (QHostAddress(qFromBigEndian<quint32>(ipv4->sin_addr.S_un.S_addr)) == ifaceAddr.ip())
+                            // Selected interface contains the IP of the required interface                  
+                            #ifdef Q_OS_UNIX
+                                QHostAddress requiredIP(qFromBigEndian<quint32>(ipv4->sin_addr.s_addr));
+                            #else
+                                QHostAddress requiredIP(qFromBigEndian<quint32>(ipv4->sin_addr.S_un.S_addr));
+                            #endif
+                            if (requiredIP == ifaceAddr.ip())
                             {
-                               qDebug() << "PCap Playback: Output" << dev->name << QHostAddress(qFromBigEndian<quint32>(ipv4->sin_addr.S_un.S_addr));
+                               qDebug() << "PCap Playback: Output" << dev->name << requiredIP.toString();
 
                                // Yes this interface!
                                m_pcap_out = pcap_open_live(dev->name, 0, 1, 0, errbuf);
@@ -311,11 +328,20 @@ QNetworkDatagram pcapplaybacksender::createDatagram(pcap_t *hpcap, pcap_pkthdr_t
              * Remember: network byte order = big endian
             */
             QNetworkDatagram ret;
-            const QHostAddress senderHost = QHostAddress(qFromBigEndian<quint32>(ip->ip_src.S_un.S_addr));
+            #ifdef Q_OS_UNIX
+                const QHostAddress senderHost = QHostAddress(qFromBigEndian<quint32>(ip->ip_src.s_addr));
+            #else
+                const QHostAddress senderHost = QHostAddress(qFromBigEndian<quint32>(ip->ip_src.S_un.S_addr));
+            #endif
             quint16 senderPort = qFromBigEndian<quint16>(udp->uh_sport);
             ret.setSender(senderHost, senderPort);
 
-            const QHostAddress destHost = QHostAddress(qFromBigEndian<quint32>(ip->ip_dst.S_un.S_addr));
+            #ifdef Q_OS_UNIX
+                const QHostAddress destHost = QHostAddress(qFromBigEndian<quint32>(ip->ip_dst.s_addr));
+            #else
+                const QHostAddress destHost = QHostAddress(qFromBigEndian<quint32>(ip->ip_dst.S_un.S_addr));
+            #endif
+
             quint16 destPort = qFromBigEndian<quint16>(udp->uh_dport);
             ret.setDestination(destHost, destPort);
 

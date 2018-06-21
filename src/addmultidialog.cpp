@@ -29,6 +29,8 @@ AddMultiDialog::AddMultiDialog(QWidget *parent) :
     ui->sbEndAddress->setMinimum(MIN_DMX_ADDRESS);
     ui->sbStartAddress->setMaximum(MAX_DMX_ADDRESS);
     ui->sbEndAddress->setMaximum(MAX_DMX_ADDRESS);
+    ui->sbStartAddress->setValue(MIN_DMX_ADDRESS);
+    ui->sbEndAddress->setValue(MAX_DMX_ADDRESS);
 
     ui->sbPriority->setMinimum(MIN_SACN_PRIORITY);
     ui->sbPriority->setMaximum(MAX_SACN_PRIORITY);
@@ -72,12 +74,14 @@ void AddMultiDialog::on_cbEffect_currentIndexChanged(int index)
     switch(mode)
     {
     case sACNEffectEngine::FxManual:
-        ui->dial->setMinimum(MIN_SACN_LEVEL);
-        ui->dial->setMaximum(MAX_SACN_LEVEL);
+        ui->slLevel->setMinimum(MIN_SACN_LEVEL);
+        ui->slLevel->setMaximum(MAX_SACN_LEVEL);
         ui->lbDialFunction->setText(tr("Level"));
         break;
 
-    case sACNEffectEngine::FxChase:
+    case sACNEffectEngine::FxChaseSnap:
+    case sACNEffectEngine::FxChaseRamp:
+    case sACNEffectEngine::FxChaseSine:
     case sACNEffectEngine::FxRamp:
     case sACNEffectEngine::FxSinewave:
     case sACNEffectEngine::FxVerticalBar:
@@ -85,16 +89,16 @@ void AddMultiDialog::on_cbEffect_currentIndexChanged(int index)
     case sACNEffectEngine::FxDate:
     case sACNEffectEngine::FxText:
     default:
-        ui->dial->setMinimum(1);
-        ui->dial->setMaximum(500);
+        ui->slLevel->setMinimum(1);
+        ui->slLevel->setMaximum(500);
         ui->lbDialFunction->setText(tr("Rate"));
         break;
     }
 
-    on_dial_sliderMoved(ui->dial->value());
+    on_slLevel_sliderMoved(ui->slLevel->value());
 }
 
-void AddMultiDialog::on_dial_sliderMoved(int value)
+void AddMultiDialog::on_slLevel_sliderMoved(int value)
 {
     sACNEffectEngine::FxMode mode = (sACNEffectEngine::FxMode) ui->cbEffect->currentIndex();
     switch(mode)
@@ -103,7 +107,8 @@ void AddMultiDialog::on_dial_sliderMoved(int value)
         ui->lbDialValue->setText(Preferences::getInstance()->GetFormattedValue(value, true));
         break;
 
-    case sACNEffectEngine::FxChase:
+    case sACNEffectEngine::FxChaseSnap:
+    case sACNEffectEngine::FxChaseRamp:
     case sACNEffectEngine::FxRamp:
     case sACNEffectEngine::FxSinewave:
     case sACNEffectEngine::FxVerticalBar:
@@ -148,12 +153,15 @@ bool AddMultiDialog::startNow()
 
 int AddMultiDialog::level()
 {
-    return ui->dial->value();
+    if ((sACNEffectEngine::FxMode) ui->cbEffect->currentIndex() == sACNEffectEngine::FxChaseSnap)
+        return 255;
+
+    return ui->slLevel->value();
 }
 
 int AddMultiDialog::rate()
 {
-    return ui->dial->value();
+    return ui->slLevel->value();
 }
 
 int AddMultiDialog::priority()
@@ -161,7 +169,7 @@ int AddMultiDialog::priority()
     return ui->sbPriority->value();
 }
 
-void AddMultiDialog::on_dial_valueChanged(int value)
+void AddMultiDialog::on_slLevel_valueChanged(int value)
 {
-    on_dial_sliderMoved(value);
+    on_slLevel_sliderMoved(value);
 }

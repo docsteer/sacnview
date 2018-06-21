@@ -28,8 +28,6 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 
 
     QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
-    QVBoxLayout *nicLayout = new QVBoxLayout;
-
     foreach(QNetworkInterface interface, interfaces)
     {
         // If the interface is ok for use...
@@ -52,12 +50,12 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 
             radio->setChecked(Preferences::getInstance()->networkInterface().hardwareAddress() == interface.hardwareAddress());
 
-            nicLayout->addWidget(radio);
+            ui->verticalLayout_NetworkInterfaces->addWidget(radio);
             m_interfaceList << interface;
             m_interfaceButtons << radio;
         }
     }
-    ui->gbNetworkInterface->setLayout(nicLayout);
+    ui->cbListenAll->setChecked(Preferences::getInstance()->GetNetworkListenAll());
 
     switch (Preferences::getInstance()->GetDisplayFormat())
     {
@@ -88,6 +86,11 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         ui->gbTransmitTimeout->setChecked(false);
     }
 
+    ui->cbTxRateOverride->setChecked(Preferences::getInstance()->GetTXRateOverride());
+
+    ui->cbTheme->clear();
+    ui->cbTheme->addItems(Preferences::ThemeDescriptions);
+    ui->cbTheme->setCurrentIndex((int)Preferences::getInstance()->GetTheme());
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -124,6 +127,10 @@ void PreferencesDialog::on_buttonBox_accepted()
 
     p->SetDefaultTransmitName(ui->leDefaultSourceName->text());
 
+    if (ui->cbTxRateOverride->isChecked() != p->GetTXRateOverride())
+        requiresRestart = true;
+    p->SetTXRateOverride(ui->cbTxRateOverride->isChecked());
+
     for(int i=0; i<m_interfaceButtons.count(); i++)
     {
         if(m_interfaceButtons[i]->isChecked())
@@ -138,6 +145,16 @@ void PreferencesDialog::on_buttonBox_accepted()
                 break;
             }
         }
+    }
+
+    requiresRestart |= ui->cbListenAll->isChecked() != p->GetNetworkListenAll();
+    p->SetNetworkListenAll(ui->cbListenAll->isChecked());
+
+    Preferences::Theme theme = (Preferences::Theme)ui->cbTheme->currentIndex();
+    if(p->GetTheme()!=theme)
+    {
+        p->SetTheme(theme);
+        requiresRestart = true;
     }
 
     if (requiresRestart) {

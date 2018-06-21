@@ -41,7 +41,6 @@
 #ifndef _STREAMCOMMON_H_
 #define _STREAMCOMMON_H_
 
-#include "deftypes.h"
 #include "CID.h"
 #include "ipaddr.h"
 
@@ -95,6 +94,7 @@
 #define RLP_PREAMBLE_SIZE 16
 #define RLP_POSTAMBLE_SIZE 0
 #define ACN_IDENTIFIER_SIZE 12
+#define DMX_SLOT_MAX 512
 
 //for support of the early draft
 #define DRAFT_STREAM_HEADER_SIZE 90
@@ -142,23 +142,23 @@
  * Given a buffer, initialize the header, based on the data slot count, 
  * cid, etc. The buffer must be at least STREAM_HEADER_SIZE bytes long
  */
-void InitStreamHeader(uint1* pbuf, const CID &source_cid, 
-		      const char* source_name, uint1 priority, uint2 reserved,
-		      uint1 options, uint1 start_code, uint2 universe, 
-		      uint2 slot_count);
+void InitStreamHeader(quint8* pbuf, const CID &source_cid, 
+		      const char* source_name, quint8 priority, quint16 reserved,
+		      quint8 options, quint8 start_code, quint16 universe, 
+		      quint16 slot_count);
 /*
  * Given a buffer, initialize the header, based on the data slot count, 
  * cid, etc. The buffer must be at least STREAM_HEADER_SIZE bytes long
  * This function is included to support legacy code from before 
  * ratification of the standard.
  */
-void InitStreamHeaderForDraft(uint1* pbuf, const CID &source_cid,
-                              const char* source_name, uint1 priority, uint2 reserved,
-                              uint1 options, uint1 start_code, uint2 universe,
-                              uint2 slot_count);
+void InitStreamHeaderForDraft(quint8* pbuf, const CID &source_cid,
+                              const char* source_name, quint8 priority, quint16 reserved,
+                              quint8 options, quint8 start_code, quint16 universe,
+                              quint16 slot_count);
 
 /* Given an initialized buffer, change the sequence number to... */
-void SetStreamHeaderSequence(uint1* pbuf, uint1 seq, bool draft);
+void SetStreamHeaderSequence(quint8* pbuf, quint8 seq, bool draft);
 
 /*
  * Given a buffer, validate that the stream header is correct.  If this returns
@@ -166,50 +166,55 @@ void SetStreamHeaderSequence(uint1* pbuf, uint1 seq, bool draft);
  * source_space must be of size SOURCE_NAME_SPACE.
  * pdata is the offset into the buffer where the data is stored
  */
-bool ValidateStreamHeader(uint1* pbuf, uint buflen, CID &source_cid, 
-			  char* source_space, uint1 &priority, 
-			  uint1 &start_code, uint2 &reserved, uint1 &sequence,
-			  uint1 &options, uint2 &universe,
-			  uint2 &slot_count, uint1* &pdata);
+bool ValidateStreamHeader(quint8* pbuf, uint buflen, CID &source_cid, 
+			  char* source_space, quint8 &priority, 
+			  quint8 &start_code, quint16 &reserved, quint8 &sequence,
+			  quint8 &options, quint16 &universe,
+			  quint16 &slot_count, quint8* &pdata);
 
 /*
  * helper function that does the actual validation of a header
  * that carries the post-ratification root vector
  */
-bool VerifyStreamHeader(uint1* pbuf, uint buflen, CID &source_cid, 
-			char* source_space, uint1 &priority, 
-			uint1 &start_code, uint2 &reserved, uint1 &sequence, 
-			uint1 &options, uint2 &universe,
- 			uint2 &slot_count, uint1* &pdata);
+bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid, 
+			char* source_space, quint8 &priority, 
+			quint8 &start_code, quint16 &reserved, quint8 &sequence, 
+			quint8 &options, quint16 &universe,
+ 			quint16 &slot_count, quint8* &pdata);
 /*
  * helper function that does the actual validation of a header
  * that carries the early draft's root vector
  * This function is included to support legacy code from before 
  * ratification of the standard.
  */
-bool VerifyStreamHeaderForDraft(uint1* pbuf, uint buflen, CID &source_cid, 
-				char* source_space, uint1 &priority, 
-				uint1 &start_code, uint1 &sequence, 
-				uint2 &universe, uint2 &slot_count, 
-				uint1* &pdata);
+bool VerifyStreamHeaderForDraft(quint8* pbuf, uint buflen, CID &source_cid, 
+				char* source_space, quint8 &priority, 
+				quint8 &start_code, quint8 &sequence, 
+				quint16 &universe, quint16 &slot_count, 
+				quint8* &pdata);
+
+/*
+ * Returns true if contains draft root vector value
+ */
+bool isDraft(quint8* pbuf);
 
 /* 
  * toggles the preview_data bit of the options field to either 1 or 0
  */
-void SetPreviewData(uint1* pbuf, bool preview);
+void SetPreviewData(quint8* pbuf, bool preview);
 
 /* 
  * toggles the stream_terminated  bit of the options field to either 1 or 0
  */
-void SetStreamTerminated(uint1* pbuf, bool terminated);
+void SetStreamTerminated(quint8* pbuf, bool terminated);
 
 /* 
  * returns the stream_terminated  bit of the options field
  */
-bool GetStreamTerminated(uint1* pbuf);
+bool GetStreamTerminated(quint8* pbuf);
 
 /*Fills in the multicast address and port (not netiface) to use for listening to or sending on a universe*/
-void GetUniverseAddress(uint2 universe, CIPAddr& addr);
+void GetUniverseAddress(quint16 universe, CIPAddr& addr);
 
 
 #endif //_STREAMCOMMON_H_

@@ -17,8 +17,7 @@
 #define UNIVERSEVIEW_H
 
 #include <QWidget>
-
-#include "mergeduniverselogger.h"
+#include "consts.h"
 
 class sACNListener;
 
@@ -33,13 +32,12 @@ class UniverseView : public QWidget
     Q_OBJECT
 
 public:
-    explicit UniverseView(QWidget *parent = 0);
+    explicit UniverseView(int universe = MIN_SACN_UNIVERSE, QWidget *parent = 0);
     ~UniverseView();
     void startListening(int universe);
 protected slots:
     void on_btnGo_pressed();
     void on_btnPause_pressed();
-    void on_btnLogToFile_pressed();
     void sourceOnline(sACNSource *source);
     void sourceOffline(sACNSource *source);
     void sourceChanged(sACNSource *source);
@@ -48,6 +46,7 @@ protected slots:
     void openBigDisplay(quint16 address);
     void on_btnStartFlickerFinder_pressed();
     void on_btnLogWindow_pressed();
+    void listenerStarted(int universe);
 protected:
     virtual void resizeEvent(QResizeEvent *event);
     virtual void showEvent(QShowEvent *event);
@@ -69,20 +68,14 @@ private:
     COL_END
     };
 
-    enum LOG_STATE
-    {
-        NOT_LOGGING = 0,
-        LOGGING
-    };
-
-    void setUiForLoggingState(LOG_STATE state);
     void resizeColumns();
+    bool m_bindWarningShown = false;
+    void checkBind();
 
     Ui::UniverseView *ui;
     QHash<sACNSource *, int> m_sourceToTableRow;
     int m_selectedAddress;
     QSharedPointer<sACNListener> m_listener;
-    MergedUniverseLogger *m_logger;
     QWidget *m_parentWindow;
     bool m_displayDDOnlySource;
 };

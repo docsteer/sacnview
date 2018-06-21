@@ -16,8 +16,8 @@
 #include "sacnlistener.h"
 #include "streamcommon.h"
 #include "preferences.h"
-#include "deftypes.h"
 #include "defpack.h"
+#include "preferences.h"
 #include <QDebug>
 #include <QThread>
 #include <QPoint>
@@ -35,14 +35,17 @@
 //The time during which to sample
 #define SAMPLE_TIME 1500
 
+//Background merge interval
+#define BACKGROUND_MERGE 500
+
 sACNListener::sACNListener(int universe, QObject *parent) : QObject(parent),
     m_universe(universe),
     m_ssHLL(1000),
     m_isSampling(true),
     m_mergesPerSecond(0)
 {
-    m_merged_levels.reserve(512);
-    for(int i=0; i<512; i++)
+    m_merged_levels.reserve(DMX_SLOT_MAX);
+    for(int i=0; i<DMX_SLOT_MAX; i++)
         m_merged_levels << sACNMergedAddress();
 }
 
@@ -59,24 +62,22 @@ void sACNListener::startReception()
     qDebug() << "sACNListener" << QThread::currentThreadId() << ": Starting universe" << m_universe;
 
     // Clear the levels array
-    memset(&m_last_levels, -1, 512);
+    memset(&m_last_levels, -1, sizeof(m_last_levels)/sizeof(m_last_levels[0]));
 
-    // Listen multicast
-    m_sockets.push_back(new sACNRxSocket());
-    if (m_sockets.back()->bindMulticast(m_universe)) {
-        connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()), Qt::DirectConnection);
-    } else {
-       // Failed to bind,
-       m_sockets.pop_back();
-    }
+    if (Preferences::getInstance()->GetNetworkListenAll()) {
+        // Listen on ALL interfaces
+        for (auto interface : QNetworkInterface::allInterfaces())
+        {
+            // If the interface is ok for use...
+            if(Preferences::getInstance()->interfaceSuitable(&interface))
+            {
+                startInterface(interface);
+            }
+        }
 
-    // Listen unicast
-    m_sockets.push_back(new sACNRxSocket());
-    if (m_sockets.back()->bindUnicast()) {
-        connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()), Qt::DirectConnection);
     } else {
-       // Failed to bind
-       m_sockets.pop_back();
+        // Listen only to selected interface
+        startInterface(Preferences::getInstance()->networkInterface());
     }
 
     // Start intial sampling
@@ -86,16 +87,43 @@ void sACNListener::startReception()
     connect(m_initalSampleTimer, SIGNAL(timeout()), this, SLOT(sampleExpiration()), Qt::DirectConnection);
     m_initalSampleTimer->start();
 
-    // Merge is performed whenever the thread has time
+    // Merge is performed whenever a packet arrives and every BACKGROUND_MERGE interval
     m_elapsedTime.start();
     m_mergesPerSecondTimer.start();
     m_mergeTimer = new QTimer(this);
-    m_mergeTimer->setInterval(1);
+    m_mergeTimer->setInterval(BACKGROUND_MERGE);
     connect(m_mergeTimer, SIGNAL(timeout()), this, SLOT(performMerge()), Qt::DirectConnection);
     connect(m_mergeTimer, SIGNAL(timeout()), this, SLOT(checkSourceExpiration()), Qt::DirectConnection);
     m_mergeTimer->start();
+
+    // Everything is set
+    emit listenerStarted(m_universe);
 }
 
+void sACNListener::startInterface(QNetworkInterface iface)
+{
+    // Listen multicast
+    m_sockets.push_back(new sACNRxSocket(iface));
+    if (m_sockets.back()->bindMulticast(m_universe)) {
+        connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()), Qt::DirectConnection);
+        m_bindStatus.multicast = eBindStatus::BIND_OK;
+    } else {
+       // Failed to bind,
+       m_sockets.pop_back();
+       m_bindStatus.multicast = eBindStatus::BIND_FAILED;
+    }
+
+    // Listen unicast
+    m_sockets.push_back(new sACNRxSocket(iface));
+    if (m_sockets.back()->bindUnicast()) {
+        connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()), Qt::DirectConnection);
+        m_bindStatus.unicast = eBindStatus::BIND_OK;
+    } else {
+       // Failed to bind
+       m_sockets.pop_back();
+       m_bindStatus.unicast = eBindStatus::BIND_FAILED;
+    }
+}
 
 void sACNListener::sampleExpiration()
 {
@@ -132,8 +160,15 @@ void sACNListener::checkSourceExpiration()
 
 void sACNListener::readPendingDatagrams()
 {
+    #if (QT_VERSION == QT_VERSION_CHECK(5, 9, 3))
+        #error "QT5.9.3 QUdpSocket::readDatagram Returns incorrect infomation: https://bugreports.qt.io/browse/QTBUG-64784"
+    #endif
+    #if (QT_VERSION == QT_VERSION_CHECK(5, 10, 0))
+        #error "QT5.10.0 QUdpSocket::readDatagram Returns incorrect infomation: https://bugreports.qt.io/browse/QTBUG-65099"
+    #endif
+
     // Check all sockets
-    foreach (sACNRxSocket* m_socket, m_sockets)
+    for (auto m_socket : m_sockets)
     {
         while(m_socket->hasPendingDatagrams())
         {
@@ -157,23 +192,23 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
 {
     // Process packet
     CID source_cid;
-    uint1 start_code;
-    uint1 sequence;
-    uint2 universe;
-    uint2 slot_count;
-    uint1* pdata;
+    quint8 start_code;
+    quint8 sequence;
+    quint16 universe;
+    quint16 slot_count;
+    quint8* pdata;
     char source_name [SOURCE_NAME_SIZE];
-    uint1 priority;
+    quint8 priority;
     /*
      * These only apply to the ratified version of the spec, so we will hardwire
      * them to be 0 just in case they never get set.
     */
-    uint2 reserved = 0;
-    uint1 options = 0;
+    quint16 reserved = 0;
+    quint8 options = 0;
     bool preview = false;
-    uint1 *pbuf = (uint1*)data.data();
+    quint8 *pbuf = (quint8*)data.data();
 
-    if(!ValidateStreamHeader((uint1*)data.data(), data.length(), source_cid, source_name, priority,
+    if(!ValidateStreamHeader((quint8*)data.data(), data.length(), source_cid, source_name, priority,
             start_code, reserved, sequence, options, universe, slot_count, pdata))
     {
         // Recieved a packet but not valid. Log and discard
@@ -182,7 +217,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
     }
 
     // Unpacks a uint4 from a known big endian buffer
-    int root_vect = UpackB4((uint1*)pbuf + ROOT_VECTOR_ADDR);
+    int root_vect = UpackB4((quint8*)pbuf + ROOT_VECTOR_ADDR);
 
     // Packet for the wrong universe on this socket?
     if(m_universe != universe)
@@ -275,7 +310,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
             //doing assignment to force the type sizes.  A negative number means
             //we got an "old" one, but we assume that anything really old is possibly
             //due the device having rebooted and starting the sequence over.
-            int1 result = ((int1)sequence) - ((int1)((*it)->lastseq));
+            qint8 result = ((qint8)sequence) - ((qint8)((*it)->lastseq));
             if(result!=1)
                 (*it)->jumps++;
             if((result <= 0) && (result > -20))
@@ -334,6 +369,8 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
 
         m_sources.push_back(ps);
 
+        ps->name = QString::fromUtf8(source_name);
+        ps->ip = sender;
         ps->universe = universe;
         ps->active.SetInterval(WAIT_OFFLINE + m_ssHLL);
         ps->lastseq = sequence;
@@ -370,6 +407,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
         // This is a source that came back online
         qDebug() << "sACNListener" << QThread::currentThreadId() << ": Source came back name " << source_name;
         m_mergeAll = true;
+        emit sourceResumed(ps);
         emit sourceChanged(ps);
     }
 
@@ -423,12 +461,12 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
             }
             // This is DMX
             // Copy the last array back
-            memcpy(ps->last_level_array, ps->level_array, 512);
+            memcpy(ps->last_level_array, ps->level_array, DMX_SLOT_MAX);
             // Fill in the new array
-            memset(ps->level_array, 0, 512);
+            memset(ps->level_array, 0, DMX_SLOT_MAX);
             memcpy(ps->level_array, pdata, slot_count);
             // Compare the two
-            for(int i=0; i<512; i++)
+            for(int i=0; i<DMX_SLOT_MAX; i++)
             {
                 if(ps->level_array[i]!=ps->last_level_array[i])
                 {
@@ -462,12 +500,12 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
             }
 
             // Copy the last array back
-            memcpy(ps->last_priority_array, ps->priority_array, 512);
+            memcpy(ps->last_priority_array, ps->priority_array, DMX_SLOT_MAX);
             // Fill in the new array
-            memset(ps->priority_array, 0, 512);
+            memset(ps->priority_array, 0, DMX_SLOT_MAX);
             memcpy(ps->priority_array, pdata, slot_count);
             // Compare the two
-            for(int i=0; i<512; i++)
+            for(int i=0; i<DMX_SLOT_MAX; i++)
             {
                 if(ps->priority_array[i]!=ps->last_priority_array[i])
                 {
@@ -482,6 +520,9 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
             emit sourceChanged(ps);
             ps->source_params_change = false;
         }
+
+        // Merge
+        performMerge();
     }
 }
 
@@ -490,14 +531,14 @@ void sACNListener::performMerge()
     //array of addresses to merge. to prevent duplicates and because you can have
     //an odd collection of addresses, addresses[n] would be 'n' for the value in question
     // and -1 if not required
-    int addresses_to_merge[512];
+    int addresses_to_merge[DMX_SLOT_MAX];
     int number_of_addresses_to_merge = 0;
 
-    memset(addresses_to_merge, -1, sizeof(int) * 512);
+    memset(addresses_to_merge, -1, sizeof(int) * DMX_SLOT_MAX);
 
     {
         QMutexLocker locker(&m_monitoredChannelsMutex);
-        foreach(int chan, m_monitoredChannels)
+        for(auto chan: m_monitoredChannels)
         {
             QPointF data;
             data.setX(m_elapsedTime.nsecsElapsed()/1000000.0);
@@ -520,8 +561,8 @@ void sACNListener::performMerge()
     // Step one : find any addresses which have changed
     if(m_mergeAll) // Act like all addresses changed
     {
-        number_of_addresses_to_merge = 512;
-        for(int i=0; i<512; i++)
+        number_of_addresses_to_merge = DMX_SLOT_MAX;
+        for(int i=0; i<DMX_SLOT_MAX; i++)
         {
             addresses_to_merge[i] = i;
         }
@@ -537,7 +578,7 @@ void sACNListener::performMerge()
                 continue; // Inactive source, ignore it
             if(!ps->source_levels_change)
                 continue; // We don't need to consider this one, no change
-            for(int i=0; i<512; i++)
+            for(int i=0; i<DMX_SLOT_MAX; i++)
             {
                 if(ps->dirty_array[i])
                 {
@@ -546,7 +587,7 @@ void sACNListener::performMerge()
                 }
             }
             // Clear the flags
-            memset(ps->dirty_array, 0 , 512);
+            memset(ps->dirty_array, 0 , DMX_SLOT_MAX);
             ps->source_levels_change = false;
         }
     }
@@ -556,8 +597,9 @@ void sACNListener::performMerge()
     // Clear out the sources list for all the affected channels, we'll be refreshing it
 
     int skipCounter = 0;
-    for(int i=0; i < 512 && i<(number_of_addresses_to_merge + skipCounter); i++)
+    for(int i=0; i < DMX_SLOT_MAX && i<(number_of_addresses_to_merge + skipCounter); i++)
     {
+        QMutexLocker mergeLocker(&m_merged_levelsMutex);
         m_merged_levels[i].changedSinceLastMerge = false;
         if(addresses_to_merge[i] == -1) {
             ++skipCounter;
@@ -569,10 +611,10 @@ void sACNListener::performMerge()
 
     // Find the highest priority source for each address we need to work on
 
-    int levels[512];
+    int levels[DMX_SLOT_MAX];
     memset(&levels, -1, sizeof(levels));
 
-    int priorities[512];
+    int priorities[DMX_SLOT_MAX];
     memset(&priorities, -1, sizeof(priorities));
 
     QMultiMap<int, sACNSource*> addressToSourceMap;
@@ -589,13 +631,13 @@ void sACNListener::performMerge()
         }
 
         skipCounter = 0;
-        for(int i=0; i < 512 && i<(number_of_addresses_to_merge + skipCounter); i++)
+        for(int i=0; i < DMX_SLOT_MAX && i<(number_of_addresses_to_merge + skipCounter); i++)
         {
+            QMutexLocker mergeLocker(&m_merged_levelsMutex);
             if(addresses_to_merge[i] == -1) {
                ++skipCounter;
                 continue;
             }
-            sACNMergedAddress *pAddr = &m_merged_levels[addresses_to_merge[i]];
             int address = addresses_to_merge[i];
 
 			if (
@@ -614,7 +656,7 @@ void sACNListener::performMerge()
 			}
 
             if(ps->src_valid && !ps->active.Expired())
-                pAddr->otherSources << ps;
+                m_merged_levels[addresses_to_merge[i]].otherSources.insert(ps);
         }
     }
 
@@ -622,8 +664,9 @@ void sACNListener::performMerge()
 
     // Next, find highest level for the highest prioritized sources
     skipCounter = 0;
-    for(int i=0; i < 512 && i<(number_of_addresses_to_merge + skipCounter); i++)
+    for(int i=0; i < DMX_SLOT_MAX && i<(number_of_addresses_to_merge + skipCounter); i++)
     {
+        QMutexLocker mergeLocker(&m_merged_levelsMutex);
         if(addresses_to_merge[i] == -1) {
             ++skipCounter;
             continue;
@@ -637,7 +680,7 @@ void sACNListener::performMerge()
             m_merged_levels[address].winningSource = NULL;
             m_merged_levels[address].otherSources.clear();
         }
-        foreach(sACNSource *s, sourceList)
+        for (auto s : sourceList)
         {
             if(s->level_array[address] > levels[address])
             {

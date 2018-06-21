@@ -30,7 +30,6 @@
 #include <QElapsedTimer>
 #include <QMutex>
 
-#include "deftypes.h"
 #include "CID.h"
 #include "tock.h"
 
@@ -46,13 +45,14 @@ enum StreamingACNProtocolVersion
 };
 
 
-class sACNSource
+class sACNSource : public QObject
 {
+    Q_OBJECT
 public:
     explicit sACNSource();
     CID src_cid;
     bool src_valid;
-    uint1 lastseq;
+    quint8 lastseq;
     ttimer active;  //If this expires, we haven't received any data in over a second
     //The per-channel priority alternate start code policy requires we detect the source only after
     //a STARTCODE_PRIORITY packet was received or 1.5 seconds have expired
@@ -64,15 +64,15 @@ public:
                                   //(either by receiving priority or timeout).  If doing_per_channel,
                                   //used to time out the 0xdd packets to see if we lost per-channel priority
     quint16 universe;
-    uint1 level_array[512];
-    uint1 priority_array[512];
-    uint1 last_level_array[512];
-    uint1 last_priority_array[512];
+    quint8 level_array[512];
+    quint8 priority_array[512];
+    quint8 last_level_array[512];
+    quint8 last_priority_array[512];
     bool dirty_array[512]; // Set if an individual level or priority has changed
     bool source_params_change; // Set if any parameter of the source changes between packets
     bool source_levels_change;
 
-    uint1 priority;
+    quint8 priority;
     QString name;
     QString cid_string();
     QHostAddress ip;
@@ -86,6 +86,15 @@ public:
     int jumps;
     // Protocol Version
     StreamingACNProtocolVersion protocol_version;
+
+public slots:
+    void resetSeqErr() {
+        seqErr = 0;
+    }
+
+    void resetJumps() {
+        jumps = 0;
+    }
 };
 
 
