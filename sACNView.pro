@@ -105,7 +105,6 @@ SOURCES += src/main.cpp\
     src/scopewidget.cpp \
     src/aboutdialog.cpp \
     src/sacn/sacneffectengine.cpp \
-    src/mergeduniverselogger.cpp \
     src/sacn/sacnuniverselistmodel.cpp \
     src/snapshot.cpp \
     src/commandline.cpp \
@@ -143,7 +142,6 @@ HEADERS += src/mdimainwindow.h \
     src/scopewidget.h \
     src/aboutdialog.h \
     src/sacn/sacneffectengine.h \
-    src/mergeduniverselogger.h \
     src/sacn/sacnuniverselistmodel.h \
     src/snapshot.h \
     src/commandline.h \
