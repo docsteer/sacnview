@@ -145,9 +145,6 @@ int main(int argc, char *argv[])
                                     );
 
 
-    // Check web (if avaliable) for new version
-    VersionCheck version;
-
     // Check firewall if not newly selected
     if (!newInterface) {
         foreach (QNetworkAddressEntry ifaceAddr, Preferences::getInstance()->networkInterface().addressEntries())

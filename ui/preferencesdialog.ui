@@ -288,7 +288,21 @@
           </layout>
          </widget>
         </item>
+		<item> 
+       <widget class="QCheckBox" name="cbTxRateOverride"> 
+        <property name="sizePolicy"> 
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding"> 
+          <horstretch>0</horstretch> 
+          <verstretch>0</verstretch> 
+         </sizepolicy> 
+        </property> 
+        <property name="text"> 
+         <string>Allow rates to exceed E1.11 (E1.31:2016 6.6.1)*</string> 
+        </property> 
+       </widget> 
+      </item> 
         <item>
+		
          <widget class="QGroupBox" name="gbTransmitTimeout">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
