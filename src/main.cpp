@@ -31,6 +31,7 @@
 #include "firewallcheck.h"
 #include "ipc.h"
 #include "theme/darkstyle.h"
+#include "translations/translationdialog.h"
 #ifdef USE_BREAKPAD
     #include "crash_handler.h"
     #include "crash_test.h"
@@ -55,6 +56,16 @@ int main(int argc, char *argv[])
         crashwindow->show();
     }
 #endif
+
+    // Setup Language
+    {
+        TranslationDialog td(Preferences::getInstance()->GetLocale());
+        if (!td.LoadTranslation())
+        {
+            td.exec();
+            td.LoadTranslation(Preferences::getInstance()->GetLocale());
+        }
+    }
 
     // Windows XP Support
     #ifdef Q_OS_WIN
@@ -81,6 +92,9 @@ int main(int argc, char *argv[])
             #pragma message("This binary is intended for Windows >= 7")
         #endif
     #endif
+
+    // Check web (if avaliable) for new version
+    VersionCheck version;
 
     // Setup interface
     bool newInterface = false;
