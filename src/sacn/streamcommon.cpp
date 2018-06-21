@@ -456,11 +456,22 @@ bool VerifyStreamHeaderForDraft(quint8* pbuf, uint buflen, CID &source_cid,
   return true;
 }
 
+/*
+ * Returns true if contains draft root vector value
+ */
+bool isDraft(quint8* pbuf)
+{
+    if(!pbuf)
+        return false;
+    return DRAFT_ROOT_VECTOR == UpackB4(pbuf + ROOT_VECTOR_ADDR);
+}
+
 /* 
  * toggles the preview_data bit of the options field to either 1 or 0
  */
 void SetPreviewData(quint8* pbuf, bool preview)
 {
+  if (isDraft(pbuf)) return;
   if(pbuf)
   {
     quint8 current_options = UpackB1(pbuf + OPTIONS_ADDR);
@@ -475,6 +486,7 @@ void SetPreviewData(quint8* pbuf, bool preview)
  */
 void SetStreamTerminated(quint8* pbuf, bool terminated)
 {
+  if (isDraft(pbuf)) return;
   if(pbuf)
   {
     quint8 current_options = UpackB1(pbuf + OPTIONS_ADDR);
@@ -489,8 +501,9 @@ void SetStreamTerminated(quint8* pbuf, bool terminated)
  */
 bool GetStreamTerminated(quint8* pbuf)
 {
+  if (isDraft(pbuf)) return false;
   if(!pbuf)
-     return true;
+     return false;
   int current_options = UpackB1(pbuf + OPTIONS_ADDR);
   return ((current_options & 0x40) == 0x40);
 }

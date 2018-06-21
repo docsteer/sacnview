@@ -77,6 +77,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
         QToolButton *button = new QToolButton(this);
         button->setText(QString::number(i+1));
         button->setMinimumSize(16, 16);
+        button->setFocusPolicy(Qt::FocusPolicy::NoFocus);
         layout->addWidget(button);
         m_presetButtons << button;
         connect(button, SIGNAL(pressed()), this, SLOT(presetButtonPressed()));
@@ -85,6 +86,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     m_presetButtons << recordButton;
     recordButton->setCheckable(true);
     recordButton->setIcon(QIcon(":/icons/record.png"));
+    recordButton->setFocusPolicy(Qt::FocusPolicy::NoFocus);
     layout->addWidget(recordButton);
     ui->gbPresets->setLayout(layout);
     connect(recordButton, SIGNAL(toggled(bool)), this, SLOT(recordButtonPressed(bool)));
@@ -274,7 +276,7 @@ void transmitwindow::setUniverseOptsEnabled(bool enabled)
     ui->gbProtocolVersion->setEnabled(enabled);
     ui->cbBlind->setEnabled(enabled ? ui->rbRatified->isChecked() : false);
     ui->tabWidget->setEnabled(!enabled);
-
+    on_tabWidget_currentChanged(ui->tabWidget->currentIndex());
 
     if(enabled)
     {
@@ -531,6 +533,8 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
         m_sender->setLevelRange(0, MAX_DMX_ADDRESS-1, 0);
         QMetaObject::invokeMethod(
                     m_fxEngine,"pause");
+
+        ui->teCommandline->setFocus();
     }
 
     if(index==tabEffects)

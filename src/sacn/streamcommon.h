@@ -94,6 +94,7 @@
 #define RLP_PREAMBLE_SIZE 16
 #define RLP_POSTAMBLE_SIZE 0
 #define ACN_IDENTIFIER_SIZE 12
+#define DMX_SLOT_MAX 512
 
 //for support of the early draft
 #define DRAFT_STREAM_HEADER_SIZE 90
@@ -191,6 +192,11 @@ bool VerifyStreamHeaderForDraft(quint8* pbuf, uint buflen, CID &source_cid,
 				quint8 &start_code, quint8 &sequence, 
 				quint16 &universe, quint16 &slot_count, 
 				quint8* &pdata);
+
+/*
+ * Returns true if contains draft root vector value
+ */
+bool isDraft(quint8* pbuf);
 
 /* 
  * toggles the preview_data bit of the options field to either 1 or 0

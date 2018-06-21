@@ -27,6 +27,7 @@
 #include "tock.h"
 #include "consts.h"
 #include "sacnsocket.h"
+#include "e1_11.h"
 
 class QTimer;
 
@@ -88,7 +89,7 @@ public slots:
      * @param priority - the priority value
      */
     void setPerSourcePriority(quint8 priority);
-    quint8 perSourcePriority() { return m_priority;};
+    quint8 perSourcePriority() { return m_priority; }
     /**
      * @brief startSending - starts sending for the selected universe
      * @param (Optional) preview - set the preview flag?
@@ -162,11 +163,6 @@ private:
     QTimer *m_checkTimeoutTimer;
 };
 
-
-//These definitions are to be used with the ignore_inactivity_logic field of CreateUniverse
-#define IGNORE_INACTIVE_DMX  false
-#define IGNORE_INACTIVE_PRIORITY false /*Any priority change should send three packets anyway, around your frame rate*/
-
 //These definitions are to be used with the send_intervalms parameter of CreateUniverse
 #define SEND_INTERVAL_DMX	850	/*If no data has been sent in 850ms, send another DMX packet*/
 #define SEND_INTERVAL_PRIORITY 1000	/*By default, per-channel priority packets are sent once per second*/
@@ -208,8 +204,9 @@ public:
   bool CreateUniverse(const CID& source_cid, const char* source_name, quint8 priority,
                        quint16 reserved, quint8 options, quint8 start_code,
                               quint16 universe, quint16 slot_count, quint8*& pslots, uint& handle,
-                              bool ignore_inactivity_logic = IGNORE_INACTIVE_DMX,
-                              uint send_intervalms = SEND_INTERVAL_DMX, CIPAddr unicastAddress = CIPAddr(), bool draft = false);
+                              uint send_intervalms = SEND_INTERVAL_DMX,
+                              uint send_max_rate = E1_11::MAX_REFRESH_RATE_HZ,
+                              CIPAddr unicastAddress = CIPAddr(), bool draft = false);
 
   //After you add data to the data buffer, call this to trigger the data send
   //on the next Tick boundary.
@@ -254,9 +251,9 @@ public:
    virtual void OptionsStreamTerminated(uint handle, bool terminated);
 private slots:
   /**
-   * @brief Tick - called every 10ms, handles transmission of sACN
+   * @brief TickLoop - Handles transmission of sACN
    */
-  void Tick();
+  void TickLoop();
 
 private:
     CStreamServer();
@@ -264,9 +261,8 @@ private:
     static CStreamServer *m_instance;
 
     sACNTxSocket * m_sendsock;  //The actual socket used for sending
-    QTimer *m_tickTimer;
     QThread *m_thread;
-
+    bool m_thread_stop;
 
     typedef std::pair<CID, quint16> cidanduniverse;
     //Each universe shares its sequence numbers across start codes.
@@ -294,23 +290,20 @@ private:
                                 //If NULL, this is not an active universe (just a hole in the vector)
         uint sendsize;
         bool isdirty;
-        bool waited_for_dirty;      //Until we receive a dirty flag, we don't start outputting the universe.
-        bool ignore_inactivity;     //If true, we don't bother looking at inactive_count
-        uint inactive_count;		//After 3 of these, we start sending at send_interval
+        bool suppresed;             //Transmission rate suppresed?
         ttimer send_interval;       //Whether or not it's time to send a non-dirty packet
+        ttimer min_interval;        //Whether it's too soon to send a packet
         QHostAddress sendaddr;      //The multicast address we're sending to
         bool draft;                 //Draft or released sACN
         CID cid;                    // The CID
 
         //and the constructor
       universe():number(0),handle(0), num_terminates(0), psend(NULL),isdirty(false),
-          waited_for_dirty(false),inactive_count(0),draft(false), cid() {}
+          suppresed(false),draft(false), cid() {}
     };
 
     //The handle is the vector index
     std::vector<universe> m_multiverse;
-    typedef std::vector<universe>::iterator verseiter;
-
 
    //Perform the logical destruction and cleanup of a universe
    //and its related objects.

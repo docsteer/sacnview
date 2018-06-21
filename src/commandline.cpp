@@ -1,10 +1,13 @@
+#include <QApplication>
 #include "commandline.h"
 #include "consts.h"
 #include "preferences.h"
 
-CommandLine::CommandLine()
+CommandLine::CommandLine(QObject *parent) : QObject(parent),
+    m_terminated(false),
+    m_clearKeyTimer(new QTimer(this))
 {
-    m_terminated = false;
+    m_clearKeyTimer->setSingleShot(true);
 }
 
 void CommandLine::processKey(Key value)
@@ -38,12 +41,20 @@ void CommandLine::processKey(Key value)
             m_addresses.clear();
             m_terminated = false;
         }
+        else if (m_clearKeyTimer->isActive())
+        {
+            // Double tap, clear line
+            m_keyStack.clear();
+            m_errorText.clear();
+        }
         else
         {
             // Backspace
             m_keyStack.pop();
             m_errorText.clear();
         }
+
+        m_clearKeyTimer->start(QApplication::doubleClickInterval());
     }
     else
     {
@@ -58,6 +69,29 @@ void CommandLine::processKey(Key value)
         m_keyStack.push(value);
     }
     processStack();
+}
+
+void getSelection(QSet<int> *selection, int *numberEntry, int *startRange)
+{
+    if(*startRange != 0 && *numberEntry != 0)
+    {
+        // Thru
+        if (*numberEntry > *startRange)
+            for(int i = *startRange; i <= *numberEntry; i++)
+                selection->insert(i);
+        else
+            for(int i = *numberEntry; i <= *startRange; i++)
+                selection->insert(i);
+    }
+    else
+    {
+        // Single
+        if(*numberEntry!=0)
+            selection->insert(*numberEntry);
+    }
+
+   *numberEntry = 0;
+   *startRange = 0;
 }
 
 void CommandLine::processStack()
@@ -106,7 +140,7 @@ void CommandLine::processStack()
                 {
                     // Not a valid entry, would be >512
                     state = stError;
-                    m_errorText = "Error - number out of range";
+                    m_errorText = E_RANGE;
                     return;
                 }
 
@@ -118,17 +152,17 @@ void CommandLine::processStack()
                 {
                     // Not a valid entry, would be >max
                     state = stError;
-                    m_errorText = "Error - number out of range";
+                    m_errorText = E_RANGE;
                     return;
                 }
             }
             break;
 
         case THRU:
-                m_text.append(" THRU ");
+                m_text.append(QString(" %1 ").arg(K_THRU));
                 if(numberEntry==0 || state!=stChannel || startRange!=0)
                 {
-                    m_errorText = "Error - syntax error";
+                    m_errorText = E_SYNTAX;
                     return;
                 }
                 startRange=numberEntry;
@@ -136,18 +170,25 @@ void CommandLine::processStack()
             break;
 
         case AT:
-            m_text.append(" @ ");
-            if(startRange!=0 && numberEntry==0)
+            // [@] [@] = [@] [Full]
+            if (
+                m_keyStack.count() > 1 &&
+                m_keyStack.last() == m_keyStack[m_keyStack.count() - 2]
+                )
             {
-                m_errorText = "Error - syntax error";
+                m_keyStack.pop();
+                processKey(FULL);
                 return;
             }
-            if(startRange!=0 && numberEntry!=0)
+
+            m_text.append(QString(" %1 ").arg(K_AT));;
+            if(startRange!=0 && numberEntry==0)
             {
-                for(int i=startRange; i<numberEntry; i++)
-                    selection << i;
+                m_errorText = E_SYNTAX;
+                return;
             }
-            if(numberEntry!=0) selection << numberEntry;
+
+            getSelection(&selection, &numberEntry, &startRange);
 
             if(selection.isEmpty() && !m_previousKeyStack.isEmpty())
             {
@@ -158,8 +199,7 @@ void CommandLine::processStack()
             }
 
             state = stLevels;
-            numberEntry = 0;
-            startRange = 0;
+
             // Copy the entries up to the at to the last addresses
             i=0;
             m_previousKeyStack.clear();
@@ -171,14 +211,27 @@ void CommandLine::processStack()
             break;
 
         case AND:
-            m_text.append(" AND ");
+            m_text.append(QString(" %1 ").arg(K_AND));
             if(numberEntry==0 || state != stChannel)
             {
-                m_errorText = "Error - syntax error";
-                return;
+                if (m_keyStack.count() == 1 && !m_previousKeyStack.isEmpty())
+                {
+                    // Empty command line and selection...use previous
+                    m_keyStack = m_previousKeyStack;
+                    processKey(AND);
+                    return;
+                }
+                else
+                {
+                    m_errorText = E_SYNTAX;
+                    return;
+                }
             }
-            selection << numberEntry;
+
+            getSelection(&selection, &numberEntry, &startRange);
             numberEntry = 0;
+            startRange = 0;
+
             break;
 
         case ENTER:
@@ -199,26 +252,44 @@ void CommandLine::processStack()
             return;
 
         case FULL:
-            if(selection.isEmpty() && !m_previousKeyStack.isEmpty())
+            // Anything selected?
+            if(
+                selection.isEmpty()
+                && m_keyStack.size()
+                && !m_keyStack.contains(AT)
+                )
             {
-                m_keyStack = m_previousKeyStack;
-                m_keyStack.push(AT);
-                m_keyStack.push(FULL);
-                processStack();
+                m_keyStack.pop();
+                processKey(AT);
+                processKey(FULL);
+                return;
+            }
+            else if (selection.isEmpty())
+            {
+                // ...Nope nothing
+                // Lets try the previous selection
+                if (!m_previousKeyStack.isEmpty())
+                {
+                    m_keyStack = m_previousKeyStack;
+                    processKey(AT);
+                    processKey(FULL);
+                }
+                else
+                {
+                    m_errorText = E_NO_SELECTION;
+                }
                 return;
             }
 
-            if(state!=stLevels)
-                m_text.append(" @ ");
-            m_text.append("FULL*");
+            m_text.append(QString("%1*").arg(K_FULL));
             if(startRange!=0 && numberEntry==0)
             {
-                m_errorText = "Error : Syntax Error";
+                m_errorText = E_SYNTAX;
                 return;
             }
             if(state==stLevels && numberEntry!=0)
             {
-                m_errorText = "Error : Syntax Error";
+                m_errorText = E_SYNTAX;
                 return;
             }
             m_level = MAX_SACN_LEVEL;
@@ -240,11 +311,34 @@ QString CommandLine::text()
 
 /************************ CommandLineWidget ******************************/
 
-CommandLineWidget::CommandLineWidget(QWidget *parent) : QTextEdit(parent)
+CommandLineWidget::CommandLineWidget(QWidget *parent) : QTextEdit(parent),
+    m_cursorTimer(new QTimer(this)),
+    m_cursorState(true)
 {
     this->setReadOnly(true);
     setStyleSheet("color: rgb(127, 255, 23);background: black;font: 75 12pt \"Courier\";");
     clear();
+
+    // Cursor blinker
+    connect(m_cursorTimer, SIGNAL(timeout()), this, SLOT(flashCursor()));
+    m_cursorTimer->setInterval(300);
+    m_cursorTimer->setSingleShot(false);
+    m_cursorTimer->start();
+}
+
+void CommandLineWidget::flashCursor()
+{
+    if (this->hasFocus())
+    {
+        auto cursor = (m_cursorState == true) ? "_" : "";
+        this->setText(QString("%1%2")
+                        .arg(m_commandLine.text())
+                        .arg(cursor));
+
+        m_cursorState = !m_cursorState;
+    } else {
+        this->setText(m_commandLine.text());
+    }
 }
 
 void CommandLineWidget::displayText()
