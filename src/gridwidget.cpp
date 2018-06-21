@@ -61,7 +61,6 @@ void GridWidget::paintEvent(QPaintEvent *event)
 
     qreal scaleWidth = width()/wantedWidth;
     qreal scaleHeight = height()/ wantedHeight;
-    qreal minScale = qMin(scaleWidth, scaleHeight);
 
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.scale(scaleWidth,scaleHeight);
