@@ -1,6 +1,6 @@
 #include "ipc.h"
 #include "consts.h"
-#include <QSTRING>
+#include <QString>
 
 #define TIME_OUT (500)    // 500ms
 
