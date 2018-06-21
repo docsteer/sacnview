@@ -196,7 +196,7 @@ void sACNUniverseListModel::sourceOnline(sACNSource *source)
     // In my display range?
     int univIndex = source->universe - m_start;
     if (
-            (univIndex > m_universes.count())
+            (univIndex >= m_universes.count())
             ||
             (univIndex < 0)
         ) { return; }
@@ -228,7 +228,7 @@ void sACNUniverseListModel::sourceChanged(sACNSource *source)
     // In my display range?
     int univIndex = source->universe - m_start;
     if (
-            (univIndex > m_universes.count())
+            (univIndex >= m_universes.count())
             ||
             (univIndex < 0)
         ) { return; }
@@ -264,7 +264,7 @@ void sACNUniverseListModel::sourceOffline(sACNSource *source)
     QWriteLocker locker(&rwlock_ModelIndex);
     int univIndex = source->universe - m_start;
     if (
-            (univIndex > m_universes.count())
+            (univIndex >= m_universes.count())
             ||
             (univIndex < 0)
         ) { return; }
