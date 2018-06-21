@@ -83,6 +83,10 @@ void Snapshot::setState(state s)
     {
     case stSetup:
         stopSnapshot();
+        if(m_snapshotData.isEmpty())
+            ui->btnReplay->hide();
+        else
+            ui->btnReplay->show();
         ui->btnPlay->setEnabled(false);
         ui->btnSnapshot->setEnabled(ui->tableWidget->rowCount()>0);
         ui->lbTimer->setText("");
@@ -106,6 +110,7 @@ void Snapshot::setState(state s)
     case stCountDown3:
     case stCountDown2:
     case stCountDown1:
+        ui->btnReplay->hide();
         ui->btnAddRow->setEnabled(false);
         ui->btnRemoveRow->setEnabled(false);
         ui->btnSnapshot->setEnabled(false);
@@ -122,6 +127,7 @@ void Snapshot::setState(state s)
             t->setVisible(false);
         break;
     case stReadyPlayback:
+        ui->btnReplay->hide();
         ui->btnPlay->setEnabled(true);
         ui->btnSnapshot->setEnabled(true);
         ui->lbTimer->setText("");
@@ -139,7 +145,9 @@ void Snapshot::setState(state s)
         foreach(QToolButton *t, m_enableButtons)
             t->setVisible(false);
         break;
+    case stReplay:
     case stPlayback:
+        ui->btnReplay->hide();
         ui->btnPlay->setEnabled(true);
         ui->btnSnapshot->setEnabled(false);
         ui->lbTimer->setText("");
@@ -192,10 +200,15 @@ void Snapshot::on_btnSnapshot_pressed()
 
 void Snapshot::on_btnPlay_pressed()
 {
-    if(m_state!=stPlayback)
+    if(m_state!=stPlayback && m_state!= stReplay)
         setState(stPlayback);
     else
         setState(stSetup);
+}
+
+void Snapshot::on_btnReplay_pressed()
+{
+    setState(stReplay);
 }
 
 void Snapshot::saveSnapshot()
