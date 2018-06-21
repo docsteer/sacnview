@@ -273,8 +273,20 @@ void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode, int val
         connect(slider, SIGNAL(valueChanged(int)), this, SLOT(controlSliderMoved(int)));
         }
         break;
-
-    case sACNEffectEngine::FxChase:
+    case sACNEffectEngine::FxChaseSnap:
+        {
+            QWidget *w = dynamic_cast<QWidget *>(sender());
+            if(m_widgetToFxEngine.contains(w))
+            {
+                sACNEffectEngine *e = m_widgetToFxEngine.value(w);
+                e->setManualLevel(255);
+            }
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
+    Q_FALLTHROUGH();
+#endif
+        }
+    case sACNEffectEngine::FxChaseRamp:
+    case sACNEffectEngine::FxChaseSine:
     case sACNEffectEngine::FxRamp:
     case sACNEffectEngine::FxSinewave:
     case sACNEffectEngine::FxVerticalBar:
