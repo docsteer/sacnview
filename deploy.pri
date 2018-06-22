@@ -65,7 +65,7 @@ linux {
     PRE_DEPLOY_COMMAND += $${QMAKE_DEL_FILE} $${DEPLOY_TARGET} $$escape_expand(\\n\\t)
     PRE_DEPLOY_COMMAND += wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" -O $${DEPLOY_COMMAND} $$escape_expand(\\n\\t)
     PRE_DEPLOY_COMMAND += chmod a+x $${DEPLOY_COMMAND} $$escape_expand(\\n\\t)
-    PRE_DEPLOY_COMMAND += unset LD_LIBRARY_PATH $$escape_expand(\\n\\t)
+##    PRE_DEPLOY_COMMAND += unset LD_LIBRARY_PATH $$escape_expand(\\n\\t)
     PRE_DEPLOY_COMMAND += $$QMAKE_COPY $${OUT_PWD}/$${TARGET} $${DEPLOY_TARGET} $$escape_expand(\\n\\t)
     PRE_DEPLOY_COMMAND += $$QMAKE_COPY $${DEPLOY_DIR}/usr/share/applications/sacnview.desktop $${DEPLOY_DIR}/AppDir/sacnview.desktop $$escape_expand(\\n\\t)
     PRE_DEPLOY_COMMAND += $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/Logo.png $${DEPLOY_DIR}/AppDir/sacnview.png $$escape_expand(\\n\\t)
