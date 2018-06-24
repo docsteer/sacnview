@@ -132,8 +132,6 @@ void CommandLine::processStack()
             numberEntry *= 10;
             numberEntry += numeric;
 
-            m_text.append(QString::number(numeric));
-
             if(state==stChannel || state==stThruStart || state==stThruEnd)
             {
                 if(numberEntry>MAX_DMX_ADDRESS)
@@ -141,6 +139,7 @@ void CommandLine::processStack()
                     // Not a valid entry, would be >512
                     state = stError;
                     m_errorText = E_RANGE;
+                    m_keyStack.pop_back();
                     return;
                 }
 
@@ -153,9 +152,12 @@ void CommandLine::processStack()
                     // Not a valid entry, would be >max
                     state = stError;
                     m_errorText = E_RANGE;
+                    m_keyStack.pop_back();
                     return;
                 }
             }
+
+            m_text.append(QString::number(numeric));
             break;
 
         case THRU:
@@ -173,6 +175,7 @@ void CommandLine::processStack()
             // [@] [@] = [@] [Full]
             if (
                 m_keyStack.count() > 1 &&
+                m_keyStack.last() == Key::AT &&
                 m_keyStack.last() == m_keyStack[m_keyStack.count() - 2]
                 )
             {
