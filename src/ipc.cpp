@@ -21,6 +21,7 @@ IPC::IPC(MDIMainWindow *w, QObject* parent):
         socket.waitForBytesWritten(TIME_OUT);
     } else {
         // Create new
+        m_pipe->removeServer(APP_NAME);
         m_pipe->listen(APP_NAME);
 
         connect(m_pipe, SIGNAL(newConnection()), this, SLOT(newConnection()));
