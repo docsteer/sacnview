@@ -377,6 +377,8 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
 
         m_sources.push_back(ps);
 
+        ps->name = QString::fromUtf8(source_name);
+        ps->ip = sender;
         ps->universe = universe;
         ps->active.SetInterval(WAIT_OFFLINE + m_ssHLL);
         ps->lastseq = sequence;
@@ -413,6 +415,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
         // This is a source that came back online
         qDebug() << "sACNListener" << QThread::currentThreadId() << ": Source came back name " << source_name;
         m_mergeAll = true;
+        emit sourceResumed(ps);
         emit sourceChanged(ps);
     }
 

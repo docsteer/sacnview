@@ -19,10 +19,12 @@
 #ifndef TARGET_WINXP
     #include <pcap.h>
 #endif
+#include "translations/translations.h"
 
 #include <QTimer>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QStringList>
 
 aboutDialog::aboutDialog(QWidget *parent) :
     QDialog(parent),
@@ -38,6 +40,19 @@ aboutDialog::aboutDialog(QWidget *parent) :
     ui->displayDate->setText(QString("%1, %2 %3 %4").arg(GIT_DATE_DAY).arg(GIT_DATE_DATE).arg(GIT_DATE_MONTH).arg(GIT_DATE_YEAR));
     ui->DisplayName->setText(AUTHOR);
 
+    // Translators
+    QStringList translators;
+    for (auto translations : Translations::lTranslations)
+    {
+        for (auto translatorName : translations.Translators)
+        {
+            if (!translators.contains(translatorName))
+                translators << translatorName;
+        }
+    }
+    ui->lblTranslatorNames->setText(translators.join("\n"));
+
+    // Libs
     ui->lblLicense->setText(
                 tr("This application is provided under the <a href=\"http://www.apache.org/licenses/LICENSE-2.0\">Apache License, version 2.0</a>")
     );

@@ -121,6 +121,7 @@ signals:
     void listenerStarted(int universe);
     void sourceFound(sACNSource *source);
     void sourceLost(sACNSource *source);
+    void sourceResumed(sACNSource *source);
     void sourceChanged(sACNSource *source);
     void levelsChanged();
     void dataReady(int address, QPointF data);

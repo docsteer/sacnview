@@ -233,6 +233,7 @@ void Preferences::savePreferences()
     settings.setValue(S_LISTEN_ALL, m_interfaceListenAll);
     settings.setValue(S_THEME, m_theme);
     settings.setValue(S_TX_RATE_OVERRIDE, m_txrateoverride);
+    settings.setValue(S_LOCALE, m_locale);
     settings.setValue(S_UNIVERSESLISTED, m_universesListed);
 
     settings.beginWriteArray(S_SUBWINDOWLIST);
@@ -274,6 +275,7 @@ void Preferences::loadPreferences()
     m_mainWindowGeometry = settings.value(S_MAINWINDOWGEOM, QVariant(QByteArray())).toByteArray();
     m_theme = (Theme) settings.value(S_THEME, QVariant((int)THEME_LIGHT)).toInt();
     m_txrateoverride = settings.value(S_TX_RATE_OVERRIDE, QVariant(false)).toBool();
+    m_locale = settings.value(S_LOCALE, QLocale::system()).toLocale();
     m_universesListed = settings.value(S_UNIVERSESLISTED, QVariant(20)).toUInt();
 
     m_windowInfo.clear();
@@ -351,4 +353,14 @@ void Preferences::SetSavedWindows(QList<MDIWindowInfo> values)
 QList<MDIWindowInfo> Preferences::GetSavedWindows()
 {
     return m_windowInfo;
+}
+
+void Preferences::SetLocale(QLocale locale)
+{
+    m_locale = locale;
+}
+
+QLocale Preferences::GetLocale()
+{
+    return m_locale;
 }

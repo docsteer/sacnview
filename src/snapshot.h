@@ -25,7 +25,8 @@ class Snapshot : public QWidget
         stCountDown2,
         stCountDown1,
         stReadyPlayback,
-        stPlayback
+        stPlayback,
+        stReplay
     };
 
 public:
@@ -35,6 +36,7 @@ protected slots:
     void counterTick();
     void on_btnSnapshot_pressed();
     void on_btnPlay_pressed();
+    void on_btnReplay_pressed();
     void on_btnAddRow_pressed();
     void on_btnRemoveRow_pressed();
     void senderTimedOut();

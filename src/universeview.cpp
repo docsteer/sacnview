@@ -24,8 +24,6 @@
 #include "mdimainwindow.h"
 #include "bigdisplay.h"
 
-#include <QFileDialog>
-#include <QStandardPaths>
 #include <QMessageBox>
 
 QString onlineToString(bool value)
@@ -54,7 +52,6 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
 {
     m_parentWindow = parent; // needed as parent() in qobject world isn't..
     m_selectedAddress = -1;
-    m_logger = NULL;
     m_displayDDOnlySource = Preferences::getInstance()->GetDisplayDDOnly();
 
     ui->setupUi(this);
@@ -70,7 +67,6 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
     ui->btnPause->setEnabled(false);
     ui->sbUniverse->setEnabled(true);
     ui->sbUniverse->setValue(universe);
-    setUiForLoggingState(NOT_LOGGING);
 }
 
 UniverseView::~UniverseView()
@@ -206,7 +202,8 @@ void UniverseView::sourceOnline(sACNSource *source)
 
         // Reset Button
         QPushButton* btn_seq = new QPushButton();
-        btn_seq->setText(tr("Reset"));
+        btn_seq->setIcon(QIcon(":/icons/clear.png"));
+        btn_seq->setFlat(true);
         pLayout->addWidget(btn_seq);
 
         // Connect button
@@ -234,7 +231,8 @@ void UniverseView::sourceOnline(sACNSource *source)
 
         // Reset Button
         QPushButton* btn_jumps = new QPushButton();
-        btn_jumps->setText(tr("Reset"));
+        btn_jumps->setIcon(QIcon(":/icons/clear.png"));
+        btn_jumps->setFlat(true);
         pLayout->addWidget(btn_jumps);
 
         // Connect button
@@ -310,21 +308,6 @@ void UniverseView::resizeColumns()
     ui->twSources->setColumnWidth(COL_NAME, width-used-5);
 }
 
-void UniverseView::setUiForLoggingState(UniverseView::LOG_STATE state)
-{
-    switch(state)
-    {
-    case LOGGING:
-        ui->btnLogToFile->setText(tr("Stop Log to File"));
-        break;
-
-    default:
-    case NOT_LOGGING:
-        ui->btnLogToFile->setText(tr("Start Log to File"));
-        break;
-    }
-}
-
 void UniverseView::selectedAddressChanged(int address)
 {
     ui->teInfo->clear();
@@ -393,41 +376,6 @@ void UniverseView::on_btnPause_pressed()
     m_bindWarningShown = false;
 }
 
-void UniverseView::on_btnLogToFile_pressed()
-{
-    if(!m_logger)
-    {
-        //Setup dialog box
-        QFileDialog dialog(this);
-        dialog.setWindowTitle(APP_NAME);
-        dialog.setDirectory(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
-        dialog.setNameFilter("CSV Files (*.csv)");
-        dialog.setDefaultSuffix("csv");
-        dialog.setFileMode(QFileDialog::AnyFile);
-        dialog.setViewMode(QFileDialog::Detail);
-        dialog.setAcceptMode(QFileDialog::AcceptSave);
-        if(dialog.exec()) {
-            QString saveName = dialog.selectedFiles().at(0);
-            if(saveName.isEmpty()) {
-                return;
-            }
-            m_logger = new MergedUniverseLogger();
-            m_logger->start(saveName, m_listener);
-            setUiForLoggingState(LOGGING);
-        }
-
-    }
-    else
-    {
-        m_logger->stop();
-        m_logger->deleteLater();
-        m_logger = nullptr;
-
-        setUiForLoggingState(NOT_LOGGING);
-    }
-
-}
-
 void UniverseView::on_btnStartFlickerFinder_pressed()
 {
     if(ui->universeDisplay->flickerFinder())
@@ -453,7 +401,6 @@ void UniverseView::on_btnLogWindow_pressed()
 {
     MDIMainWindow *mainWindow = dynamic_cast<MDIMainWindow *>(m_parentWindow);
     if(!mainWindow) return;
-    LogWindow *w = new LogWindow(mainWindow);
-    w->setUniverse(ui->sbUniverse->value());
+    LogWindow *w = new LogWindow(ui->sbUniverse->value(),mainWindow);
     mainWindow->showWidgetAsMdiWindow(w);
 }
