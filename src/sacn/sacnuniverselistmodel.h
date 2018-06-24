@@ -12,8 +12,6 @@
 #include "CID.h"
 #include "streamingacn.h"
 
-#define NUM_UNIVERSES_LISTED 20
-
 class sACNUniverseInfo;
 class sACNRxSocket;
 
@@ -40,7 +38,7 @@ public:
 
 /**
  * @brief The sACNUniverseListModel class provides a
- * QAbstractItemModel which represents 20 universes
+ * QAbstractItemModel which represents x universes
  * with each universe as a node with sources as its children.
  *
  * It does minimal inspection of the source packets - just enough to get name, IP and universe

@@ -32,7 +32,6 @@
 
 #include "CID.h"
 #include "tock.h"
-#include "sacndiscovery.h"
 
 // Forward Declarations
 class sACNListener;
@@ -134,12 +133,14 @@ public:
     tSender getSender(quint16 universe, CID cid = CID::CreateCid());
     const decltype(m_senderHash) getSenderList() { return m_senderHash; }
 
+signals:
+    void newSender();
+
 private slots:
     void senderUniverseChanged();
     void senderCIDChanged();
 
 private:
-    sacndiscoveryTX *m_discoverytx;
 };
 
 #endif // STREAMINGACN_H

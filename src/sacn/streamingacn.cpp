@@ -38,6 +38,7 @@
 #include "streamingacn.h"
 #include "sacnlistener.h"
 #include "sacnsender.h"
+#include "sacndiscovery.h"
 
 #include <QCoreApplication>
 #include <QThread>
@@ -85,10 +86,11 @@ sACNManager *sACNManager::getInstance()
     return m_instance;
 }
 
-sACNManager::sACNManager() : QObject(),
-    m_discoverytx(new sacndiscoveryTX(this))
+sACNManager::sACNManager() : QObject()
 {
-
+    // Start E1.31 Universe Discovery
+    sACNDiscoveryTX::start();
+    sACNDiscoveryRX::start();
 }
 
 static void strongPointerDeleteListener(sACNListener *obj)
@@ -183,6 +185,9 @@ sACNManager::tSender sACNManager::createSender(CID cid, quint16 universe)
     m_senderHash[cid][universe] = strongPointer.toWeakRef();
     m_objToUniverse[sender] = universe;
     m_objToCid[sender] = cid;
+
+    sACNDiscoveryTX::getInstance()->sendDiscoveryPacketNow();
+
     return strongPointer;
 }
 
@@ -220,6 +225,7 @@ sACNManager::tSender sACNManager::getSender(quint16 universe, CID cid)
         qApp->exit(-1);
 
     }
+
     return strongPointer;
 }
 

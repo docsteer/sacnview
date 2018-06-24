@@ -189,7 +189,15 @@ void SetStreamHeaderSequence(quint8* pbuf, quint8 seq, bool draft);
  * source_space must be of size SOURCE_NAME_SPACE.
  * pdata is the offset into the buffer where the data is stored
  */
-bool ValidateStreamHeader(quint8* pbuf, uint buflen, CID &source_cid, 
+enum e_ValidateStreamHeader
+{
+    SteamHeader_Invalid,
+    SteamHeader_Draft,
+    SteamHeader_Ratified,
+    SteamHeader_Extended,
+    SteamHeader_Unknown
+};
+e_ValidateStreamHeader ValidateStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
 			  char* source_space, quint8 &priority, 
 			  quint8 &start_code, quint16 &reserved, quint8 &sequence,
 			  quint8 &options, quint16 &universe,

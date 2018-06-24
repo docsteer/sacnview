@@ -206,12 +206,21 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
     bool preview = false;
     quint8 *pbuf = (quint8*)data.data();
 
-    if(!ValidateStreamHeader((quint8*)data.data(), data.length(), source_cid, source_name, priority,
+    switch (ValidateStreamHeader((quint8*)data.data(), data.length(), source_cid, source_name, priority,
             start_code, reserved, sequence, options, universe, slot_count, pdata))
     {
+    case e_ValidateStreamHeader::SteamHeader_Invalid:
         // Recieved a packet but not valid. Log and discard
         qDebug() << "sACNListener" << QThread::currentThreadId() << ": Invalid Packet";
         return;
+    case e_ValidateStreamHeader::SteamHeader_Unknown:
+        qDebug() << "sACNListener" << QThread::currentThreadId() << ": Unkown Root Vector";
+        return;
+    case e_ValidateStreamHeader::SteamHeader_Extended:
+        qDebug() << "sACNListener" << QThread::currentThreadId() << ": Extended Packet";
+        return;
+    default:
+        break;
     }
 
     // Unpacks a uint4 from a known big endian buffer

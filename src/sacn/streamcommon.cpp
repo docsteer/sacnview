@@ -40,6 +40,7 @@ Implementation of the common streaming ACN packing and parsing functions*/
 #include <string.h>
 
 #include "streamcommon.h"
+#include "sacndiscovery.h"
 #include "defpack.h"
 #include "VHD.h"
 
@@ -273,34 +274,41 @@ void SetStreamHeaderSequence(quint8* pbuf, quint8 seq, bool draft)
  * source_space must be of size SOURCE_NAME_SPACE.
  * pdata is the offset into the buffer where the data is stored
  */
-bool ValidateStreamHeader(quint8* pbuf, uint buflen, CID &source_cid, 
+e_ValidateStreamHeader ValidateStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
 			  char* source_space, quint8 &priority, 
 			  quint8 &start_code, quint16 &reserved, 
 			  quint8 &sequence, quint8 &options, quint16 &universe,
 			  quint16 &slot_count, quint8* &pdata)
 {
   if(!pbuf)
-     return false;
+     return e_ValidateStreamHeader::SteamHeader_Invalid;
 
-  int root_vector = 0;
+  int root_vector = UpackBUint32(pbuf + ROOT_VECTOR_ADDR);
   
-  root_vector = UpackBUint32(pbuf + ROOT_VECTOR_ADDR);
-  
-  if(root_vector == VECTOR_ROOT_E131_DATA)
+  switch (root_vector)
   {
-      return VerifyStreamHeader(pbuf, buflen, source_cid, source_space, 
-				priority, start_code, reserved, sequence, 
-				options, universe, slot_count, pdata);
-  }
-  else if(root_vector == VECTOR_ROOT_E131_DATA_DRAFT)
-  {
-      return VerifyStreamHeaderForDraft(pbuf, buflen, source_cid, 
-					source_space, priority, start_code, 
-					sequence, universe, slot_count, pdata);
-  }
-  else
-  {
-      return false;
+  case VECTOR_ROOT_E131_DATA:
+    if (VerifyStreamHeader(pbuf, buflen, source_cid, source_space,
+        priority, start_code, reserved, sequence,
+        options, universe, slot_count, pdata))
+        return e_ValidateStreamHeader::SteamHeader_Ratified;
+    else
+        return e_ValidateStreamHeader::SteamHeader_Invalid;
+
+  case VECTOR_ROOT_E131_DATA_DRAFT:
+    if (VerifyStreamHeaderForDraft(pbuf, buflen, source_cid,
+        source_space, priority, start_code,
+        sequence, universe, slot_count, pdata))
+        return e_ValidateStreamHeader::SteamHeader_Draft;
+    else
+        return e_ValidateStreamHeader::SteamHeader_Invalid;
+
+  case VECTOR_ROOT_E131_EXTENDED:
+      sACNDiscoveryRX::getInstance()->processPacket(pbuf, buflen);
+      return e_ValidateStreamHeader::SteamHeader_Extended;
+
+  default:
+      return e_ValidateStreamHeader::SteamHeader_Unknown;
   }
 }
 

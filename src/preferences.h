@@ -42,6 +42,7 @@ static const QString S_SUBWINDOWGEOM("SubWindow Geometry");
 static const QString S_LISTEN_ALL("Listen All");
 static const QString S_THEME("Theme");
 static const QString S_TX_RATE_OVERRIDE("TX Rate Override");
+static const QString S_UNIVERSESLISTED("Universe List Count");
 
 struct MDIWindowInfo
 {
@@ -112,6 +113,7 @@ public:
     void SetNetworkListenAll(const bool &value);
     void SetTheme(Theme theme);
     void SetTXRateOverride(bool override) { m_txrateoverride = override; }
+    void SetUniversesListed(quint8 count) { m_universesListed = std::max(count, (quint8)1); }
 
     unsigned int GetDisplayFormat();
     unsigned int GetMaxLevel();
@@ -127,6 +129,7 @@ public:
     bool GetNetworkListenAll();
     Theme GetTheme();
     bool GetTXRateOverride() { return m_txrateoverride; }
+    quint8 GetUniversesListed() { return m_universesListed; }
 
     QString GetFormattedValue(unsigned int nLevelInDecimal, bool decorated = false);
 
@@ -155,6 +158,7 @@ private:
     QList<MDIWindowInfo> m_windowInfo;
     Theme m_theme;
     bool m_txrateoverride;
+    quint8 m_universesListed;
 
     void loadPreferences();
 
