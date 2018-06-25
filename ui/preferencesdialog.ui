@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>846</width>
-    <height>650</height>
+    <width>639</width>
+    <height>452</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -256,7 +256,7 @@
        <property name="title">
         <string>Transmit Options</string>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout_6" stretch="1,0">
+       <layout class="QVBoxLayout" name="verticalLayout_6" stretch="1,0,0">
         <item>
          <widget class="QGroupBox" name="gbTransmitName">
           <property name="sizePolicy">
@@ -288,21 +288,20 @@
           </layout>
          </widget>
         </item>
-		<item> 
-       <widget class="QCheckBox" name="cbTxRateOverride"> 
-        <property name="sizePolicy"> 
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding"> 
-          <horstretch>0</horstretch> 
-          <verstretch>0</verstretch> 
-         </sizepolicy> 
-        </property> 
-        <property name="text"> 
-         <string>Allow rates to exceed E1.11 (E1.31:2016 6.6.1)*</string> 
-        </property> 
-       </widget> 
-      </item> 
         <item>
-		
+         <widget class="QCheckBox" name="cbTxRateOverride">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Allow rates to exceed E1.11 (E1.31:2016 6.6.1)*</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QGroupBox" name="gbTransmitTimeout">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
