@@ -116,7 +116,7 @@ public:
     void SetTheme(Theme theme);
     void SetTXRateOverride(bool override) { m_txrateoverride = override; }
     void SetLocale(QLocale locale);
-    void SetUniversesListed(quint8 count) { m_universesListed = std::max(count, (quint8)1); }
+    void SetUniversesListed(quint8 count) { m_universesListed = (std::max)(count, (quint8)1); }
 
     unsigned int GetDisplayFormat();
     unsigned int GetMaxLevel();
