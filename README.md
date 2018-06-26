@@ -1,5 +1,5 @@
 # sACNView
-sACNView is a tool for viewing, monitoring and testing the ANSI/ESTA E1.31 protcol, informally known as "Streaming ACN".
+sACNView is a tool for viewing, monitoring and testing the ANSI/ESTA E1.31 protocol, informally known as "Streaming ACN".
 
 For general information on the project, visit the [web site](http://docsteer.github.io/sacnview/)
 
