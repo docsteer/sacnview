@@ -1,9 +1,9 @@
 # sACNView
-sACNView is a tool for viewing, monitoring and testing the ANSI/ESTA E1.17 protcol, informally known as "Streaming ACN".
+sACNView is a tool for viewing, monitoring and testing the ANSI/ESTA E1.31 protcol, informally known as "Streaming ACN".
 
 For general information on the project, visit the [web site](http://docsteer.github.io/sacnview/)
 
-This protcol is used in lighting systems (typically theatre, television, live entertainment and other systems where a high performance stream of data is required).
+This protocol is used in lighting systems (typically theatre, television, live entertainment and other systems where a high performance stream of data is required).
 
 This is sACNView mark 2. The original program was written in Borland Delphi, but this new version supplants it. It is written in C++, using the Qt library and sACN reception code from [Electronic Theatre Controls](http://www.etcconnect.com).
 
