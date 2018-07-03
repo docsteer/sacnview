@@ -92,7 +92,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui->cbTxRateOverride->setChecked(Preferences::getInstance()->GetTXRateOverride());
 
     ui->cbTheme->clear();
-    ui->cbTheme->addItems(Preferences::ThemeDescriptions);
+    ui->cbTheme->addItems(Preferences::ThemeDescriptions());
     ui->cbTheme->setCurrentIndex((int)Preferences::getInstance()->GetTheme());
 }
 

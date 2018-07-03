@@ -29,8 +29,8 @@
 QString onlineToString(bool value)
 {
     if(value)
-        return QString("Online");
-    return QString("Offline");
+        return QObject::tr("Online");
+    return QObject::tr("Offline");
 }
 
 QString protocolVerToString(int value)
@@ -38,12 +38,12 @@ QString protocolVerToString(int value)
     switch(value)
     {
     case sACNProtocolDraft:
-        return QString("Draft");
+        return QObject::tr("Draft");
     case sACNProtocolRelease:
-        return QString("Release");
+        return QObject::tr("Release");
     }
 
-    return QString("Unknown");
+    return QObject::tr("Unknown");
 }
 
 UniverseView::UniverseView(int universe, QWidget *parent) :

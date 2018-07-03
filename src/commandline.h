@@ -9,21 +9,21 @@
 #include <QTimer>
 #include <QString>
 
-// Strings
-static const QString K_THRU(QObject::tr("THRU"));
-static const QString K_AT(QObject::tr("AT"));
-static const QString K_FULL(QObject::tr("FULL"));
-static const QString K_CLEAR(QObject::tr("CLEAR"));
-static const QString K_AND(QObject::tr("AND"));
-
-static const QString E_SYNTAX(QObject::tr("Error - syntax error"));
-static const QString E_RANGE(QObject::tr("Error - number out of range"));
-static const QString E_NO_SELECTION(QObject::tr("Error - no selection"));
-
 class CommandLine : public QObject
 {
     Q_OBJECT
 public:
+    // Strings
+    const QString K_THRU() { return QObject::tr("THRU"); }
+    const QString K_AT() { return QObject::tr("AT"); }
+    const QString K_FULL() { return QObject::tr("FULL"); }
+    const QString K_CLEAR() { return QObject::tr("CLEAR"); }
+    const QString K_AND() { return QObject::tr("AND"); }
+
+    const QString E_SYNTAX() { return QObject::tr("Error - syntax error"); }
+    const QString E_RANGE() { return QObject::tr("Error - number out of range"); }
+    const QString E_NO_SELECTION() {return QObject::tr("Error - no selection"); }
+
     explicit CommandLine(QObject *parent = nullptr);
 
     enum Key {

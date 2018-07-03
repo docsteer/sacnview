@@ -42,7 +42,7 @@ AddMultiDialog::AddMultiDialog(QWidget *parent) :
     ui->sbStartUniverse->setMaximum(MAX_SACN_UNIVERSE);
 
 
-    ui->cbEffect->addItems(FX_MODE_DESCRIPTIONS);
+    ui->cbEffect->addItems(sACNEffectEngine::FxModeDescriptions());
 
 
     connect(ui->sbStartUniverse, SIGNAL(valueChanged(int)), this, SLOT(rangeChanged()));

@@ -129,7 +129,7 @@ void MultiUniverse::addSource(int universe, int min_address, int max_address,
     m_widgetToSender[sb] = m_senders.last();
 
     QComboBox *cb = new QComboBox(this);
-    cb->addItems(FX_MODE_DESCRIPTIONS);
+    cb->addItems(sACNEffectEngine::FxModeDescriptions());
     cb->setCurrentIndex((int) mode);
     ui->tableWidget->setCellWidget(row, COL_EFFECT, cb);
     m_widgetToFxEngine[cb] = m_fxEngines.last();

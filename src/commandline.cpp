@@ -138,7 +138,7 @@ void CommandLine::processStack()
                 {
                     // Not a valid entry, would be >512
                     state = stError;
-                    m_errorText = E_RANGE;
+                    m_errorText = E_RANGE();
                     m_keyStack.pop_back();
                     return;
                 }
@@ -151,7 +151,7 @@ void CommandLine::processStack()
                 {
                     // Not a valid entry, would be >max
                     state = stError;
-                    m_errorText = E_RANGE;
+                    m_errorText = E_RANGE();
                     m_keyStack.pop_back();
                     return;
                 }
@@ -161,10 +161,10 @@ void CommandLine::processStack()
             break;
 
         case THRU:
-                m_text.append(QString(" %1 ").arg(K_THRU));
+                m_text.append(QString(" %1 ").arg(K_THRU()));
                 if(numberEntry==0 || state!=stChannel || startRange!=0)
                 {
-                    m_errorText = E_SYNTAX;
+                    m_errorText = E_SYNTAX();
                     return;
                 }
                 startRange=numberEntry;
@@ -184,10 +184,10 @@ void CommandLine::processStack()
                 return;
             }
 
-            m_text.append(QString(" %1 ").arg(K_AT));;
+            m_text.append(QString(" %1 ").arg(K_AT()));;
             if(startRange!=0 && numberEntry==0)
             {
-                m_errorText = E_SYNTAX;
+                m_errorText = E_SYNTAX();
                 return;
             }
 
@@ -214,7 +214,7 @@ void CommandLine::processStack()
             break;
 
         case AND:
-            m_text.append(QString(" %1 ").arg(K_AND));
+            m_text.append(QString(" %1 ").arg(K_AND()));
             if(numberEntry==0 || state != stChannel)
             {
                 if (m_keyStack.count() == 1 && !m_previousKeyStack.isEmpty())
@@ -226,7 +226,7 @@ void CommandLine::processStack()
                 }
                 else
                 {
-                    m_errorText = E_SYNTAX;
+                    m_errorText = E_SYNTAX();
                     return;
                 }
             }
@@ -279,20 +279,20 @@ void CommandLine::processStack()
                 }
                 else
                 {
-                    m_errorText = E_NO_SELECTION;
+                    m_errorText = E_NO_SELECTION();
                 }
                 return;
             }
 
-            m_text.append(QString("%1*").arg(K_FULL));
+            m_text.append(QString("%1*").arg(K_FULL()));
             if(startRange!=0 && numberEntry==0)
             {
-                m_errorText = E_SYNTAX;
+                m_errorText = E_SYNTAX();
                 return;
             }
             if(state==stLevels && numberEntry!=0)
             {
-                m_errorText = E_SYNTAX;
+                m_errorText = E_SYNTAX();
                 return;
             }
             m_level = MAX_SACN_LEVEL;

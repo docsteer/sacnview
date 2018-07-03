@@ -26,8 +26,6 @@ static const QColor mixColor = QColor("coral");
 
 Preferences *Preferences::m_instance = NULL;
 
-const QStringList Preferences::ThemeDescriptions = QStringList{"Light Theme", "Dark Theme"};
-
 Preferences::Preferences()
 {
     RESTART_APP = false;
