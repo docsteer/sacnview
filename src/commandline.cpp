@@ -71,42 +71,51 @@ void CommandLine::processKey(Key value)
     processStack();
 }
 
-void getSelection(QSet<int> *selection, int *numberEntry, int *startRange)
+void CommandLine::getSelection(QSet<int> *selection, int *numberEntry, int *startRange, stackState state, stackMode mode)
 {
+    Q_UNUSED(state);
+    QSet<int> tempSelection;
     if(*startRange != 0 && *numberEntry != 0)
     {
         // Thru
         if (*numberEntry > *startRange)
             for(int i = *startRange; i <= *numberEntry; i++)
-                selection->insert(i);
+                tempSelection.insert(i);
         else
             for(int i = *numberEntry; i <= *startRange; i++)
-                selection->insert(i);
+                tempSelection.insert(i);
     }
     else
     {
         // Single
         if(*numberEntry!=0)
-            selection->insert(*numberEntry);
+            tempSelection.insert(*numberEntry);
     }
 
-   *numberEntry = 0;
-   *startRange = 0;
+    // Update selection
+    for (auto i : tempSelection)
+    {
+        switch (mode)
+        {
+            case smMinus:
+                selection->remove(i);
+                break;
+            case smAdd:
+            default:
+                selection->insert(i);
+                break;
+        }
+    }
+
+    *numberEntry = 0;
+    *startRange = 0;
 }
 
 void CommandLine::processStack()
 {
-    enum {
-        stChannel,
-        stThruStart,
-        stThruEnd,
-        stLevels,
-        stReady,
-        stError,
-    };
-
     m_text.clear();
-    int state = stChannel;
+    stackMode mode = smAdd;
+    stackState state = stChannel;
     int numberEntry = 0;
     int startRange = 0;
     int i=0;
@@ -120,28 +129,19 @@ void CommandLine::processStack()
         switch(key)
         {
         case K0:
-            Q_FALLTHROUGH();
         case K1:
-            Q_FALLTHROUGH();
         case K2:
-            Q_FALLTHROUGH();
         case K3:
-            Q_FALLTHROUGH();
         case K4:
-            Q_FALLTHROUGH();
         case K5:
-            Q_FALLTHROUGH();
         case K6:
-            Q_FALLTHROUGH();
         case K7:
-            Q_FALLTHROUGH();
         case K8:
-            Q_FALLTHROUGH();
         case K9:
             numberEntry *= 10;
             numberEntry += numeric;
 
-            if(state==stChannel || state==stThruStart || state==stThruEnd)
+            if(state==stChannel)
             {
                 if(numberEntry>MAX_DMX_ADDRESS)
                 {
@@ -151,7 +151,6 @@ void CommandLine::processStack()
                     m_keyStack.pop_back();
                     return;
                 }
-
             }
 
             if(state==stLevels)
@@ -171,7 +170,7 @@ void CommandLine::processStack()
 
         case THRU:
                 m_text.append(QString(" %1 ").arg(K_THRU()));
-                if(numberEntry==0 || state!=stChannel || startRange!=0)
+                if(numberEntry==0 || startRange!=0 || state!=stChannel)
                 {
                     m_errorText = E_SYNTAX();
                     return;
@@ -200,7 +199,7 @@ void CommandLine::processStack()
                 return;
             }
 
-            getSelection(&selection, &numberEntry, &startRange);
+            getSelection(&selection, &numberEntry, &startRange, state, mode);
 
             if(selection.isEmpty() && !m_previousKeyStack.isEmpty())
             {
@@ -240,10 +239,31 @@ void CommandLine::processStack()
                 }
             }
 
-            getSelection(&selection, &numberEntry, &startRange);
-            numberEntry = 0;
-            startRange = 0;
+            getSelection(&selection, &numberEntry, &startRange, state, mode);
 
+            mode = smAdd;
+            break;
+
+        case MINUS:
+            m_text.append(QString(" %1 ").arg(K_MINUS()));
+            if(numberEntry==0 || state != stChannel)
+            {
+                if (m_keyStack.count() == 1 && !m_previousKeyStack.isEmpty())
+                {
+                    // Empty command line and selection...use previous
+                    m_keyStack = m_previousKeyStack;
+                    processKey(MINUS);
+                    return;
+                }
+                else
+                {
+                    m_errorText = E_SYNTAX();
+                    return;
+                }
+            }
+            getSelection(&selection, &numberEntry, &startRange, state, mode);
+
+            mode = smMinus;
             break;
 
         case ENTER:
@@ -266,8 +286,7 @@ void CommandLine::processStack()
         case FULL:
             // Anything selected?
             if(
-                selection.isEmpty()
-                && m_keyStack.size()
+                m_keyStack.size()
                 && !m_keyStack.contains(AT)
                 )
             {
@@ -416,6 +435,9 @@ void CommandLineWidget::keyPressEvent(QKeyEvent *e)
         break;
     case Qt::Key_Plus:
         keyAnd();
+        break;
+    case Qt::Key_Minus:
+        keyMinus();
         break;
     case Qt::Key_A:
     case Qt::Key_At:

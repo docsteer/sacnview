@@ -18,8 +18,8 @@ public:
     const QString K_AT() { return QObject::tr("AT"); }
     const QString K_FULL() { return QObject::tr("FULL"); }
     const QString K_CLEAR() { return QObject::tr("CLEAR"); }
-    const QString K_AND() { return QObject::tr("AND"); }
-    const QString K_MINUS() { return QObject::tr("MINUS"); }
+    const QString K_AND() { return QObject::tr("+"); }
+    const QString K_MINUS() { return QObject::tr("-"); }
 
     const QString E_SYNTAX() { return QObject::tr("Error - syntax error"); }
     const QString E_RANGE() { return QObject::tr("Error - number out of range"); }
@@ -55,9 +55,23 @@ public:
     QSet<int> addresses() { return m_addresses; }
     int level() { return m_level; }
 private:
+    enum stackState
+    {
+            stChannel,
+            stLevels,
+            stReady,
+            stError,
+    };
+    enum stackMode
+    {
+        smAdd,
+        smMinus
+    };
+
     QString m_text;
     QString m_errorText;
     void processStack();
+    void getSelection(QSet<int> *selection, int *numberEntry, int *startRange, stackState state, stackMode mode);
     QSet<int> m_addresses;
     int m_level;
     bool m_terminated;
