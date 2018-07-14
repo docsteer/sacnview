@@ -19,6 +19,7 @@ public:
     const QString K_FULL() { return QObject::tr("FULL"); }
     const QString K_CLEAR() { return QObject::tr("CLEAR"); }
     const QString K_AND() { return QObject::tr("AND"); }
+    const QString K_MINUS() { return QObject::tr("MINUS"); }
 
     const QString E_SYNTAX() { return QObject::tr("Error - syntax error"); }
     const QString E_RANGE() { return QObject::tr("Error - number out of range"); }
@@ -42,6 +43,7 @@ public:
         FULL,
         CLEAR,
         AND,
+        MINUS,
         ENTER,
         ALL_OFF
     };
@@ -85,6 +87,7 @@ public slots:
     void keyFull() { processKey(CommandLine::FULL); }
     void keyClear() { processKey(CommandLine::CLEAR); }
     void keyAnd() { processKey(CommandLine::AND); }
+    void keyMinus() { processKey(CommandLine::MINUS); }
     void keyEnter() { processKey(CommandLine::ENTER); }
     void keyAllOff() { processKey(CommandLine::ALL_OFF); }
 signals:

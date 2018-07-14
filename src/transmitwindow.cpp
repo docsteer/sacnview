@@ -183,6 +183,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     connect(ui->k8,     SIGNAL(pressed()),  ui->teCommandline,  SLOT(key8()));
     connect(ui->k9,     SIGNAL(pressed()),  ui->teCommandline,  SLOT(key9()));
     connect(ui->kAnd,   SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyAnd()));
+    connect(ui->kMinus, SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyMinus()));
     connect(ui->kAt,    SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyAt()));
     connect(ui->kClear, SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyClear()));
     connect(ui->kFull,  SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyFull()));

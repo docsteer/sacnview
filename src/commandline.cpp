@@ -120,14 +120,23 @@ void CommandLine::processStack()
         switch(key)
         {
         case K0:
+            Q_FALLTHROUGH();
         case K1:
+            Q_FALLTHROUGH();
         case K2:
+            Q_FALLTHROUGH();
         case K3:
+            Q_FALLTHROUGH();
         case K4:
+            Q_FALLTHROUGH();
         case K5:
+            Q_FALLTHROUGH();
         case K6:
+            Q_FALLTHROUGH();
         case K7:
+            Q_FALLTHROUGH();
         case K8:
+            Q_FALLTHROUGH();
         case K9:
             numberEntry *= 10;
             numberEntry += numeric;
@@ -301,6 +310,7 @@ void CommandLine::processStack()
             return;
 
         case CLEAR:
+            Q_FALLTHROUGH();
         default:
             break;
         }
