@@ -70,23 +70,23 @@ class CommandLineWidget : public QTextEdit
 public:
     CommandLineWidget(QWidget *parent = 0);
 public slots:
-    void key1();
-    void key2();
-    void key3();
-    void key4();
-    void key5();
-    void key6();
-    void key7();
-    void key8();
-    void key9();
-    void key0();
-    void keyThru();
-    void keyAt();
-    void keyFull();
-    void keyClear();
-    void keyAnd();
-    void keyEnter();
-    void keyAllOff();
+    void key1() { processKey(CommandLine::K1); }
+    void key2() { processKey(CommandLine::K2); }
+    void key3() { processKey(CommandLine::K3); }
+    void key4() { processKey(CommandLine::K4); }
+    void key5() { processKey(CommandLine::K5); }
+    void key6() { processKey(CommandLine::K6); }
+    void key7() { processKey(CommandLine::K7); }
+    void key8() { processKey(CommandLine::K8); }
+    void key9() { processKey(CommandLine::K9); }
+    void key0() { processKey(CommandLine::K0); }
+    void keyThru() { processKey(CommandLine::THRU); }
+    void keyAt() { processKey(CommandLine::AT); }
+    void keyFull() { processKey(CommandLine::FULL); }
+    void keyClear() { processKey(CommandLine::CLEAR); }
+    void keyAnd() { processKey(CommandLine::AND); }
+    void keyEnter() { processKey(CommandLine::ENTER); }
+    void keyAllOff() { processKey(CommandLine::ALL_OFF); }
 signals:
     void setLevels(QSet<int> addreses, int level);
 protected:
@@ -95,7 +95,8 @@ private slots:
     void flashCursor();
 private:
     CommandLine m_commandLine;
-    void displayText();
+    void updateText();
+    void processKey(CommandLine::Key);
     QTimer *m_cursorTimer;
     bool m_cursorState;
 };

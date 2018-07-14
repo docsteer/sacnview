@@ -331,129 +331,32 @@ CommandLineWidget::CommandLineWidget(QWidget *parent) : QTextEdit(parent),
 
 void CommandLineWidget::flashCursor()
 {
-    if (this->hasFocus())
-    {
-        auto cursor = (m_cursorState == true) ? "_" : "";
-        this->setText(QString("%1%2")
-                        .arg(m_commandLine.text())
-                        .arg(cursor));
-
-        m_cursorState = !m_cursorState;
-    } else {
-        this->setText(m_commandLine.text());
-    }
+    m_cursorState = !m_cursorState;
+    updateText();
 }
 
-void CommandLineWidget::displayText()
+void CommandLineWidget::processKey(CommandLine::Key value)
 {
-    this->setText(m_commandLine.text());
-    this->append(QString("<span style=\"color:red;\">%1</span>").arg(m_commandLine.errorText()));
+    m_commandLine.processKey(value);
+    updateText();
     if(!m_commandLine.addresses().isEmpty())
     {
         emit setLevels(m_commandLine.addresses(), m_commandLine.level());
     }
 }
 
-void CommandLineWidget::key1()
+void CommandLineWidget::updateText()
 {
-    m_commandLine.processKey(CommandLine::K1);
-    displayText();
-}
+    QString text = m_commandLine.text();
 
-void CommandLineWidget::key2()
-{
-    m_commandLine.processKey(CommandLine::K2);
-    displayText();
-}
+    if (this->hasFocus())
+    {
+        auto cursor = (m_cursorState == true) ? "_" : "";
+        text.append(cursor);
+    }
 
-void CommandLineWidget::key3()
-{
-    m_commandLine.processKey(CommandLine::K3);
-    displayText();
-}
-
-void CommandLineWidget::key4()
-{
-    m_commandLine.processKey(CommandLine::K4);
-    displayText();
-}
-
-void CommandLineWidget::key5()
-{
-    m_commandLine.processKey(CommandLine::K5);
-    displayText();
-}
-
-void CommandLineWidget::key6()
-{
-    m_commandLine.processKey(CommandLine::K6);
-    displayText();
-}
-
-void CommandLineWidget::key7()
-{
-    m_commandLine.processKey(CommandLine::K7);
-    displayText();
-}
-
-void CommandLineWidget::key8()
-{
-    m_commandLine.processKey(CommandLine::K8);
-    displayText();
-}
-
-void CommandLineWidget::key9()
-{
-    m_commandLine.processKey(CommandLine::K9);
-    displayText();
-}
-
-void CommandLineWidget::key0()
-{
-    m_commandLine.processKey(CommandLine::K0);
-    displayText();
-}
-
-void CommandLineWidget::keyThru()
-{
-    m_commandLine.processKey(CommandLine::THRU);
-    displayText();
-}
-
-void CommandLineWidget::keyAt()
-{
-    m_commandLine.processKey(CommandLine::AT);
-    displayText();
-}
-
-void CommandLineWidget::keyFull()
-{
-    m_commandLine.processKey(CommandLine::FULL);
-    displayText();
-}
-
-void CommandLineWidget::keyClear()
-{
-    m_commandLine.processKey(CommandLine::CLEAR);
-    displayText();
-}
-
-void CommandLineWidget::keyAnd()
-{
-    m_commandLine.processKey(CommandLine::AND);
-    displayText();
-}
-
-void CommandLineWidget::keyEnter()
-{
-    m_commandLine.processKey(CommandLine::ENTER);
-    displayText();
-}
-
-void CommandLineWidget::keyAllOff()
-{
-    m_commandLine.processKey(CommandLine::ALL_OFF);
-    displayText();
+    this->setText(text);
+    this->append(QString("<span style=\"color:red;\">%1</span>").arg(m_commandLine.errorText()));
 }
 
 void CommandLineWidget::keyPressEvent(QKeyEvent *e)
@@ -461,63 +364,61 @@ void CommandLineWidget::keyPressEvent(QKeyEvent *e)
     switch(e->key())
     {
     case Qt::Key_0:
-        m_commandLine.processKey(CommandLine::K0);
+        key0();
         break;
     case Qt::Key_1:
-        m_commandLine.processKey(CommandLine::K1);
+        key1();
         break;
     case Qt::Key_2:
-        m_commandLine.processKey(CommandLine::K2);
+        key2();
         break;
     case Qt::Key_3:
-        m_commandLine.processKey(CommandLine::K3);
+        key3();
         break;
     case Qt::Key_4:
-        m_commandLine.processKey(CommandLine::K4);
+        key4();
         break;
     case Qt::Key_5:
-        m_commandLine.processKey(CommandLine::K5);
+        key5();
         break;
     case Qt::Key_6:
-        m_commandLine.processKey(CommandLine::K6);
+        key6();
         break;
     case Qt::Key_7:
-        m_commandLine.processKey(CommandLine::K7);
+        key7();
         break;
     case Qt::Key_8:
-        m_commandLine.processKey(CommandLine::K8);
+        key8();
         break;
     case Qt::Key_9:
-        m_commandLine.processKey(CommandLine::K9);
+        key9();
         break;
     case Qt::Key_T:
-        m_commandLine.processKey(CommandLine::THRU);
+        keyThru();
         break;
     case Qt::Key_Delete:
     case Qt::Key_Backspace:
-        m_commandLine.processKey(CommandLine::CLEAR);
+        keyClear();
         break;
     case Qt::Key_Enter:
     case Qt::Key_Return:
-        m_commandLine.processKey(CommandLine::ENTER);
+        keyEnter();
         break;
     case Qt::Key_Plus:
-        m_commandLine.processKey(CommandLine::AND);
+        keyAnd();
         break;
     case Qt::Key_A:
     case Qt::Key_At:
-        m_commandLine.processKey(CommandLine::AT);
+        keyAt();
         break;
     case Qt::Key_O:
-        m_commandLine.processKey(CommandLine::ALL_OFF);
+        keyAllOff();
         break;
     case Qt::Key_F:
-        m_commandLine.processKey(CommandLine::FULL);
+        keyFull();
         break;
 
     }
-
-    displayText();
 }
 
 
