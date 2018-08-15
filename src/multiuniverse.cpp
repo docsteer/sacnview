@@ -250,6 +250,14 @@ void MultiUniverse::enableChanged(bool enable)
 
 void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode, int value)
 {
+    // Clean up, if needed
+    ui->tableWidget->cellWidget(row, COL_CONTROL)->deleteLater();
+    ui->tableWidget->setCellWidget(row, COL_CONTROL, Q_NULLPTR);
+    if (ui->tableWidget->item(row, COL_CONTROL)) {
+        delete ui->tableWidget->item(row, COL_CONTROL);
+        ui->tableWidget->setItem(row, COL_CONTROL, Q_NULLPTR);
+    }
+
     switch(mode)
     {
     case sACNEffectEngine::FxManual:
@@ -326,9 +334,10 @@ void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode, int val
         break;
     case sACNEffectEngine::FxText:
         {
-        ui->tableWidget->setCellWidget(row, COL_CONTROL, nullptr);
-        QTableWidgetItem *item = new QTableWidgetItem(m_fxEngines[row]->text());
-        ui->tableWidget->setItem(row, COL_CONTROL, item);
+        if (!ui->tableWidget->item(row, COL_CONTROL)) {
+            QTableWidgetItem *item = new QTableWidgetItem(m_fxEngines[row]->text());
+            ui->tableWidget->setItem(row, COL_CONTROL, item);
+        }
         m_fxEngines[row]->setRate(1);
         }
         break;
