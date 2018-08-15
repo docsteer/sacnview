@@ -24,13 +24,13 @@
 // The base color to generate pastel shades for sources
 static const QColor mixColor = QColor("coral");
 
-Preferences *Preferences::m_instance = NULL;
+Preferences *Preferences::m_instance = Q_NULLPTR;
 
 Preferences::Preferences()
 {
     RESTART_APP = false;
     for(int i=0; i<PRESET_COUNT; i++)
-        m_presets[i] = QByteArray(MAX_DMX_ADDRESS, (char) 0);
+        m_presets[i] = QByteArray(MAX_DMX_ADDRESS, char(0));
     loadPreferences();
 }
 
