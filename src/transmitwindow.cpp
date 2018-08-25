@@ -517,23 +517,26 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
     if(!m_sender)
         return;
 
+    // Stop FX, and clear output
+    QMetaObject::invokeMethod(
+                m_fxEngine,"pause");
+    m_sender->setLevelRange(0, MAX_DMX_ADDRESS-1, 0);
+
     if(index==tabChannelCheck)
     {
-        int value = ui->lcdNumber->value() - 1;
-        m_sender->setLevelRange(0, MAX_DMX_ADDRESS-1, 0);
-        m_sender->setLevel(value, ui->slChannelCheck->value());
+        auto address = ui->lcdNumber->value() - 1;
+        m_sender->setLevel(address, ui->slChannelCheck->value());
 
-        QMetaObject::invokeMethod(
-                    m_fxEngine,"pause");
         ui->lcdNumber->setFocus();
     }
 
     if(index==tabSliders)
     {
-        m_sender->setLevelRange(0, MAX_DMX_ADDRESS-1, 0);
-        QMetaObject::invokeMethod(
-                    m_fxEngine,"pause");
-
+        // Reassert slider levels
+        auto address = ui->sbFadersStart->value() - 1;
+        for (auto slider : m_sliders) {
+            m_sender->setLevel(address++, slider->value());
+        }
         ui->teCommandline->setFocus();
     }
 
