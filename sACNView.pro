@@ -162,7 +162,8 @@ HEADERS += src/mdimainwindow.h \
     src/theme/darkstyle.h \
     src/xpwarning.h \
     src/sacn/e1_11.h \
-    src/ipc.h
+    src/ipc.h \
+    src/qt56.h
 
 FORMS += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
