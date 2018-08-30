@@ -35,18 +35,15 @@ MultiUniverse::MultiUniverse(int firstUniverse, QWidget *parent) :
 
 MultiUniverse::~MultiUniverse()
 {
-    delete ui;
-
-    while (m_fxEngines.size())
+    for (auto fxEngine: m_fxEngines)
     {
-       m_fxEngines.front()->deleteLater();
-       m_fxEngines.removeFirst();
+        fxEngine->disconnect();
+        fxEngine->deleteLater();
     }
-
-    while (m_senders.size())
+    for (auto sender: m_senders)
     {
-       m_senders.front()->deleteLater();
-       m_senders.removeFirst();
+        sender->disconnect();
+        sender->deleteLater();
     }
 }
 
@@ -59,9 +56,14 @@ void MultiUniverse::addSource(int universe, int min_address, int max_address,
     ui->tableWidget->setRowCount(row+1);
 
     m_senders.append(new sACNSentUniverse(universe));
+    connect(m_senders.last(), &sACNSentUniverse::destroyed, [this](QObject *obj)
+        { this->m_senders.removeAll(static_cast<sACNSentUniverse*>(obj)); }); // Remove sender from List when destroyed
     m_senders.last()->setPerSourcePriority(priority);
     connect(m_senders.last(), SIGNAL(sendingTimeout()), this, SLOT(senderTimedout()));
     m_fxEngines.append(new sACNEffectEngine());
+    connect(m_fxEngines.last(), SIGNAL(destroyed()), m_senders.last(), SLOT(deleteLater())); // Que sender for deletion after fxEngine is destroyed
+    connect(m_fxEngines.last(), &sACNEffectEngine::destroyed, [this](QObject *obj)
+        { this->m_fxEngines.removeAll(static_cast<sACNEffectEngine*>(obj)); }); // Remove fxEngine from List when destroyed
     m_fxEngines.last()->setSender(m_senders.last());
     m_fxEngines.last()->setEndAddress(max_address-1);
     m_fxEngines.last()->setStartAddress(min_address-1);
@@ -173,10 +175,8 @@ void MultiUniverse::on_btnRemoveRow_pressed()
     int row = ui->tableWidget->currentRow();
     if (row == -1) return;
     ui->tableWidget->removeRow(row);
-    m_fxEngines[row]->deleteLater();
-    m_senders[row]->deleteLater();
-    m_fxEngines.removeAt(row);
-    m_senders.removeAt(row);
+    if (m_fxEngines.count() > row)
+        m_fxEngines[row]->deleteLater();
 }
 
 
