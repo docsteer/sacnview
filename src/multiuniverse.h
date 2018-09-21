@@ -53,7 +53,6 @@ private slots:
     void senderTimedout(int index);
 private:
     Ui::MultiUniverse *ui;
-    CID m_cid;
     QList <sACNManager::tSender> m_senders;
     QList <sACNEffectEngine *> m_fxEngines;
     QHash<QWidget*, sACNEffectEngine *> m_widgetToFxEngine;

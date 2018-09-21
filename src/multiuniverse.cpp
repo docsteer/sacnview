@@ -20,6 +20,7 @@
 #include <QSpinBox>
 #include <QComboBox>
 #include <QLabel>
+#include <QMutableListIterator>
 #include "qt56.h"
 #include "sacneffectengine.h"
 #include "preferences.h"
@@ -33,8 +34,6 @@ MultiUniverse::MultiUniverse(int firstUniverse, QWidget *parent) :
     m_timeoutMapper(new QSignalMapper(this))
 {
     ui->setupUi(this);
-
-    m_cid = CID::CreateCid();
 
     connect(m_timeoutMapper, SIGNAL(mapped(int)), this, SLOT(senderTimedout(int)));
 }
@@ -61,18 +60,24 @@ void MultiUniverse::addSource(int universe, int min_address, int max_address,
     int row = ui->tableWidget->rowCount();
     ui->tableWidget->setRowCount(row+1);
 
-    m_senders.append(sACNManager::getInstance()->getSender(universe, m_cid));
-    m_senders.append(new sACNSentUniverse(universe));
-    connect(m_senders.last(), &sACNSentUniverse::destroyed, [this](QObject *obj)
-        { this->m_senders.removeAll(static_cast<sACNSentUniverse*>(obj)); }); // Remove sender from List when destroyed
+    CID newCid = CID::CreateCid();
+    m_senders.append(sACNManager::getInstance()->getSender(universe, newCid));
+    connect(m_senders.last().data(), &sACNSentUniverse::destroyed, [this](QObject *obj)
+        { QMutableListIterator<sACNManager::tSender>i(m_senders);
+
+          while(i.hasNext())
+          {
+              sACNManager::tSender sender = i.next();
+              if(sender.data()==obj)
+                  i.remove();
+          }
+        }); // Remove sender from List when destroyed
     m_senders.last()->setPerSourcePriority(priority);
     connect(m_senders.last().data(), SIGNAL(sendingTimeout()), m_timeoutMapper, SLOT(map()));
     m_timeoutMapper->setMapping(m_senders.last().data(), row);
     m_fxEngines.append(new sACNEffectEngine());
-    connect(m_fxEngines.last(), SIGNAL(destroyed()), m_senders.last(), SLOT(deleteLater())); // Que sender for deletion after fxEngine is destroyed
     connect(m_fxEngines.last(), &sACNEffectEngine::destroyed, [this](QObject *obj)
         { this->m_fxEngines.removeAll(static_cast<sACNEffectEngine*>(obj)); }); // Remove fxEngine from List when destroyed
-    m_fxEngines.last()->setSender(m_senders.last());
     m_fxEngines.last()->setEndAddress(max_address-1);
     m_fxEngines.last()->setStartAddress(min_address-1);
     m_fxEngines.last()->setMode(mode);
