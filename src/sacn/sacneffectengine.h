@@ -21,19 +21,6 @@
 #include <QPixmap>
 #include "sacnsender.h"
 
-static const QStringList FX_MODE_DESCRIPTIONS = {
-        QObject::tr("Manual"),
-        QObject::tr("Ramp"),
-        QObject::tr("Sinewave"),
-        QObject::tr("Chase (Snap)"),
-        QObject::tr("Chase (Ramp)"),
-        QObject::tr("Chase (Sine)"),
-        QObject::tr("Vertical Bars"),
-        QObject::tr("Horizontal Bars"),
-        QObject::tr("Text"),
-        QObject::tr("Date")
-};
-
 class sACNEffectEngine : public QObject
 {
     Q_OBJECT
@@ -55,6 +42,21 @@ public:
         dsUSA,
         dsEU
     };
+
+    static const QStringList FxModeDescriptions() {
+        QList<QString> ret;
+        ret.insert(FxManual, QObject::tr("Manual"));
+        ret.insert(FxRamp, QObject::tr("Ramp"));
+        ret.insert(FxSinewave, QObject::tr("Sinewave"));
+        ret.insert(FxChaseSnap, QObject::tr("Chase (Snap)"));
+        ret.insert(FxChaseRamp, QObject::tr("Chase (Ramp)"));
+        ret.insert(FxChaseSine, QObject::tr("Chase (Sine)"));
+        ret.insert(FxVerticalBar, QObject::tr("Vertical Bars"));
+        ret.insert(FxHorizontalBar, QObject::tr("Horizontal Bars"));
+        ret.insert(FxText, QObject::tr("Text"));
+        ret.insert(FxDate, QObject::tr("Date"));
+        return QStringList(ret);
+    }
 
     explicit sACNEffectEngine();
     virtual ~sACNEffectEngine();

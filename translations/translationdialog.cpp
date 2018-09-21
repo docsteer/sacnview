@@ -40,7 +40,7 @@ TranslationDialog::~TranslationDialog()
 int TranslationDialog::exec()
 {
     // Only show dialog if there are options to select!
-    if (ui->vlSelectLang->count() > 2)
+    if (ui->vlSelectLang->count())
         QDialog::exec();
 
     return 0;
@@ -48,8 +48,12 @@ int TranslationDialog::exec()
 
 bool TranslationDialog::LoadTranslation(const QLocale locale)
 {
+    // Default
+    if (locale.language() == QLocale::English)
+        return true;
+
     // Exists in resource
-    bool ret;
+    bool ret = false;
     for (auto lang : locale.uiLanguages() ) {
         ret = QFile(QString(":/%1_%2.qm").arg(qApp->applicationName()).arg(lang)).exists();
         if (ret) break;
@@ -85,7 +89,11 @@ bool TranslationDialog::LoadTranslation(const QLocale locale)
 
 QLocale TranslationDialog::GetSelectedLocale()
 {
-    return QLocale((QLocale::Language)m_bgTranslations->checkedButton()->property("Language").toInt());
+    if (m_bgTranslations->checkedButton()) {
+        return QLocale(static_cast<QLocale::Language>(m_bgTranslations->checkedButton()->property("Language").toInt()));
+    } else {
+        return QLocale(QLocale::AnyLanguage);
+    }
 }
 
 void TranslationDialog::on_buttonBox_accepted()

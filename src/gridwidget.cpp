@@ -24,6 +24,7 @@
 #define ROW_COUNT 16
 #define COL_COUNT 32
 #define CELL_WIDTH 25
+#define CELL_HEIGHT 18
 #define CELL_COUNT 512
 
 
@@ -31,7 +32,7 @@ GridWidget::GridWidget(QWidget *parent)
     : QWidget(parent)
     , m_selectedAddress(-1)
     , m_colors(CELL_COUNT, Qt::white)
-    , m_cellHeight(18)
+    , m_cellHeight(CELL_HEIGHT)
 {
     for(int i=0; i<CELL_COUNT; i++)
     {
@@ -135,9 +136,8 @@ int GridWidget::cellHitTest(const QPoint &point)
 
     qreal scaleWidth = width()/wantedWidth;
     qreal scaleHeight = height()/ wantedHeight;
-    qreal minScale = qMin(scaleWidth, scaleHeight);
 
-    QRectF drawnRect(0, 0, wantedWidth*minScale, wantedHeight*minScale);
+    QRectF drawnRect(0, 0, wantedWidth * scaleWidth, wantedHeight * scaleHeight);
     drawnRect.moveCenter(this->rect().center());
     drawnRect.moveTop(0);
 
@@ -145,7 +145,7 @@ int GridWidget::cellHitTest(const QPoint &point)
         return -1;
 
 
-    qreal cellWidth = (drawnRect.width() - FIRST_COL_WIDTH * minScale) / COL_COUNT;
+    qreal cellWidth = (drawnRect.width() - FIRST_COL_WIDTH * scaleWidth) / COL_COUNT;
     qreal firstColWidth = drawnRect.width() - (COL_COUNT * cellWidth);
     qreal cellHeight = drawnRect.height() / (ROW_COUNT + 1);
 

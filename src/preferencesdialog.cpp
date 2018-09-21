@@ -92,8 +92,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui->cbTxRateOverride->setChecked(Preferences::getInstance()->GetTXRateOverride());
 
     ui->cbTheme->clear();
-    ui->cbTheme->addItems(Preferences::ThemeDescriptions);
-    ui->cbTheme->setCurrentIndex((int)Preferences::getInstance()->GetTheme());
+    ui->cbTheme->addItems(Preferences::ThemeDescriptions());
+    ui->cbTheme->setCurrentIndex(static_cast<int>(Preferences::getInstance()->GetTheme()));
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -109,14 +109,12 @@ void PreferencesDialog::on_buttonBox_accepted()
     Preferences *p = Preferences::getInstance();
 
     // Display Format
-    int displayFormat=0;
     if(ui->DecimalDisplayFormat->isChecked())
-        displayFormat = Preferences::DECIMAL;
+        p->SetDisplayFormat(Preferences::DECIMAL);
     if(ui->HexDisplayFormat->isChecked())
-        displayFormat = Preferences::HEXADECIMAL;
+        p->SetDisplayFormat(Preferences::HEXADECIMAL);
     if(ui->PercentDisplayFormat->isChecked())
-        displayFormat = Preferences::PERCENT;
-    p->SetDisplayFormat(displayFormat);
+        p->SetDisplayFormat(Preferences::PERCENT);
 
     // Display Blind
     p->SetBlindVisualizer(ui->cbDisplayBlind->isChecked());
@@ -161,7 +159,7 @@ void PreferencesDialog::on_buttonBox_accepted()
     p->SetNetworkListenAll(ui->cbListenAll->isChecked());
 
     // Theme
-    Preferences::Theme theme = (Preferences::Theme)ui->cbTheme->currentIndex();
+    Preferences::Theme theme = static_cast<Preferences::Theme>(ui->cbTheme->currentIndex());
     if(p->GetTheme()!=theme)
     {
         p->SetTheme(theme);

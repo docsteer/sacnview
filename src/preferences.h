@@ -69,7 +69,12 @@ public:
         THEME_DARK,
         TOTAL_NUM_OF_THEMES
     };
-    static const QStringList ThemeDescriptions;
+    static const QStringList ThemeDescriptions() {
+        QStringList ret;
+        ret << QObject::tr("Light Theme");
+        ret << QObject::tr("Dark Theme");
+        return ret;
+    }
 
 
     /**
