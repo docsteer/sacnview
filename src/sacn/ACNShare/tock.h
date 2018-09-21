@@ -71,13 +71,13 @@ public:
 
 protected:
     qint32 v;  //Signed, so the wraparound calculations will work
-	
-	friend bool operator>(const tock& t1, const tock& t2);
-	friend bool operator>=(const tock& t1, const tock& t2);
-	friend bool operator==(const tock& t1, const tock& t2);
-	friend bool operator!=(const tock& t1, const tock& t2);
-	friend bool operator<(const tock& t1, const tock& t2);
-	friend bool operator<=(const tock& t1, const tock& t2);
+
+    friend bool operator>(const tock& t1, const tock& t2);
+    friend bool operator>=(const tock& t1, const tock& t2);
+    friend bool operator==(const tock& t1, const tock& t2);
+    friend bool operator!=(const tock& t1, const tock& t2);
+    friend bool operator<(const tock& t1, const tock& t2);
+    friend bool operator<=(const tock& t1, const tock& t2);
     friend quint32 operator-(const tock& t1, const tock& t2);
 };
 
@@ -94,6 +94,10 @@ public:
 	void Reset();	//Resets the timer, using the current timeout interval
 	bool Expired();  //Returns true if the timer has expired.
 					 //Call Reset() to use this timer again for a new interval.
+
+    friend bool operator==(const ttimer& t1, const ttimer& t2);
+    friend bool operator!=(const ttimer& t1, const ttimer& t2);
+
 protected:
     qint32 interval;
 	tock tockout;
@@ -110,6 +114,8 @@ inline void ttimer::SetInterval(qint32 ms) {interval = ms; Reset();}
 inline qint32 ttimer::GetInterval() {return interval;}
 inline void ttimer::Reset() {tockout.Setms(Tock_GetTock().Getms() + interval);}
 inline bool ttimer::Expired() {return Tock_GetTock() > tockout;}
+inline bool operator==(const ttimer& t1, const ttimer& t2) { return ((t1.tockout == t2.tockout) && (t1.interval == t2.interval)); }
+inline bool operator!=(const ttimer& t1, const ttimer& t2) { return !(t1 == t2); }
 
 /*tock implementation*/
 inline tock::tock():v(0) {}

@@ -18,10 +18,12 @@
 #include <QNetworkInterface>
 #include "streamingacn.h"
 #include "streamcommon.h"
+#include "sacnlistener.h"
 #include "ipaddr.h"
 #include "preferences.h"
 #include "sacnsocket.h"
 #include "consts.h"
+#include "preferences.h"
 
 sACNUniverseInfo::sACNUniverseInfo(int u)
 {
@@ -56,7 +58,7 @@ void sACNUniverseListModel::setStartUniverse(int start)
     QWriteLocker modelindex_locker(&rwlock_ModelIndex);
 
     // Limit max value
-    static const int startMax = (MAX_SACN_UNIVERSE - NUM_UNIVERSES_LISTED) + 1;
+    static const int startMax = (MAX_SACN_UNIVERSE - Preferences::getInstance()->GetUniversesListed() + 1);
     if (start > startMax) start = startMax;
 
     beginResetModel();
@@ -69,7 +71,7 @@ void sACNUniverseListModel::setStartUniverse(int start)
 
     // Create listeners
     m_start = start;
-    for(int universe=m_start; universe<m_start+NUM_UNIVERSES_LISTED; universe++)
+    for(int universe=m_start; universe<m_start+Preferences::getInstance()->GetUniversesListed(); universe++)
     {
         m_listeners.push_back(sACNManager::getInstance()->getListener(universe));
 
@@ -155,7 +157,7 @@ QModelIndex sACNUniverseListModel::index(int row, int column, const QModelIndex 
     {
         if (parent.row() >= m_universes.count() || parent.row() < 0)
             return QModelIndex();
-        if(m_universes[parent.row()]->sources.count() >= row)
+        if(m_universes[parent.row()]->sources.count() > row)
         {
             return createIndex(row, column, m_universes[parent.row()]->sources.at(row));
         }

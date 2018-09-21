@@ -76,6 +76,7 @@ UniverseView::~UniverseView()
 
 void UniverseView::startListening(int universe)
 {
+    m_sourceToTableRow.clear();
     ui->twSources->setRowCount(0);
     ui->btnGo->setEnabled(false);
     ui->btnPause->setEnabled(true);

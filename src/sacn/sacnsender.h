@@ -20,8 +20,6 @@
 #include <QMutex>
 #include <vector>
 #include <map>
-#include <QSharedPointer>
-#include <QWeakPointer>
 #include "streamingacn.h"
 #include "streamcommon.h"
 #include "tock.h"
@@ -122,8 +120,15 @@ public slots:
      * @param universe - new universe.
      */
     void setUniverse(int universe);
-
     int universe() { return m_universe; }
+
+    /**
+     * @brief setCID - set the CID of this sender.
+     * If active this will stop and restart the source
+     * @param cid - new CID.
+     */
+    void setCID(CID cid);
+    CID cid() { return m_cid; }
 
 signals:
     /**
@@ -131,6 +136,16 @@ signals:
      * due to the send timeout setting
      */
     void sendingTimeout();
+
+    /**
+     * @brief universeChange is emitted when the source changes universe
+     */
+    void universeChange();
+
+    /**
+     * @brief cidChange is emitted when the source changes CID
+     */
+    void cidChange();
 private slots:
     void doTimeout();
 private:
@@ -166,13 +181,6 @@ private:
 //These definitions are to be used with the send_intervalms parameter of CreateUniverse
 #define SEND_INTERVAL_DMX	850	/*If no data has been sent in 850ms, send another DMX packet*/
 #define SEND_INTERVAL_PRIORITY 1000	/*By default, per-channel priority packets are sent once per second*/
-
-//Bitflags for the options parameter of Create Universe.
-//Alternatively, you can directly set them while a universe is running with
-//OptionsPreviewData and OptionsStreamTerminated.  The terminated option doesn't
-//really need to be used, as DestroyUniverse handles that functionality for you.
-#define PREVIEW_DATA_OPTION 0x80 // Bit 7
-#define STREAM_TERMINATED_OPTION 0x40 // Bit 6
 
 class CStreamServer : public QObject
 {

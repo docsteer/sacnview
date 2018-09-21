@@ -22,7 +22,7 @@ class QTableWidgetItem;
 #include <QtGui>
 #include <QWidget>
 #include <QButtonGroup>
-#include "sacnlistener.h"
+#include "streamingacn.h"
 #include "consts.h"
 
 namespace Ui {
@@ -52,7 +52,7 @@ private:
     Ui::ScopeWindow *ui;
     QList<ScopeChannel *> m_channels;
     QButtonGroup *m_radioGroup;
-    QHash<int, QSharedPointer<sACNListener> > m_universes;
+    QHash<quint16, sACNManager::tListener> m_universes;
 
     enum {
         COL_UNIVERSE,

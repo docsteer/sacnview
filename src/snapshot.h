@@ -59,12 +59,13 @@ private:
     state m_state;
     QSound *m_camera, *m_beep;
     QList<QByteArray> m_snapshotData;
-    QList<QSharedPointer<sACNListener>>m_listeners;
-    QList<sACNSentUniverse *>m_senders;
+    QList<sACNManager::tListener> m_listeners;
+    QList<sACNManager::tSender> m_senders;
     QList<QSpinBox *> m_universeSpins;
     QList<QSpinBox *> m_prioritySpins;
     QList<QToolButton *> m_enableButtons;
-    int m_firstUniverse;
+    quint16 m_firstUniverse;
+    CID m_cid;
 };
 
 #endif // SNAPSHOT_H

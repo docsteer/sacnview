@@ -2,8 +2,6 @@
 #define SACNUNIVERSELISTMODEL_H
 
 #include <QObject>
-#include <QSharedPointer>
-#include <QWeakPointer>
 #include <QAbstractItemModel>
 #include <QHostAddress>
 #include <QTimer>
@@ -12,9 +10,7 @@
 #include <QReadWriteLock>
 #include <list>
 #include "CID.h"
-#include "sacnlistener.h"
-
-#define NUM_UNIVERSES_LISTED 20
+#include "streamingacn.h"
 
 class sACNUniverseInfo;
 class sACNRxSocket;
@@ -42,7 +38,7 @@ public:
 
 /**
  * @brief The sACNUniverseListModel class provides a
- * QAbstractItemModel which represents 20 universes
+ * QAbstractItemModel which represents x universes
  * with each universe as a node with sources as its children.
  *
  * It does minimal inspection of the source packets - just enough to get name, IP and universe
@@ -76,7 +72,7 @@ private:
     QList<bool> m_universeBindOk;
     int m_start;
     QTimer *m_checkTimeoutTimer;
-    QList<QSharedPointer<sACNListener>> m_listeners;
+    QList<sACNManager::tListener> m_listeners;
     bool m_displayDDOnlySource;
 };
 

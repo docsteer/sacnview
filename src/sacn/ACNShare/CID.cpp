@@ -163,6 +163,14 @@ void CID::CIDIntoString(const CID& cid, char* ptxt)
 			cid.m_cid[15]);
 }
 
+QString CID::CIDIntoQString(const CID& cid)
+{
+    char buffer[CID::CIDSTRINGBYTES];
+    CID::CIDIntoString(cid, buffer);
+    return QString(buffer);
+}
+
+
 // Create a CID
 CID CID::CreateCid()
 {

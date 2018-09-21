@@ -51,7 +51,7 @@ private:
     {
         universeDetails() {}
 
-        QSharedPointer<sACNListener> listener;
+        sACNManager::tListener listener;
         QTreeWidgetItem* treeUniverse;
         QTreeWidgetItem* treeMergesPerSecond;
         QTreeWidgetItem* treeMergesBindStatus;

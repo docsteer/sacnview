@@ -22,7 +22,7 @@ public:
      * @arg CurrentFilename (Optional) - Fullpath to current tranlation file
      * @arg VBoxLayout (Optional) - VBoxLayout to fill with checkboxes, if nullptr a dialog is created and displayed
      */
-    explicit TranslationDialog(const QLocale DefaultLocale, QVBoxLayout *VBoxLayout = Q_NULLPTR, QWidget *parent = 0);
+    explicit TranslationDialog(const QLocale DefaultLocale, QVBoxLayout *VBoxLayout = Q_NULLPTR, QWidget *parent = Q_NULLPTR);
     ~TranslationDialog();
 
     /* exec()

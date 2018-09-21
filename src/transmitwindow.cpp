@@ -18,8 +18,7 @@
 
 #include "consts.h"
 #include "sacn/ACNShare/ipaddr.h"
-#include "sacn/streamcommon.h"
-#include "sacn/sacnsender.h"
+#include "sacn/streamingacn.h"
 #include "sacn/sacneffectengine.h"
 #include "configureperchanpriodlg.h"
 #include "preferences.h"
@@ -310,8 +309,8 @@ void transmitwindow::on_btnStart_pressed()
     }
     if(!m_sender)
     {
-        m_sender = new sACNSentUniverse(ui->sbUniverse->value());
-        connect(m_sender, SIGNAL(sendingTimeout()), this, SLOT(sourceTimeout()));
+        m_sender = sACNManager::getInstance()->getSender(ui->sbUniverse->value());
+        connect(m_sender.data(), SIGNAL(sendingTimeout()), this, SLOT(sourceTimeout()));
     }
 
     m_sender->setUnicastAddress(unicast);
@@ -353,7 +352,7 @@ void transmitwindow::on_btnStart_pressed()
             connect(m_fxEngine, SIGNAL(textImageChanged(QPixmap)), ui->lblTextImage, SLOT(setPixmap(QPixmap)));
             m_fxEngine->setRange(ui->sbFadeRangeStart->value()-1, ui->sbFadeRangeEnd->value()-1);
         }
-        m_fxEngine->setSender(m_sender);
+        m_fxEngine->setSender(m_sender.data());
     }
 }
 
@@ -519,23 +518,26 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
     if(!m_sender)
         return;
 
+    // Stop FX, and clear output
+    QMetaObject::invokeMethod(
+                m_fxEngine,"pause");
+    m_sender->setLevelRange(0, MAX_DMX_ADDRESS-1, 0);
+
     if(index==tabChannelCheck)
     {
-        int value = ui->lcdNumber->value() - 1;
-        m_sender->setLevelRange(0, MAX_DMX_ADDRESS-1, 0);
-        m_sender->setLevel(value, ui->slChannelCheck->value());
+        auto address = ui->lcdNumber->value() - 1;
+        m_sender->setLevel(address, ui->slChannelCheck->value());
 
-        QMetaObject::invokeMethod(
-                    m_fxEngine,"pause");
         ui->lcdNumber->setFocus();
     }
 
     if(index==tabSliders)
     {
-        m_sender->setLevelRange(0, MAX_DMX_ADDRESS-1, 0);
-        QMetaObject::invokeMethod(
-                    m_fxEngine,"pause");
-
+        // Reassert slider levels
+        auto address = ui->sbFadersStart->value() - 1;
+        for (auto slider : m_sliders) {
+            m_sender->setLevel(address++, slider->value());
+        }
         ui->teCommandline->setFocus();
     }
 
