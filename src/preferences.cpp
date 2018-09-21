@@ -31,6 +31,8 @@ Preferences::Preferences()
     RESTART_APP = false;
     for(int i=0; i<PRESET_COUNT; i++)
         m_presets[i] = QByteArray(MAX_DMX_ADDRESS, char(0));
+    for(int i=0; i<PRIORITYPRESET_COUNT; i++)
+        m_priorityPresets[i] = QByteArray(MAX_DMX_ADDRESS, char(100+i));
     loadPreferences();
 }
 
@@ -247,6 +249,11 @@ void Preferences::savePreferences()
     {
         settings.setValue(S_PRESETS.arg(i), QVariant(m_presets[i]));
     }
+
+    for(int i=0; i<PRIORITYPRESET_COUNT; i++)
+    {
+        settings.setValue(S_PRIORITYPRESET.arg(i), QVariant(m_priorityPresets[i]));
+    }
 }
 
 void Preferences::loadPreferences()
@@ -293,6 +300,15 @@ void Preferences::loadPreferences()
         if(settings.contains(S_PRESETS.arg(i)))
         {
             m_presets[i] = settings.value(S_PRESETS.arg(i)).toByteArray();
+        }
+    }
+
+
+    for(int i=0; i<PRIORITYPRESET_COUNT; i++)
+    {
+        if(settings.contains(S_PRIORITYPRESET.arg(i)))
+        {
+            m_priorityPresets[i] = settings.value(S_PRIORITYPRESET.arg(i)).toByteArray();
         }
     }
 }
@@ -361,4 +377,16 @@ void Preferences::SetLocale(QLocale locale)
 QLocale Preferences::GetLocale()
 {
     return m_locale;
+}
+
+void Preferences::SetPriorityPreset(const QByteArray &data, int index)
+{
+    Q_ASSERT(index < PRIORITYPRESET_COUNT);
+    m_priorityPresets[index] = data;
+}
+
+QByteArray Preferences::GetPriorityPreset(int index)
+{
+    Q_ASSERT(index < PRIORITYPRESET_COUNT);
+    return m_priorityPresets[index];
 }
