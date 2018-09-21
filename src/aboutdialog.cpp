@@ -93,9 +93,9 @@ aboutDialog::aboutDialog(QWidget *parent) :
     std::sort(listenerListSorted.begin(), listenerListSorted.end(), listenerSortbyUni);
 
     // Display Sorted!
-    for (QWeakPointer<sACNListener> weakListener : listenerListSorted) {
+    for (auto weakListener : listenerListSorted) {
 
-        QSharedPointer<sACNListener> listener(weakListener);
+        sACNManager::tListener listener(weakListener);
         if (listener) {
             int universe = listener->universe();
 

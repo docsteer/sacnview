@@ -38,7 +38,7 @@ private slots:
 private:
     Ui::LogWindow *ui;
 
-    QSharedPointer<sACNListener> m_listener;
+    sACNManager::tListener m_listener;
 
     QFile *m_file;
     QTextStream *m_fileStream;

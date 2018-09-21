@@ -21,8 +21,6 @@
 #include <QDebug>
 #include <QThread>
 #include <QPoint>
-#include <QSharedPointer>
-#include <QWeakPointer>
 
 
 //The amount of ms to wait before a source is considered offline or
@@ -208,16 +206,25 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
     bool preview = false;
     quint8 *pbuf = (quint8*)data.data();
 
-    if(!ValidateStreamHeader((quint8*)data.data(), data.length(), source_cid, source_name, priority,
+    switch (ValidateStreamHeader((quint8*)data.data(), data.length(), source_cid, source_name, priority,
             start_code, reserved, sequence, options, universe, slot_count, pdata))
     {
+    case e_ValidateStreamHeader::SteamHeader_Invalid:
         // Recieved a packet but not valid. Log and discard
         qDebug() << "sACNListener" << QThread::currentThreadId() << ": Invalid Packet";
         return;
+    case e_ValidateStreamHeader::SteamHeader_Unknown:
+        qDebug() << "sACNListener" << QThread::currentThreadId() << ": Unkown Root Vector";
+        return;
+    case e_ValidateStreamHeader::SteamHeader_Extended:
+        qDebug() << "sACNListener" << QThread::currentThreadId() << ": Extended Packet";
+        return;
+    default:
+        break;
     }
 
     // Unpacks a uint4 from a known big endian buffer
-    int root_vect = UpackB4((quint8*)pbuf + ROOT_VECTOR_ADDR);
+    int root_vect = UpackBUint32((quint8*)pbuf + ROOT_VECTOR_ADDR);
 
     // Packet for the wrong universe on this socket?
     if(m_universe != universe)
@@ -230,7 +237,8 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
             return;
         } else {
             // Unicast, send to releivent listener!
-            const QHash<int, QWeakPointer<sACNListener> > listenerList = sACNManager::getInstance()->getListenerList();
+            decltype(sACNManager::getInstance()->getListenerList()) listenerList
+                    = sACNManager::getInstance()->getListenerList();
             if (listenerList.contains(universe))
                 listenerList[universe].data()->processDatagram(data, receiver, sender);
             return;
@@ -271,7 +279,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
                 ps->priority_wait.SetInterval(WAIT_PRIORITY);
             }
 
-            if((root_vect == ROOT_VECTOR) && ((options & 0x40) == 0x40))
+            if((root_vect == VECTOR_ROOT_E131_DATA) && ((options & STREAM_TERMINATED_OPTION) == STREAM_TERMINATED_OPTION))
             {
               //by setting this flag to false, 0xdd packets that may come in while the terminated data
               //packets come in won't reset the priority_wait timer
@@ -426,8 +434,8 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
         }
 
         StreamingACNProtocolVersion protocolVersion = sACNProtocolUnknown;
-        if(root_vect==ROOT_VECTOR) protocolVersion = sACNProtocolRelease;
-        if(root_vect==DRAFT_ROOT_VECTOR) protocolVersion = sACNProtocolDraft;
+        if(root_vect==VECTOR_ROOT_E131_DATA) protocolVersion = sACNProtocolRelease;
+        if(root_vect==VECTOR_ROOT_E131_DATA_DRAFT) protocolVersion = sACNProtocolDraft;
         if(ps->protocol_version!=protocolVersion)
         {
             ps->protocol_version = protocolVersion;

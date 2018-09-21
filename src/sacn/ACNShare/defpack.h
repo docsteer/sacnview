@@ -38,77 +38,77 @@
 #include <QtGlobal>
 
 //Declarations
-void  PackB1 (quint8* ptr, quint8 val);	//Packs a quint8 to a known big endian buffer
-quint8 UpackB1(const quint8* ptr);		//Unpacks a quint8 from a known big endian buffer
-void  PackL1 (quint8* ptr, quint8 val);	//Packs a quint8 to a known little endian buffer
-quint8 UpackL1(const quint8* ptr);		//Unpacks a quint8 from a known little endian buffer
-void  PackB2 (quint8* ptr, quint16 val);	//Packs a quint16 to a known big endian buffer
-quint16 UpackB2(const quint8* ptr);		//Unpacks a quint16 from a known big endian buffer
-void  PackL2 (quint8* ptr, quint16 val);	//Packs a quint16 to a known little endian buffer
-quint16 UpackL2(const quint8* ptr);		//Unpacks a quint16 from a known little endian buffer
-void  PackB4 (quint8* ptr, quint32 val);	//Packs a quint32 to a known big endian buffer
-quint32 UpackB4(const quint8* ptr);		//Unpacks a quint32 from a known big endian buffer
-void  PackL4 (quint8* ptr, quint32 val);	//Packs a quint32 to a known little endian buffer
-quint32 UpackL4(const quint8* ptr);		//Unpacks a quint32 from a known little endian buffer
-void  PackB8 (quint8* ptr, quint64 val);	//Packs a quint64 to a known big endian buffer
-quint64 UpackB8(const quint8* ptr);		//Unpacks a quint32 from a known big endian buffer
-void  PackL8 (quint8* ptr, quint64 val);	//Packs a quint64 to a known little endian buffer
-quint64 UpackL8(const quint8* ptr);		//Unpacks a quint64 from a known little endian buffer
+void  PackBUint8 (quint8* ptr, quint8 val);	//Packs a quint8 to a known big endian buffer
+quint8 UpackBUint8 (const quint8* ptr);		//Unpacks a quint8 from a known big endian buffer
+void  PackLUint8 (quint8* ptr, quint8 val);	//Packs a quint8 to a known little endian buffer
+quint8 UPackLUint8 (const quint8* ptr);		//Unpacks a quint8 from a known little endian buffer
+void  PackBUint16 (quint8* ptr, quint16 val);	//Packs a quint16 to a known big endian buffer
+quint16 UpackBUint16 (const quint8* ptr);		//Unpacks a quint16 from a known big endian buffer
+void  PackLUint16 (quint8* ptr, quint16 val);	//Packs a quint16 to a known little endian buffer
+quint16 UpackLUint16 (const quint8* ptr);		//Unpacks a quint16 from a known little endian buffer
+void  PackBUint32 (quint8* ptr, quint32 val);	//Packs a quint32 to a known big endian buffer
+quint32 UpackBUint32 (const quint8* ptr);		//Unpacks a quint32 from a known big endian buffer
+void  PackLUint32 (quint8* ptr, quint32 val);	//Packs a quint32 to a known little endian buffer
+quint32 UpackLUint32 (const quint8* ptr);		//Unpacks a quint32 from a known little endian buffer
+void  PackBUint64 (quint8* ptr, quint64 val);	//Packs a quint64 to a known big endian buffer
+quint64 UpackBUint64 (const quint8* ptr);		//Unpacks a quint32 from a known big endian buffer
+void  PackLUint64 (quint8* ptr, quint64 val);	//Packs a quint64 to a known little endian buffer
+quint64 UpackLUint64 (const quint8* ptr);		//Unpacks a quint64 from a known little endian buffer
 
 //---------------------------------------------------------------------------------
 //implementation
 
 //Packs a quint8 to a known big endian buffer
-inline void	PackB1(quint8* ptr, quint8 val)
+inline void	PackBUint8(quint8* ptr, quint8 val)
 {
 	*ptr = val;
 }
 
 //Unpacks a quint8 from a known big endian buffer
-inline quint8 UpackB1(const quint8* ptr)
+inline quint8 UpackBUint8(const quint8* ptr)
 {
 	return *ptr;
 }
 
 //Packs a quint8 to a known little endian buffer
-inline void	PackL1(quint8* ptr, quint8 val)
+inline void	PackLUint8(quint8* ptr, quint8 val)
 {
 	*ptr = val;
 }
 
 //Unpacks a quint8 from a known little endian buffer
-inline quint8 UpackL1(const quint8* ptr)
+inline quint8 UPackLUint8(const quint8* ptr)
 {
 	return *ptr;
 }
 
 //Packs a quint16 to a known big endian buffer
-inline void PackB2(quint8* ptr, quint16 val)
+inline void PackBUint16(quint8* ptr, quint16 val)
 {
     ptr[1] = (quint8)(val & 0xff);
     ptr[0] = (quint8)((val & 0xff00) >> 8);
 }
 
 //Unpacks a quint16 from a known big endian buffer
-inline quint16 UpackB2(const quint8* ptr)
+inline quint16 UpackBUint16(const quint8* ptr)
 {
     return (quint16)(ptr[1] | ptr[0] << 8);
 }
 
 //Packs a quint16 to a known little endian buffer
-inline void PackL2(quint8* ptr, quint16 val)
+inline void PackLUint16(quint8* ptr, quint16 val)
 {
     *((quint16*)ptr) = val;
 }
 
 //Unpacks a quint16 from a known little endian buffer
-inline quint16 UpackL2(const quint8* ptr)
+inline quint16 UpackLUint16(const quint8* ptr)
 {
     return *((quint16*)ptr);
 }
 
 //Packs a quint32 to a known big endian buffer
-inline void PackB4(quint8* ptr, quint32 val)
+inline void PackBUint32(quint8* ptr, quint32 val)
 {
     ptr[3] = (quint8) (val & 0xff);
     ptr[2] = (quint8)((val & 0xff00) >> 8);
@@ -117,25 +117,25 @@ inline void PackB4(quint8* ptr, quint32 val)
 }
 
 //Unpacks a quint32 from a known big endian buffer
-inline quint32 UpackB4(const quint8* ptr)
+inline quint32 UpackBUint32(const quint8* ptr)
 {
     return (quint32)(ptr[3] | (ptr[2] << 8) | (ptr[1] << 16) | (ptr[0] << 24));
 }
 
 //Packs a quint32 to a known little endian buffer
-inline void PackL4(quint8* ptr, quint32 val)
+inline void PackLUint32(quint8* ptr, quint32 val)
 {
     *((quint32*)ptr) = val;
 }
 
 //Unpacks a quint32 from a known little endian buffer
-inline quint32 UpackL4(const quint8* ptr)
+inline quint32 UpackLUint32(const quint8* ptr)
 {
     return *((quint32*)ptr);
 }
 
 //Packs a quint64 to a known big endian buffer
-inline void PackB8(quint8* ptr, quint64 val)
+inline void PackBUint64(quint8* ptr, quint64 val)
 {
     ptr[7] = (quint8) (val & 0xff);
     ptr[6] = (quint8)((val & 0xff00) >> 8);
@@ -148,7 +148,7 @@ inline void PackB8(quint8* ptr, quint64 val)
 }
 
 //Unpacks a quint32 from a known big endian buffer
-inline quint64 UpackB8(const quint8* ptr)
+inline quint64 UpackBUint64(const quint8* ptr)
 {
     return ((quint64)ptr[7]) | (((quint64)ptr[6]) << 8) | (((quint64)ptr[5]) << 16) |
            (((quint64)ptr[4]) << 24) | (((quint64)ptr[3]) << 32) |
@@ -157,13 +157,13 @@ inline quint64 UpackB8(const quint8* ptr)
 }
 
 //Packs a quint64 to a known little endian buffer
-inline void PackL8(quint8* ptr, quint64 val)
+inline void PackLUint64(quint8* ptr, quint64 val)
 {
     *((quint64*)ptr) = val;
 }
 
 //Unpacks a quint64 from a known little endian buffer
-inline quint64 UpackL8(const quint8* ptr)
+inline quint64 UpackLUint64(const quint8* ptr)
 {
     return *((quint64*)ptr);
 }

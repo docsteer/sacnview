@@ -18,6 +18,7 @@
 
 #include <QWidget>
 #include "consts.h"
+#include "streamingacn.h"
 
 class sACNListener;
 
@@ -75,7 +76,7 @@ private:
     Ui::UniverseView *ui;
     QHash<sACNSource *, int> m_sourceToTableRow;
     int m_selectedAddress;
-    QSharedPointer<sACNListener> m_listener;
+    sACNManager::tListener m_listener;
     QWidget *m_parentWindow;
     bool m_displayDDOnlySource;
 };

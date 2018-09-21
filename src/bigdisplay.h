@@ -20,7 +20,7 @@ public:
 private:
     Ui::BigDisplay *ui;
     int m_universe;
-    QSharedPointer<sACNListener> m_listener;
+    sACNManager::tListener m_listener;
 
     enum tabModes
     {

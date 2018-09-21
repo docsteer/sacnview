@@ -120,7 +120,9 @@ SOURCES += src/main.cpp\
     src/bigdisplay.cpp \
     src/addmultidialog.cpp \
     src/theme/darkstyle.cpp \
-    src/ipc.cpp
+    src/ipc.cpp \
+    src/sacn/sacndiscovery.cpp \
+    src/sacn/sacndiscoveredsourcelistmodel.cpp
 
 HEADERS += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -162,7 +164,9 @@ HEADERS += src/mdimainwindow.h \
     src/theme/darkstyle.h \
     src/xpwarning.h \
     src/sacn/e1_11.h \
-    src/ipc.h
+    src/ipc.h \
+    src/sacn/sacndiscovery.h \
+    src/sacn/sacndiscoveredsourcelistmodel.h
 
 FORMS += ui/mdimainwindow.ui \
     ui/scopewindow.ui \

@@ -232,6 +232,7 @@ void Preferences::savePreferences()
     settings.setValue(S_THEME, m_theme);
     settings.setValue(S_TX_RATE_OVERRIDE, m_txrateoverride);
     settings.setValue(S_LOCALE, m_locale);
+    settings.setValue(S_UNIVERSESLISTED, m_universesListed);
 
     settings.beginWriteArray(S_SUBWINDOWLIST);
     for(int i=0; i<m_windowInfo.count(); i++)
@@ -273,6 +274,7 @@ void Preferences::loadPreferences()
     m_theme = (Theme) settings.value(S_THEME, QVariant((int)THEME_LIGHT)).toInt();
     m_txrateoverride = settings.value(S_TX_RATE_OVERRIDE, QVariant(false)).toBool();
     m_locale = settings.value(S_LOCALE, QLocale::system()).toLocale();
+    m_universesListed = settings.value(S_UNIVERSESLISTED, QVariant(20)).toUInt();
 
     m_windowInfo.clear();
     int size = settings.beginReadArray(S_SUBWINDOWLIST);

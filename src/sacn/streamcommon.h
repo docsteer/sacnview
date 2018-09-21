@@ -47,13 +47,14 @@
 /* 
  * a description of the address space being used
  */
-
+// Root
 #define PREAMBLE_SIZE_ADDR 0
 #define POSTAMBLE_SIZE_ADDR 2
 #define ACN_IDENTIFIER_ADDR 4
 #define ROOT_FLAGS_AND_LENGTH_ADDR 16
 #define ROOT_VECTOR_ADDR 18
 #define CID_ADDR 22
+// Framing
 #define FRAMING_FLAGS_AND_LENGTH_ADDR 38
 #define FRAMING_VECTOR_ADDR 40
 #define SOURCE_NAME_ADDR 44
@@ -62,6 +63,7 @@
 #define SEQ_NUM_ADDR 111
 #define OPTIONS_ADDR 112
 #define UNIVERSE_ADDR 113
+// DMP
 #define DMP_FLAGS_AND_LENGTH_ADDR 115
 #define DMP_VECTOR_ADDR 117
 #define DMP_ADDRESS_AND_DATA_ADDR 118
@@ -70,6 +72,12 @@
 #define PROP_COUNT_ADDR 123
 #define START_CODE_ADDR 125
 #define PROP_VALUES_ADDR (START_CODE_ADDR + 1)
+// Universe Discovery
+#define DISCO_FLAGS_AND_LENGTH_ADDR 112
+#define DISCO_VECTOR_ADDR 114
+#define DISCO_PAGE_ADDR 118
+#define DISCO_LAST_PAGE_ADDR 119
+#define DISCO_LIST_UNIVERSE_ADDR 120
 
 //for support of the early draft:
 #define DRAFT_PRIORITY_ADDR 76
@@ -103,23 +111,35 @@
 /*
  * data definitions
  */
+// Root
 #define ACN_IDENTIFIER "ASC-E1.17\0\0\0"	
-#define ROOT_VECTOR 4
-#define FRAMING_VECTOR 2
-#define DMP_VECTOR 2
-#define ADDRESS_AND_DATA_FORMAT 0xa1
-#define ADDRESS_INC 1
-#define DMP_FIRST_PROPERTY_ADDRESS_FORCE 0
-#define RESERVED_VALUE 0
+#define VECTOR_ROOT_E131_DATA 0x00000004
+#define VECTOR_ROOT_E131_EXTENDED 0x00000008
+// Draft v0.2
+#define VECTOR_ROOT_E131_DATA_DRAFT 0x00000003
 
-//for support of the early draft
-#define DRAFT_ROOT_VECTOR 3
+// Framing
+#define VECTOR_E131_DATA_PACKET 0x00000002
+#define VECTOR_E131_EXTENDED_SYNCHRONIZATION 0x00000001
+#define VECTOR_E131_EXTENDED_DISCOVERY 0x00000002
+
+// DMP
+#define VECTOR_DMP_SET_PROPERTY 0x02
+#define DMP_ADDRESS_AND_DATA_FORMAT 0xa1
+#define DMP_FIRST_PROPERTY_ADDRESS_FORCE 0
+#define ADDRESS_INC 1
+
+// Universe Discovery Layer
+#define VECTOR_UNIVERSE_DISCOVERY_UNIVERSE_LIST 0x00000001
+
+#define RESERVED_VALUE 0
 
 /*
  *  Options
  */
 #define PREVIEW_DATA_OPTION 0x80 // Bit 7
 #define STREAM_TERMINATED_OPTION 0x40 // Bit 6
+#define FORCE_SYCHRONIZATION_OPTION 0x20 // Bit 5
 
 /***/
 
@@ -133,6 +153,9 @@
 ///The payload is the per-channel priority (0-200), 
 //where 0 means "ignore my values on this channel"
 #define STARTCODE_PRIORITY 0xDD     
+
+// Special universes
+#define E131_DISCOVERY_UNIVERSE 64214
 
 #endif
 
@@ -166,7 +189,15 @@ void SetStreamHeaderSequence(quint8* pbuf, quint8 seq, bool draft);
  * source_space must be of size SOURCE_NAME_SPACE.
  * pdata is the offset into the buffer where the data is stored
  */
-bool ValidateStreamHeader(quint8* pbuf, uint buflen, CID &source_cid, 
+enum e_ValidateStreamHeader
+{
+    SteamHeader_Invalid,
+    SteamHeader_Draft,
+    SteamHeader_Ratified,
+    SteamHeader_Extended,
+    SteamHeader_Unknown
+};
+e_ValidateStreamHeader ValidateStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
 			  char* source_space, quint8 &priority, 
 			  quint8 &start_code, quint16 &reserved, quint8 &sequence,
 			  quint8 &options, quint16 &universe,
@@ -198,20 +229,54 @@ bool VerifyStreamHeaderForDraft(quint8* pbuf, uint buflen, CID &source_cid,
  */
 bool isDraft(quint8* pbuf);
 
+/*
+ * Helper function
+ * Check framing vector
+ * Returns true if vector is expected type
+ */
+bool checkFramingVector(quint8* pbuf, quint8 expectedVector);
+
+/*
+ * Helper function
+ * Set a bit in the option field
+ */
+void setOptionBit(quint8 mask, quint8* pbuf, bool value);
+
+/*
+ * Helper function
+ * Get a bit in the option field
+ */
+bool getOptionBit(quint8 mask, quint8* pbuf);
+
 /* 
  * toggles the preview_data bit of the options field to either 1 or 0
  */
 void SetPreviewData(quint8* pbuf, bool preview);
 
+/*
+ * Returns the preview_data bit of the options field
+ */
+bool GetPreviewData(quint8* pbuf);
+
 /* 
- * toggles the stream_terminated  bit of the options field to either 1 or 0
+ * toggles the stream_terminated bit of the options field to either 1 or 0
  */
 void SetStreamTerminated(quint8* pbuf, bool terminated);
 
 /* 
- * returns the stream_terminated  bit of the options field
+ * returns the stream_terminated bit of the options field
  */
 bool GetStreamTerminated(quint8* pbuf);
+
+/*
+ * toggles the Force_Synchronization bit of the options field to either 1 or 0
+ */
+void SetForceSync(quint8* pbuf, bool terminated);
+
+/*
+ * returns the Force_Synchronization bit of the options field
+ */
+bool GetForceSync(quint8* pbuf);
 
 /*Fills in the multicast address and port (not netiface) to use for listening to or sending on a universe*/
 void GetUniverseAddress(quint16 universe, CIPAddr& addr);
