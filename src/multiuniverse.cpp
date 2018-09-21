@@ -20,6 +20,8 @@
 #include <QSpinBox>
 #include <QComboBox>
 #include <QLabel>
+#include "qt56.h"
+#include "sacneffectengine.h"
 #include "preferences.h"
 #include "consts.h"
 #include "addmultidialog.h"
@@ -295,10 +297,8 @@ void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode, int val
                 sACNEffectEngine *e = m_widgetToFxEngine.value(w);
                 e->setManualLevel(255);
             }
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
-    Q_FALLTHROUGH();
-#endif
         }
+        Q_FALLTHROUGH();
     case sACNEffectEngine::FxChaseRamp:
     case sACNEffectEngine::FxChaseSine:
     case sACNEffectEngine::FxRamp:

@@ -1,4 +1,5 @@
 #include <QApplication>
+#include "qt56.h"
 #include "commandline.h"
 #include "consts.h"
 #include "preferences.h"
@@ -66,55 +67,60 @@ void CommandLine::processKey(Key value)
             m_addresses.clear();
             m_terminated = false;
         }
-        m_keyStack.push(value);
+        if (m_errorText.isEmpty())
+            m_keyStack.push(value);
     }
+
     processStack();
 }
 
-void getSelection(QSet<int> *selection, int *numberEntry, int *startRange)
+void CommandLine::getSelection(QSet<int> *selection, int *numberEntry, int *startRange, int offset, stackFlags flags)
 {
+    QSet<int> tempSelection;
     if(*startRange != 0 && *numberEntry != 0)
     {
         // Thru
         if (*numberEntry > *startRange)
-            for(int i = *startRange; i <= *numberEntry; i++)
-                selection->insert(i);
+            for(int i = *startRange; i <= *numberEntry; i+=offset)
+                tempSelection.insert(i);
         else
-            for(int i = *numberEntry; i <= *startRange; i++)
-                selection->insert(i);
+            for(int i = *numberEntry; i <= *startRange; i+=offset)
+                tempSelection.insert(i);
     }
     else
     {
         // Single
         if(*numberEntry!=0)
-            selection->insert(*numberEntry);
+            tempSelection.insert(*numberEntry);
     }
 
-   *numberEntry = 0;
-   *startRange = 0;
+    // Update selection
+    for (auto i : tempSelection)
+    {
+        if (flags.addMode)
+            selection->insert(i);
+        else
+            selection->remove(i);
+    }
+
+    *numberEntry = 0;
+    *startRange = 0;
 }
 
 void CommandLine::processStack()
 {
-    enum {
-        stChannel,
-        stThruStart,
-        stThruEnd,
-        stLevels,
-        stReady,
-        stError,
-    };
-
     m_text.clear();
-    int state = stChannel;
+    stackFlags flags;
     int numberEntry = 0;
     int startRange = 0;
-    int i=0;
+    int endRange = 0;
     QSet<int> selection;
     const int maxLevel = Preferences::getInstance()->GetMaxLevel();
 
     for(int pos=0; pos<m_keyStack.count(); pos++)
     {
+        if (flags.state == stError) { return; }
+
         Key key = m_keyStack.at(pos);
         int numeric = (int) key;
         switch(key)
@@ -132,25 +138,24 @@ void CommandLine::processStack()
             numberEntry *= 10;
             numberEntry += numeric;
 
-            if(state==stChannel || state==stThruStart || state==stThruEnd)
+            if(flags.state==stChannel)
             {
                 if(numberEntry>MAX_DMX_ADDRESS)
                 {
                     // Not a valid entry, would be >512
-                    state = stError;
+                    flags.state = stError;
                     m_errorText = E_RANGE();
                     m_keyStack.pop_back();
                     return;
                 }
-
             }
 
-            if(state==stLevels)
+            if(flags.state==stLevels)
             {
                 if(numberEntry>maxLevel)
                 {
                     // Not a valid entry, would be >max
-                    state = stError;
+                    flags.state = stError;
                     m_errorText = E_RANGE();
                     m_keyStack.pop_back();
                     return;
@@ -161,17 +166,45 @@ void CommandLine::processStack()
             break;
 
         case THRU:
-                m_text.append(QString(" %1 ").arg(K_THRU()));
-                if(numberEntry==0 || state!=stChannel || startRange!=0)
-                {
-                    m_errorText = E_SYNTAX();
-                    return;
-                }
-                startRange=numberEntry;
-                numberEntry = 0;
+            m_text.append(QString(" %1 ").arg(K_THRU()));
+            // [THRU] [THRU] = [THRU] [5][1][2]
+            if (
+                m_keyStack.count() > 1 &&
+                m_keyStack.last() == Key::THRU &&
+                m_keyStack.last() == m_keyStack[m_keyStack.count() - 2]
+                )
+            {
+                m_keyStack.pop();
+                processKey(K5);
+                processKey(K1);
+                processKey(K2);
+                return;
+            }
+            if(numberEntry==0 || startRange!=0 || flags.state!=stChannel)
+            {
+                flags.state = stError;
+                m_errorText = E_SYNTAX();
+                return;
+            }
+            startRange=numberEntry;
+            numberEntry = 0;
+            flags.thruMode = true;
+            break;
+
+        case OFFSET:
+            m_text.append(QString(" %1 ").arg(K_OFFSET()));
+            if(numberEntry==0 || flags.state!=stChannel || !flags.thruMode)
+            {
+                flags.state = stError;
+                m_errorText = E_SYNTAX();
+                return;
+            }
+            endRange=numberEntry;
+            numberEntry = 0;
             break;
 
         case AT:
+        {
             // [@] [@] = [@] [Full]
             if (
                 m_keyStack.count() > 1 &&
@@ -187,11 +220,19 @@ void CommandLine::processStack()
             m_text.append(QString(" %1 ").arg(K_AT()));;
             if(startRange!=0 && numberEntry==0)
             {
+                flags.state = stError;
                 m_errorText = E_SYNTAX();
                 return;
             }
 
-            getSelection(&selection, &numberEntry, &startRange);
+            if (flags.thruMode && endRange != 0)
+            {
+                getSelection(&selection, &endRange, &startRange, numberEntry, flags);
+                flags.thruMode = false;
+                numberEntry = 0;
+            }
+            else
+                getSelection(&selection, &numberEntry, &startRange, 1, flags);
 
             if(selection.isEmpty() && !m_previousKeyStack.isEmpty())
             {
@@ -201,10 +242,10 @@ void CommandLine::processStack()
                 return;
             }
 
-            state = stLevels;
+            flags.state = stLevels;
 
             // Copy the entries up to the at to the last addresses
-            i=0;
+            int i=0;
             m_previousKeyStack.clear();
             while(m_keyStack[i]!=AT)
             {
@@ -212,10 +253,11 @@ void CommandLine::processStack()
                 i++;
             }
             break;
+        }
 
         case AND:
             m_text.append(QString(" %1 ").arg(K_AND()));
-            if(numberEntry==0 || state != stChannel)
+            if(numberEntry==0 || flags.state != stChannel)
             {
                 if (m_keyStack.count() == 1 && !m_previousKeyStack.isEmpty())
                 {
@@ -226,15 +268,52 @@ void CommandLine::processStack()
                 }
                 else
                 {
+                    flags.state = stError;
                     m_errorText = E_SYNTAX();
                     return;
                 }
             }
 
-            getSelection(&selection, &numberEntry, &startRange);
-            numberEntry = 0;
-            startRange = 0;
+            if (flags.thruMode && endRange != 0)
+            {
+                getSelection(&selection, &endRange, &startRange, numberEntry, flags);
+                flags.thruMode = false;
+                numberEntry = 0;
+            }
+            else
+                getSelection(&selection, &numberEntry, &startRange, 1, flags);
 
+            flags.addMode = true;
+            break;
+
+        case MINUS:
+            m_text.append(QString(" %1 ").arg(K_MINUS()));
+            if(numberEntry==0 || flags.state != stChannel)
+            {
+                if (m_keyStack.count() == 1 && !m_previousKeyStack.isEmpty())
+                {
+                    // Empty command line and selection...use previous
+                    m_keyStack = m_previousKeyStack;
+                    processKey(MINUS);
+                    return;
+                }
+                else
+                {
+                    flags.state = stError;
+                    m_errorText = E_SYNTAX();
+                    return;
+                }
+            }
+            if (flags.thruMode && endRange != 0)
+            {
+                getSelection(&selection, &endRange, &startRange, numberEntry, flags);
+                flags.thruMode = false;
+                numberEntry = 0;
+            }
+            else
+                getSelection(&selection, &numberEntry, &startRange, 1, flags);
+
+            flags.addMode = false;
             break;
 
         case ENTER:
@@ -242,7 +321,7 @@ void CommandLine::processStack()
             m_terminated = true;
             m_text.append("*");
 
-            if(state!=stLevels)
+            if(flags.state!=stLevels)
                 return;
 
             // m_level is always in absolute (0-255)
@@ -257,8 +336,7 @@ void CommandLine::processStack()
         case FULL:
             // Anything selected?
             if(
-                selection.isEmpty()
-                && m_keyStack.size()
+                m_keyStack.size()
                 && !m_keyStack.contains(AT)
                 )
             {
@@ -279,6 +357,7 @@ void CommandLine::processStack()
                 }
                 else
                 {
+                    flags.state = stError;
                     m_errorText = E_NO_SELECTION();
                 }
                 return;
@@ -287,11 +366,13 @@ void CommandLine::processStack()
             m_text.append(QString("%1*").arg(K_FULL()));
             if(startRange!=0 && numberEntry==0)
             {
+                flags.state = stError;
                 m_errorText = E_SYNTAX();
                 return;
             }
-            if(state==stLevels && numberEntry!=0)
+            if(flags.state==stLevels && numberEntry!=0)
             {
+                flags.state = stError;
                 m_errorText = E_SYNTAX();
                 return;
             }
@@ -301,6 +382,7 @@ void CommandLine::processStack()
             return;
 
         case CLEAR:
+            Q_FALLTHROUGH();
         default:
             break;
         }
@@ -406,6 +488,9 @@ void CommandLineWidget::keyPressEvent(QKeyEvent *e)
         break;
     case Qt::Key_Plus:
         keyAnd();
+        break;
+    case Qt::Key_Minus:
+        keyMinus();
         break;
     case Qt::Key_A:
     case Qt::Key_At:

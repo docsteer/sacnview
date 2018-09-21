@@ -165,6 +165,7 @@ HEADERS += src/mdimainwindow.h \
     src/xpwarning.h \
     src/sacn/e1_11.h \
     src/ipc.h \
+    src/qt56.h \
     src/sacn/sacndiscovery.h \
     src/sacn/sacndiscoveredsourcelistmodel.h
 
