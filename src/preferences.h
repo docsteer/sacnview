@@ -45,6 +45,7 @@ static const QString S_THEME("Theme");
 static const QString S_TX_RATE_OVERRIDE("TX Rate Override");
 static const QString S_LOCALE("LOCALE");
 static const QString S_UNIVERSESLISTED("Universe List Count");
+static const QString S_PRIORITYPRESET("PriorityPreset %1");
 
 struct MDIWindowInfo
 {
@@ -122,6 +123,7 @@ public:
     void SetTXRateOverride(bool override) { m_txrateoverride = override; }
     void SetLocale(QLocale locale);
     void SetUniversesListed(quint8 count) { m_universesListed = (std::max)(count, (quint8)1); }
+    void SetPriorityPreset(const QByteArray &data, int index);
 
     unsigned int GetDisplayFormat();
     unsigned int GetMaxLevel();
@@ -141,7 +143,7 @@ public:
     quint8 GetUniversesListed() { return m_universesListed; }
 
     QString GetFormattedValue(unsigned int nLevelInDecimal, bool decorated = false);
-
+    QByteArray GetPriorityPreset(int index);
     void savePreferences();
 
     bool RESTART_APP;
@@ -169,6 +171,7 @@ private:
     bool m_txrateoverride;
     QLocale m_locale;
     quint8 m_universesListed;
+    QByteArray m_priorityPresets[PRIORITYPRESET_COUNT];
 
     void loadPreferences();
 };
