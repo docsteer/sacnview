@@ -1285,7 +1285,7 @@ color: rgb(255, 85, 0);</string>
              </size>
             </property>
             <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
+             <enum>Qt::ClickFocus</enum>
             </property>
             <property name="styleSheet">
              <string notr="true">QSpinBox { 
@@ -1337,7 +1337,7 @@ color: rgb(255, 85, 0);</string>
              </size>
             </property>
             <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
+             <enum>Qt::ClickFocus</enum>
             </property>
             <property name="styleSheet">
              <string notr="true">QSpinBox { 
