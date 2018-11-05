@@ -60,13 +60,11 @@ aboutDialog::aboutDialog(QWidget *parent) :
                            .arg(qVersion()));
     #ifndef TARGET_WINXP
         const char *libpcap = pcap_lib_version();
-        ui->lblLibs->setText(libpcap);
+        ui->lblLibs->setText(tr("This application uses the pcap Library, version %1, icensed under the <a href=\"https://opensource.org/licenses/BSD-3-Clause\">The 3-Clause BSD License</a>")
+                .arg(libpcap));
     #else
         ui->lblLibs->setText(QString());
     #endif
-
-    connect(ui->lblLicense, SIGNAL(linkActivated(QString)), this, SLOT(openLink(QString)));
-    connect(ui->lblQtInfo, SIGNAL(linkActivated(QString)), this, SLOT(openLink(QString)));
 
     // Setup diagnostics tree
     ui->twDiag->setColumnCount(2);
@@ -158,11 +156,6 @@ void aboutDialog::updateDisplay()
         if (merges > 0)
             universeDetail.treeMergesPerSecond->setText(1, QString("%1").arg(merges));
     }
-}
-
-void aboutDialog::openLink(QString link)
-{
-    QDesktopServices::openUrl(QUrl(link));
 }
 
 void aboutDialog::bindStatus(QTreeWidgetItem *treeItem, sACNListener::eBindStatus bindStatus)

@@ -31,12 +31,11 @@ class aboutDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit aboutDialog(QWidget *parent = 0);
+    explicit aboutDialog(QWidget *parent = Q_NULLPTR);
     ~aboutDialog();
 
 private slots:
     void updateDisplay();
-    void openLink(QString link);
 
     void on_twDiag_expanded(const QModelIndex &index);
     void on_twDiag_collapsed(const QModelIndex &index);
