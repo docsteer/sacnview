@@ -27,11 +27,11 @@
 
 transmitwindow::transmitwindow(int universe, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::transmitwindow), m_sender(0)
+    ui(new Ui::transmitwindow), m_sender(Q_NULLPTR)
 {
     ui->setupUi(this);
 
-    m_fxEngine = NULL;
+    m_fxEngine = Q_NULLPTR;
     m_recordMode = false;
 
     memset(m_levels, 0, sizeof(m_levels));
@@ -154,19 +154,26 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
 
     QTimer::singleShot(30, Qt::CoarseTimer, this, SLOT(fixSize()));
 
-    // Set up effect combo boxes
-    connect(ui->rbFadeManual, SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
-    connect(ui->rbFadeRamp, SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
-    connect(ui->rbFadeSine, SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
-    connect(ui->rbText,     SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
-    connect(ui->rbDateTime, SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
-    connect(ui->rbChase,    SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
-    connect(ui->rbChaseRamp,SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
-    connect(ui->rbChaseSine,SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
-    connect(ui->rbChaseSnap,SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
+    // Set up effect radio buttons
+    QButtonGroup *effectGroup = new QButtonGroup(this);
+    connect(effectGroup, SIGNAL(buttonToggled(int, bool)), this, SLOT(radioFadeMode_toggled(int, bool)));
+    effectGroup->addButton(ui->rbFadeManual);
+    effectGroup->addButton(ui->rbFadeRamp);
+    effectGroup->addButton(ui->rbFadeSine);
+    effectGroup->addButton(ui->rbText);
+    effectGroup->addButton(ui->rbDateTime);
+    effectGroup->addButton(ui->rbChase);
 
-    connect(ui->rbEuDate, SIGNAL(toggled(bool)), this, SLOT(dateMode_toggled(bool)));
-    connect(ui->rbUsDate, SIGNAL(toggled(bool)), this, SLOT(dateMode_toggled(bool)));
+    QButtonGroup *effectDateGroup = new QButtonGroup(this);
+    connect(effectDateGroup, SIGNAL(buttonToggled(int, bool)), this, SLOT(dateMode_toggled(int, bool)));
+    effectDateGroup->addButton(ui->rbEuDate);
+    effectDateGroup->addButton(ui->rbUsDate);
+
+    QButtonGroup *effectChaseGroup = new QButtonGroup(this);
+    connect(effectChaseGroup, SIGNAL(buttonToggled(int, bool)), this, SLOT(radioFadeMode_toggled(int, bool)));
+    effectChaseGroup->addButton(ui->rbChaseRamp);
+    effectChaseGroup->addButton(ui->rbChaseSine);
+    effectChaseGroup->addButton(ui->rbChaseSnap);
 
     setUniverseOptsEnabled(true);
 
@@ -588,9 +595,10 @@ void transmitwindow::on_sbFadeRangeEnd_valueChanged(int value)
     }
 }
 
-void transmitwindow::radioFadeMode_toggled(bool checked)
+void transmitwindow::radioFadeMode_toggled(int id, bool checked)
 {
-    Q_UNUSED(checked);
+    Q_UNUSED(id);
+    Q_UNUSED(checked)
 
     if(ui->rbFadeManual->isChecked())
     {
@@ -716,9 +724,11 @@ void transmitwindow::setLevels(QSet<int> addresses, int level)
     }
 }
 
-void transmitwindow::dateMode_toggled(bool checked)
+void transmitwindow::dateMode_toggled(int id, bool checked)
 {
+    Q_UNUSED(id);
     Q_UNUSED(checked);
+
     if(ui->rbEuDate->isChecked())
     {
         QMetaObject::invokeMethod(

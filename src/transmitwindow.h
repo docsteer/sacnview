@@ -59,7 +59,7 @@ protected slots:
     void doBlink();
     void on_sbFadeRangeStart_valueChanged(int value);
     void on_sbFadeRangeEnd_valueChanged(int value);
-    void radioFadeMode_toggled(bool checked);
+    void radioFadeMode_toggled(int id, bool checked);
     void on_slFadeLevel_valueChanged(int value);
     void on_btnFxPause_pressed();
     void on_btnFxStart_pressed();
@@ -67,7 +67,7 @@ protected slots:
     void presetButtonPressed();
     void recordButtonPressed(bool on);
     void setLevels(QSet<int> addresses, int level);
-    void dateMode_toggled(bool checked);
+    void dateMode_toggled(int id, bool checked);
     void sourceTimeout();
 private slots:
     void on_rbDraft_clicked();
