@@ -22,6 +22,7 @@
 #include "sacn/sacneffectengine.h"
 #include "configureperchanpriodlg.h"
 #include "preferences.h"
+#include <QButtonGroup>
 #include <QToolButton>
 #include <QMessageBox>
 
