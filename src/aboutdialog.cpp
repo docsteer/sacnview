@@ -60,7 +60,7 @@ aboutDialog::aboutDialog(QWidget *parent) :
                            .arg(qVersion()));
     #ifndef TARGET_WINXP
         const char *libpcap = pcap_lib_version();
-        ui->lblLibs->setText(tr("This application uses the pcap Library, version %1, icensed under the <a href=\"https://opensource.org/licenses/BSD-3-Clause\">The 3-Clause BSD License</a>")
+        ui->lblLibs->setText(tr("This application uses the pcap Library, version %1, licensed under the <a href=\"https://opensource.org/licenses/BSD-3-Clause\">The 3-Clause BSD License</a>")
                 .arg(libpcap));
     #else
         ui->lblLibs->setText(QString());
