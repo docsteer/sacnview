@@ -1,4 +1,5 @@
-# sACNView
+# sACNView [![Build Status](https://travis-ci.org/docsteer/sacnview.svg?branch=2.1-dev)](https://travis-ci.org/docsteer/sacnview) [![Build status](https://ci.appveyor.com/api/projects/status/p8hmic8x2s6051o0?svg=true)](https://ci.appveyor.com/project/docsteer/sacnview)
+
 sACNView is a tool for viewing, monitoring and testing the ANSI/ESTA E1.17 protcol, informally known as "Streaming ACN".
 
 For general information on the project, visit the [web site](http://docsteer.github.io/sacnview/)
