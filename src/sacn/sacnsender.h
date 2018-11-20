@@ -130,6 +130,14 @@ public slots:
     void setCID(CID cid);
     CID cid() { return m_cid; }
 
+    /**
+     * @brief setSlotCount - set the Slot Count of this sender.
+     * If active this will stop and restart the source
+     * @param slotCount - new slotCount.
+     */
+    void setSlotCount(quint16 slotCount);
+    quint16 slotCount() { return m_slotCount; }
+
 signals:
     /**
      * @brief sendingTimeout is emitted when the source stops sending
@@ -146,6 +154,11 @@ signals:
      * @brief cidChange is emitted when the source changes CID
      */
     void cidChange();
+
+    /**
+     * @brief slotCount is emitted when the source changes slot count
+     */
+    void slotCountChange();
 private slots:
     void doTimeout();
 private:
@@ -156,6 +169,8 @@ private:
     uint m_priorityHandle;
     // The pointer to the data
     quint8 *m_slotData;
+    // Number of slots
+    quint16 m_slotCount;
     // The priority
     quint8 m_priority;
     // Source name

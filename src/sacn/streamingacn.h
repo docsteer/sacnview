@@ -66,7 +66,7 @@ public:
                                   //used to time out the 0xdd packets to see if we lost per-channel priority
     quint16 universe;
     quint8 level_array[DMX_SLOT_MAX];
-    quint8 slot_count; // Number of slots actually received
+    quint16 slot_count; // Number of slots actually received
     quint8 priority_array[DMX_SLOT_MAX];
     quint8 last_level_array[DMX_SLOT_MAX];
     quint8 last_priority_array[DMX_SLOT_MAX];

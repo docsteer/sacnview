@@ -19,7 +19,7 @@
 
 UniverseDisplay::UniverseDisplay(QWidget *parent)
     : GridWidget(parent)
-    , m_sources(512, sACNMergedAddress())
+    , m_sources(MAX_DMX_ADDRESS, sACNMergedAddress())
     , m_flickerFinder(false)
     , m_showChannelPriority(false)
 {
@@ -59,7 +59,7 @@ void UniverseDisplay::levelsChanged()
     m_sources = m_listener->mergedLevels();
     for(int i=0; i<m_sources.count(); i++)
     {
-        if(m_sources[i].winningSource)
+        if(m_sources[i].winningSource && i < m_sources[i].winningSource->slot_count)
         {
             QString cellText(p->GetFormattedValue(m_sources[i].level));
             if (m_showChannelPriority)
@@ -92,12 +92,14 @@ void UniverseDisplay::levelsChanged()
             }
             else
             {
-                if (i < m_sources[i].winningSource->slot_count)
-                    setCellColor(i, Preferences::getInstance()->colorForCID(m_sources[i].winningSource->src_cid));
+                setCellColor(i, Preferences::getInstance()->colorForCID(m_sources[i].winningSource->src_cid));
             }
         }
         else
+        {
+            setCellColor(i, Qt::white);
             setCellValue(i, QString());
+        }
     }
     update();
 }

@@ -74,6 +74,8 @@ private slots:
 
     void on_rbRatified_clicked();
 
+    void on_sbSlotCount_valueChanged(int arg1);
+
 private:
     enum TABS
     {
@@ -83,14 +85,14 @@ private:
     };
 
     void setUniverseOptsEnabled(bool enabled);
-
     Ui::transmitwindow *ui;
     QList<QSlider *> m_sliders;
     QList<QLabel *> m_sliderLabels;
     QList<QToolButton *> m_presetButtons;
     sACNManager::tSender m_sender;
-    quint8 m_perAddressPriorities[MAX_DMX_ADDRESS];
-    quint8 m_levels[MAX_DMX_ADDRESS];
+    quint16 m_slotCount;
+    std::array<quint8, MAX_DMX_ADDRESS> m_perAddressPriorities;
+    std::array<quint8, MAX_DMX_ADDRESS> m_levels;
     QTimer *m_blinkTimer;
     bool m_blink;
     sACNEffectEngine *m_fxEngine;

@@ -28,14 +28,14 @@
 
 transmitwindow::transmitwindow(int universe, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::transmitwindow), m_sender(Q_NULLPTR)
+    ui(new Ui::transmitwindow),
+    m_sender(Q_NULLPTR),
+    m_fxEngine(Q_NULLPTR),
+    m_recordMode(false)
 {
     ui->setupUi(this);
 
-    m_fxEngine = Q_NULLPTR;
-    m_recordMode = false;
-
-    memset(m_levels, 0, sizeof(m_levels));
+    m_levels.fill(0);
     on_cbPriorityMode_currentIndexChanged(ui->cbPriorityMode->currentIndex());
 
     ui->sbUniverse->setMinimum(1);
@@ -48,12 +48,18 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     ui->sbPriority->setValue(DEFAULT_SACN_PRIORITY);
     ui->sbPriority->setWrapping(true);
 
+    ui->sbSlotCount->setMaximum(MAX_DMX_ADDRESS);
+    ui->sbSlotCount->setMinimum(MIN_DMX_ADDRESS);
+    m_slotCount = MAX_DMX_ADDRESS;
+    ui->sbSlotCount->setValue(m_slotCount);
+    ui->sbSlotCount->setWrapping(true);
+
     ui->sbFadeRangeEnd->setMinimum(MIN_DMX_ADDRESS);
-    ui->sbFadeRangeEnd->setMaximum(MAX_DMX_ADDRESS);
-    ui->sbFadeRangeEnd->setValue(MAX_DMX_ADDRESS);
+    ui->sbFadeRangeEnd->setMaximum(m_slotCount);
+    ui->sbFadeRangeEnd->setValue(m_slotCount);
     ui->sbFadeRangeEnd->setWrapping(true);
     ui->sbFadeRangeStart->setMinimum(MIN_DMX_ADDRESS);
-    ui->sbFadeRangeStart->setMaximum(MAX_DMX_ADDRESS);
+    ui->sbFadeRangeStart->setMaximum(m_slotCount);
     ui->sbFadeRangeStart->setValue(MIN_DMX_ADDRESS);
     ui->sbFadeRangeStart->setWrapping(true);
 
@@ -125,8 +131,8 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
 
     // Set up fader start spinbox
     ui->sbFadersStart->setMinimum(MIN_DMX_ADDRESS);
-    ui->sbFadersStart->setMaximum(MAX_DMX_ADDRESS);
-
+    ui->sbFadersStart->setMaximum(m_slotCount);
+    ui->sbFadersStart->setWrapping(true);
 
     ui->gbFaders->adjustSize();
     ui->horizontalLayout_9->update();
@@ -138,9 +144,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     adjustSize();
     updateGeometry();
 
-
-    for(int i=0; i<MAX_DMX_ADDRESS; i++)
-        m_perAddressPriorities[i] = DEFAULT_SACN_PRIORITY;
+    m_perAddressPriorities.fill(DEFAULT_SACN_PRIORITY);
 
     // Set up slider for channel check
     ui->slChannelCheck->setMinimum(0);
@@ -254,7 +258,7 @@ void transmitwindow::on_sliderMoved(int value)
 
 void transmitwindow::on_sbFadersStart_valueChanged(int value)
 {
-    int maxValue = MAX_DMX_ADDRESS - NUM_SLIDERS + 1;
+    int maxValue = m_slotCount - NUM_SLIDERS + 1;
     if (value > maxValue)
     {
         ui->sbFadersStart->setValue(maxValue);
@@ -278,11 +282,7 @@ void transmitwindow::on_sbFadersStart_valueChanged(int value)
 
 void transmitwindow::setUniverseOptsEnabled(bool enabled)
 {
-    ui->leSourceName->setEnabled(enabled);
-    ui->sbUniverse->setEnabled(enabled);
-    ui->cbPriorityMode->setEnabled(enabled);
-    ui->gbProtocolMode->setEnabled(enabled);
-    ui->gbProtocolVersion->setEnabled(enabled);
+    ui->frSourceOpts->setEnabled(enabled);
     ui->cbBlind->setEnabled(enabled ? ui->rbRatified->isChecked() : false);
     ui->tabWidget->setEnabled(!enabled);
     on_tabWidget_currentChanged(ui->tabWidget->currentIndex());
@@ -295,8 +295,6 @@ void transmitwindow::setUniverseOptsEnabled(bool enabled)
     else
     {
         ui->btnStart->setText(tr("Stop"));
-        ui->sbPriority->setEnabled(false);
-        ui->btnEditPerChan->setEnabled(false);
     }
 
 }
@@ -335,12 +333,13 @@ void transmitwindow::on_btnStart_pressed()
     }
     else
     {
+        m_sender->setSlotCount(ui->sbSlotCount->value());
         m_sender->setName(ui->leSourceName->text());
         m_sender->setUniverse(ui->sbUniverse->value());
         if(ui->cbPriorityMode->currentIndex() == pmPER_ADDRESS_PRIORITY)
         {
             m_sender->setPriorityMode(pmPER_ADDRESS_PRIORITY);
-            m_sender->setPerChannelPriorities(m_perAddressPriorities);
+            m_sender->setPerChannelPriorities(m_perAddressPriorities.data());
         }
         else
         {
@@ -351,8 +350,7 @@ void transmitwindow::on_btnStart_pressed()
         m_sender->startSending(ui->cbBlind->isChecked());
 
         setUniverseOptsEnabled(false);
-        for(unsigned int i=0; i<sizeof(m_levels); i++)
-            m_sender->setLevel(i, m_levels[i]);
+        m_sender->setLevel(m_levels.data(), std::min(m_levels.size(), static_cast<size_t>(m_slotCount) - 1));
         if(!m_fxEngine)
         {
             m_fxEngine = new sACNEffectEngine(m_sender);
@@ -398,11 +396,11 @@ void transmitwindow::on_btnEditPerChan_pressed()
 {
     ConfigurePerChanPrioDlg dlg;
     dlg.setWindowTitle(tr("Per address priority universe %1").arg(ui->sbUniverse->value()));
-    dlg.setData(m_perAddressPriorities);
+    dlg.setData(m_perAddressPriorities.data());
     int result = dlg.exec();
     if(result==QDialog::Accepted)
     {
-        memcpy(m_perAddressPriorities, dlg.data(), MAX_DMX_ADDRESS);
+        memcpy(m_perAddressPriorities.data(), dlg.data(), m_slotCount);
     }
 }
 
@@ -424,15 +422,15 @@ void transmitwindow::on_btnCcNext_pressed()
 {
     int value = ui->lcdNumber->value();
 
-    value++;
-    if(value>MAX_DMX_ADDRESS) return;
+    if(++value>m_slotCount)
+        value = MIN_DMX_ADDRESS;
 
     ui->lcdNumber->display(value);
-    value--;
+
     if(m_sender)
     {
-        m_sender->setLevel(value, ui->slChannelCheck->value());
-        m_sender->setLevel(value-1, 0);
+        m_sender->setLevelRange(MIN_DMX_ADDRESS - 1, m_slotCount - 1, 0);
+        m_sender->setLevel(value - 1, ui->slChannelCheck->value());
     }
 }
 
@@ -440,16 +438,15 @@ void transmitwindow::on_btnCcPrev_pressed()
 {
     int value = ui->lcdNumber->value();
 
-    value--;
-    if(value<1) return;
-    value--;
+    if(--value<MIN_DMX_ADDRESS)
+        value = m_slotCount;
 
-    ui->lcdNumber->display(value+1);
+    ui->lcdNumber->display(value);
 
     if(m_sender)
     {
-        m_sender->setLevel(value, ui->slChannelCheck->value());
-        m_sender->setLevel(value+1, 0);
+        m_sender->setLevelRange(MIN_DMX_ADDRESS - 1, m_slotCount - 1, 0);
+        m_sender->setLevel(value - 1, ui->slChannelCheck->value());
     }
 }
 
@@ -457,7 +454,7 @@ void transmitwindow::on_lcdNumber_valueChanged(int value)
 {
     if(m_sender)
     {
-        m_sender->setLevelRange(0, 511, 0);
+        m_sender->setLevelRange(0, m_slotCount - 1, 0);
         m_sender->setLevel(value-1, ui->slChannelCheck->value());
     }
 }
@@ -492,12 +489,17 @@ void transmitwindow::on_btnCcBlink_pressed()
         int address = ui->lcdNumber->value();
         ui->blinkIndicator->setPixmap(QPixmap());
         if(m_sender)
-                m_sender->setLevel(address-1, 0);
+                m_sender->setLevel(address-1, ui->slChannelCheck->value());
     }
     else
     {
         m_blinkTimer->start();
+
     }
+
+    QFont font = ui->btnCcBlink->font();
+    font.setBold(m_blinkTimer->isActive());
+    ui->btnCcBlink->setFont(font);
 }
 
 void transmitwindow::doBlink()
@@ -528,7 +530,7 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
     // Stop FX, and clear output
     QMetaObject::invokeMethod(
                 m_fxEngine,"pause");
-    m_sender->setLevelRange(0, MAX_DMX_ADDRESS-1, 0);
+    m_sender->setLevelRange(0, m_slotCount-1, 0);
 
     if(index==tabChannelCheck)
     {
@@ -680,7 +682,7 @@ void transmitwindow::presetButtonPressed()
     {
         // Play back a preset
         QByteArray baPreset = Preferences::getInstance()->GetPreset(index);
-        m_sender->setLevel((const quint8*)baPreset.constData(), MAX_DMX_ADDRESS);
+        m_sender->setLevel((const quint8*)baPreset.constData(), m_slotCount);
         // Apply it to the faders
         int addr = ui->sbFadersStart->value()-1;
         for(int i=0; i<m_sliders.count(); i++)
@@ -755,4 +757,22 @@ void transmitwindow::on_rbRatified_clicked()
 void transmitwindow::sourceTimeout()
 {
     setUniverseOptsEnabled(true);
+}
+
+void transmitwindow::on_sbSlotCount_valueChanged(int arg1)
+{
+    Q_ASSERT(arg1 >= MIN_DMX_ADDRESS);
+    Q_ASSERT(arg1 <= MAX_DMX_ADDRESS);
+    m_slotCount = arg1;
+
+    ui->sbFadeRangeStart->setValue(std::min(static_cast<typeof(m_slotCount)>(ui->sbFadeRangeStart->value()), m_slotCount));
+    ui->sbFadeRangeStart->setMaximum(m_slotCount);
+
+    ui->sbFadeRangeEnd->setValue(std::min(static_cast<typeof(m_slotCount)>(ui->sbFadeRangeEnd->value()), m_slotCount));
+    ui->sbFadeRangeEnd->setMaximum(m_slotCount);
+
+    ui->sbFadersStart->setMaximum(m_slotCount);
+    on_sbFadersStart_valueChanged(ui->sbFadersStart->value());
+
+    ui->lcdNumber->display(std::min(static_cast<typeof(m_slotCount)>(ui->lcdNumber->value()), m_slotCount));
 }

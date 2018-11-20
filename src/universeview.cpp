@@ -337,14 +337,17 @@ void UniverseView::selectedAddressChanged(int address)
         {
             foreach(sACNSource *source, list[address].otherSources)
             {
-                if(source->doing_per_channel)
-                    prio = source->priority_array[address];
-                else
-                    prio = source->priority;
-                info.append(tr("\nOther Source : %1 @ %2 (Priority %3)")
-                            .arg(source->name)
-                            .arg(Preferences::getInstance()->GetFormattedValue(source->level_array[address]))
-                            .arg(prio));
+                if (address < (source->slot_count))
+                {
+                    if(source->doing_per_channel)
+                        prio = source->priority_array[address];
+                    else
+                        prio = source->priority;
+                    info.append(tr("\nOther Source : %1 @ %2 (Priority %3)")
+                                .arg(source->name)
+                                .arg(Preferences::getInstance()->GetFormattedValue(source->level_array[address]))
+                                .arg(prio));
+                }
             }
         }
     } else {
