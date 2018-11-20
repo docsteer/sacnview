@@ -35,6 +35,8 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
 {
     ui->setupUi(this);
 
+    updateTitle();
+
     m_levels.fill(0);
     on_cbPriorityMode_currentIndexChanged(ui->cbPriorityMode->currentIndex());
 
@@ -284,8 +286,6 @@ void transmitwindow::setUniverseOptsEnabled(bool enabled)
 {
     ui->frSourceOpts->setEnabled(enabled);
     ui->cbBlind->setEnabled(enabled ? ui->rbRatified->isChecked() : false);
-    ui->tabWidget->setEnabled(!enabled);
-    on_tabWidget_currentChanged(ui->tabWidget->currentIndex());
 
     if(enabled)
     {
@@ -297,6 +297,16 @@ void transmitwindow::setUniverseOptsEnabled(bool enabled)
         ui->btnStart->setText(tr("Stop"));
     }
 
+}
+
+void transmitwindow::updateTitle()
+{
+    QString title = tr("Transmit");
+    if (m_sender && m_sender->isSending())
+        title.append(tr(" - Universe %1").arg(QString::number(m_sender->universe())));
+    else
+        title.append(tr(" - Not Active"));
+    this->setWindowTitle(title);
 }
 
 void transmitwindow::on_btnStart_pressed()
@@ -350,6 +360,8 @@ void transmitwindow::on_btnStart_pressed()
         m_sender->startSending(ui->cbBlind->isChecked());
 
         setUniverseOptsEnabled(false);
+        on_tabWidget_currentChanged(ui->tabWidget->currentIndex());
+
         m_sender->setLevel(m_levels.data(), std::min(m_levels.size(), static_cast<size_t>(m_slotCount) - 1));
         if(!m_fxEngine)
         {
@@ -359,6 +371,8 @@ void transmitwindow::on_btnStart_pressed()
             m_fxEngine->setRange(ui->sbFadeRangeStart->value()-1, ui->sbFadeRangeEnd->value()-1);
         }
     }
+
+    updateTitle();
 }
 
 void transmitwindow::on_slFadeLevel_valueChanged(int value)
@@ -532,33 +546,34 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
                 m_fxEngine,"pause");
     m_sender->setLevelRange(0, m_slotCount-1, 0);
 
-    if(index==tabChannelCheck)
+    switch (index)
     {
-        auto address = ui->lcdNumber->value() - 1;
-        m_sender->setLevel(address, ui->slChannelCheck->value());
+        case tabChannelCheck:
+        {
+            auto address = ui->lcdNumber->value() - 1;
+            m_sender->setLevel(address, ui->slChannelCheck->value());
 
-        ui->lcdNumber->setFocus();
-    }
-
-    if(index==tabSliders)
-    {
-        // Reassert slider levels
-        auto address = ui->sbFadersStart->value() - 1;
-        for (auto slider : m_sliders) {
-            m_sender->setLevel(address++, slider->value());
+            ui->lcdNumber->setFocus();
+            break;
         }
-        ui->teCommandline->setFocus();
-    }
 
-    if(index==tabEffects)
-    {
-        QMetaObject::invokeMethod(
-                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxManual));
-        QMetaObject::invokeMethod(
-                    m_fxEngine,"start");
-        ui->rbFadeManual->setChecked(true);
-        ui->rbChaseSnap->setChecked(true);
-        ui->slFadeLevel->setValue(0);
+        case tabSliders:
+        {
+            // Reassert slider levels
+            auto address = ui->sbFadersStart->value() - 1;
+            for (auto slider : m_sliders) {
+                m_sender->setLevel(address++, slider->value());
+            }
+            ui->teCommandline->setFocus();
+            break;
+        }
+
+        case tabEffects:
+        {
+            QMetaObject::invokeMethod(
+                        m_fxEngine,"start");
+            break;
+        }
     }
 }
 

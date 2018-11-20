@@ -525,7 +525,7 @@ border-radius: 4px;
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -1519,6 +1519,9 @@ color: rgb(255, 85, 0);</string>
                </property>
                <property name="text">
                 <string>Manual</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
