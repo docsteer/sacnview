@@ -189,6 +189,12 @@
             <height>0</height>
            </size>
           </property>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOn</enum>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustToContents</enum>
+          </property>
           <property name="editTriggers">
            <set>QAbstractItemView::NoEditTriggers</set>
           </property>
@@ -273,7 +279,16 @@
             <string>Per-Address</string>
            </property>
           </column>
-          <item row="0" column="2"/>
+          <column>
+           <property name="text">
+            <string>Slots</string>
+           </property>
+          </column>
+          <item row="0" column="2">
+           <property name="text">
+            <string/>
+           </property>
+          </item>
          </widget>
          <widget class="QPlainTextEdit" name="teInfo">
           <property name="sizePolicy">

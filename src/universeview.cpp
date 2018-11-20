@@ -48,10 +48,10 @@ QString protocolVerToString(int value)
 
 UniverseView::UniverseView(int universe, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::UniverseView)
+    ui(new Ui::UniverseView),
+    m_selectedAddress(-1),
+    m_parentWindow(parent) // needed as parent() in qobject world isn't..
 {
-    m_parentWindow = parent; // needed as parent() in qobject world isn't..
-    m_selectedAddress = -1;
     m_displayDDOnlySource = Preferences::getInstance()->GetDisplayDDOnly();
 
     ui->setupUi(this);
@@ -67,6 +67,8 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
     ui->btnPause->setEnabled(false);
     ui->sbUniverse->setEnabled(true);
     ui->sbUniverse->setValue(universe);
+
+    ui->twSources->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
 
 UniverseView::~UniverseView()
@@ -169,6 +171,7 @@ void UniverseView::sourceChanged(sACNSource *source)
     }
     ui->twSources->item(row,COL_VER)->setText(protocolVerToString(source->protocol_version));
     ui->twSources->item(row,COL_DD)->setText(source->doing_per_channel ? tr("Yes") : tr("No"));
+    ui->twSources->item(row,COL_SLOTS)->setText(QString::number(source->slot_count));
 }
 
 void UniverseView::sourceOnline(sACNSource *source)
@@ -182,12 +185,8 @@ void UniverseView::sourceOnline(sACNSource *source)
     ui->twSources->setRowCount(row+1);
     m_sourceToTableRow[source] = row;
 
-    ui->twSources->setItem(row,COL_NAME,    new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_CID,     new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_PRIO,    new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_PREVIEW, new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_IP,      new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_FPS,     new QTableWidgetItem() );
+    for (auto col = 0; col < COL_END; col++)
+        ui->twSources->setItem(row, col, new QTableWidgetItem() );
 
     // Seq errors, with reset
     {
@@ -246,9 +245,6 @@ void UniverseView::sourceOnline(sACNSource *source)
         ui->twSources->setCellWidget(row,COL_JUMPS, pWidget);
     }
 
-    ui->twSources->setItem(row,COL_ONLINE,  new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_VER,     new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_DD,      new QTableWidgetItem() );
 
     sourceChanged(source);
 }
@@ -324,7 +320,8 @@ void UniverseView::selectedAddressChanged(int address)
     info.append(tr("Address : %1\n")
                 .arg(address+1));
 
-    if(list[address].winningSource)
+    if(list[address].winningSource &&
+            address < (list[address].winningSource->slot_count))
     {
         int prio;
         if(list[address].winningSource->doing_per_channel)
@@ -350,9 +347,7 @@ void UniverseView::selectedAddressChanged(int address)
                             .arg(prio));
             }
         }
-    }
-    if(!list[address].winningSource)
-    {
+    } else {
         info.append(tr("No Sources"));
     }
 

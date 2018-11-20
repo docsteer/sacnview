@@ -473,6 +473,8 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
             // Fill in the new array
             memset(ps->level_array, 0, DMX_SLOT_MAX);
             memcpy(ps->level_array, pdata, slot_count);
+            // Set slot count
+            ps->slot_count = slot_count;
             // Compare the two
             for(int i=0; i<DMX_SLOT_MAX; i++)
             {

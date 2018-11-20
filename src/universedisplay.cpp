@@ -92,7 +92,8 @@ void UniverseDisplay::levelsChanged()
             }
             else
             {
-                setCellColor(i, Preferences::getInstance()->colorForCID(m_sources[i].winningSource->src_cid));
+                if (i < m_sources[i].winningSource->slot_count)
+                    setCellColor(i, Preferences::getInstance()->colorForCID(m_sources[i].winningSource->src_cid));
             }
         }
         else
