@@ -75,7 +75,7 @@ void MultiUniverse::addSource(int universe, int min_address, int max_address,
     m_senders.last()->setPerSourcePriority(priority);
     connect(m_senders.last().data(), SIGNAL(sendingTimeout()), m_timeoutMapper, SLOT(map()));
     m_timeoutMapper->setMapping(m_senders.last().data(), row);
-    m_fxEngines.append(new sACNEffectEngine());
+    m_fxEngines.append(new sACNEffectEngine(m_senders.last()));
     connect(m_fxEngines.last(), &sACNEffectEngine::destroyed, [this](QObject *obj)
         { this->m_fxEngines.removeAll(static_cast<sACNEffectEngine*>(obj)); }); // Remove fxEngine from List when destroyed
     m_fxEngines.last()->setEndAddress(max_address-1);

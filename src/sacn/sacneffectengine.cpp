@@ -29,8 +29,8 @@ void GetCharacterCoord(unsigned char ch, int *x, int *y)
     *x = ch % 32;
 }
 
-sACNEffectEngine::sACNEffectEngine() : QObject(NULL),
-  m_sender(Q_NULLPTR),
+sACNEffectEngine::sACNEffectEngine(sACNManager::tSender sender) : QObject(NULL),
+  m_sender(sender.data()),
   m_mode(FxManual),
   m_dateStyle(dsEU),
   m_start(0),
@@ -59,11 +59,6 @@ sACNEffectEngine::~sACNEffectEngine()
 {
     // Stop thread
     m_thread->quit();
-}
-
-void sACNEffectEngine::setSender(sACNSentUniverse *sender)
-{
-    m_sender = sender;
 }
 
 void sACNEffectEngine::setMode(sACNEffectEngine::FxMode mode)

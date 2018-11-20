@@ -58,9 +58,9 @@ public:
         return QStringList(ret);
     }
 
-    explicit sACNEffectEngine();
+    explicit sACNEffectEngine(sACNManager::tSender sender);
     virtual ~sACNEffectEngine();
-    void setSender(sACNSentUniverse *sender);
+    //void setSender(sACNSentUniverse *sender);
     QString text() { return m_text;}
     sACNEffectEngine::FxMode mode() { return m_mode;}
     qreal rate() { return m_rate;}
