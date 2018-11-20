@@ -765,14 +765,14 @@ void transmitwindow::on_sbSlotCount_valueChanged(int arg1)
     Q_ASSERT(arg1 <= MAX_DMX_ADDRESS);
     m_slotCount = arg1;
 
-    ui->sbFadeRangeStart->setValue(std::min(static_cast<typeof(m_slotCount)>(ui->sbFadeRangeStart->value()), m_slotCount));
+    ui->sbFadeRangeStart->setValue(std::min(static_cast<decltype(m_slotCount)>(ui->sbFadeRangeStart->value()), m_slotCount));
     ui->sbFadeRangeStart->setMaximum(m_slotCount);
 
-    ui->sbFadeRangeEnd->setValue(std::min(static_cast<typeof(m_slotCount)>(ui->sbFadeRangeEnd->value()), m_slotCount));
+    ui->sbFadeRangeEnd->setValue(std::min(static_cast<decltype(m_slotCount)>(ui->sbFadeRangeEnd->value()), m_slotCount));
     ui->sbFadeRangeEnd->setMaximum(m_slotCount);
 
     ui->sbFadersStart->setMaximum(m_slotCount);
     on_sbFadersStart_valueChanged(ui->sbFadersStart->value());
 
-    ui->lcdNumber->display(std::min(static_cast<typeof(m_slotCount)>(ui->lcdNumber->value()), m_slotCount));
+    ui->lcdNumber->display(std::min(static_cast<decltype(m_slotCount)>(ui->lcdNumber->value()), m_slotCount));
 }

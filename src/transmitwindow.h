@@ -21,6 +21,7 @@
 #include <QLabel>
 #include <QSlider>
 #include <QToolButton>
+#include <array>
 #include "consts.h"
 #include "streamingacn.h"
 
