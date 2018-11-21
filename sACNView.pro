@@ -31,6 +31,9 @@ macx {
     QMAKE_CXXFLAGS += -std=gnu++0x
 }
 
+# Translations
+include(translations.pri)
+
 # Version defines
 
 GIT_COMMAND = git --git-dir $$shell_quote($$PWD/.git) --work-tree $$shell_quote($$PWD)
@@ -105,7 +108,6 @@ SOURCES += src/main.cpp\
     src/scopewidget.cpp \
     src/aboutdialog.cpp \
     src/sacn/sacneffectengine.cpp \
-    src/mergeduniverselogger.cpp \
     src/sacn/sacnuniverselistmodel.cpp \
     src/snapshot.cpp \
     src/commandline.cpp \
@@ -117,7 +119,10 @@ SOURCES += src/main.cpp\
     src/sacn/firewallcheck.cpp \
     src/bigdisplay.cpp \
     src/addmultidialog.cpp \
-    src/theme/darkstyle.cpp
+    src/theme/darkstyle.cpp \
+    src/ipc.cpp \
+    src/sacn/sacndiscovery.cpp \
+    src/sacn/sacndiscoveredsourcelistmodel.cpp
 
 HEADERS += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -143,7 +148,6 @@ HEADERS += src/mdimainwindow.h \
     src/scopewidget.h \
     src/aboutdialog.h \
     src/sacn/sacneffectengine.h \
-    src/mergeduniverselogger.h \
     src/sacn/sacnuniverselistmodel.h \
     src/snapshot.h \
     src/commandline.h \
@@ -158,7 +162,12 @@ HEADERS += src/mdimainwindow.h \
     src/addmultidialog.h \
     src/ethernetstrut.h \
     src/theme/darkstyle.h \
-    src/xpwarning.h
+    src/xpwarning.h \
+    src/sacn/e1_11.h \
+    src/ipc.h \
+    src/qt56.h \
+    src/sacn/sacndiscovery.h \
+    src/sacn/sacndiscoveredsourcelistmodel.h
 
 FORMS += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
@@ -184,3 +193,7 @@ RC_FILE = res/sacnview.rc
 
 ## Deploy
 include(deploy.pri)
+
+## Translations
+DISTFILES += \
+    translations.pri

@@ -29,7 +29,9 @@
 #include "sacnsender.h"
 #include "versioncheck.h"
 #include "firewallcheck.h"
+#include "ipc.h"
 #include "theme/darkstyle.h"
+#include "translations/translationdialog.h"
 #ifdef USE_BREAKPAD
     #include "crash_handler.h"
     #include "crash_test.h"
@@ -37,9 +39,6 @@
 
 int main(int argc, char *argv[])
 {
-    #ifndef Q_OS_LINUX
-    qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
-    #endif
     QApplication a(argc, argv);
 
     a.setApplicationName(APP_NAME);
@@ -57,6 +56,16 @@ int main(int argc, char *argv[])
         crashwindow->show();
     }
 #endif
+
+    // Setup Language
+    {
+        TranslationDialog td(Preferences::getInstance()->GetLocale());
+        if (!td.LoadTranslation())
+        {
+            td.exec();
+            td.LoadTranslation(Preferences::getInstance()->GetLocale());
+        }
+    }
 
     // Windows XP Support
     #ifdef Q_OS_WIN
@@ -87,7 +96,7 @@ int main(int argc, char *argv[])
     // Check web (if avaliable) for new version
     VersionCheck version;
 
-
+    // Setup interface
     bool newInterface = false;
     if(!Preferences::getInstance()->defaultInterfaceAvailable())
     {
@@ -114,6 +123,17 @@ int main(int argc, char *argv[])
     // so that we can destroy before cleaning up the singletons
     MDIMainWindow *w = new MDIMainWindow();
     w->restoreMdiWindows();
+
+    // Setup IPC
+    IPC ipc(w);
+    if (!ipc.isListening())
+    {
+        // Single instance only
+        delete w;
+        return -1;
+    }
+
+    // Show window
     if(Preferences::getInstance()->GetSaveWindowLayout())
         w->show();
     else
@@ -123,6 +143,7 @@ int main(int argc, char *argv[])
     w->statusBar()->showMessage(QObject::tr("Selected interface: %1").arg(
                                     Preferences::getInstance()->networkInterface().humanReadableName())
                                     );
+
 
     // Check firewall if not newly selected
     if (!newInterface) {

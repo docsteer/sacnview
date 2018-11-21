@@ -65,7 +65,10 @@ public:
      * @return an sACNMergerdSourceList, a list of merged address structures, allowing you to see
      * the result of the merge algorithm together with all the sub-sources, by address
      */
-    sACNMergedSourceList mergedLevels() { return m_merged_levels;}
+    sACNMergedSourceList mergedLevels() {
+        QMutexLocker mergeLocker(&m_merged_levelsMutex);
+        return m_merged_levels;
+    }
 
     int sourceCount() { return m_sources.size();}
     sACNSource *source(int index) { return m_sources[index];}
@@ -118,6 +121,7 @@ signals:
     void listenerStarted(int universe);
     void sourceFound(sACNSource *source);
     void sourceLost(sACNSource *source);
+    void sourceResumed(sACNSource *source);
     void sourceChanged(sACNSource *source);
     void levelsChanged();
     void dataReady(int address, QPointF data);
@@ -132,6 +136,7 @@ private:
     std::vector<sACNSource *> m_sources;
     int m_last_levels[MAX_DMX_ADDRESS];
     sACNMergedSourceList m_merged_levels;
+    QMutex m_merged_levelsMutex;
     int m_universe;
     // The per-source hold last look time
     int m_ssHLL;

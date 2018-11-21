@@ -20,7 +20,7 @@ win32 {
     DEPLOY_DIR = $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/deploy))
     DEPLOY_TARGET = $$shell_quote($$system_path($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT}))
 
-    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}\*.* /S /Q $$escape_expand(\\n\\t)
+    PRE_DEPLOY_COMMAND += $${QMAKE_DEL_FILE} $${DEPLOY_DIR}\*.* /S /Q $$escape_expand(\\n\\t)
     PRE_DEPLOY_COMMAND += $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR} $$escape_expand(\\n\\t)
     # OpenSSL
     PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$shell_quote($$system_path($$OPENSSL_PATH/*.dll)) $${DEPLOY_DIR} $$escape_expand(\\n\\t)
@@ -61,14 +61,14 @@ linux {
     DEPLOY_COMMAND = $${OUT_PWD}/linuxdeployqt
     DEPLOY_OPT = -appimage -verbose=2
 
-    PRE_DEPLOY_COMMAND = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/*.AppImage
-    PRE_DEPLOY_COMMAND += && $${QMAKE_DEL_FILE} $${DEPLOY_TARGET}
-    PRE_DEPLOY_COMMAND += && wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" -O $${DEPLOY_COMMAND}
-    PRE_DEPLOY_COMMAND += && chmod a+x $${DEPLOY_COMMAND}
-    PRE_DEPLOY_COMMAND += && unset LD_LIBRARY_PATH
-    PRE_DEPLOY_COMMAND += && $$QMAKE_COPY $${OUT_PWD}/$${TARGET} $${DEPLOY_TARGET}
-    PRE_DEPLOY_COMMAND += && $$QMAKE_COPY $${DEPLOY_DIR}/usr/share/applications/sacnview.desktop $${DEPLOY_DIR}/AppDir/sacnview.desktop
-    PRE_DEPLOY_COMMAND += && $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/Logo.png $${DEPLOY_DIR}/AppDir/sacnview.png
+    PRE_DEPLOY_COMMAND += $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/*.AppImage $$escape_expand(\\n\\t)
+    PRE_DEPLOY_COMMAND += $${QMAKE_DEL_FILE} $${DEPLOY_TARGET} $$escape_expand(\\n\\t)
+    PRE_DEPLOY_COMMAND += wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" -O $${DEPLOY_COMMAND} $$escape_expand(\\n\\t)
+    PRE_DEPLOY_COMMAND += chmod a+x $${DEPLOY_COMMAND} $$escape_expand(\\n\\t)
+##    PRE_DEPLOY_COMMAND += unset LD_LIBRARY_PATH $$escape_expand(\\n\\t)
+    PRE_DEPLOY_COMMAND += $$QMAKE_COPY $${OUT_PWD}/$${TARGET} $${DEPLOY_TARGET} $$escape_expand(\\n\\t)
+    PRE_DEPLOY_COMMAND += $$QMAKE_COPY $${DEPLOY_DIR}/usr/share/applications/sacnview.desktop $${DEPLOY_DIR}/AppDir/sacnview.desktop $$escape_expand(\\n\\t)
+    PRE_DEPLOY_COMMAND += $$QMAKE_COPY $${_PRO_FILE_PWD_}/res/Logo.png $${DEPLOY_DIR}/AppDir/sacnview.png $$escape_expand(\\n\\t)
 
     DEPLOY_CLEANUP = $$QMAKE_COPY $${OUT_PWD}/$${TARGET}*.AppImage $${DEPLOY_DIR}/
 

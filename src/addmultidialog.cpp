@@ -42,7 +42,7 @@ AddMultiDialog::AddMultiDialog(QWidget *parent) :
     ui->sbStartUniverse->setMaximum(MAX_SACN_UNIVERSE);
 
 
-    ui->cbEffect->addItems(FX_MODE_DESCRIPTIONS);
+    ui->cbEffect->addItems(sACNEffectEngine::FxModeDescriptions());
 
 
     connect(ui->sbStartUniverse, SIGNAL(valueChanged(int)), this, SLOT(rangeChanged()));
@@ -79,7 +79,9 @@ void AddMultiDialog::on_cbEffect_currentIndexChanged(int index)
         ui->lbDialFunction->setText(tr("Level"));
         break;
 
-    case sACNEffectEngine::FxChase:
+    case sACNEffectEngine::FxChaseSnap:
+    case sACNEffectEngine::FxChaseRamp:
+    case sACNEffectEngine::FxChaseSine:
     case sACNEffectEngine::FxRamp:
     case sACNEffectEngine::FxSinewave:
     case sACNEffectEngine::FxVerticalBar:
@@ -105,7 +107,8 @@ void AddMultiDialog::on_slLevel_sliderMoved(int value)
         ui->lbDialValue->setText(Preferences::getInstance()->GetFormattedValue(value, true));
         break;
 
-    case sACNEffectEngine::FxChase:
+    case sACNEffectEngine::FxChaseSnap:
+    case sACNEffectEngine::FxChaseRamp:
     case sACNEffectEngine::FxRamp:
     case sACNEffectEngine::FxSinewave:
     case sACNEffectEngine::FxVerticalBar:
@@ -150,6 +153,9 @@ bool AddMultiDialog::startNow()
 
 int AddMultiDialog::level()
 {
+    if ((sACNEffectEngine::FxMode) ui->cbEffect->currentIndex() == sACNEffectEngine::FxChaseSnap)
+        return 255;
+
     return ui->slLevel->value();
 }
 

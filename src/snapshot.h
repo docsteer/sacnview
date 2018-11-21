@@ -25,7 +25,8 @@ class Snapshot : public QWidget
         stCountDown2,
         stCountDown1,
         stReadyPlayback,
-        stPlayback
+        stPlayback,
+        stReplay
     };
 
 public:
@@ -35,6 +36,7 @@ protected slots:
     void counterTick();
     void on_btnSnapshot_pressed();
     void on_btnPlay_pressed();
+    void on_btnReplay_pressed();
     void on_btnAddRow_pressed();
     void on_btnRemoveRow_pressed();
     void senderTimedOut();
@@ -57,12 +59,13 @@ private:
     state m_state;
     QSound *m_camera, *m_beep;
     QList<QByteArray> m_snapshotData;
-    QList<QSharedPointer<sACNListener>>m_listeners;
-    QList<sACNSentUniverse *>m_senders;
+    QList<sACNManager::tListener> m_listeners;
+    QList<sACNManager::tSender> m_senders;
     QList<QSpinBox *> m_universeSpins;
     QList<QSpinBox *> m_prioritySpins;
     QList<QToolButton *> m_enableButtons;
-    int m_firstUniverse;
+    quint16 m_firstUniverse;
+    CID m_cid;
 };
 
 #endif // SNAPSHOT_H

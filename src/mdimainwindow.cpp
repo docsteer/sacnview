@@ -22,6 +22,7 @@
 #include "preferencesdialog.h"
 #include "aboutdialog.h"
 #include "sacnuniverselistmodel.h"
+#include "sacndiscoveredsourcelistmodel.h"
 #include "snapshot.h"
 #include "multiuniverse.h"
 #include "xpwarning.h"
@@ -34,19 +35,25 @@
 
 MDIMainWindow::MDIMainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MDIMainWindow), m_model(NULL)
+    ui(new Ui::MDIMainWindow),
+    m_model(new sACNUniverseListModel(this)),
+    m_modelDiscovered(new sACNDiscoveredSourceListModel(this))
 {
     ui->setupUi(this);
     ui->sbUniverseList->setMinimum(MIN_SACN_UNIVERSE);
-    ui->sbUniverseList->setMaximum(MAX_SACN_UNIVERSE - NUM_UNIVERSES_LISTED + 1);
+    ui->sbUniverseList->setMaximum(MAX_SACN_UNIVERSE - Preferences::getInstance()->GetUniversesListed() + 1);
     ui->sbUniverseList->setWrapping(true);
     ui->sbUniverseList->setValue(MIN_SACN_UNIVERSE);
 
-    m_model = new sACNUniverseListModel(this);
+    // Universe list
     ui->treeView->setModel(m_model);
     ui->treeView->expandAll();
     connect(ui->treeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(universeDoubleClick(QModelIndex)));
     connect(m_model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)), this, SLOT(rowsAboutToBeRemoved(QModelIndex,int,int)));
+
+    // Discovered sources list
+    ui->treeViewDiscovered->setModel(m_modelDiscovered);
+    connect(ui->treeViewDiscovered, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(universeDoubleClick(QModelIndex)));
 }
 
 MDIMainWindow::~MDIMainWindow()
@@ -103,13 +110,13 @@ void MDIMainWindow::on_actionAbout_triggered(bool checked)
 
 void MDIMainWindow::on_btnUnivListBack_pressed()
 {
-    ui->sbUniverseList->setValue(ui->sbUniverseList->value() - NUM_UNIVERSES_LISTED);
+    ui->sbUniverseList->setValue(ui->sbUniverseList->value() - Preferences::getInstance()->GetUniversesListed());
 }
 
 void MDIMainWindow::on_btnUnivListForward_pressed()
 {
 
-    ui->sbUniverseList->setValue(ui->sbUniverseList->value() + NUM_UNIVERSES_LISTED);
+    ui->sbUniverseList->setValue(ui->sbUniverseList->value() + Preferences::getInstance()->GetUniversesListed());
 }
 
 void MDIMainWindow::on_sbUniverseList_valueChanged(int value)
@@ -121,11 +128,19 @@ void MDIMainWindow::on_sbUniverseList_valueChanged(int value)
 
 void MDIMainWindow::universeDoubleClick(const QModelIndex &index)
 {
-    if(!m_model) return;
+    int universe = 0;
 
-    int universe = m_model->indexToUniverse(index);
+    if (ui->treeView->isVisible())
+    {
+        if(!m_model) return;
+        universe = m_model->indexToUniverse(index);
+    } else if (ui->treeViewDiscovered->isVisible())
+    {
+        if(!m_modelDiscovered) return;
+        universe = m_modelDiscovered->indexToUniverse(index);
+    }
 
-    if(universe>0)
+    if (universe>0)
     {
         UniverseView *uniView = new UniverseView(1, this);
         ui->mdiArea->addSubWindow(uniView);
@@ -278,4 +293,16 @@ int MDIMainWindow::getSelectedUniverse()
     QModelIndex selectedIndex = ui->treeView->currentIndex();
     int selectedUniverse = m_model->indexToUniverse(selectedIndex);
     return (selectedUniverse >= MIN_SACN_UNIVERSE && selectedUniverse<=MAX_SACN_UNIVERSE) ? selectedUniverse : 1;
+}
+
+void MDIMainWindow::on_pbFewer_clicked()
+{
+    Preferences::getInstance()->SetUniversesListed(Preferences::getInstance()->GetUniversesListed() - 1);
+    on_sbUniverseList_valueChanged(ui->sbUniverseList->value());
+}
+
+void MDIMainWindow::on_pbMore_clicked()
+{
+   Preferences::getInstance()->SetUniversesListed(Preferences::getInstance()->GetUniversesListed() + 1);
+   on_sbUniverseList_valueChanged(ui->sbUniverseList->value());
 }

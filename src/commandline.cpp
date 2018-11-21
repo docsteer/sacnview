@@ -1,10 +1,14 @@
+#include <QApplication>
+#include "qt56.h"
 #include "commandline.h"
 #include "consts.h"
 #include "preferences.h"
 
-CommandLine::CommandLine()
+CommandLine::CommandLine(QObject *parent) : QObject(parent),
+    m_terminated(false),
+    m_clearKeyTimer(new QTimer(this))
 {
-    m_terminated = false;
+    m_clearKeyTimer->setSingleShot(true);
 }
 
 void CommandLine::processKey(Key value)
@@ -38,12 +42,20 @@ void CommandLine::processKey(Key value)
             m_addresses.clear();
             m_terminated = false;
         }
+        else if (m_clearKeyTimer->isActive())
+        {
+            // Double tap, clear line
+            m_keyStack.clear();
+            m_errorText.clear();
+        }
         else
         {
             // Backspace
             m_keyStack.pop();
             m_errorText.clear();
         }
+
+        m_clearKeyTimer->start(QApplication::doubleClickInterval());
     }
     else
     {
@@ -55,32 +67,60 @@ void CommandLine::processKey(Key value)
             m_addresses.clear();
             m_terminated = false;
         }
-        m_keyStack.push(value);
+        if (m_errorText.isEmpty())
+            m_keyStack.push(value);
     }
+
     processStack();
+}
+
+void CommandLine::getSelection(QSet<int> *selection, int *numberEntry, int *startRange, int offset, stackFlags flags)
+{
+    QSet<int> tempSelection;
+    if(*startRange != 0 && *numberEntry != 0)
+    {
+        // Thru
+        if (*numberEntry > *startRange)
+            for(int i = *startRange; i <= *numberEntry; i+=offset)
+                tempSelection.insert(i);
+        else
+            for(int i = *numberEntry; i <= *startRange; i+=offset)
+                tempSelection.insert(i);
+    }
+    else
+    {
+        // Single
+        if(*numberEntry!=0)
+            tempSelection.insert(*numberEntry);
+    }
+
+    // Update selection
+    for (auto i : tempSelection)
+    {
+        if (flags.addMode)
+            selection->insert(i);
+        else
+            selection->remove(i);
+    }
+
+    *numberEntry = 0;
+    *startRange = 0;
 }
 
 void CommandLine::processStack()
 {
-    enum {
-        stChannel,
-        stThruStart,
-        stThruEnd,
-        stLevels,
-        stReady,
-        stError,
-    };
-
     m_text.clear();
-    int state = stChannel;
+    stackFlags flags;
     int numberEntry = 0;
     int startRange = 0;
-    int i=0;
+    int endRange = 0;
     QSet<int> selection;
     const int maxLevel = Preferences::getInstance()->GetMaxLevel();
 
     for(int pos=0; pos<m_keyStack.count(); pos++)
     {
+        if (flags.state == stError) { return; }
+
         Key key = m_keyStack.at(pos);
         int numeric = (int) key;
         switch(key)
@@ -98,56 +138,101 @@ void CommandLine::processStack()
             numberEntry *= 10;
             numberEntry += numeric;
 
-            m_text.append(QString::number(numeric));
-
-            if(state==stChannel || state==stThruStart || state==stThruEnd)
+            if(flags.state==stChannel)
             {
                 if(numberEntry>MAX_DMX_ADDRESS)
                 {
                     // Not a valid entry, would be >512
-                    state = stError;
-                    m_errorText = "Error - number out of range";
+                    flags.state = stError;
+                    m_errorText = E_RANGE();
+                    m_keyStack.pop_back();
                     return;
                 }
-
             }
 
-            if(state==stLevels)
+            if(flags.state==stLevels)
             {
                 if(numberEntry>maxLevel)
                 {
                     // Not a valid entry, would be >max
-                    state = stError;
-                    m_errorText = "Error - number out of range";
+                    flags.state = stError;
+                    m_errorText = E_RANGE();
+                    m_keyStack.pop_back();
                     return;
                 }
             }
+
+            m_text.append(QString::number(numeric));
             break;
 
         case THRU:
-                m_text.append(" THRU ");
-                if(numberEntry==0 || state!=stChannel || startRange!=0)
-                {
-                    m_errorText = "Error - syntax error";
-                    return;
-                }
-                startRange=numberEntry;
-                numberEntry = 0;
+            m_text.append(QString(" %1 ").arg(K_THRU()));
+            // [THRU] [THRU] = [THRU] [5][1][2]
+            if (
+                m_keyStack.count() > 1 &&
+                m_keyStack.last() == Key::THRU &&
+                m_keyStack.last() == m_keyStack[m_keyStack.count() - 2]
+                )
+            {
+                m_keyStack.pop();
+                processKey(K5);
+                processKey(K1);
+                processKey(K2);
+                return;
+            }
+            if(numberEntry==0 || startRange!=0 || flags.state!=stChannel)
+            {
+                flags.state = stError;
+                m_errorText = E_SYNTAX();
+                return;
+            }
+            startRange=numberEntry;
+            numberEntry = 0;
+            flags.thruMode = true;
+            break;
+
+        case OFFSET:
+            m_text.append(QString(" %1 ").arg(K_OFFSET()));
+            if(numberEntry==0 || flags.state!=stChannel || !flags.thruMode)
+            {
+                flags.state = stError;
+                m_errorText = E_SYNTAX();
+                return;
+            }
+            endRange=numberEntry;
+            numberEntry = 0;
             break;
 
         case AT:
-            m_text.append(" @ ");
-            if(startRange!=0 && numberEntry==0)
+        {
+            // [@] [@] = [@] [Full]
+            if (
+                m_keyStack.count() > 1 &&
+                m_keyStack.last() == Key::AT &&
+                m_keyStack.last() == m_keyStack[m_keyStack.count() - 2]
+                )
             {
-                m_errorText = "Error - syntax error";
+                m_keyStack.pop();
+                processKey(FULL);
                 return;
             }
-            if(startRange!=0 && numberEntry!=0)
+
+            m_text.append(QString(" %1 ").arg(K_AT()));;
+            if(startRange!=0 && numberEntry==0)
             {
-                for(int i=startRange; i<numberEntry; i++)
-                    selection << i;
+                flags.state = stError;
+                m_errorText = E_SYNTAX();
+                return;
             }
-            if(numberEntry!=0) selection << numberEntry;
+
+            if (flags.thruMode && endRange != 0)
+            {
+                getSelection(&selection, &endRange, &startRange, numberEntry, flags);
+                flags.thruMode = false;
+                numberEntry = 0;
+            }
+            else
+                getSelection(&selection, &numberEntry, &startRange, 1, flags);
 
             if(selection.isEmpty() && !m_previousKeyStack.isEmpty())
             {
@@ -157,11 +242,10 @@ void CommandLine::processStack()
                 return;
             }
 
-            state = stLevels;
-            numberEntry = 0;
-            startRange = 0;
+            flags.state = stLevels;
+
             // Copy the entries up to the at to the last addresses
-            i=0;
+            int i=0;
             m_previousKeyStack.clear();
             while(m_keyStack[i]!=AT)
             {
@@ -169,16 +253,67 @@ void CommandLine::processStack()
                 i++;
             }
             break;
+        }
 
         case AND:
-            m_text.append(" AND ");
-            if(numberEntry==0 || state != stChannel)
+            m_text.append(QString(" %1 ").arg(K_AND()));
+            if(numberEntry==0 || flags.state != stChannel)
             {
-                m_errorText = "Error - syntax error";
-                return;
+                if (m_keyStack.count() == 1 && !m_previousKeyStack.isEmpty())
+                {
+                    // Empty command line and selection...use previous
+                    m_keyStack = m_previousKeyStack;
+                    processKey(AND);
+                    return;
+                }
+                else
+                {
+                    flags.state = stError;
+                    m_errorText = E_SYNTAX();
+                    return;
+                }
             }
-            selection << numberEntry;
-            numberEntry = 0;
+
+            if (flags.thruMode && endRange != 0)
+            {
+                getSelection(&selection, &endRange, &startRange, numberEntry, flags);
+                flags.thruMode = false;
+                numberEntry = 0;
+            }
+            else
+                getSelection(&selection, &numberEntry, &startRange, 1, flags);
+
+            flags.addMode = true;
+            break;
+
+        case MINUS:
+            m_text.append(QString(" %1 ").arg(K_MINUS()));
+            if(numberEntry==0 || flags.state != stChannel)
+            {
+                if (m_keyStack.count() == 1 && !m_previousKeyStack.isEmpty())
+                {
+                    // Empty command line and selection...use previous
+                    m_keyStack = m_previousKeyStack;
+                    processKey(MINUS);
+                    return;
+                }
+                else
+                {
+                    flags.state = stError;
+                    m_errorText = E_SYNTAX();
+                    return;
+                }
+            }
+            if (flags.thruMode && endRange != 0)
+            {
+                getSelection(&selection, &endRange, &startRange, numberEntry, flags);
+                flags.thruMode = false;
+                numberEntry = 0;
+            }
+            else
+                getSelection(&selection, &numberEntry, &startRange, 1, flags);
+
+            flags.addMode = false;
             break;
 
         case ENTER:
@@ -186,7 +321,7 @@ void CommandLine::processStack()
             m_terminated = true;
             m_text.append("*");
 
-            if(state!=stLevels)
+            if(flags.state!=stLevels)
                 return;
 
             // m_level is always in absolute (0-255)
@@ -199,26 +334,46 @@ void CommandLine::processStack()
             return;
 
         case FULL:
-            if(selection.isEmpty() && !m_previousKeyStack.isEmpty())
+            // Anything selected?
+            if(
+                m_keyStack.size()
+                && !m_keyStack.contains(AT)
+                )
             {
-                m_keyStack = m_previousKeyStack;
-                m_keyStack.push(AT);
-                m_keyStack.push(FULL);
-                processStack();
+                m_keyStack.pop();
+                processKey(AT);
+                processKey(FULL);
+                return;
+            }
+            else if (selection.isEmpty())
+            {
+                // ...Nope nothing
+                // Lets try the previous selection
+                if (!m_previousKeyStack.isEmpty())
+                {
+                    m_keyStack = m_previousKeyStack;
+                    processKey(AT);
+                    processKey(FULL);
+                }
+                else
+                {
+                    flags.state = stError;
+                    m_errorText = E_NO_SELECTION();
+                }
                 return;
             }
 
-            if(state!=stLevels)
-                m_text.append(" @ ");
-            m_text.append("FULL*");
+            m_text.append(QString("%1*").arg(K_FULL()));
             if(startRange!=0 && numberEntry==0)
             {
-                m_errorText = "Error : Syntax Error";
+                flags.state = stError;
+                m_errorText = E_SYNTAX();
                 return;
             }
-            if(state==stLevels && numberEntry!=0)
+            if(flags.state==stLevels && numberEntry!=0)
             {
-                m_errorText = "Error : Syntax Error";
+                flags.state = stError;
+                m_errorText = E_SYNTAX();
                 return;
             }
             m_level = MAX_SACN_LEVEL;
@@ -227,6 +382,7 @@ void CommandLine::processStack()
             return;
 
         case CLEAR:
+            Q_FALLTHROUGH();
         default:
             break;
         }
@@ -240,123 +396,49 @@ QString CommandLine::text()
 
 /************************ CommandLineWidget ******************************/
 
-CommandLineWidget::CommandLineWidget(QWidget *parent) : QTextEdit(parent)
+CommandLineWidget::CommandLineWidget(QWidget *parent) : QTextEdit(parent),
+    m_cursorTimer(new QTimer(this)),
+    m_cursorState(true)
 {
     this->setReadOnly(true);
     setStyleSheet("color: rgb(127, 255, 23);background: black;font: 75 12pt \"Courier\";");
     clear();
+
+    // Cursor blinker
+    connect(m_cursorTimer, SIGNAL(timeout()), this, SLOT(flashCursor()));
+    m_cursorTimer->setInterval(300);
+    m_cursorTimer->setSingleShot(false);
+    m_cursorTimer->start();
 }
 
-void CommandLineWidget::displayText()
+void CommandLineWidget::flashCursor()
 {
-    this->setText(m_commandLine.text());
-    this->append(QString("<span style=\"color:red;\">%1</span>").arg(m_commandLine.errorText()));
+    m_cursorState = !m_cursorState;
+    updateText();
+}
+
+void CommandLineWidget::processKey(CommandLine::Key value)
+{
+    m_commandLine.processKey(value);
+    updateText();
     if(!m_commandLine.addresses().isEmpty())
     {
         emit setLevels(m_commandLine.addresses(), m_commandLine.level());
     }
 }
 
-void CommandLineWidget::key1()
+void CommandLineWidget::updateText()
 {
-    m_commandLine.processKey(CommandLine::K1);
-    displayText();
-}
+    QString text = m_commandLine.text();
 
-void CommandLineWidget::key2()
-{
-    m_commandLine.processKey(CommandLine::K2);
-    displayText();
-}
+    if (this->hasFocus())
+    {
+        auto cursor = (m_cursorState == true) ? "_" : "";
+        text.append(cursor);
+    }
 
-void CommandLineWidget::key3()
-{
-    m_commandLine.processKey(CommandLine::K3);
-    displayText();
-}
-
-void CommandLineWidget::key4()
-{
-    m_commandLine.processKey(CommandLine::K4);
-    displayText();
-}
-
-void CommandLineWidget::key5()
-{
-    m_commandLine.processKey(CommandLine::K5);
-    displayText();
-}
-
-void CommandLineWidget::key6()
-{
-    m_commandLine.processKey(CommandLine::K6);
-    displayText();
-}
-
-void CommandLineWidget::key7()
-{
-    m_commandLine.processKey(CommandLine::K7);
-    displayText();
-}
-
-void CommandLineWidget::key8()
-{
-    m_commandLine.processKey(CommandLine::K8);
-    displayText();
-}
-
-void CommandLineWidget::key9()
-{
-    m_commandLine.processKey(CommandLine::K9);
-    displayText();
-}
-
-void CommandLineWidget::key0()
-{
-    m_commandLine.processKey(CommandLine::K0);
-    displayText();
-}
-
-void CommandLineWidget::keyThru()
-{
-    m_commandLine.processKey(CommandLine::THRU);
-    displayText();
-}
-
-void CommandLineWidget::keyAt()
-{
-    m_commandLine.processKey(CommandLine::AT);
-    displayText();
-}
-
-void CommandLineWidget::keyFull()
-{
-    m_commandLine.processKey(CommandLine::FULL);
-    displayText();
-}
-
-void CommandLineWidget::keyClear()
-{
-    m_commandLine.processKey(CommandLine::CLEAR);
-    displayText();
-}
-
-void CommandLineWidget::keyAnd()
-{
-    m_commandLine.processKey(CommandLine::AND);
-    displayText();
-}
-
-void CommandLineWidget::keyEnter()
-{
-    m_commandLine.processKey(CommandLine::ENTER);
-    displayText();
-}
-
-void CommandLineWidget::keyAllOff()
-{
-    m_commandLine.processKey(CommandLine::ALL_OFF);
-    displayText();
+    this->setText(text);
+    this->append(QString("<span style=\"color:red;\">%1</span>").arg(m_commandLine.errorText()));
 }
 
 void CommandLineWidget::keyPressEvent(QKeyEvent *e)
@@ -364,63 +446,64 @@ void CommandLineWidget::keyPressEvent(QKeyEvent *e)
     switch(e->key())
     {
     case Qt::Key_0:
-        m_commandLine.processKey(CommandLine::K0);
+        key0();
         break;
     case Qt::Key_1:
-        m_commandLine.processKey(CommandLine::K1);
+        key1();
         break;
     case Qt::Key_2:
-        m_commandLine.processKey(CommandLine::K2);
+        key2();
         break;
     case Qt::Key_3:
-        m_commandLine.processKey(CommandLine::K3);
+        key3();
         break;
     case Qt::Key_4:
-        m_commandLine.processKey(CommandLine::K4);
+        key4();
         break;
     case Qt::Key_5:
-        m_commandLine.processKey(CommandLine::K5);
+        key5();
         break;
     case Qt::Key_6:
-        m_commandLine.processKey(CommandLine::K6);
+        key6();
         break;
     case Qt::Key_7:
-        m_commandLine.processKey(CommandLine::K7);
+        key7();
         break;
     case Qt::Key_8:
-        m_commandLine.processKey(CommandLine::K8);
+        key8();
         break;
     case Qt::Key_9:
-        m_commandLine.processKey(CommandLine::K9);
+        key9();
         break;
     case Qt::Key_T:
-        m_commandLine.processKey(CommandLine::THRU);
+        keyThru();
         break;
     case Qt::Key_Delete:
     case Qt::Key_Backspace:
-        m_commandLine.processKey(CommandLine::CLEAR);
+        keyClear();
         break;
     case Qt::Key_Enter:
     case Qt::Key_Return:
-        m_commandLine.processKey(CommandLine::ENTER);
+        keyEnter();
         break;
     case Qt::Key_Plus:
-        m_commandLine.processKey(CommandLine::AND);
+        keyAnd();
+        break;
+    case Qt::Key_Minus:
+        keyMinus();
         break;
     case Qt::Key_A:
     case Qt::Key_At:
-        m_commandLine.processKey(CommandLine::AT);
+        keyAt();
         break;
     case Qt::Key_O:
-        m_commandLine.processKey(CommandLine::ALL_OFF);
+        keyAllOff();
         break;
     case Qt::Key_F:
-        m_commandLine.processKey(CommandLine::FULL);
+        keyFull();
         break;
 
     }
-
-    displayText();
 }
 
 

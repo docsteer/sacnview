@@ -16,8 +16,8 @@
 #include "scopewindow.h"
 #include "ui_scopewindow.h"
 #include "consts.h"
-#include "sacnlistener.h"
 #include "preferences.h"
+#include "sacnlistener.h"
 #include <QRadioButton>
 #include <QColorDialog>
 #include <QDebug>
@@ -208,7 +208,7 @@ void ScopeWindow::on_tableWidget_itemChanged(QTableWidgetItem * item)
         address = item->text().toInt(&ok);
         if(address>=1 && address<=512 && ok)
         {
-            QSharedPointer<sACNListener> listener;
+            sACNManager::tListener listener;
             if(!m_universes.contains(ch->universe()))
             {
                 m_universes[ch->universe()] = sACNManager::getInstance()->getListener(ch->universe());
@@ -234,7 +234,7 @@ void ScopeWindow::on_tableWidget_itemChanged(QTableWidgetItem * item)
         if(universe>=1 && universe<=MAX_SACN_UNIVERSE && ok && ch->universe()!=universe)
         {
             // Changing universe
-            QSharedPointer<sACNListener> listener;
+            sACNManager::tListener listener;
             if(!m_universes.contains(universe))
             {
                 m_universes[ch->universe()] = sACNManager::getInstance()->getListener(universe);

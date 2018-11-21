@@ -19,10 +19,12 @@
 #ifndef TARGET_WINXP
     #include <pcap.h>
 #endif
+#include "translations/translations.h"
 
 #include <QTimer>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QStringList>
 
 aboutDialog::aboutDialog(QWidget *parent) :
     QDialog(parent),
@@ -38,6 +40,19 @@ aboutDialog::aboutDialog(QWidget *parent) :
     ui->displayDate->setText(QString("%1, %2 %3 %4").arg(GIT_DATE_DAY).arg(GIT_DATE_DATE).arg(GIT_DATE_MONTH).arg(GIT_DATE_YEAR));
     ui->DisplayName->setText(AUTHOR);
 
+    // Translators
+    QStringList translators;
+    for (auto translations : Translations::lTranslations)
+    {
+        for (auto translatorName : translations.Translators)
+        {
+            if (!translators.contains(translatorName))
+                translators << translatorName;
+        }
+    }
+    ui->lblTranslatorNames->setText(translators.join("\n"));
+
+    // Libs
     ui->lblLicense->setText(
                 tr("This application is provided under the <a href=\"http://www.apache.org/licenses/LICENSE-2.0\">Apache License, version 2.0</a>")
     );
@@ -45,13 +60,11 @@ aboutDialog::aboutDialog(QWidget *parent) :
                            .arg(qVersion()));
     #ifndef TARGET_WINXP
         const char *libpcap = pcap_lib_version();
-        ui->lblLibs->setText(libpcap);
+        ui->lblLibs->setText(tr("This application uses the pcap Library, version %1, licensed under the <a href=\"https://opensource.org/licenses/BSD-3-Clause\">The 3-Clause BSD License</a>")
+                .arg(libpcap));
     #else
         ui->lblLibs->setText(QString());
     #endif
-
-    connect(ui->lblLicense, SIGNAL(linkActivated(QString)), this, SLOT(openLink(QString)));
-    connect(ui->lblQtInfo, SIGNAL(linkActivated(QString)), this, SLOT(openLink(QString)));
 
     // Setup diagnostics tree
     ui->twDiag->setColumnCount(2);
@@ -78,9 +91,9 @@ aboutDialog::aboutDialog(QWidget *parent) :
     std::sort(listenerListSorted.begin(), listenerListSorted.end(), listenerSortbyUni);
 
     // Display Sorted!
-    for (QWeakPointer<sACNListener> weakListener : listenerListSorted) {
+    for (auto weakListener : listenerListSorted) {
 
-        QSharedPointer<sACNListener> listener(weakListener);
+        sACNManager::tListener listener(weakListener);
         if (listener) {
             int universe = listener->universe();
 
@@ -143,11 +156,6 @@ void aboutDialog::updateDisplay()
         if (merges > 0)
             universeDetail.treeMergesPerSecond->setText(1, QString("%1").arg(merges));
     }
-}
-
-void aboutDialog::openLink(QString link)
-{
-    QDesktopServices::openUrl(QUrl(link));
 }
 
 void aboutDialog::bindStatus(QTreeWidgetItem *treeItem, sACNListener::eBindStatus bindStatus)

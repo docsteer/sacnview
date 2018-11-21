@@ -16,6 +16,7 @@
 #ifndef PREFERENCESDIALOG_H
 #define PREFERENCESDIALOG_H
 
+#include "translations/translationdialog.h"
 #include <QDialog>
 #include <QNetworkInterface>
 
@@ -41,6 +42,7 @@ private:
     Ui::PreferencesDialog *ui;
     QList<QNetworkInterface> m_interfaceList;
     QList<QRadioButton*> m_interfaceButtons;
+    TranslationDialog* m_translation;
 
 };
 

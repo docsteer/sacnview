@@ -21,15 +21,6 @@
 #include <QPixmap>
 #include "sacnsender.h"
 
-static const QStringList FX_MODE_DESCRIPTIONS = { "Manual",
-        "Ramp",
-        "Sinewave",
-        "Chase",
-        "Vertical Bars",
-        "Horizontal Bars",
-        "Text",
-        "Date"};
-
 class sACNEffectEngine : public QObject
 {
     Q_OBJECT
@@ -38,25 +29,41 @@ public:
         FxManual,
         FxRamp,
         FxSinewave,
-        FxChase,
+        FxChaseSnap,
+        FxChaseRamp,
+        FxChaseSine,
         FxVerticalBar,
         FxHorizontalBar,
         FxText,
         FxDate
     };
 
-
     enum DateStyle {
         dsUSA,
         dsEU
     };
 
-    explicit sACNEffectEngine();
+    static const QStringList FxModeDescriptions() {
+        QList<QString> ret;
+        ret.insert(FxManual, QObject::tr("Manual"));
+        ret.insert(FxRamp, QObject::tr("Ramp"));
+        ret.insert(FxSinewave, QObject::tr("Sinewave"));
+        ret.insert(FxChaseSnap, QObject::tr("Chase (Snap)"));
+        ret.insert(FxChaseRamp, QObject::tr("Chase (Ramp)"));
+        ret.insert(FxChaseSine, QObject::tr("Chase (Sine)"));
+        ret.insert(FxVerticalBar, QObject::tr("Vertical Bars"));
+        ret.insert(FxHorizontalBar, QObject::tr("Horizontal Bars"));
+        ret.insert(FxText, QObject::tr("Text"));
+        ret.insert(FxDate, QObject::tr("Date"));
+        return QStringList(ret);
+    }
+
+    explicit sACNEffectEngine(sACNManager::tSender sender);
     virtual ~sACNEffectEngine();
-    void setSender(sACNSentUniverse *sender);
-    QString text() { return m_text;};
-    sACNEffectEngine::FxMode mode() { return m_mode;};
-    qreal rate() { return m_rate;};
+    //void setSender(sACNSentUniverse *sender);
+    QString text() { return m_text;}
+    sACNEffectEngine::FxMode mode() { return m_mode;}
+    qreal rate() { return m_rate;}
 signals:
     void setLevel(quint16 address, quint8 value);
     void setLevel(quint16 start, quint16 end, quint8 value);
@@ -94,6 +101,7 @@ private:
     quint16 m_start;
     quint16 m_end;
     quint16 m_index;
+    quint16 m_index_chase;
     quint8 m_data;
     quint8 m_manualLevel;
     QImage m_renderedImage;

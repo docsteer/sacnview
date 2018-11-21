@@ -18,21 +18,21 @@
 
 #include "consts.h"
 #include "sacn/ACNShare/ipaddr.h"
-#include "sacn/streamcommon.h"
-#include "sacn/sacnsender.h"
+#include "sacn/streamingacn.h"
 #include "sacn/sacneffectengine.h"
 #include "configureperchanpriodlg.h"
 #include "preferences.h"
+#include <QButtonGroup>
 #include <QToolButton>
 #include <QMessageBox>
 
 transmitwindow::transmitwindow(int universe, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::transmitwindow), m_sender(0)
+    ui(new Ui::transmitwindow), m_sender(Q_NULLPTR)
 {
     ui->setupUi(this);
 
-    m_fxEngine = NULL;
+    m_fxEngine = Q_NULLPTR;
     m_recordMode = false;
 
     memset(m_levels, 0, sizeof(m_levels));
@@ -77,6 +77,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
         QToolButton *button = new QToolButton(this);
         button->setText(QString::number(i+1));
         button->setMinimumSize(16, 16);
+        button->setFocusPolicy(Qt::FocusPolicy::NoFocus);
         layout->addWidget(button);
         m_presetButtons << button;
         connect(button, SIGNAL(pressed()), this, SLOT(presetButtonPressed()));
@@ -85,6 +86,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     m_presetButtons << recordButton;
     recordButton->setCheckable(true);
     recordButton->setIcon(QIcon(":/icons/record.png"));
+    recordButton->setFocusPolicy(Qt::FocusPolicy::NoFocus);
     layout->addWidget(recordButton);
     ui->gbPresets->setLayout(layout);
     connect(recordButton, SIGNAL(toggled(bool)), this, SLOT(recordButtonPressed(bool)));
@@ -153,16 +155,26 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
 
     QTimer::singleShot(30, Qt::CoarseTimer, this, SLOT(fixSize()));
 
-    // Set up effect combo boxes
-    connect(ui->rbFadeManual, SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
-    connect(ui->rbFadeRamp, SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
-    connect(ui->rbFadeSine, SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
-    connect(ui->rbText,     SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
-    connect(ui->rbDateTime, SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
-    connect(ui->rbChase,    SIGNAL(toggled(bool)), this, SLOT(radioFadeMode_toggled(bool)));
+    // Set up effect radio buttons
+    QButtonGroup *effectGroup = new QButtonGroup(this);
+    connect(effectGroup, SIGNAL(buttonToggled(int, bool)), this, SLOT(radioFadeMode_toggled(int, bool)));
+    effectGroup->addButton(ui->rbFadeManual);
+    effectGroup->addButton(ui->rbFadeRamp);
+    effectGroup->addButton(ui->rbFadeSine);
+    effectGroup->addButton(ui->rbText);
+    effectGroup->addButton(ui->rbDateTime);
+    effectGroup->addButton(ui->rbChase);
 
-    connect(ui->rbEuDate, SIGNAL(toggled(bool)), this, SLOT(dateMode_toggled(bool)));
-    connect(ui->rbUsDate, SIGNAL(toggled(bool)), this, SLOT(dateMode_toggled(bool)));
+    QButtonGroup *effectDateGroup = new QButtonGroup(this);
+    connect(effectDateGroup, SIGNAL(buttonToggled(int, bool)), this, SLOT(dateMode_toggled(int, bool)));
+    effectDateGroup->addButton(ui->rbEuDate);
+    effectDateGroup->addButton(ui->rbUsDate);
+
+    QButtonGroup *effectChaseGroup = new QButtonGroup(this);
+    connect(effectChaseGroup, SIGNAL(buttonToggled(int, bool)), this, SLOT(radioFadeMode_toggled(int, bool)));
+    effectChaseGroup->addButton(ui->rbChaseRamp);
+    effectChaseGroup->addButton(ui->rbChaseSine);
+    effectChaseGroup->addButton(ui->rbChaseSnap);
 
     setUniverseOptsEnabled(true);
 
@@ -178,10 +190,12 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     connect(ui->k8,     SIGNAL(pressed()),  ui->teCommandline,  SLOT(key8()));
     connect(ui->k9,     SIGNAL(pressed()),  ui->teCommandline,  SLOT(key9()));
     connect(ui->kAnd,   SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyAnd()));
+    connect(ui->kMinus, SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyMinus()));
     connect(ui->kAt,    SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyAt()));
     connect(ui->kClear, SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyClear()));
     connect(ui->kFull,  SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyFull()));
     connect(ui->kThru,  SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyThru()));
+    connect(ui->kOffset,SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyOffset()));
     connect(ui->kEnter, SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyEnter()));
     connect(ui->kAllOff,SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyAllOff()));
 
@@ -271,7 +285,7 @@ void transmitwindow::setUniverseOptsEnabled(bool enabled)
     ui->gbProtocolVersion->setEnabled(enabled);
     ui->cbBlind->setEnabled(enabled ? ui->rbRatified->isChecked() : false);
     ui->tabWidget->setEnabled(!enabled);
-
+    on_tabWidget_currentChanged(ui->tabWidget->currentIndex());
 
     if(enabled)
     {
@@ -303,8 +317,8 @@ void transmitwindow::on_btnStart_pressed()
     }
     if(!m_sender)
     {
-        m_sender = new sACNSentUniverse(ui->sbUniverse->value());
-        connect(m_sender, SIGNAL(sendingTimeout()), this, SLOT(sourceTimeout()));
+        m_sender = sACNManager::getInstance()->getSender(ui->sbUniverse->value());
+        connect(m_sender.data(), SIGNAL(sendingTimeout()), this, SLOT(sourceTimeout()));
     }
 
     m_sender->setUnicastAddress(unicast);
@@ -341,12 +355,11 @@ void transmitwindow::on_btnStart_pressed()
             m_sender->setLevel(i, m_levels[i]);
         if(!m_fxEngine)
         {
-            m_fxEngine = new sACNEffectEngine();
+            m_fxEngine = new sACNEffectEngine(m_sender);
             connect(m_fxEngine, SIGNAL(fxLevelChange(int)), ui->slFadeLevel, SLOT(setValue(int)));
             connect(m_fxEngine, SIGNAL(textImageChanged(QPixmap)), ui->lblTextImage, SLOT(setPixmap(QPixmap)));
             m_fxEngine->setRange(ui->sbFadeRangeStart->value()-1, ui->sbFadeRangeEnd->value()-1);
         }
-        m_fxEngine->setSender(m_sender);
     }
 }
 
@@ -512,22 +525,27 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
     if(!m_sender)
         return;
 
+    // Stop FX, and clear output
+    QMetaObject::invokeMethod(
+                m_fxEngine,"pause");
+    m_sender->setLevelRange(0, MAX_DMX_ADDRESS-1, 0);
+
     if(index==tabChannelCheck)
     {
-        int value = ui->lcdNumber->value() - 1;
-        m_sender->setLevelRange(0, MAX_DMX_ADDRESS-1, 0);
-        m_sender->setLevel(value, ui->slChannelCheck->value());
+        auto address = ui->lcdNumber->value() - 1;
+        m_sender->setLevel(address, ui->slChannelCheck->value());
 
-        QMetaObject::invokeMethod(
-                    m_fxEngine,"pause");
         ui->lcdNumber->setFocus();
     }
 
     if(index==tabSliders)
     {
-        m_sender->setLevelRange(0, MAX_DMX_ADDRESS-1, 0);
-        QMetaObject::invokeMethod(
-                    m_fxEngine,"pause");
+        // Reassert slider levels
+        auto address = ui->sbFadersStart->value() - 1;
+        for (auto slider : m_sliders) {
+            m_sender->setLevel(address++, slider->value());
+        }
+        ui->teCommandline->setFocus();
     }
 
     if(index==tabEffects)
@@ -537,6 +555,7 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
         QMetaObject::invokeMethod(
                     m_fxEngine,"start");
         ui->rbFadeManual->setChecked(true);
+        ui->rbChaseSnap->setChecked(true);
         ui->slFadeLevel->setValue(0);
     }
 }
@@ -576,9 +595,10 @@ void transmitwindow::on_sbFadeRangeEnd_valueChanged(int value)
     }
 }
 
-void transmitwindow::radioFadeMode_toggled(bool checked)
+void transmitwindow::radioFadeMode_toggled(int id, bool checked)
 {
-    Q_UNUSED(checked);
+    Q_UNUSED(id);
+    Q_UNUSED(checked)
 
     if(ui->rbFadeManual->isChecked())
     {
@@ -612,10 +632,18 @@ void transmitwindow::radioFadeMode_toggled(bool checked)
                     m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxDate));
         ui->swFx->setCurrentIndex(2);
     }
+    ui->fChaseOptions->setEnabled(ui->rbChase->isChecked());
     if(ui->rbChase->isChecked())
     {
+        sACNEffectEngine::FxMode mode;
+        if (ui->rbChaseRamp->isChecked())
+            mode = sACNEffectEngine::FxChaseRamp;
+        else if (ui->rbChaseSnap->isChecked())
+             mode = sACNEffectEngine::FxChaseSnap;
+        else if (ui->rbChaseSine->isChecked())
+             mode = sACNEffectEngine::FxChaseSine;
         QMetaObject::invokeMethod(
-                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxChase));
+                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, mode));
         ui->swFx->setCurrentIndex(0);
     }
 }
@@ -696,9 +724,11 @@ void transmitwindow::setLevels(QSet<int> addresses, int level)
     }
 }
 
-void transmitwindow::dateMode_toggled(bool checked)
+void transmitwindow::dateMode_toggled(int id, bool checked)
 {
+    Q_UNUSED(id);
     Q_UNUSED(checked);
+
     if(ui->rbEuDate->isChecked())
     {
         QMetaObject::invokeMethod(

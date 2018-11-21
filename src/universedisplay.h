@@ -40,7 +40,7 @@ public slots:
     void setFlickerFinder(bool on);
 private:
     sACNMergedSourceList m_sources;
-    QSharedPointer<sACNListener>m_listener;
+    sACNManager::tListener m_listener;
     quint8 m_flickerFinderLevels[MAX_DMX_ADDRESS];
     bool m_flickerFinderHasChanged[MAX_DMX_ADDRESS];
     bool m_flickerFinder;

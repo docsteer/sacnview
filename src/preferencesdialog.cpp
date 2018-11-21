@@ -26,7 +26,10 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    // Populate lang
+    m_translation = new TranslationDialog(Preferences::getInstance()->GetLocale(), ui->vlLanguage, this);
 
+    // Network interfaces
     QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
     foreach(QNetworkInterface interface, interfaces)
     {
@@ -86,9 +89,11 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         ui->gbTransmitTimeout->setChecked(false);
     }
 
+    ui->cbTxRateOverride->setChecked(Preferences::getInstance()->GetTXRateOverride());
+
     ui->cbTheme->clear();
-    ui->cbTheme->addItems(Preferences::ThemeDescriptions);
-    ui->cbTheme->setCurrentIndex((int)Preferences::getInstance()->GetTheme());
+    ui->cbTheme->addItems(Preferences::ThemeDescriptions());
+    ui->cbTheme->setCurrentIndex(static_cast<int>(Preferences::getInstance()->GetTheme()));
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -102,29 +107,39 @@ void PreferencesDialog::on_buttonBox_accepted()
     bool requiresRestart = false;
 
     Preferences *p = Preferences::getInstance();
-    int displayFormat=0;
-    if(ui->DecimalDisplayFormat->isChecked())
-        displayFormat = Preferences::DECIMAL;
-    if(ui->HexDisplayFormat->isChecked())
-        displayFormat = Preferences::HEXADECIMAL;
-    if(ui->PercentDisplayFormat->isChecked())
-        displayFormat = Preferences::PERCENT;
 
-    p->SetDisplayFormat(displayFormat);
+    // Display Format
+    if(ui->DecimalDisplayFormat->isChecked())
+        p->SetDisplayFormat(Preferences::DECIMAL);
+    if(ui->HexDisplayFormat->isChecked())
+        p->SetDisplayFormat(Preferences::HEXADECIMAL);
+    if(ui->PercentDisplayFormat->isChecked())
+        p->SetDisplayFormat(Preferences::PERCENT);
+
+    // Display Blind
     p->SetBlindVisualizer(ui->cbDisplayBlind->isChecked());
 
+    // Display DD
     if (ui->cbDisplayDDOnlys->isChecked() != p->GetDisplayDDOnly() ) {requiresRestart = true;}
     p->SetDisplayDDOnly(ui->cbDisplayDDOnlys->isChecked());
 
+    // Save layout
     p->SetSaveWindowLayout(ui->cbRestoreWindows->isChecked());
 
+    // Transmit timeout
     int seconds = ui->NumOfHoursOfSacn->value()*60*60 + ui->NumOfMinOfSacn->value()*60 + ui->NumOfSecOfSacn->value();
     if(!ui->gbTransmitTimeout->isChecked())
         seconds = 0;
     p->SetNumSecondsOfSacn(seconds);
 
+    // Default source name
     p->SetDefaultTransmitName(ui->leDefaultSourceName->text());
 
+    if (ui->cbTxRateOverride->isChecked() != p->GetTXRateOverride())
+        requiresRestart = true;
+    p->SetTXRateOverride(ui->cbTxRateOverride->isChecked());
+
+    // Interfaces
     for(int i=0; i<m_interfaceButtons.count(); i++)
     {
         if(m_interfaceButtons[i]->isChecked())
@@ -140,17 +155,25 @@ void PreferencesDialog::on_buttonBox_accepted()
             }
         }
     }
-
     requiresRestart |= ui->cbListenAll->isChecked() != p->GetNetworkListenAll();
     p->SetNetworkListenAll(ui->cbListenAll->isChecked());
 
-    Preferences::Theme theme = (Preferences::Theme)ui->cbTheme->currentIndex();
+    // Theme
+    Preferences::Theme theme = static_cast<Preferences::Theme>(ui->cbTheme->currentIndex());
     if(p->GetTheme()!=theme)
     {
         p->SetTheme(theme);
         requiresRestart = true;
     }
 
+    // Language
+    if (m_translation->GetSelectedLocale() != p->GetLocale())
+    {
+        p->SetLocale(m_translation->GetSelectedLocale());
+        requiresRestart = true;
+    }
+
+    // Resstart to apply?
     if (requiresRestart) {
         QMessageBox::information(this, tr("Restart requied"),
                                  tr("To apply these preferences, you will need to restart the application. \nsACNView will now close and restart"),

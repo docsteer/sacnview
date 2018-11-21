@@ -24,15 +24,15 @@
 // The base color to generate pastel shades for sources
 static const QColor mixColor = QColor("coral");
 
-Preferences *Preferences::m_instance = NULL;
-
-const QStringList Preferences::ThemeDescriptions = QStringList{"Light Theme", "Dark Theme"};
+Preferences *Preferences::m_instance = Q_NULLPTR;
 
 Preferences::Preferences()
 {
     RESTART_APP = false;
     for(int i=0; i<PRESET_COUNT; i++)
-        m_presets[i] = QByteArray(MAX_DMX_ADDRESS, (char) 0);
+        m_presets[i] = QByteArray(MAX_DMX_ADDRESS, char(0));
+    for(int i=0; i<PRIORITYPRESET_COUNT; i++)
+        m_priorityPresets[i] = QByteArray(MAX_DMX_ADDRESS, char(100+i));
     loadPreferences();
 }
 
@@ -232,6 +232,9 @@ void Preferences::savePreferences()
     settings.setValue(S_MAINWINDOWGEOM, m_mainWindowGeometry);
     settings.setValue(S_LISTEN_ALL, m_interfaceListenAll);
     settings.setValue(S_THEME, m_theme);
+    settings.setValue(S_TX_RATE_OVERRIDE, m_txrateoverride);
+    settings.setValue(S_LOCALE, m_locale);
+    settings.setValue(S_UNIVERSESLISTED, m_universesListed);
 
     settings.beginWriteArray(S_SUBWINDOWLIST);
     for(int i=0; i<m_windowInfo.count(); i++)
@@ -245,6 +248,11 @@ void Preferences::savePreferences()
     for(int i=0; i<PRESET_COUNT; i++)
     {
         settings.setValue(S_PRESETS.arg(i), QVariant(m_presets[i]));
+    }
+
+    for(int i=0; i<PRIORITYPRESET_COUNT; i++)
+    {
+        settings.setValue(S_PRIORITYPRESET.arg(i), QVariant(m_priorityPresets[i]));
     }
 }
 
@@ -271,6 +279,9 @@ void Preferences::loadPreferences()
     m_saveWindowLayout = settings.value(S_SAVEWINDOWLAYOUT, QVariant(false)).toBool();
     m_mainWindowGeometry = settings.value(S_MAINWINDOWGEOM, QVariant(QByteArray())).toByteArray();
     m_theme = (Theme) settings.value(S_THEME, QVariant((int)THEME_LIGHT)).toInt();
+    m_txrateoverride = settings.value(S_TX_RATE_OVERRIDE, QVariant(false)).toBool();
+    m_locale = settings.value(S_LOCALE, QLocale::system()).toLocale();
+    m_universesListed = settings.value(S_UNIVERSESLISTED, QVariant(20)).toUInt();
 
     m_windowInfo.clear();
     int size = settings.beginReadArray(S_SUBWINDOWLIST);
@@ -289,6 +300,15 @@ void Preferences::loadPreferences()
         if(settings.contains(S_PRESETS.arg(i)))
         {
             m_presets[i] = settings.value(S_PRESETS.arg(i)).toByteArray();
+        }
+    }
+
+
+    for(int i=0; i<PRIORITYPRESET_COUNT; i++)
+    {
+        if(settings.contains(S_PRIORITYPRESET.arg(i)))
+        {
+            m_priorityPresets[i] = settings.value(S_PRIORITYPRESET.arg(i)).toByteArray();
         }
     }
 }
@@ -347,4 +367,26 @@ void Preferences::SetSavedWindows(QList<MDIWindowInfo> values)
 QList<MDIWindowInfo> Preferences::GetSavedWindows()
 {
     return m_windowInfo;
+}
+
+void Preferences::SetLocale(QLocale locale)
+{
+    m_locale = locale;
+}
+
+QLocale Preferences::GetLocale()
+{
+    return m_locale;
+}
+
+void Preferences::SetPriorityPreset(const QByteArray &data, int index)
+{
+    Q_ASSERT(index < PRIORITYPRESET_COUNT);
+    m_priorityPresets[index] = data;
+}
+
+QByteArray Preferences::GetPriorityPreset(int index)
+{
+    Q_ASSERT(index < PRIORITYPRESET_COUNT);
+    return m_priorityPresets[index];
 }

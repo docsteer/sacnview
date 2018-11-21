@@ -11,11 +11,13 @@
 Snapshot::Snapshot(int firstUniverse, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Snapshot),
-    m_listeners(QList<QSharedPointer<sACNListener>>()),
-    m_senders(QList<sACNSentUniverse *>()),
+    m_listeners(QList<sACNManager::tListener>()),
+    m_senders(QList<sACNManager::tSender>()),
     m_firstUniverse(firstUniverse)
 {
     ui->setupUi(this);
+
+    m_cid = CID::CreateCid();
 
     m_countdown = new QTimer(this);
     connect(m_countdown, SIGNAL(timeout()), this, SLOT(counterTick()));
@@ -83,6 +85,10 @@ void Snapshot::setState(state s)
     {
     case stSetup:
         stopSnapshot();
+        if(m_snapshotData.isEmpty())
+            ui->btnReplay->hide();
+        else
+            ui->btnReplay->show();
         ui->btnPlay->setEnabled(false);
         ui->btnSnapshot->setEnabled(ui->tableWidget->rowCount()>0);
         ui->lbTimer->setText("");
@@ -106,6 +112,7 @@ void Snapshot::setState(state s)
     case stCountDown3:
     case stCountDown2:
     case stCountDown1:
+        ui->btnReplay->hide();
         ui->btnAddRow->setEnabled(false);
         ui->btnRemoveRow->setEnabled(false);
         ui->btnSnapshot->setEnabled(false);
@@ -122,6 +129,7 @@ void Snapshot::setState(state s)
             t->setVisible(false);
         break;
     case stReadyPlayback:
+        ui->btnReplay->hide();
         ui->btnPlay->setEnabled(true);
         ui->btnSnapshot->setEnabled(true);
         ui->lbTimer->setText("");
@@ -139,7 +147,9 @@ void Snapshot::setState(state s)
         foreach(QToolButton *t, m_enableButtons)
             t->setVisible(false);
         break;
+    case stReplay:
     case stPlayback:
+        ui->btnReplay->hide();
         ui->btnPlay->setEnabled(true);
         ui->btnSnapshot->setEnabled(false);
         ui->lbTimer->setText("");
@@ -192,10 +202,15 @@ void Snapshot::on_btnSnapshot_pressed()
 
 void Snapshot::on_btnPlay_pressed()
 {
-    if(m_state!=stPlayback)
+    if(m_state!=stPlayback && m_state!= stReplay)
         setState(stPlayback);
     else
         setState(stSetup);
+}
+
+void Snapshot::on_btnReplay_pressed()
+{
+    setState(stReplay);
 }
 
 void Snapshot::saveSnapshot()
@@ -236,26 +251,26 @@ void Snapshot::playSnapshot()
 {
     for(int i=0; i<m_snapshotData.count(); i++)
     {
-        m_senders << new sACNSentUniverse(m_universeSpins[i]->value());
+        m_senders << sACNManager::getInstance()->getSender(m_universeSpins[i]->value(), m_cid);
 
         {
             QString name = Preferences::getInstance()->GetDefaultTransmitName();
             QString postfix = tr(" - Snapshot");
             name.truncate(MAX_SOURCE_NAME_LEN - postfix.length());
-            m_senders.last()->setName(name.trimmed() + postfix);
-            m_senders.last()->setPerSourcePriority(m_prioritySpins[i]->value());
+            m_senders.last().data()->setName(name.trimmed() + postfix);
+            m_senders.last().data()->setPerSourcePriority(m_prioritySpins[i]->value());
         }
 
-        m_senders.last()->startSending();
-        m_senders.last()->setLevel((const quint8*)m_snapshotData[i].constData(), MAX_DMX_ADDRESS);
-        connect(m_senders.last(), SIGNAL(sendingTimeout()), this, SLOT(senderTimedOut()));
+        m_senders.last().data()->startSending();
+        m_senders.last().data()->setLevel((const quint8*)m_snapshotData[i].constData(), MAX_DMX_ADDRESS);
+        connect(m_senders.last().data(), SIGNAL(sendingTimeout()), this, SLOT(senderTimedOut()));
     }
 }
 
 void Snapshot::stopSnapshot()
 {
     for(int i=0; i<m_senders.count(); i++)
-            m_senders[i]->deleteLater();
+            m_senders[i].data()->deleteLater();
     m_senders.clear();
 }
 
@@ -281,7 +296,7 @@ void Snapshot::pauseSourceButtonPressed()
     int index = m_enableButtons.indexOf(btn);
     if(index<0 || index >= m_senders.count()) return;
 
-    sACNSentUniverse *sender = m_senders[index];
+    sACNSentUniverse *sender = m_senders[index].data();
 
     if(sender->isSending())
     {

@@ -111,9 +111,11 @@ bool sACNTxSocket::bindMulticast()
         if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol)
         {
             ok = bind(ifaceAddr.ip());
-            setSocketOption(QAbstractSocket::MulticastLoopbackOption, QVariant(1));
-            setMulticastInterface(m_interface);
-            qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Bound to IP:" << ifaceAddr.ip().toString();
+            if (ok) {
+                setSocketOption(QAbstractSocket::MulticastLoopbackOption, QVariant(1));
+                setMulticastInterface(m_interface);
+                qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Bound to IP:" << ifaceAddr.ip().toString();
+            }
             break;
         }
     }
