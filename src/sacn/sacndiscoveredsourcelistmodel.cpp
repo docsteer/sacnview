@@ -91,12 +91,14 @@ void sACNDiscoveredSourceListModel::newUniverse(QString cid, quint16 universe)
         m_sources.value(cidObj)->universes.append(universe);
         int parentRow = m_sources.keys().indexOf(cidObj);
 
+        beginResetModel();
         qSort(m_sources.value(cidObj)->universes.begin(), m_sources.value(cidObj)->universes.end());
-        beginRemoveRows(
-            index(parentRow, 0, QModelIndex()),
-            0,
-            m_sources.count());
-        endRemoveRows();
+        endResetModel();
+//        beginRemoveRows(
+//            index(parentRow, 0, QModelIndex()),
+//            0,
+//            m_sources.count());
+//        endRemoveRows();
 //        beginInsertRows(
 //                    index(parentRow, 0, QModelIndex()),
 //                    m_sources.value(cidObj)->universes.indexOf(universe),
