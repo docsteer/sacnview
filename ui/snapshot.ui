@@ -17,7 +17,7 @@
    <iconset resource="../res/resources.qrc">
     <normaloff>:/icons/snapshot.png</normaloff>:/icons/snapshot.png</iconset>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0,0,0,0,0,0">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0,0,0,0,0">
    <item>
     <widget class="QTableWidget" name="tableWidget">
      <property name="sizePolicy">
@@ -62,6 +62,9 @@
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QToolButton" name="btnRemoveRow">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
          <horstretch>0</horstretch>
@@ -122,7 +125,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QLabel" name="lbInfo">
+    <widget class="Snapshot::InfoLbl" name="lbInfo">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
@@ -130,7 +133,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Taking Snapshot in</string>
+      <string>{INFO LABEL}</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -173,7 +176,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Take Snapshot</string>
+      <string>Take All Snapshots</string>
      </property>
      <property name="icon">
       <iconset resource="../res/resources.qrc">
@@ -191,7 +194,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QToolButton" name="btnPlay">
+    <widget class="Snapshot::PlaybackBtn" name="btnPlay">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -199,37 +202,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Play Back Snapshot</string>
-     </property>
-     <property name="icon">
-      <iconset resource="../res/resources.qrc">
-       <normaloff>:/icons/play.png</normaloff>:/icons/play.png</iconset>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>32</width>
-       <height>32</height>
-      </size>
-     </property>
-     <property name="toolButtonStyle">
-      <enum>Qt::ToolButtonTextUnderIcon</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QToolButton" name="btnReplay">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Replay Last Snapshot</string>
-     </property>
-     <property name="icon">
-      <iconset resource="../res/resources.qrc">
-       <normaloff>:/icons/play.png</normaloff>:/icons/play.png</iconset>
+      <string>{PLAY BUTTON}</string>
      </property>
      <property name="iconSize">
       <size>
@@ -244,6 +217,18 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Snapshot::PlaybackBtn</class>
+   <extends>QToolButton</extends>
+   <header>snapshot.h</header>
+  </customwidget>
+  <customwidget>
+   <class>Snapshot::InfoLbl</class>
+   <extends>QLabel</extends>
+   <header>snapshot.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../res/resources.qrc"/>
  </resources>

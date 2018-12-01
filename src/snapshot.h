@@ -2,6 +2,7 @@
 #define SNAPSHOT_H
 
 #include <QWidget>
+#include <QLabel>
 #include <QtMultimedia/QSound>
 #include "streamingacn.h"
 #include "clssnapshot.h"
@@ -14,6 +15,9 @@ class Snapshot;
 class Snapshot : public QWidget
 {
     Q_OBJECT
+public:
+    explicit Snapshot(int firstUniverse = MIN_SACN_UNIVERSE, QWidget *parent = Q_NULLPTR);
+    ~Snapshot();
 
     enum state
     {
@@ -28,14 +32,29 @@ class Snapshot : public QWidget
         stReplay
     };
 
-public:
-    explicit Snapshot(int firstUniverse = MIN_SACN_UNIVERSE, QWidget *parent = 0);
-    ~Snapshot();
+    class PlaybackBtn : public QToolButton
+    {
+    public:
+        PlaybackBtn(QWidget *parent = Q_NULLPTR);
+
+        void setPlay();
+        void setPause();
+    };
+
+    class InfoLbl : public QLabel
+    {
+    public:
+        InfoLbl(QWidget *parent = Q_NULLPTR);
+
+        void setText(Snapshot::state state);
+        virtual void setText(const QString &t) { QLabel::setText(t); }
+    };
+
 protected slots:
     void counterTick();
     void on_btnSnapshot_pressed();
     void on_btnPlay_pressed();
-    void on_btnReplay_pressed();
+    void btnPlay_update(bool updateState = false);
     void on_btnAddRow_clicked();
     void on_btnRemoveRow_clicked();
     void senderTimedOut();
@@ -44,6 +63,9 @@ protected slots:
 protected:
     virtual void resizeEvent(QResizeEvent *event);
 
+private slots:
+    void on_tableWidget_itemSelectionChanged();
+
 private:
     enum {
         COL_BUTTON,
@@ -51,7 +73,9 @@ private:
         COL_PRIORITY,
         COLCOUNT
     };
+
     void setState(state s);
+    void setState(int s) { setState(static_cast<state>(s)); }
     void saveSnapshot();
     void playSnapshot();
     void stopSnapshot();
@@ -63,5 +87,7 @@ private:
     quint16 m_firstUniverse;
     CID m_cid;
 };
+
+
 
 #endif // SNAPSHOT_H

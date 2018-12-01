@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QSpinBox>
 #include <QToolButton>
+#include <QMap>
+#include <QSound>
 #include "streamingacn.h"
 #include "sacnlistener.h"
 #include "sacnsender.h"
@@ -21,6 +23,8 @@ public:
 
     bool hasData() { return !m_levelData.isEmpty(); }
 
+    bool isPlaying() { return m_sender->isSending(); }
+
     quint16 getUniverse() {return m_universe;}
     void setUniverse(quint16 universe);
 
@@ -29,12 +33,27 @@ public:
 
     QSpinBox *getSbUniverse() {return m_sbUniverse;}
     QSpinBox *getSbPriority() {return m_sbPriority;}
-    QToolButton *getBtnEnable() {return m_btnEnable;}
+    QToolButton *getBtnPlayback() {return m_btnPlayback;}
+
+    enum e_icons {
+        ICON_NONE,
+        ICON_PLAY,
+        ICON_PAUSE,
+        ICON_SNAPSHOT
+    };
+
+    const QMap<e_icons, QIcon> icons{
+        {ICON_NONE, QIcon()},
+        {ICON_PLAY, QIcon(":/icons/play.png")},
+        {ICON_PAUSE, QIcon(":/icons/pause.png")},
+        {ICON_SNAPSHOT, QIcon(":/icons/snapshot.png")}
+    };
 
 signals:
     void senderStarted();
     void senderStopped();
     void senderTimedOut();
+    void snapshotTaken();
 
 public slots:
 
@@ -49,9 +68,11 @@ private:
     QByteArray m_levelData;
     QSpinBox* m_sbUniverse;
     QSpinBox* m_sbPriority;
-    QToolButton* m_btnEnable;
+    QToolButton* m_btnPlayback;
     sACNManager::tSender m_sender;
     sACNManager::tListener m_listener;
+
+    QSound *m_camera;
 };
 
 #endif // CLSSNAPSHOT_H

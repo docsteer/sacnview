@@ -6,9 +6,10 @@ clsSnapshot::clsSnapshot(quint16 universe, CID cid, QString name, QWidget *paren
     m_cid(cid),
     m_sbUniverse(new QSpinBox(this)),
     m_sbPriority(new QSpinBox(this)),
-    m_btnEnable(new QToolButton(this)),
+    m_btnPlayback(new QToolButton(this)),
     m_sender(Q_NULLPTR),
-    m_listener(Q_NULLPTR)
+    m_listener(Q_NULLPTR),
+    m_camera(new QSound(":/sound/camera.wav", this))
 {
     m_sbUniverse->setMinimum(MIN_SACN_UNIVERSE);
     m_sbUniverse->setMaximum(MAX_SACN_UNIVERSE);
@@ -20,7 +21,8 @@ clsSnapshot::clsSnapshot(quint16 universe, CID cid, QString name, QWidget *paren
     m_sbPriority->setValue(m_priority);
     connect(m_sbPriority, (void(QSpinBox::*)(int))&QSpinBox::valueChanged, [this](int value) { setPriority(value); } );
 
-    connect(m_btnEnable, SIGNAL(clicked(bool)), this, SLOT(btnEnableClicked(bool)));
+    connect(m_btnPlayback, SIGNAL(clicked(bool)), this, SLOT(btnEnableClicked(bool)));
+    m_btnPlayback->setIcon(icons[ICON_SNAPSHOT]);
 
     m_sender = sACNManager::getInstance()->getSender(m_universe, m_cid);
     m_sender->setName(name);
@@ -65,27 +67,46 @@ void clsSnapshot::takeSnapshot() {
     {
         m_levelData.append(m_listener->mergedLevels().at(addr).level);
     }
+
+    m_btnPlayback->setIcon(icons[ICON_PLAY]);
+
+    emit snapshotTaken();
 }
 
 void clsSnapshot::playSnapshot() {
+    if (!hasData())
+    {
+        m_btnPlayback->setIcon(icons[ICON_SNAPSHOT]);
+        return;
+    }
+
     m_sender->startSending();
-    m_sender->setLevel((const quint8*)m_levelData.constData(), std::min(m_levelData.count(), MAX_DMX_ADDRESS));
+    m_sender->setLevel(reinterpret_cast<const quint8*>(m_levelData.constData()), std::min(m_levelData.count(), MAX_DMX_ADDRESS));
+    m_btnPlayback->setIcon(icons[ICON_PAUSE]);
     emit senderStarted();
 }
 
 void clsSnapshot::stopSnapshot() {
+    if (!hasData())
+    {
+        m_btnPlayback->setIcon(icons[ICON_SNAPSHOT]);
+        return;
+    }
+
     m_sender->stopSending();
+    m_btnPlayback->setIcon(icons[ICON_PLAY]);
     emit senderStopped();
 }
 
 void clsSnapshot::btnEnableClicked(bool value) {
     Q_UNUSED(value);
-    if (m_sender->isSending())
+    if (!hasData())
     {
-        m_sender->stopSending();
-        emit senderStopped();
-    } else {
-        m_sender->startSending();
-        emit senderStarted();
-    }
+        m_camera->play();
+        takeSnapshot();
+        return;
+    } else if (isPlaying())
+        stopSnapshot();
+    else
+        playSnapshot();
 }
