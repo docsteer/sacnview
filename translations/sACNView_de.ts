@@ -1299,7 +1299,12 @@ This feature is unavailable</source>
     </message>
     <message>
         <location filename="../src/snapshot.cpp" line="17"/>
-        <source>Playback Snapshot</source>
+        <source>Playback All Snapshots</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/snapshot.cpp" line="23"/>
+        <source>Stop All Playback</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1327,9 +1332,8 @@ This feature is unavailable</source>
         <translation type="vanished">Daten werden wiedergeben</translation>
     </message>
     <message>
-        <location filename="../src/snapshot.cpp" line="23"/>
         <source>Stop Playback</source>
-        <translation>Playback unterbrechen</translation>
+        <translation type="vanished">Playback unterbrechen</translation>
     </message>
     <message>
         <location filename="../src/snapshot.cpp" line="103"/>

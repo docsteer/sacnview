@@ -108,6 +108,8 @@ void Snapshot::on_btnAddRow_clicked()
     connect(snap, SIGNAL(senderStopped()), this, SLOT(senderStopped()));
     connect(snap, SIGNAL(senderTimedOut()), this, SLOT(senderTimedOut()));
     connect(snap, &clsSnapshot::snapshotTaken, [this]() { ui->btnPlay->setEnabled(true); });
+    connect(snap, SIGNAL(snapshotMatches()), this, SLOT(snapshotMatches()));
+    connect(snap, SIGNAL(snapshotDiffers()), this, SLOT(snapshotDiffers()));
     ui->tableWidget->setCellWidget(row, COL_BUTTON, snap->getBtnPlayback());
     ui->tableWidget->setCellWidget(row, COL_UNIVERSE, snap->getSbUniverse());
     ui->tableWidget->setCellWidget(row, COL_PRIORITY, snap->getSbPriority());
@@ -221,15 +223,6 @@ void Snapshot::setState(state s)
         break;
     }
     m_state = s;
-
-//    // Universe Play buttons
-//    for(auto snap: m_snapshots)
-//    {
-//        if (snap->hasData())
-//            snap->getBtnPlayback()->setEnabled(true);
-//        else
-//            snap->getBtnPlayback()->setEnabled(false);
-//    }
 }
 
 void Snapshot::counterTick()

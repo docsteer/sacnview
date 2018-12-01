@@ -1290,7 +1290,12 @@ This feature is unavailable</source>
     </message>
     <message>
         <location filename="../src/snapshot.cpp" line="17"/>
-        <source>Playback Snapshot</source>
+        <source>Playback All Snapshots</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/snapshot.cpp" line="23"/>
+        <source>Stop All Playback</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1318,9 +1323,8 @@ This feature is unavailable</source>
         <translation type="vanished">Données en cours de lecture</translation>
     </message>
     <message>
-        <location filename="../src/snapshot.cpp" line="23"/>
         <source>Stop Playback</source>
-        <translation>Arrêter la lecture</translation>
+        <translation type="vanished">Arrêter la lecture</translation>
     </message>
     <message>
         <location filename="../src/snapshot.cpp" line="103"/>

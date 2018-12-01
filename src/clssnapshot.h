@@ -39,14 +39,16 @@ public:
         ICON_NONE,
         ICON_PLAY,
         ICON_PAUSE,
-        ICON_SNAPSHOT
+        ICON_SNAPSHOT,
+        ICON_EQUAL
     };
 
     const QMap<e_icons, QIcon> icons{
         {ICON_NONE, QIcon()},
         {ICON_PLAY, QIcon(":/icons/play.png")},
         {ICON_PAUSE, QIcon(":/icons/pause.png")},
-        {ICON_SNAPSHOT, QIcon(":/icons/snapshot.png")}
+        {ICON_SNAPSHOT, QIcon(":/icons/snapshot.png")},
+        {ICON_EQUAL, QIcon(":/icons/equal.png")}
     };
 
 signals:
@@ -54,13 +56,18 @@ signals:
     void senderStopped();
     void senderTimedOut();
     void snapshotTaken();
+    void snapshotMatches();
+    void snapshotDiffers();
 
 public slots:
 
 private slots:
     void btnEnableClicked(bool value);
+    void levelsChanged();
 
 private:
+    QIcon getIcon();
+
     quint16 m_universe;
     quint8 m_priority;
     CID m_cid;
@@ -73,6 +80,8 @@ private:
     sACNManager::tListener m_listener;
 
     QSound *m_camera;
+
+    bool m_backgroundMatches;
 };
 
 #endif // CLSSNAPSHOT_H
