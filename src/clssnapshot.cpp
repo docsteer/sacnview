@@ -83,7 +83,10 @@ void clsSnapshot::takeSnapshot() {
     // Copy current merged universe
     for(int addr=0; addr<MAX_DMX_ADDRESS; addr++)
     {
-        m_levelData.append(m_listener->mergedLevels().at(addr).level);
+        if (m_listener->mergedLevels().at(addr).level == -1)
+            m_levelData.append(static_cast<char>(0));
+        else
+            m_levelData.append(m_listener->mergedLevels().at(addr).level);
     }
 
     m_btnPlayback->setIcon(getIcon());
