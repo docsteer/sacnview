@@ -179,7 +179,9 @@ void sACNSentUniverse::setHorizontalBar(quint16 index, quint8 level)
 
 void sACNSentUniverse::setName(const QString &name)
 {
-    m_name = name;
+    auto tmpStr = name.trimmed();
+    tmpStr.truncate(MAX_SOURCE_NAME_LEN);
+    m_name = tmpStr;
     if(isSending())
     {
         QByteArray arr = name.toUtf8();

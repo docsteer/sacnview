@@ -3,9 +3,8 @@
 
 #include <QWidget>
 #include <QtMultimedia/QSound>
-#include <QSpinBox>
-#include <QToolButton>
 #include "streamingacn.h"
+#include "clssnapshot.h"
 #include "consts.h"
 
 namespace Ui {
@@ -37,12 +36,14 @@ protected slots:
     void on_btnSnapshot_pressed();
     void on_btnPlay_pressed();
     void on_btnReplay_pressed();
-    void on_btnAddRow_pressed();
-    void on_btnRemoveRow_pressed();
+    void on_btnAddRow_clicked();
+    void on_btnRemoveRow_clicked();
     void senderTimedOut();
-    void pauseSourceButtonPressed();
+    void senderStopped();
+    void senderStarted();
 protected:
     virtual void resizeEvent(QResizeEvent *event);
+
 private:
     enum {
         COL_BUTTON,
@@ -58,12 +59,7 @@ private:
     QTimer *m_countdown;
     state m_state;
     QSound *m_camera, *m_beep;
-    QList<QByteArray> m_snapshotData;
-    QList<sACNManager::tListener> m_listeners;
-    QList<sACNManager::tSender> m_senders;
-    QList<QSpinBox *> m_universeSpins;
-    QList<QSpinBox *> m_prioritySpins;
-    QList<QToolButton *> m_enableButtons;
+    QList<clsSnapshot*> m_snapshots;
     quint16 m_firstUniverse;
     CID m_cid;
 };
