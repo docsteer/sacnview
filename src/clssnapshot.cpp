@@ -140,7 +140,7 @@ void clsSnapshot::levelsChanged()
     for (auto merged: m_listener->mergedLevels())
     {
         int level = 0;
-        if (merged.winningSource->src_cid == m_sender->cid())
+        if ((merged.winningSource) && (merged.winningSource->src_cid == m_sender->cid()))
         {
             // I'm winning....
             // ...find highest background priority
