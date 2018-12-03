@@ -6,6 +6,7 @@
 #include <QToolButton>
 #include <QMap>
 #include <QSound>
+#include <QLabel>
 #include "streamingacn.h"
 #include "sacnlistener.h"
 #include "sacnsender.h"
@@ -33,22 +34,38 @@ public:
 
     QSpinBox *getSbUniverse() {return m_sbUniverse;}
     QSpinBox *getSbPriority() {return m_sbPriority;}
-    QToolButton *getBtnPlayback() {return m_btnPlayback;}
+    QWidget *getControlWidget() {return m_controlWidget;}
 
     enum e_icons {
         ICON_NONE,
         ICON_PLAY,
         ICON_PAUSE,
         ICON_SNAPSHOT,
-        ICON_EQUAL
     };
 
     const QMap<e_icons, QIcon> icons{
         {ICON_NONE, QIcon()},
         {ICON_PLAY, QIcon(":/icons/play.png")},
         {ICON_PAUSE, QIcon(":/icons/pause.png")},
-        {ICON_SNAPSHOT, QIcon(":/icons/snapshot.png")},
-        {ICON_EQUAL, QIcon(":/icons/equal.png")}
+        {ICON_SNAPSHOT, QIcon(":/icons/snapshot.png")}
+    };
+
+    enum e_statusIcons {
+        STATUSICON_NONE,
+        STATUSICON_MATCHING,
+        STATUSICON_NOTMATCHING
+    };
+
+    const QMap<e_statusIcons, QPixmap> statusIcons{
+        {STATUSICON_NONE, QPixmap()},
+        {STATUSICON_MATCHING, QPixmap(":/icons/ledgreen.png")},
+        {STATUSICON_NOTMATCHING, QPixmap(":/icons/ledred.png")}
+    };
+
+    const QMap<e_statusIcons, QString> statusIconTooltips{
+        {STATUSICON_NONE, QString()},
+        {STATUSICON_MATCHING, tr("The snapshot <i>matches</i> the other sources in this universe")},
+        {STATUSICON_NOTMATCHING, tr("The snapshot <i>does not match</i> the other sources in this universe")}
     };
 
 signals:
@@ -66,7 +83,7 @@ private slots:
     void levelsChanged();
 
 private:
-    QIcon getIcon();
+    void updateIcons();
 
     quint16 m_universe;
     quint8 m_priority;
@@ -76,6 +93,8 @@ private:
     QSpinBox* m_sbUniverse;
     QSpinBox* m_sbPriority;
     QToolButton* m_btnPlayback;
+    QLabel* m_lblStatus;
+    QWidget *m_controlWidget;
     sACNManager::tSender m_sender;
     sACNManager::tListener m_listener;
 

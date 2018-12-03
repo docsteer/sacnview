@@ -104,14 +104,13 @@ void Snapshot::on_btnAddRow_clicked()
     auto name = Preferences::getInstance()->GetDefaultTransmitName().append(tr(" - Snapshot"));
     clsSnapshot* snap = new clsSnapshot(universe, m_cid, name, this);
 
-    snap->getBtnPlayback()->setAutoRaise(true);
     connect(snap, SIGNAL(senderStarted()), this, SLOT(senderStarted()));
     connect(snap, SIGNAL(senderStopped()), this, SLOT(senderStopped()));
     connect(snap, SIGNAL(senderTimedOut()), this, SLOT(senderTimedOut()));
     connect(snap, &clsSnapshot::snapshotTaken, [this]() { ui->btnPlay->setEnabled(true); });
     connect(snap, SIGNAL(snapshotMatches()), this, SLOT(snapshotMatches()));
     connect(snap, SIGNAL(snapshotDiffers()), this, SLOT(snapshotDiffers()));
-    ui->tableWidget->setCellWidget(row, COL_BUTTON, snap->getBtnPlayback());
+    ui->tableWidget->setCellWidget(row, COL_BUTTON, snap->getControlWidget());
     ui->tableWidget->setCellWidget(row, COL_UNIVERSE, snap->getSbUniverse());
     ui->tableWidget->setCellWidget(row, COL_PRIORITY, snap->getSbPriority());
 
@@ -138,7 +137,7 @@ void Snapshot::on_btnRemoveRow_clicked()
         for(auto snap: m_snapshots)
         {
 
-           if (snap->getBtnPlayback() == ui->tableWidget->cellWidget(row, COL_BUTTON))
+           if (snap->getControlWidget() == ui->tableWidget->cellWidget(row, COL_BUTTON))
            {
                ui->tableWidget->removeRow(row);
                m_snapshots.removeOne(snap);
@@ -295,8 +294,8 @@ void Snapshot::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
 
-    int width = (ui->tableWidget->width() - 30) / 2;
-    ui->tableWidget->setColumnWidth(0, 30);
+    int width = (ui->tableWidget->width() - 60) / 2;
+    ui->tableWidget->setColumnWidth(0, 60);
     ui->tableWidget->setColumnWidth(1, width - 3);
 }
 

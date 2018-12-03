@@ -1,5 +1,6 @@
 #include "clssnapshot.h"
 #include <QPainter>
+#include <QHBoxLayout>
 
 clsSnapshot::clsSnapshot(quint16 universe, CID cid, QString name, QWidget *parent) : QWidget(parent),
     m_universe(universe),
@@ -8,6 +9,8 @@ clsSnapshot::clsSnapshot(quint16 universe, CID cid, QString name, QWidget *paren
     m_sbUniverse(new QSpinBox(this)),
     m_sbPriority(new QSpinBox(this)),
     m_btnPlayback(new QToolButton(this)),
+    m_lblStatus(new QLabel(this)),
+    m_controlWidget(new QWidget(this)),
     m_sender(Q_NULLPTR),
     m_listener(Q_NULLPTR),
     m_camera(new QSound(":/sound/camera.wav", this)),
@@ -24,12 +27,22 @@ clsSnapshot::clsSnapshot(quint16 universe, CID cid, QString name, QWidget *paren
     connect(m_sbPriority, (void(QSpinBox::*)(int))&QSpinBox::valueChanged, [this](int value) { setPriority(value); } );
 
     connect(m_btnPlayback, SIGNAL(clicked(bool)), this, SLOT(btnEnableClicked(bool)));
-    m_btnPlayback->setIcon(getIcon());
+    updateIcons();
 
     m_sender = sACNManager::getInstance()->getSender(m_universe, m_cid);
     m_sender->setName(name);
     connect(m_sender.data(), &sACNSentUniverse::sendingTimeout, [this]() { emit senderTimedOut();} );
     setUniverse(m_universe);
+
+    m_btnPlayback->setAutoRaise(true);
+    m_controlWidget->setAutoFillBackground(true);
+    QHBoxLayout *layout = new QHBoxLayout(m_controlWidget);
+    layout->setMargin(0);
+    layout->setContentsMargins(0,0,0,0);
+    layout->addStretch();
+    layout->addWidget(m_btnPlayback);
+    layout->addWidget(m_lblStatus);
+    layout->addStretch();
 }
 
 clsSnapshot::~clsSnapshot() {
@@ -65,16 +78,36 @@ void clsSnapshot::setPriority(quint8 priority) {
     m_sender->setPerSourcePriority(m_priority);
 }
 
-QIcon clsSnapshot::getIcon() {
+void clsSnapshot::updateIcons() {
     if (!hasData())
-        return icons[ICON_SNAPSHOT];
+        m_btnPlayback->setIcon(icons[ICON_SNAPSHOT]);
     else if (m_sender->isSending())
-        if (m_backgroundMatches)
-            return icons[ICON_EQUAL];
-        else
-            return icons[ICON_PAUSE];
+    {
+        m_btnPlayback->setIcon(icons[ICON_PAUSE]);
+    }
     else
-        return icons[ICON_PLAY];
+        m_btnPlayback->setIcon(icons[ICON_PLAY]);
+
+    if(!hasData())
+    {
+        m_lblStatus->setPixmap(statusIcons[STATUSICON_NONE]);
+        m_lblStatus->setToolTip(statusIconTooltips[STATUSICON_NONE]);
+    }
+    else if(!m_sender->isSending())
+    {
+        m_lblStatus->setPixmap(statusIcons[STATUSICON_NONE]);
+        m_lblStatus->setToolTip(statusIconTooltips[STATUSICON_NONE]);
+    }
+    else if(m_backgroundMatches)
+    {
+        m_lblStatus->setPixmap(statusIcons[STATUSICON_MATCHING]);
+        m_lblStatus->setToolTip(statusIconTooltips[STATUSICON_MATCHING]);
+    }
+    else
+    {
+        m_lblStatus->setPixmap(statusIcons[STATUSICON_NOTMATCHING]);
+        m_lblStatus->setToolTip(statusIconTooltips[STATUSICON_NOTMATCHING]);
+    }
 }
 
 void clsSnapshot::takeSnapshot() {
@@ -89,7 +122,7 @@ void clsSnapshot::takeSnapshot() {
             m_levelData.append(m_listener->mergedLevels().at(addr).level);
     }
 
-    m_btnPlayback->setIcon(getIcon());
+    updateIcons();
 
     emit snapshotTaken();
 }
@@ -97,25 +130,25 @@ void clsSnapshot::takeSnapshot() {
 void clsSnapshot::playSnapshot() {
     if (!hasData())
     {
-        m_btnPlayback->setIcon(getIcon());
+        updateIcons();
         return;
     }
 
     m_sender->startSending();
     m_sender->setLevel(reinterpret_cast<const quint8*>(m_levelData.constData()), std::min(m_levelData.count(), MAX_DMX_ADDRESS));
-    m_btnPlayback->setIcon(getIcon());
+    updateIcons();
     emit senderStarted();
 }
 
 void clsSnapshot::stopSnapshot() {
     if (!hasData())
     {
-        m_btnPlayback->setIcon(getIcon());
+        updateIcons();
         return;
     }
 
     m_sender->stopSending();
-    m_btnPlayback->setIcon(getIcon());
+    updateIcons();
     emit senderStopped();
 }
 
@@ -184,6 +217,6 @@ void clsSnapshot::levelsChanged()
     }
 
     m_backgroundMatches = (background == m_levelData);
-    m_btnPlayback->setIcon(getIcon());
+    updateIcons();
 }
 
