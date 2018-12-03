@@ -120,7 +120,7 @@ void sACNSentUniverse::stopSending()
 
 void sACNSentUniverse::setLevel(quint16 address, quint8 value)
 {
-    Q_ASSERT(address<m_slotCount);
+    Q_ASSERT(address<DMX_SLOT_MAX);
     if(isSending())
     {
         m_slotData[address] =  value;
@@ -130,8 +130,8 @@ void sACNSentUniverse::setLevel(quint16 address, quint8 value)
 
 void sACNSentUniverse::setLevelRange(quint16 start, quint16 end, quint8 value)
 {
-    Q_ASSERT(start<m_slotCount);
-    Q_ASSERT(end<m_slotCount);
+    Q_ASSERT(start<DMX_SLOT_MAX);
+    Q_ASSERT(end<DMX_SLOT_MAX);
     Q_ASSERT(start<=end);
     if(isSending())
     {
@@ -142,6 +142,7 @@ void sACNSentUniverse::setLevelRange(quint16 start, quint16 end, quint8 value)
 
 void sACNSentUniverse::setLevel(const quint8 *data, int len, int start)
 {
+    Q_ASSERT((start + len)<DMX_SLOT_MAX);
     if(isSending())
     {
         memcpy(m_slotData + start, data, len);
