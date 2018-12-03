@@ -692,7 +692,7 @@ void transmitwindow::presetButtonPressed()
     {
         // Play back a preset
         QByteArray baPreset = Preferences::getInstance()->GetPreset(index);
-        m_sender->setLevel((const quint8*)baPreset.constData(), m_slotCount);
+        if (m_sender) m_sender->setLevel((const quint8*)baPreset.constData(), m_slotCount);
         // Apply it to the faders
         int addr = ui->sbFadersStart->value()-1;
         for(int i=0; i<m_sliders.count(); i++)
@@ -726,7 +726,7 @@ void transmitwindow::setLevels(QSet<int> addresses, int level)
     foreach(int addr, addresses)
     {
         addr -= 1; // Convert to 0-based
-        m_sender->setLevel(addr, level);
+        if (m_sender) m_sender->setLevel(addr, level);
         m_levels[addr] = level;
         int pos = addr - (ui->sbFadersStart->value() - 1);
         if(pos>= 0 && pos<m_sliders.count())
