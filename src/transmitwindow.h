@@ -87,6 +87,7 @@ private:
 
     void setUniverseOptsEnabled(bool enabled);
     void updateTitle();
+    void updateEnabled();
     Ui::transmitwindow *ui;
     QList<QSlider *> m_sliders;
     QList<QLabel *> m_sliderLabels;

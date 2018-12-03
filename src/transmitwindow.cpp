@@ -260,12 +260,7 @@ void transmitwindow::on_sliderMoved(int value)
 
 void transmitwindow::on_sbFadersStart_valueChanged(int value)
 {
-    int maxValue = m_slotCount - NUM_SLIDERS + 1;
-    if (value > maxValue)
-    {
-        ui->sbFadersStart->setValue(maxValue);
-        return;
-    }
+    updateEnabled();
 
     for(int i=0; i<m_sliders.count(); i++)
     {
@@ -786,8 +781,20 @@ void transmitwindow::on_sbSlotCount_valueChanged(int arg1)
     ui->sbFadeRangeEnd->setValue(std::min(static_cast<decltype(m_slotCount)>(ui->sbFadeRangeEnd->value()), m_slotCount));
     ui->sbFadeRangeEnd->setMaximum(m_slotCount);
 
+    ui->sbFadersStart->setMinimum(MIN_DMX_ADDRESS);
     ui->sbFadersStart->setMaximum(m_slotCount);
     on_sbFadersStart_valueChanged(ui->sbFadersStart->value());
 
+    updateEnabled();
+
     ui->lcdNumber->display(std::min(static_cast<decltype(m_slotCount)>(ui->lcdNumber->value()), m_slotCount));
+}
+
+void transmitwindow::updateEnabled()
+{
+    auto offset = ui->sbFadersStart->value() - 1;
+    for (int n = offset; n < m_sliders.count() + offset; n++)
+    {
+        m_sliders[n - offset]->setEnabled(!(m_slotCount - n <= 0));
+    }
 }
