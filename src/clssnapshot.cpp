@@ -108,6 +108,10 @@ void clsSnapshot::updateIcons() {
         m_lblStatus->setPixmap(statusIcons[STATUSICON_NOTMATCHING]);
         m_lblStatus->setToolTip(statusIconTooltips[STATUSICON_NOTMATCHING]);
     }
+
+    // Enabled status
+    m_sbUniverse->setEnabled(!isPlaying());
+    m_sbPriority->setEnabled(!isPlaying());
 }
 
 void clsSnapshot::takeSnapshot() {

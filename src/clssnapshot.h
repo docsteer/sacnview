@@ -24,7 +24,7 @@ public:
 
     bool hasData() { return !m_levelData.isEmpty(); }
 
-    bool isPlaying() { return m_sender->isSending(); }
+    bool isPlaying() { return (m_sender ? m_sender->isSending() : false); }
 
     quint16 getUniverse() {return m_universe;}
     void setUniverse(quint16 universe);

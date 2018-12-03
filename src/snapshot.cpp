@@ -167,14 +167,6 @@ void Snapshot::setState(state s)
         ui->lbTimer->hide();
         ui->btnAddRow->setEnabled(true);
         on_tableWidget_itemSelectionChanged();
-
-        for(auto snap: m_snapshots)
-        {
-            snap->getSbUniverse()->setEnabled(true);
-            snap->getSbPriority()->setEnabled(true);
-            if (snap->hasData())
-                ui->btnPlay->setEnabled(true);
-        }
         break;
     case stCountDown5:
         Q_FALLTHROUGH();
@@ -191,11 +183,6 @@ void Snapshot::setState(state s)
         ui->lbTimer->setText(QString::number(1+stCountDown1 - s));
         ui->lbTimer->show();
         m_beep->play();
-        for(auto snap: m_snapshots)
-        {
-            snap->getSbUniverse()->setEnabled(false);
-            snap->getSbPriority()->setEnabled(false);
-        }
         m_countdown->start(1000);
         break;
     case stReadyPlayback:
@@ -215,11 +202,6 @@ void Snapshot::setState(state s)
         ui->lbTimer->hide();
         ui->btnAddRow->setEnabled(false);
         ui->btnRemoveRow->setEnabled(false);
-        for(auto snap: m_snapshots)
-        {
-            snap->getSbUniverse()->setEnabled(false);
-            snap->getSbPriority()->setEnabled(false);
-        }
         break;
     }
     m_state = s;
