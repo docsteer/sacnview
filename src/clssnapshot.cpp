@@ -176,22 +176,28 @@ void clsSnapshot::levelsChanged()
         if ((merged.winningSource) && (merged.winningSource->src_cid == m_sender->cid()))
         {
             // I'm winning....
-            // ...find highest background priority
-            int priority = 0;
-            for (auto source: merged.otherSources)
+            if (merged.otherSources.isEmpty())
             {
-                if (source->doing_per_channel)
+                //...and the only source
+                level = merged.level;
+            } else {
+                // ...find highest background priority
+                int priority = 0;
+                for (auto source: merged.otherSources)
                 {
-                    if (source->priority_array[addr] > priority)
+                    if (source->doing_per_channel)
                     {
-                        priority = source->priority;
-                        level = source->level_array[addr];
-                    }
-                } else {
-                    if (source->priority > priority)
-                    {
-                        priority = source->priority;
-                        level = source->level_array[addr];
+                        if (source->priority_array[addr] > priority)
+                        {
+                            priority = source->priority;
+                            level = source->level_array[addr];
+                        }
+                    } else {
+                        if (source->priority > priority)
+                        {
+                            priority = source->priority;
+                            level = source->level_array[addr];
+                        }
                     }
                 }
             }
