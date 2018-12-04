@@ -64,3 +64,5 @@ install/linux/build/
 install/linux/fpm-checkout/
 
 translations/sACNView\.ts
+
+libs/\.gclient_entries

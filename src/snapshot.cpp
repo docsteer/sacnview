@@ -1,29 +1,76 @@
 #include "snapshot.h"
 #include "ui_snapshot.h"
+#include "qt56.h"
 #include "consts.h"
-#include "sacnlistener.h"
-#include "sacnsender.h"
 #include "preferences.h"
 #include <QTimer>
 #include <QSound>
 #include <QSpinBox>
 
+Snapshot::PlaybackBtn::PlaybackBtn(QWidget *parent) : QToolButton(parent)
+{
+    setPlay();
+}
+
+void Snapshot::PlaybackBtn::setPlay()
+{
+    this->setIcon(QIcon(":/icons/play.png"));
+    this->setText(tr("Playback All Snapshots"));
+}
+
+void Snapshot::PlaybackBtn::setPause()
+{
+    this->setIcon(QIcon(":/icons/pause.png"));
+    this->setText(tr("Stop All Playback"));
+}
+
+Snapshot::InfoLbl::InfoLbl(QWidget *parent) : QLabel(parent)
+{
+    setText(stSetup);
+}
+
+void Snapshot::InfoLbl::setText(Snapshot::state state)
+{
+    switch (state)
+    {
+        case stSetup:
+            setText(tr("Add the universes you want to capture, then press Snapshot to capture a look"));
+            break;
+        case stCountDown5:
+            Q_FALLTHROUGH();
+        case stCountDown4:
+            Q_FALLTHROUGH();
+        case stCountDown3:
+            Q_FALLTHROUGH();
+        case stCountDown2:
+            Q_FALLTHROUGH();
+        case stCountDown1:
+            setText(tr("Capturing snapshot in..."));
+            break;
+        case stReadyPlayback:
+            Q_FALLTHROUGH();
+        case stReplay:
+            setText(tr("Press Play to playback snapshot"));
+            break;
+        case stPlayback:
+            setText(tr("Replaying Data"));
+            break;
+    }
+}
+
 Snapshot::Snapshot(int firstUniverse, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Snapshot),
-    m_listeners(QList<sACNManager::tListener>()),
-    m_senders(QList<sACNManager::tSender>()),
+    m_countdown(new QTimer(this)),
+    m_camera(new QSound(":/sound/camera.wav", this)),
+    m_beep(new QSound(":/sound/beep.wav", this)),
     m_firstUniverse(firstUniverse)
 {
     ui->setupUi(this);
 
     m_cid = CID::CreateCid();
 
-    m_countdown = new QTimer(this);
     connect(m_countdown, SIGNAL(timeout()), this, SLOT(counterTick()));
-
-    m_camera = new QSound(":/sound/camera.wav", this);
-    m_beep = new QSound(":/sound/beep.wav", this);
 
     setState(stSetup);
 }
@@ -34,279 +81,233 @@ Snapshot::~Snapshot()
     delete ui;
 }
 
-void Snapshot::on_btnAddRow_pressed()
+
+Snapshot::state& operator++(Snapshot::state& s) // Prefix
+{
+    switch (s)
+    {
+        case Snapshot::state::stCountDown5: return s = Snapshot::state::stCountDown4;
+        case Snapshot::state::stCountDown4: return s = Snapshot::state::stCountDown3;
+        case Snapshot::state::stCountDown3: return s = Snapshot::state::stCountDown2;
+        case Snapshot::state::stCountDown2: return s = Snapshot::state::stCountDown1;
+        case Snapshot::state::stCountDown1: return s = Snapshot::state::stReadyPlayback;
+        default: return s;
+    }
+}
+
+void Snapshot::on_btnAddRow_clicked()
 {
     int row = ui->tableWidget->rowCount();
     ui->tableWidget->setRowCount(row + 1);
 
-    QToolButton *btnStartStop = new QToolButton(this);
-    btnStartStop->setAutoRaise(true);
-    m_enableButtons << btnStartStop;
-    ui->tableWidget->setCellWidget(row, COL_BUTTON, btnStartStop);
-    btnStartStop->setVisible(false);
-    connect(btnStartStop, SIGNAL(pressed()), this, SLOT(pauseSourceButtonPressed()));
+    auto universe = m_snapshots.isEmpty() ? m_firstUniverse : m_snapshots.last()->getUniverse() + 1;
+    auto name = Preferences::getInstance()->GetDefaultTransmitName().append(tr(" - Snapshot"));
+    clsSnapshot* snap = new clsSnapshot(universe, m_cid, name, this);
 
-    QSpinBox *sbUniverse = new QSpinBox(this);
-    sbUniverse->setMinimum(MIN_SACN_UNIVERSE);
-    sbUniverse->setMaximum(MAX_SACN_UNIVERSE);
-    if(m_universeSpins.count()>0)
-        sbUniverse->setValue(m_universeSpins.last()->value()+1);
-    else
-        sbUniverse->setValue(m_firstUniverse);
+    connect(snap, SIGNAL(senderStarted()), this, SLOT(senderStarted()));
+    connect(snap, SIGNAL(senderStopped()), this, SLOT(senderStopped()));
+    connect(snap, SIGNAL(senderTimedOut()), this, SLOT(senderTimedOut()));
+    connect(snap, &clsSnapshot::snapshotTaken, [this]() { ui->btnPlay->setEnabled(true); });
+    connect(snap, SIGNAL(snapshotMatches()), this, SLOT(snapshotMatches()));
+    connect(snap, SIGNAL(snapshotDiffers()), this, SLOT(snapshotDiffers()));
+    ui->tableWidget->setCellWidget(row, COL_BUTTON, snap->getControlWidget());
+    ui->tableWidget->setCellWidget(row, COL_UNIVERSE, snap->getSbUniverse());
+    ui->tableWidget->setCellWidget(row, COL_PRIORITY, snap->getSbPriority());
 
-    ui->tableWidget->setCellWidget(row, COL_UNIVERSE, sbUniverse);
-    m_universeSpins << sbUniverse;
-
-    QSpinBox *sbPriority = new QSpinBox(this);
-    sbPriority->setMinimum(MIN_SACN_PRIORITY);
-    sbPriority->setMaximum(MAX_SACN_PRIORITY);
-    sbPriority->setValue(DEFAULT_SACN_PRIORITY);
-    ui->tableWidget->setCellWidget(row, COL_PRIORITY, sbPriority);
-    m_prioritySpins << sbPriority;
-
-    ui->btnSnapshot->setEnabled(ui->tableWidget->rowCount()>0);
     setState(stSetup);
+
+    m_snapshots.append(snap);
 }
 
-void Snapshot::on_btnRemoveRow_pressed()
+void Snapshot::on_btnRemoveRow_clicked()
 {
-    int row = ui->tableWidget->currentRow();
-    ui->tableWidget->removeRow(row);
+    // Get selected rows
+    QList<int> rows;
+    for(auto selection: ui->tableWidget->selectionModel()->selectedRows())
+    {
+        rows << selection.row();
+    }
+
+    // Sort backwards
+    std::sort(rows.rbegin(), rows.rend());
+
+    // Remove from bottom
+    for(auto row: rows)
+    {
+        for(auto snap: m_snapshots)
+        {
+
+           if (snap->getControlWidget() == ui->tableWidget->cellWidget(row, COL_BUTTON))
+           {
+               ui->tableWidget->removeRow(row);
+               m_snapshots.removeOne(snap);
+               snap->deleteLater();
+               break;
+           }
+        }
+    }
+    ui->tableWidget->clearSelection();
     ui->btnSnapshot->setEnabled(ui->tableWidget->rowCount()>0);
     setState(stSetup);
-    m_universeSpins.removeAt(row);
-    m_prioritySpins.removeAt(row);
-    m_enableButtons.removeAt(row);
 }
 
 void Snapshot::setState(state s)
 {
+    // Info Label Text
+    ui->lbInfo->setText(s);
+
+    // Play Button Text and Icon
+    btnPlay_update();
+
     switch(s)
     {
     case stSetup:
-        stopSnapshot();
-        if(m_snapshotData.isEmpty())
-            ui->btnReplay->hide();
-        else
-            ui->btnReplay->show();
         ui->btnPlay->setEnabled(false);
         ui->btnSnapshot->setEnabled(ui->tableWidget->rowCount()>0);
-        ui->lbTimer->setText("");
+        ui->lbTimer->hide();
         ui->btnAddRow->setEnabled(true);
-        ui->btnRemoveRow->setEnabled(true);
-        ui->btnPlay->setText(tr("Play Back Snapshot"));
-        ui->btnPlay->setIcon(QIcon(":/icons/play.png"));
-        ui->lbInfo->setText(tr("Add the universes you want to capture, then press Snapshot to capture a look"));
-        foreach(QSpinBox *s, m_universeSpins)
-            s->setEnabled(true);
-        foreach(QSpinBox *s, m_prioritySpins)
-            s->setEnabled(true);
-        foreach(QToolButton *t, m_enableButtons)
-        {
-            t->setVisible(false);
-            t->setIcon(QIcon());
-        }
+        on_tableWidget_itemSelectionChanged();
         break;
     case stCountDown5:
+        Q_FALLTHROUGH();
     case stCountDown4:
+        Q_FALLTHROUGH();
     case stCountDown3:
+        Q_FALLTHROUGH();
     case stCountDown2:
+        Q_FALLTHROUGH();
     case stCountDown1:
-        ui->btnReplay->hide();
         ui->btnAddRow->setEnabled(false);
         ui->btnRemoveRow->setEnabled(false);
         ui->btnSnapshot->setEnabled(false);
-        ui->lbInfo->setText(tr("Capturing snapshot in..."));
         ui->lbTimer->setText(QString::number(1+stCountDown1 - s));
-        ui->btnPlay->setText(tr("Play Back Snapshot"));
-        ui->btnPlay->setIcon(QIcon(":/icons/play.png"));
+        ui->lbTimer->show();
         m_beep->play();
-        foreach(QSpinBox *s, m_universeSpins)
-            s->setEnabled(false);
-        foreach(QSpinBox *s, m_prioritySpins)
-            s->setEnabled(false);
-        foreach(QToolButton *t, m_enableButtons)
-            t->setVisible(false);
+        m_countdown->start(1000);
         break;
     case stReadyPlayback:
-        ui->btnReplay->hide();
-        ui->btnPlay->setEnabled(true);
-        ui->btnSnapshot->setEnabled(true);
-        ui->lbTimer->setText("");
-        ui->btnAddRow->setEnabled(true);
-        ui->btnRemoveRow->setEnabled(true);
-        ui->lbInfo->setText(tr("Press Play to playback snapshot"));
-        ui->btnPlay->setText(tr("Play Back Snapshot"));
-        ui->btnPlay->setIcon(QIcon(":/icons/play.png"));
         m_camera->play();
         saveSnapshot();
-        foreach(QSpinBox *s, m_universeSpins)
-            s->setEnabled(true);
-        foreach(QSpinBox *s, m_prioritySpins)
-            s->setEnabled(true);
-        foreach(QToolButton *t, m_enableButtons)
-            t->setVisible(false);
-        break;
+        Q_FALLTHROUGH();
     case stReplay:
+        ui->btnPlay->setEnabled(true);
+        ui->btnSnapshot->setEnabled(true);
+        ui->lbTimer->hide();
+        ui->btnAddRow->setEnabled(true);
+        on_tableWidget_itemSelectionChanged();
+        break;
     case stPlayback:
-        ui->btnReplay->hide();
         ui->btnPlay->setEnabled(true);
         ui->btnSnapshot->setEnabled(false);
-        ui->lbTimer->setText("");
-        ui->lbInfo->setText(tr("Playing Back Data"));
+        ui->lbTimer->hide();
         ui->btnAddRow->setEnabled(false);
         ui->btnRemoveRow->setEnabled(false);
-        ui->btnPlay->setText(tr("Stop Playback"));
-        ui->btnPlay->setIcon(QIcon(":/icons/pause.png"));
-        playSnapshot();
-        foreach(QSpinBox *s, m_universeSpins)
-            s->setEnabled(false);
-        foreach(QSpinBox *s, m_prioritySpins)
-            s->setEnabled(false);
-        foreach(QToolButton *t, m_enableButtons)
-        {
-            t->setVisible(true);
-            t->setIcon(QIcon(":/icons/pause.png"));
-        }
         break;
     }
     m_state = s;
-
-    foreach(QToolButton *t, m_enableButtons)
-        qDebug() << "Toolbutton vis " << t->isVisible();
-
 }
 
 void Snapshot::counterTick()
 {
-    if(m_state < stReadyPlayback)
-    {
-        setState((state)((int)m_state+1));
-    }
+    if(m_state != stReadyPlayback)
+        setState(++m_state);
     else
         m_countdown->stop();
 }
 
 void Snapshot::on_btnSnapshot_pressed()
 {
-    for(int i=0; i<ui->tableWidget->rowCount(); i++)
-    {
-        int universe = m_universeSpins[i]->value();
-
-        sACNManager *manager = sACNManager::getInstance();
-        m_listeners << manager->getListener(universe);
-    }
-    m_countdown->start(1000);
     setState(stCountDown5);
+}
+
+void Snapshot::btnPlay_update(bool updateState)
+{
+    bool displayPause = false;
+    for(auto snap: m_snapshots)
+        if (snap->isPlaying())
+            displayPause = true;
+    if (displayPause)
+    {
+        ui->btnPlay->setPause();
+        if (updateState && m_state != stPlayback)
+            setState(stPlayback);
+    }
+    else
+    {
+        ui->btnPlay->setPlay();
+        if (updateState && m_state != stReplay)
+            setState(stReplay);
+    }
 }
 
 void Snapshot::on_btnPlay_pressed()
 {
-    if(m_state!=stPlayback && m_state!= stReplay)
+    if(m_state!=stPlayback)
+    {
+        playSnapshot();
         setState(stPlayback);
+    }
     else
-        setState(stSetup);
-}
-
-void Snapshot::on_btnReplay_pressed()
-{
-    setState(stReplay);
+    {
+        stopSnapshot();
+        setState(stReplay);
+    }
 }
 
 void Snapshot::saveSnapshot()
 {
-    m_snapshotData.clear();
-
-    for(int i=0; i<m_listeners.count(); i++)
-    {
-        QByteArray b;
-        for(int j=0; j<MAX_DMX_ADDRESS; j++)
-        {
-            int level = m_listeners[i]->mergedLevels().at(j).level;
-
-            if(level>0) {
-#if QT_VERSION >= 0x050700
-                b.append(1, (char) level);
-#else
-                b.append(QByteArray().fill((char)level, 1));
-#endif
-            }
-            else {
-#if QT_VERSION >= 0x050700
-                b.append(1, 0);
-#else
-                b.append(QByteArray().fill(0, 1));
-#endif
-            }
-        }
-        m_snapshotData << b;
-    }
-
-    // Free up the listeners
-    m_listeners.clear();
-
+    for(auto snap: m_snapshots)
+        snap->takeSnapshot();
 }
 
 void Snapshot::playSnapshot()
 {
-    for(int i=0; i<m_snapshotData.count(); i++)
-    {
-        m_senders << sACNManager::getInstance()->getSender(m_universeSpins[i]->value(), m_cid);
-
-        {
-            QString name = Preferences::getInstance()->GetDefaultTransmitName();
-            QString postfix = tr(" - Snapshot");
-            name.truncate(MAX_SOURCE_NAME_LEN - postfix.length());
-            m_senders.last().data()->setName(name.trimmed() + postfix);
-            m_senders.last().data()->setPerSourcePriority(m_prioritySpins[i]->value());
-        }
-
-        m_senders.last().data()->startSending();
-        m_senders.last().data()->setLevel((const quint8*)m_snapshotData[i].constData(), MAX_DMX_ADDRESS);
-        connect(m_senders.last().data(), SIGNAL(sendingTimeout()), this, SLOT(senderTimedOut()));
-    }
+    for(auto snap: m_snapshots)
+        snap->playSnapshot();
 }
 
 void Snapshot::stopSnapshot()
 {
-    for(int i=0; i<m_senders.count(); i++)
-            m_senders[i].data()->deleteLater();
-    m_senders.clear();
+    for(auto snap: m_snapshots)
+        snap->stopSnapshot();
 }
 
 void Snapshot::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
 
-    int width = (ui->tableWidget->width() - 30) / 2;
-    ui->tableWidget->setColumnWidth(0, 30);
+    int width = (ui->tableWidget->width() - 60) / 2;
+    ui->tableWidget->setColumnWidth(0, 60);
     ui->tableWidget->setColumnWidth(1, width - 3);
 }
 
 void Snapshot::senderTimedOut()
 {
-    setState(stSetup);
+    senderStopped();
 }
 
-void Snapshot::pauseSourceButtonPressed()
+void Snapshot::senderStarted()
 {
-    QToolButton *btn = dynamic_cast<QToolButton *>(sender());
-    if(!btn) return;
-    qDebug() << "Btn Vis is " << btn->isVisible();
-    int index = m_enableButtons.indexOf(btn);
-    if(index<0 || index >= m_senders.count()) return;
+//    clsSnapshot *snap = dynamic_cast<clsSnapshot *>(sender());
+//    if (!snap) return;
+    btnPlay_update(true);
+}
 
-    sACNSentUniverse *sender = m_senders[index].data();
+void Snapshot::senderStopped()
+{
+//    clsSnapshot *snap = dynamic_cast<clsSnapshot *>(sender());
+//    if (!snap) return;
+    btnPlay_update(true);
+}
 
-    if(sender->isSending())
-    {
-        // Stop it
-        btn->setIcon(QIcon(":/icons/play.png"));
-        sender->stopSending();
-    }
+void Snapshot::on_tableWidget_itemSelectionChanged()
+{
+    if (
+            (m_state == stReadyPlayback) ||
+            (m_state == stReplay) ||
+            (m_state == stSetup)
+        )
+        ui->btnRemoveRow->setEnabled(!ui->tableWidget->selectionModel()->selectedRows().isEmpty());
     else
-    {
-        btn->setIcon(QIcon(":/icons/pause.png"));
-        sender->startSending();
-    }
+       ui->btnRemoveRow->setEnabled(false);
 }
