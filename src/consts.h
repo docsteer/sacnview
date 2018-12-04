@@ -119,6 +119,9 @@ static const QList<qreal> FX_FADE_RATES({
                                          2,
                                          5,
                                          10,
+                                         25,
+                                         50,
+                                         75,
                                          100,
                                          500
                                      });
