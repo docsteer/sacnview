@@ -1245,76 +1245,97 @@ This feature is unavailable</source>
         <translation>Snapshot</translation>
     </message>
     <message>
-        <location filename="../ui/snapshot.ui" line="36"/>
+        <location filename="../ui/snapshot.ui" line="51"/>
         <source>Universe</source>
         <translation>Universo</translation>
     </message>
     <message>
-        <location filename="../ui/snapshot.ui" line="41"/>
+        <location filename="../ui/snapshot.ui" line="56"/>
         <source>Priority</source>
         <translation>Prioridad</translation>
     </message>
     <message>
-        <location filename="../ui/snapshot.ui" line="51"/>
-        <location filename="../ui/snapshot.ui" line="68"/>
+        <location filename="../ui/snapshot.ui" line="75"/>
+        <location filename="../ui/snapshot.ui" line="111"/>
         <source>...</source>
         <translation>...</translation>
     </message>
     <message>
-        <location filename="../ui/snapshot.ui" line="94"/>
-        <source>Taking Snapshot in</source>
-        <translation>Tomando Snapshot en</translation>
+        <location filename="../ui/snapshot.ui" line="136"/>
+        <source>{INFO LABEL}</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/snapshot.ui" line="115"/>
+        <location filename="../ui/snapshot.ui" line="179"/>
+        <source>Take All Snapshots</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/snapshot.ui" line="205"/>
+        <source>{PLAY BUTTON}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Taking Snapshot in</source>
+        <translation type="vanished">Tomando Snapshot en</translation>
+    </message>
+    <message>
+        <location filename="../ui/snapshot.ui" line="163"/>
         <source>5</source>
         <translation>5</translation>
     </message>
     <message>
-        <location filename="../ui/snapshot.ui" line="131"/>
         <source>Take Snapshot</source>
-        <translation>Tomar Snapshot</translation>
+        <translation type="vanished">Tomar Snapshot</translation>
     </message>
     <message>
-        <location filename="../ui/snapshot.ui" line="157"/>
-        <location filename="../src/snapshot.cpp" line="97"/>
-        <location filename="../src/snapshot.cpp" line="121"/>
-        <location filename="../src/snapshot.cpp" line="139"/>
         <source>Play Back Snapshot</source>
-        <translation>Reproducir Snapshot</translation>
+        <translation type="vanished">Reproducir Snapshot</translation>
     </message>
     <message>
-        <location filename="../ui/snapshot.ui" line="183"/>
         <source>Replay Last Snapshot</source>
-        <translation>Reproducir el último Snapshot</translation>
+        <translation type="vanished">Reproducir el último Snapshot</translation>
     </message>
     <message>
-        <location filename="../src/snapshot.cpp" line="99"/>
+        <location filename="../src/snapshot.cpp" line="18"/>
+        <source>Playback All Snapshots</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/snapshot.cpp" line="24"/>
+        <source>Stop All Playback</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/snapshot.cpp" line="37"/>
         <source>Add the universes you want to capture, then press Snapshot to capture a look</source>
         <translation>Agregue los universos que quiere capturar, y despues hace clic en Snapshot para capturar una escena</translation>
     </message>
     <message>
-        <location filename="../src/snapshot.cpp" line="119"/>
+        <location filename="../src/snapshot.cpp" line="48"/>
         <source>Capturing snapshot in...</source>
         <translation>Tomando Snapshot en...</translation>
     </message>
     <message>
-        <location filename="../src/snapshot.cpp" line="138"/>
+        <location filename="../src/snapshot.cpp" line="53"/>
         <source>Press Play to playback snapshot</source>
         <translation>Haga clic para reproducir el Snapshot</translation>
     </message>
     <message>
-        <location filename="../src/snapshot.cpp" line="156"/>
+        <location filename="../src/snapshot.cpp" line="56"/>
+        <source>Replaying Data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Playing Back Data</source>
-        <translation>Reproduciendo datos</translation>
+        <translation type="vanished">Reproduciendo datos</translation>
     </message>
     <message>
-        <location filename="../src/snapshot.cpp" line="159"/>
         <source>Stop Playback</source>
-        <translation>Detener la reproducción</translation>
+        <translation type="vanished">Detener la reproducción</translation>
     </message>
     <message>
-        <location filename="../src/snapshot.cpp" line="258"/>
+        <location filename="../src/snapshot.cpp" line="104"/>
         <source> - Snapshot</source>
         <translation> - Snapshot</translation>
     </message>
@@ -1641,6 +1662,19 @@ Otra fuente : %1 @ %2 (Prioridad %3)</translation>
         <location filename="../src/aboutdialog.cpp" line="172"/>
         <source>Failed</source>
         <translation>Fallado</translation>
+    </message>
+</context>
+<context>
+    <name>clsSnapshot</name>
+    <message>
+        <location filename="../src/clssnapshot.h" line="67"/>
+        <source>The snapshot &lt;i&gt;matches&lt;/i&gt; the other sources in this universe</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/clssnapshot.h" line="68"/>
+        <source>The snapshot &lt;i&gt;does not match&lt;/i&gt; the other sources in this universe</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

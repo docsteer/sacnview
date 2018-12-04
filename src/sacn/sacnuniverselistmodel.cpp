@@ -213,6 +213,10 @@ void sACNUniverseListModel::sourceOnline(sACNSource *source)
     info->address = source->ip;
     info->name = source->name == NULL ? tr("????") : source->name;
 
+    // Prevent duplicates
+    if (m_universes[univIndex]->sourcesByCid.value(source->src_cid))
+        return;
+
     // We are adding the source for this universe
     QModelIndex parent = index(m_start - info->universe, 0);
     int firstRow = m_universes[univIndex]->sources.count()+1;
