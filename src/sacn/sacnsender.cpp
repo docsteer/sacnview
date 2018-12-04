@@ -146,9 +146,8 @@ void sACNSentUniverse::setLevelRange(quint16 start, quint16 end, quint8 value)
 
 void sACNSentUniverse::setLevel(const quint8 *data, int len, int start)
 {
-    Q_ASSERT((start + len)<DMX_SLOT_MAX);
-    if ((start + len>=m_slotCount))
-        return;
+    Q_ASSERT((start + len)<=DMX_SLOT_MAX);
+    len = qMin(len, static_cast<decltype(len)>(m_slotCount));
     if(isSending())
     {
         memcpy(m_slotData + start, data, len);

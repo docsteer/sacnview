@@ -554,11 +554,8 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
 
         case tabSliders:
         {
-            // Reassert slider levels
-            auto address = ui->sbFadersStart->value() - 1;
-            for (auto slider : m_sliders) {
-                m_sender->setLevel(address++, slider->value());
-            }
+            // Reassert fader and programmer levels
+            m_sender->setLevel(m_levels.data(),m_levels.size());
             ui->teCommandline->setFocus();
             break;
         }
