@@ -473,6 +473,8 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
             // Fill in the new array
             memset(ps->level_array, 0, DMX_SLOT_MAX);
             memcpy(ps->level_array, pdata, slot_count);
+            // Set slot count
+            ps->slot_count = slot_count;
             // Compare the two
             for(int i=0; i<DMX_SLOT_MAX; i++)
             {
@@ -650,8 +652,10 @@ void sACNListener::performMerge()
 
 			if (
 					ps->src_valid // Valid Source
+                    && !ps->active.Expired() // Not expired
 					&& !(ps->priority_array[address] < priorities[address]) // Not lesser priority
-					&& ( (ps->priority_array[address] > 0) || (ps->priority_array[address] == 0 && !ps->doing_per_channel) ) // Priority > 0 if DD
+                    && ( (ps->priority_array[address] > 0) || (ps->priority_array[address] == 0 && !ps->doing_per_channel) ) // Priority > 0 if DD
+                    && (address < ps->slot_count) // Sending the required slot
 				)
 			{
 				if (ps->priority_array[address] > priorities[address])
@@ -663,7 +667,11 @@ void sACNListener::performMerge()
 				addressToSourceMap.insert(address, ps);
 			}
 
-            if(ps->src_valid && !ps->active.Expired())
+            if(
+                    ps->src_valid // Valid Source
+                    && !ps->active.Expired() // Not Expired
+                    && (address < ps->slot_count) // Sending the required slot
+                )
                 m_merged_levels[addresses_to_merge[i]].otherSources.insert(ps);
         }
     }

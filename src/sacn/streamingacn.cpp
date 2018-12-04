@@ -50,23 +50,25 @@
 #include <QDebug>
 #endif
 
-sACNSource::sACNSource()
+sACNSource::sACNSource() :
+    src_valid(false),
+    lastseq(0),
+    waited_for_dd(false),
+    doing_dmx(false), //if true, we are processing dmx data from this source
+    doing_per_channel(false),  //If true, we are tracking per-channel priority messages for this source
+    isPreview(false),
+    universe(0),
+    slot_count(0),
+    priority(0),
+    fpsCounter(0),
+    fps(0),
+    seqErr(0),
+    jumps(0)
 {
-    src_valid = false;
-    lastseq = 0;
-    waited_for_dd = false;
-    doing_dmx = false; //if true, we are processing dmx data from this source
-    doing_per_channel = false;  //If true, we are tracking per-channel priority messages for this source
-    isPreview = false;
-    universe = 0;
     std::fill(level_array, level_array + sizeof(level_array), 0);
     std::fill(priority_array, priority_array + sizeof(priority_array), 0);
-    priority = 0;
+
     fpsTimer.start();
-    fpsCounter = 0;
-    fps = 0;
-    seqErr = 0;
-    jumps = 0;
 }
 
 QString sACNSource::cid_string()

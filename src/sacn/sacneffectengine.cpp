@@ -53,6 +53,8 @@ sACNEffectEngine::sACNEffectEngine(sACNManager::tSender sender) : QObject(NULL),
     moveToThread(m_thread);
     connect(m_thread, &QThread::finished, this, &QObject::deleteLater);
     m_thread->start();
+
+    connect(m_sender, SIGNAL(slotCountChange()), this, SLOT(slotCountChanged()));
 }
 
 sACNEffectEngine::~sACNEffectEngine()
@@ -96,7 +98,7 @@ void sACNEffectEngine::clear()
     QMetaObject::invokeMethod(
                 m_sender,"setLevelRange",
                 Q_ARG(quint16, MIN_DMX_ADDRESS - 1),
-                Q_ARG(quint16, MAX_DMX_ADDRESS - 1),
+                Q_ARG(quint16, m_sender->slotCount() - 1),
                 Q_ARG(quint8, 0));
 }
 
@@ -108,6 +110,9 @@ void sACNEffectEngine::setStartAddress(quint16 start)
                     this,"setStartAddress", Q_ARG(quint16, start));
     else
     {
+        // Limit to sender slot count
+        start = std::min(start, m_sender->slotCount());
+
         // Set unused values to 0
         if(start > m_start)
         {
@@ -130,11 +135,14 @@ void sACNEffectEngine::setEndAddress(quint16 end)
                     this,"setEndAddress", Q_ARG(quint16, end));
     else
     {
+        // Limit to sender slot count
+        end = std::min(end, m_sender->slotCount());
+
         // Set unused values to 0
         if(end < m_end)
         {
             QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, end),
-                                      Q_ARG(quint16, MAX_DMX_ADDRESS-1),
+                                      Q_ARG(quint16, m_sender->slotCount()-1),
                                       Q_ARG(quint8, 0));
         }
         m_end = end;
@@ -146,6 +154,9 @@ void sACNEffectEngine::setEndAddress(quint16 end)
 
 void sACNEffectEngine::setRange(quint16 start, quint16 end)
 {
+    Q_ASSERT(start < DMX_SLOT_MAX);
+    Q_ASSERT(end < DMX_SLOT_MAX);
+
     // Make this method thread-safe
     if(QThread::currentThread()!=this->thread())
         QMetaObject::invokeMethod(
@@ -155,24 +166,8 @@ void sACNEffectEngine::setRange(quint16 start, quint16 end)
         if(end < start)
             std::swap(start, end);
 
-        // Set unused values to 0
-        if(start > m_start)
-        {
-            QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, 0),
-                                      Q_ARG(quint16, start),
-                                      Q_ARG(quint8, 0));
-        }
-        m_start = start;
-
-        if(end < m_end)
-        {
-            QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, end),
-                                      Q_ARG(quint16, MAX_DMX_ADDRESS-1),
-                                      Q_ARG(quint8, 0));
-        }
-        m_end = end;
-
-        qDebug() << "Range start " << m_start << " End " << m_end;
+        setStartAddress(start);
+        setEndAddress(end);
     }
 }
 
@@ -438,8 +433,6 @@ void sACNEffectEngine::timerTick()
     }
 }
 
-
-
 void sACNEffectEngine::setManualLevel(int level)
 {
     m_manualLevel = level;
@@ -450,4 +443,9 @@ void sACNEffectEngine::setManualLevel(int level)
                                       Q_ARG(quint16, m_end),
                                       Q_ARG(quint8, m_manualLevel));
     }
+}
+
+void sACNEffectEngine::slotCountChanged()
+{
+    setEndAddress(m_end);
 }
