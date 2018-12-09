@@ -71,7 +71,7 @@ void sACNDiscoveryTX::sendDiscoveryPacket()
                 i.remove();
         }
         if (universeList.isEmpty())
-            return;
+            continue; // No active universes being sent by this CID
 
         // Sort list
         std::sort(universeList.begin(), universeList.end());
