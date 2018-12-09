@@ -37,7 +37,8 @@ MDIMainWindow::MDIMainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MDIMainWindow),
     m_model(new sACNUniverseListModel(this)),
-    m_modelDiscovered(new sACNDiscoveredSourceListModel(this))
+    m_modelDiscovered(new sACNDiscoveredSourceListModel(this)),
+    m_proxy(new sACNSourceListProxy(this))
 {
     ui->setupUi(this);
     ui->sbUniverseList->setMinimum(MIN_SACN_UNIVERSE);
@@ -51,9 +52,12 @@ MDIMainWindow::MDIMainWindow(QWidget *parent) :
     connect(ui->treeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(universeDoubleClick(QModelIndex)));
     connect(m_model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)), this, SLOT(rowsAboutToBeRemoved(QModelIndex,int,int)));
 
-    // Discovered sources list
-    ui->treeViewDiscovered->setModel(m_modelDiscovered);
+    // Discovered sources list;
+    m_proxy->setSourceModel(m_modelDiscovered);
+    ui->treeViewDiscovered->setModel(m_proxy);
     connect(ui->treeViewDiscovered, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(universeDoubleClick(QModelIndex)));
+    ui->treeViewDiscovered->setSortingEnabled(true);
+    ui->treeViewDiscovered->sortByColumn(0, Qt::AscendingOrder);
 }
 
 MDIMainWindow::~MDIMainWindow()
@@ -137,7 +141,8 @@ void MDIMainWindow::universeDoubleClick(const QModelIndex &index)
     } else if (ui->treeViewDiscovered->isVisible())
     {
         if(!m_modelDiscovered) return;
-        universe = m_modelDiscovered->indexToUniverse(index);
+        QModelIndex srcIndex = m_proxy->mapToSource(index);
+        universe = m_modelDiscovered->indexToUniverse(srcIndex);
     }
 
     if (universe>0)
