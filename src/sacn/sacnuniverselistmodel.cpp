@@ -219,7 +219,7 @@ void sACNUniverseListModel::sourceOnline(sACNSource *source)
 
     // We are adding the source for this universe
     QModelIndex parent = index(m_start - info->universe, 0);
-    int firstRow = m_universes[univIndex]->sources.count()+1;
+    int firstRow = m_universes[univIndex]->sources.count();
     int lastRow = firstRow;
     beginInsertRows(parent, firstRow, lastRow);
     m_universes[univIndex]->sources << info;
