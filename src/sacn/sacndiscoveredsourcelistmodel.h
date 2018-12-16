@@ -5,6 +5,7 @@
 #include <QAbstractTableModel>
 #include <QReadWriteLock>
 #include <QList>
+#include <QSortFilterProxyModel>
 
 #include "sacndiscovery.h"
 
@@ -13,7 +14,7 @@ class sACNSourceInfo : public QObject
 {
     Q_OBJECT
 public:
-    sACNSourceInfo(QString sourceName, QObject *parent = NULL);
+    sACNSourceInfo(QString sourceName, QObject *parent = Q_NULLPTR);
 
     QString name;
     QList<quint16> universes;
@@ -29,8 +30,8 @@ class sACNDiscoveredSourceListModel : public QAbstractItemModel
     Q_OBJECT
 
 public:
-    sACNDiscoveredSourceListModel(QObject *parent = NULL);
-    ~sACNDiscoveredSourceListModel();
+    sACNDiscoveredSourceListModel(QObject *parent = Q_NULLPTR);
+     ~sACNDiscoveredSourceListModel() override;
 
     int indexToUniverse(const QModelIndex &index);
 
@@ -39,8 +40,8 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
 protected:
-    QModelIndex index(int row, int column, const QModelIndex &parent) const;
-    QModelIndex parent(const QModelIndex &index) const;
+    QModelIndex index(int row, int column, const QModelIndex &parent) const override;
+    QModelIndex parent(const QModelIndex &index) const override;
 
 public slots:
 
@@ -56,6 +57,22 @@ private:
     bool m_displayDDOnlySource;
 
     QHash<CID, sACNSourceInfo*> m_sources;
+};
+
+/**
+ * @brief The sACNSourceListProxy class provides a
+ * model which sorts and filters the raw sACNDiscoveredSourceListModel.
+ * Currently it just sorts items with parents by universe number; in future
+ * it could be extended to add additional sorting and searching options
+ */
+class sACNSourceListProxy : public QSortFilterProxyModel
+{
+    Q_OBJECT
+
+public:
+    sACNSourceListProxy(QObject *parent = Q_NULLPTR);
+protected:
+    virtual bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
 };
 
 #endif // sACNDiscoveredSourceListModel_H
