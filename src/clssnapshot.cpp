@@ -220,13 +220,14 @@ void clsSnapshot::levelsChanged()
 
     if ((background == m_levelData) != m_backgroundMatches)
     {
+        m_backgroundMatches = (background == m_levelData);
+
         if (background == m_levelData)
             emit snapshotMatches();
         else
             emit snapshotDiffers();
     }
 
-    m_backgroundMatches = (background == m_levelData);
     updateIcons();
 }
 

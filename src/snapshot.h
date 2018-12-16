@@ -60,6 +60,7 @@ protected slots:
     void senderTimedOut();
     void senderStopped();
     void senderStarted();
+    void updateMatchIcon();
 protected:
     virtual void resizeEvent(QResizeEvent *event);
 

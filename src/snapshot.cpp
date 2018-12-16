@@ -108,8 +108,8 @@ void Snapshot::on_btnAddRow_clicked()
     connect(snap, SIGNAL(senderStopped()), this, SLOT(senderStopped()));
     connect(snap, SIGNAL(senderTimedOut()), this, SLOT(senderTimedOut()));
     connect(snap, &clsSnapshot::snapshotTaken, [this]() { ui->btnPlay->setEnabled(true); });
-    connect(snap, SIGNAL(snapshotMatches()), this, SLOT(snapshotMatches()));
-    connect(snap, SIGNAL(snapshotDiffers()), this, SLOT(snapshotDiffers()));
+    connect(snap, SIGNAL(snapshotMatches()), this, SLOT(updateMatchIcon()));
+    connect(snap, SIGNAL(snapshotDiffers()), this, SLOT(updateMatchIcon()));
     ui->tableWidget->setCellWidget(row, COL_BUTTON, snap->getControlWidget());
     ui->tableWidget->setCellWidget(row, COL_UNIVERSE, snap->getSbUniverse());
     ui->tableWidget->setCellWidget(row, COL_PRIORITY, snap->getSbPriority());
@@ -158,6 +158,8 @@ void Snapshot::setState(state s)
 
     // Play Button Text and Icon
     btnPlay_update();
+
+    updateMatchIcon();
 
     switch(s)
     {
@@ -310,4 +312,29 @@ void Snapshot::on_tableWidget_itemSelectionChanged()
         ui->btnRemoveRow->setEnabled(!ui->tableWidget->selectionModel()->selectedRows().isEmpty());
     else
        ui->btnRemoveRow->setEnabled(false);
+}
+
+void Snapshot::updateMatchIcon()
+{
+    if(m_state == stPlayback)
+    {
+        bool allmatch = true;
+        foreach(auto s, m_snapshots)
+        {
+            allmatch &= s->isMatching();
+        }
+        if(allmatch)
+        {
+            ui->lblMatching->setPixmap(QPixmap(":/icons/ledgreen.png"));
+            ui->lblMatching->setToolTip(tr("All sources <i>match</i> the background levels"));
+        }
+        else
+        {
+            ui->lblMatching->setPixmap(QPixmap(":/icons/ledred.png"));
+            ui->lblMatching->setToolTip(tr("Not all sources match the background levels"));
+        }
+    }
+    else {
+        ui->lblMatching->setPixmap(QPixmap());
+    }
 }

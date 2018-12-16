@@ -36,6 +36,8 @@ public:
     QSpinBox *getSbPriority() {return m_sbPriority;}
     QWidget *getControlWidget() {return m_controlWidget;}
 
+    bool isMatching() const {return m_backgroundMatches;}
+
     enum e_icons {
         ICON_NONE,
         ICON_PLAY,

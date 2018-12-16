@@ -31,7 +31,7 @@
 GridWidget::GridWidget(QWidget *parent)
     : QWidget(parent)
     , m_selectedAddress(-1)
-    , m_colors(CELL_COUNT, Qt::white)
+    , m_colors(CELL_COUNT, this->palette().color(QPalette::Base))
     , m_cellHeight(CELL_HEIGHT)
 {
     for(int i=0; i<CELL_COUNT; i++)
