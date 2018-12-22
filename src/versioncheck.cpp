@@ -52,6 +52,7 @@ void NewVersionDialog::on_btnInstall_pressed()
                                  .arg(m_newVersion)
                                  .arg(m_dlUrl));
     ui->stackedWidget->setCurrentIndex(1);
+    this->adjustSize();
     ui->btnExitInstall->setEnabled(false);
     ui->progressBar->setValue(0);
 
