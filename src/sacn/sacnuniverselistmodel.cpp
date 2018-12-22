@@ -97,7 +97,7 @@ void sACNUniverseListModel::setStartUniverse(int start)
 
 int sACNUniverseListModel::rowCount(const QModelIndex &parent) const
 {
-    if(parent.isValid() && parent.internalPointer()==NULL)
+    if(parent.isValid() && parent.internalPointer()==Q_NULLPTR)
     {
         if (parent.row() >= m_universes.count() || parent.row() < 0)
             return 0;
@@ -211,14 +211,14 @@ void sACNUniverseListModel::sourceOnline(sACNSource *source)
     info = new sACNBasicSourceInfo(m_universes[univIndex]);
     info->cid = source->src_cid;
     info->address = source->ip;
-    info->name = source->name == NULL ? tr("????") : source->name;
+    info->name = source->name == Q_NULLPTR ? tr("????") : source->name;
 
     // Prevent duplicates
     if (m_universes[univIndex]->sourcesByCid.value(source->src_cid))
         return;
 
     // We are adding the source for this universe
-    QModelIndex parent = index(m_start - info->universe, 0);
+    QModelIndex parent = index(m_universes[univIndex]->universe - m_start, 0);
     int firstRow = m_universes[univIndex]->sources.count();
     int lastRow = firstRow;
     beginInsertRows(parent, firstRow, lastRow);
@@ -259,7 +259,7 @@ void sACNUniverseListModel::sourceChanged(sACNSource *source)
     info->name = source->name;
 
     // Redraw entire universe
-    QModelIndex parent = index(m_start - m_universes[univIndex]->universe, 0);
+    QModelIndex parent = index(m_universes[univIndex]->universe - m_start, 0);
     QModelIndex topLeft = parent.sibling(0,0);
     QModelIndex bottomRight = parent.sibling(m_universes[univIndex]->sources.count(), 0);
     emit dataChanged(topLeft, bottomRight);
@@ -280,7 +280,7 @@ void sACNUniverseListModel::sourceOffline(sACNSource *source)
     info = m_universes[univIndex]->sourcesByCid.value(source->src_cid);
     if (info == Q_NULLPTR) { return; }
 
-    QModelIndex parent = index(m_start - m_universes[univIndex]->universe, 0);
+    QModelIndex parent = index(m_universes[univIndex]->universe - m_start, 0);
     int first = m_universes[univIndex]->sources.indexOf(info);
     int last = first;
     beginRemoveRows(parent, first, last);
@@ -298,7 +298,7 @@ int sACNUniverseListModel::indexToUniverse(const QModelIndex &index)
     if(!index.isValid())
         return 0;
 
-    if(index.internalPointer()==NULL)
+    if(index.internalPointer()==Q_NULLPTR)
     {
         // root item
         return m_start + index.row();
