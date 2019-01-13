@@ -12,16 +12,16 @@ matrix:
             packages:
               # FPM dependencies
               - build-essential
-              - ruby
-              - ruby-dev
+              - ruby2.3 
+              - ruby2.3-dev
               # QT
               - qt59base
               - qt59multimedia
               - qt59tools
+              # PCap
+              - libpcap-dev
 
         install:
-            # PCap
-            - sudo apt-get -y install libpcap-dev
             # Install FPM
             - cd install/linux/ && cp _FPM_Makefile Makefile && make package && sudo dpkg -i fpm*.deb && fpm --version && cd ../../
             # QT
