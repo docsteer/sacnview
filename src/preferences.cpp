@@ -254,6 +254,8 @@ void Preferences::savePreferences()
     {
         settings.setValue(S_PRIORITYPRESET.arg(i), QVariant(m_priorityPresets[i]));
     }
+
+    settings.sync();
 }
 
 void Preferences::loadPreferences()
