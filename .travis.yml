@@ -9,9 +9,12 @@ matrix:
           apt:
             sources:
               - sourceline: 'ppa:beineri/opt-qt594-trusty'
+              - sourceline: 'ppa:brightbox/ruby-ng'
             packages:
               # FPM dependencies
               - build-essential
+              - ruby2.3
+              - ruby2.3-dev
               # QT
               - qt59base
               - qt59multimedia
