@@ -21,6 +21,7 @@
 #include <QDebug>
 #include <QThread>
 #include <QPoint>
+#include <math.h>
 
 
 //The amount of ms to wait before a source is considered offline or
@@ -459,14 +460,6 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
                 ps->priority = priority;
                 ps->source_params_change = true;
             }
-            if(ps->fpsTimer.elapsed() >= 1000)
-            {
-                // Calculate the FPS rate
-                ps->fpsTimer.restart();
-                ps->fps = ps->fpsCounter;
-                ps->fpsCounter = 0;
-                ps->source_params_change = true;
-            }
             // This is DMX
             // Copy the last array back
             memcpy(ps->last_level_array, ps->level_array, DMX_SLOT_MAX);
@@ -485,30 +478,13 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
                 }
             }
 
-            // Increment the frame counter - we count only DMX frames
-            ps->fpsCounter++;
+            // FPS Counter - we count only DMX frames
+            ps->fpscounter->newFrame();
+            if (ps->fpscounter->isNewFPS())
+                ps->source_params_change = true;
         }
         else if(start_code == STARTCODE_PRIORITY)
         {
-            // Not sending DMX data, so process name and FPS
-            if (ps->doing_dmx == false) {
-
-                if(ps->name!=name)
-                {
-                    ps->name = name;
-                    ps->source_params_change = true;
-                }
-
-                if(ps->fpsTimer.elapsed() >= 1000)
-                {
-                    // Calculate the FPS rate
-                    ps->fpsTimer.restart();
-                    ps->fps = ps->fpsCounter;
-                    ps->fpsCounter = 0;
-                    ps->source_params_change = true;
-                }
-            }
-
             // Copy the last array back
             memcpy(ps->last_priority_array, ps->priority_array, DMX_SLOT_MAX);
             // Fill in the new array
@@ -565,8 +541,6 @@ void sACNListener::performMerge()
     }
 
     m_mergeCounter++;
-
-
 
     // Step one : find any addresses which have changed
     if(m_mergeAll) // Act like all addresses changed
@@ -676,8 +650,6 @@ void sACNListener::performMerge()
         }
     }
 
-
-
     // Next, find highest level for the highest prioritized sources
     skipCounter = 0;
     for(int i=0; i < DMX_SLOT_MAX && i<(number_of_addresses_to_merge + skipCounter); i++)
@@ -710,7 +682,6 @@ void sACNListener::performMerge()
         if(m_merged_levels[address].winningSource)
             m_merged_levels[address].otherSources.remove(m_merged_levels[address].winningSource);
     }
-
 
     // Tell people..
     emit levelsChanged();

@@ -60,15 +60,12 @@ sACNSource::sACNSource() :
     universe(0),
     slot_count(0),
     priority(0),
-    fpsCounter(0),
-    fps(0),
+    fpscounter(new fpsCounter(this)),
     seqErr(0),
     jumps(0)
 {
     std::fill(level_array, level_array + sizeof(level_array), 0);
     std::fill(priority_array, priority_array + sizeof(priority_array), 0);
-
-    fpsTimer.start();
 }
 
 QString sACNSource::cid_string()

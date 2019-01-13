@@ -151,7 +151,7 @@ void UniverseView::sourceChanged(sACNSource *source)
     else
         ui->twSources->item(row,COL_PREVIEW)->setText(source->isPreview ? tr("Yes") : tr("No"));
     ui->twSources->item(row,COL_IP)->setText(source->ip.toString());
-    ui->twSources->item(row,COL_FPS)->setText(QString::number((source->fps)));
+    ui->twSources->item(row,COL_FPS)->setText(QString("%1Hz").arg(QString::number(source->fpscounter->FPS(), 'f', 2)));
     {
         // Seq Errors
         QLabel* lbl_SEQ_ERR = qobject_cast<QLabel *>(
