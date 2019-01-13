@@ -12,8 +12,6 @@ matrix:
             packages:
               # FPM dependencies
               - build-essential
-              - ruby2.3 
-              - ruby2.3-dev
               # QT
               - qt59base
               - qt59multimedia
