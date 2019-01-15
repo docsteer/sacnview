@@ -43,12 +43,16 @@ void PcapPlayback::openThread()
 
 void PcapPlayback::closeThread()
 {
-    if (sender) sender->quit();
+    if (!sender)
+        return;
+
+    sender->quit();
+    sender->deleteLater();
+    sender = Q_NULLPTR;
 }
 
 void PcapPlayback::playbackThreadClosed()
 {
-    sender = Q_NULLPTR;
     updateUIBtns();
 }
 
