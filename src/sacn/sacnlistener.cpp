@@ -175,7 +175,7 @@ void sACNListener::readPendingDatagrams()
     }
 }
 
-void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHostAddress sender, bool alwaysPass)
+void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHostAddress sender)
 {
     // Process packet
     CID source_cid;
@@ -219,7 +219,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
     if(m_universe != universe)
     {
         // Was it unicast? Send to correct listner (if listening)
-        if (!alwaysPass && receiver.isMulticast())
+        if (receiver.isMulticast())
         {
             // Log and discard
             qDebug() << "sACNListener" << QThread::currentThreadId() << ": Wrong Universe and is multicast";

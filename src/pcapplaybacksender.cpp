@@ -17,8 +17,6 @@
 #include "sacn/sacnlistener.h"
 #include "ethernetstrut.h"
 
-
-
 pcapplaybacksender::pcapplaybacksender(QString FileName) :
     m_filename(FileName),
     m_pcap_in(Q_NULLPTR),
@@ -132,9 +130,6 @@ void pcapplaybacksender::run()
             const u_char *pkt_data;
             if (pcap_next_ex(m_pcap_in, &pkt_header, &pkt_data) == 1)
             {
-                // Create QT datagram to send to self
-                QNetworkDatagram pkt_datagram = createDatagram(m_pcap_in, pkt_header, pkt_data);
-
                 // Wait until time
                 if (!m_pktLastTime.isNull())
                 {
@@ -159,22 +154,6 @@ void pcapplaybacksender::run()
                     m_running = false;
                     emit sendingFinished();
                     return;
-                }
-                /* Send to me
-                 *
-                 * Send to any local listener, but set the always pass flag
-                 *
-                 */
-                {
-                    decltype(sACNManager::getInstance()->getListenerList()) listenerList
-                            = sACNManager::getInstance()->getListenerList();
-                    sACNManager::tListener listener = listenerList.begin().value().toStrongRef();
-                    if (listener)
-                        listener->processDatagram(
-                            pkt_datagram.data(),
-                            pkt_datagram.destinationAddress(),
-                            pkt_datagram.senderAddress(),
-                            true);
                 }
 
                 // Save time
