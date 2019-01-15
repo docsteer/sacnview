@@ -26,10 +26,10 @@ class sACNRxSocket : public QUdpSocket
 public:
     sACNRxSocket(QNetworkInterface iface, QObject *parent = Q_NULLPTR);
 
-    bool bindMulticast(quint16 universe);
-    bool bindUnicast();
+    bool bind(quint16 universe);
 
 private:
+    bool bindUnicast();
     QNetworkInterface m_interface;
 };
 
@@ -39,7 +39,7 @@ class sACNTxSocket : public QUdpSocket
 public:
     sACNTxSocket(QNetworkInterface iface, QObject *parent = Q_NULLPTR);
 
-    bool bindMulticast();
+    bool bind();
 
 private:
     QNetworkInterface m_interface;

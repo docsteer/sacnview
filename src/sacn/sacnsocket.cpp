@@ -27,17 +27,15 @@ sACNRxSocket::sACNRxSocket(QNetworkInterface iface, QObject *parent) :
 {
 }
 
-bool sACNRxSocket::bindMulticast(quint16 universe)
+bool sACNRxSocket::bind(quint16 universe)
 {
     bool ok = false;
 
     CIPAddr addr;
     GetUniverseAddress(universe, addr);
 
-    // Bind to mutlicast address
-    ok = bind(addr.ToQHostAddress(),
-                   addr.GetIPPort(),
-                   QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
+    // Bind to univcast address
+    ok = bindUnicast();
 
     // Join multicast on selected NIC
     if (ok)
@@ -76,7 +74,7 @@ bool sACNRxSocket::bindUnicast()
     {
         if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol)
         {
-            ok = bind(ifaceAddr.ip(),
+            ok = QUdpSocket::bind(ifaceAddr.ip(),
                       STREAM_IP_PORT,
                       QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
             if (ok) {
@@ -85,7 +83,6 @@ bool sACNRxSocket::bindUnicast()
             }
         }
     }
-
 
     if (!ok) {
         close();
@@ -101,7 +98,7 @@ sACNTxSocket::sACNTxSocket(QNetworkInterface iface, QObject *parent) :
 {
 }
 
-bool sACNTxSocket::bindMulticast()
+bool sACNTxSocket::bind()
 {
     bool ok = false;
 
@@ -110,7 +107,7 @@ bool sACNTxSocket::bindMulticast()
     {
         if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol)
         {
-            ok = bind(ifaceAddr.ip());
+            ok = QUdpSocket::bind(ifaceAddr.ip());
             if (ok) {
                 setSocketOption(QAbstractSocket::MulticastLoopbackOption, QVariant(1));
                 setMulticastInterface(m_interface);

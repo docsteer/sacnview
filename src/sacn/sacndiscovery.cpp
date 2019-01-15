@@ -30,7 +30,7 @@ sACNDiscoveryTX::sACNDiscoveryTX() : QObject(),
 {
     // Socket
     m_sendSock = new sACNTxSocket(Preferences::getInstance()->networkInterface(), this);
-    m_sendSock->bindMulticast();
+    m_sendSock->bind();
 
     // Setup packet send timer
     m_sendTimer->setObjectName("sACNDiscoveryTX");

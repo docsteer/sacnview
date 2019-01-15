@@ -295,7 +295,7 @@ CStreamServer::CStreamServer() :
 {
     m_sendsock = new sACNTxSocket(Preferences::getInstance()->networkInterface());
 
-    m_sendsock->bindMulticast();
+    m_sendsock->bind();
 
     m_thread = new QThread();
     connect(m_thread, SIGNAL(started()), this, SLOT(TickLoop()));
