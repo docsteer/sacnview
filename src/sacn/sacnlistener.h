@@ -27,6 +27,7 @@
 #include "streamingacn.h"
 #include "sacnsocket.h"
 
+Q_DECLARE_METATYPE(QHostAddress)
 
 struct sACNMergedAddress
 {
@@ -78,7 +79,7 @@ public:
      * This allows other listeners to pass on unicast datagrams for other universes
      *
      */
-    void processDatagram(QByteArray data, QHostAddress receiver, QHostAddress sender);
+    Q_INVOKABLE void processDatagram(QByteArray data, QHostAddress receiver, QHostAddress sender);
 
     // Diagnostic - the number of merge operations per second
 
@@ -129,6 +130,7 @@ private slots:
     void checkSourceExpiration();
     void sampleExpiration();
 private:
+    QMutex m_processMutex;
     void startInterface(QNetworkInterface iface);
     std::list<sACNRxSocket *> m_sockets;
     std::vector<sACNSource *> m_sources;

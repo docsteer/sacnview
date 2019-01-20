@@ -22,7 +22,7 @@
 #include <QThread>
 #include <QPoint>
 #include <math.h>
-
+#include <QNetworkDatagram>
 
 //The amount of ms to wait before a source is considered offline or
 //has stopped sending per-channel-priority packets
@@ -43,6 +43,8 @@ sACNListener::sACNListener(int universe, QObject *parent) : QObject(parent),
     m_isSampling(true),
     m_mergesPerSecond(0)
 {
+    qRegisterMetaType<QHostAddress>("QHostAddress");
+
     m_merged_levels.reserve(DMX_SLOT_MAX);
     for(int i=0; i<DMX_SLOT_MAX; i++)
         m_merged_levels << sACNMergedAddress();
@@ -73,10 +75,13 @@ void sACNListener::startReception()
                 startInterface(interface);
             }
         }
-
     } else {
         // Listen only to selected interface
         startInterface(Preferences::getInstance()->networkInterface());
+        if (!m_sockets.empty()) {
+            m_bindStatus.multicast = (m_sockets.back()->multicastInterface().isValid()) ? eBindStatus::BIND_OK : eBindStatus::BIND_FAILED;
+            m_bindStatus.unicast = (m_sockets.back()->state() == QAbstractSocket::BoundState) ? eBindStatus::BIND_OK : eBindStatus::BIND_FAILED;
+        }
     }
 
     // Start intial sampling
@@ -104,11 +109,11 @@ void sACNListener::startInterface(QNetworkInterface iface)
     m_sockets.push_back(new sACNRxSocket(iface));
     if (m_sockets.back()->bind(m_universe)) {
         connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()), Qt::DirectConnection);
-        m_bindStatus.multicast = eBindStatus::BIND_OK;
     } else {
-       // Failed to bind,
-       m_sockets.pop_back();
-       m_bindStatus.multicast = eBindStatus::BIND_FAILED;
+        // Failed to bind,
+        m_sockets.pop_back();
+        m_bindStatus.multicast = eBindStatus::BIND_FAILED;
+        m_bindStatus.unicast = eBindStatus::BIND_FAILED;
     }
 }
 
@@ -159,24 +164,50 @@ void sACNListener::readPendingDatagrams()
     {
         while(m_socket->hasPendingDatagrams())
         {
-            QByteArray data;
-            data.resize(m_socket->pendingDatagramSize());
-            QHostAddress sender;
-            quint16 senderPort;
+            QNetworkDatagram datagram = m_socket->receiveDatagram();
 
-            m_socket->readDatagram(data.data(), data.size(),
-                                    &sender, &senderPort);
+            if (datagram.data().isEmpty())
+                break;
 
-            processDatagram(
-                        data,
-                        m_socket->localAddress(),
-                        sender);
+            /* Localhost - Allowed
+             * Multicast - Allowed (Correct universe checked later)
+             * Unicast for this interface - Allowed
+             * Broadcast - Rejected
+             */
+            QList<QHostAddress> interfaceAddress;
+            for (auto address : m_socket->getBoundInterface().addressEntries())
+                interfaceAddress << address.ip();
+
+            if (
+                datagram.destinationAddress().isLoopback() ||
+                datagram.destinationAddress().isMulticast() ||
+                interfaceAddress.contains(QHostAddress(datagram.destinationAddress()))
+                )
+            {
+                processDatagram(
+                            datagram.data(),
+                            m_socket->localAddress(),
+                            datagram.senderAddress());
+            }
         }
     }
 }
 
 void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHostAddress sender)
 {
+    if(QThread::currentThread()!=this->thread())
+    {
+        QMetaObject::invokeMethod(
+                    this,
+                    "processDatagram",
+                    Q_ARG(QByteArray, data),
+                    Q_ARG(QHostAddress, receiver),
+                    Q_ARG(QHostAddress, sender));
+        return;
+    };
+
+    QMutexLocker locker(&m_processMutex);
+
     // Process packet
     CID source_cid;
     quint8 start_code;
@@ -467,8 +498,8 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
             }
 
             // FPS Counter - we count only DMX frames
-            ps->fpscounter->newFrame();
-            if (ps->fpscounter->isNewFPS())
+            ps->fpscounter.newFrame();
+            if (ps->fpscounter.isNewFPS())
                 ps->source_params_change = true;
         }
         else if(start_code == STARTCODE_PRIORITY)

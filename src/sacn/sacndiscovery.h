@@ -86,6 +86,8 @@ private slots:
 private:
     static sACNDiscoveryRX *m_instance;
 
+    QMutex *m_mutex;
+
     sACNListener *m_listener;
     QThread *m_thread;
 

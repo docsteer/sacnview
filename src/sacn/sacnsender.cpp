@@ -301,6 +301,7 @@ CStreamServer::CStreamServer() :
     connect(m_thread, SIGNAL(started()), this, SLOT(TickLoop()));
     connect(m_thread, &QThread::finished, this, &QThread::deleteLater);
     this->moveToThread(m_thread);
+    m_thread->setObjectName(QString("Interface %1 TX").arg(m_sendsock->multicastInterface().name()));
     m_thread->start();
 }
 
@@ -369,6 +370,7 @@ void CStreamServer::TickLoop()
 
     while (!m_thread_stop) {
         QThread::yieldCurrentThread();
+        QCoreApplication::processEvents();
         QThread::msleep(1);
         QMutexLocker locker(&m_writeMutex);
 

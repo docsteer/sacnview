@@ -53,6 +53,14 @@ Preferences *Preferences::getInstance()
 
 QNetworkInterface Preferences::networkInterface() const
 {
+    if (!m_interface.isValid())
+    {
+        for (QNetworkInterface interface : QNetworkInterface::allInterfaces())
+        {
+            if (interface.flags().testFlag(QNetworkInterface::IsLoopBack))
+                return interface;
+        }
+    }
     return m_interface;
 }
 

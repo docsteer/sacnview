@@ -30,7 +30,9 @@ NICSelectDialog::NICSelectDialog(QWidget *parent) :
     {
         // We want interfaces which are up, IPv4, and can multicast
         if(Preferences::getInstance()->interfaceSuitable(&interface)) {
-
+            // But ignore loopback, leave that to work offline
+            if (interface.flags().testFlag(QNetworkInterface::IsLoopBack))
+                break;
             QString ipString;
             foreach (QNetworkAddressEntry e, interface.addressEntries()) {
                 if(e.ip().protocol() == QAbstractSocket::IPv4Protocol) {
