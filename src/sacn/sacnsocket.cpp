@@ -79,8 +79,14 @@ bool sACNTxSocket::bind()
             ok = QUdpSocket::bind(ifaceAddr.ip());
             if (ok) {
                 qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Bound to IP:" << ifaceAddr.ip().toString();
+
+#ifndef Q_OS_WIN
                 // Don't send to self, this will cause issues on multihomed systems
                 setSocketOption(QAbstractSocket::MulticastLoopbackOption, QVariant(0));
+#endif
+
+                setSocketOption(QAbstractSocket::MulticastLoopbackOption, QVariant(true));
+
                 setMulticastInterface(m_interface);
                 qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Bound to interface:" << multicastInterface().name();
             }
@@ -95,6 +101,7 @@ bool sACNTxSocket::bind()
 
 qint64 sACNTxSocket::writeDatagram(const char *data, qint64 len, const QHostAddress &host, quint16 port)
 {
+#ifndef Q_OS_WIN
     // If multicast, copy to correct internal listener(s)
     if (host.isMulticast()) {
         CIPAddr addr;
@@ -111,6 +118,7 @@ qint64 sACNTxSocket::writeDatagram(const char *data, qint64 len, const QHostAddr
             }
         }
     }
+#endif
 
     // Send to world
     return QUdpSocket::writeDatagram(data, len, host, port);
