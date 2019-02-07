@@ -30,16 +30,16 @@
 
 #include "preferences.h"
 
-sACNSentUniverse::sACNSentUniverse(int universe)
-{
-    m_priority = 100;
-    m_name = "New Source";
-    m_universe = universe;
-    m_handle = 0;
-    m_isSending = false;
-    m_priorityMode = pmPER_SOURCE_PRIORITY;
-    m_checkTimeoutTimer = Q_NULLPTR;
-}
+sACNSentUniverse::sACNSentUniverse(int universe) :
+    m_isSending(false),
+    m_handle(0),
+    m_slotCount(DMX_SLOT_MAX),
+    m_priority(100),
+    m_name("New Source"),
+    m_universe(universe),
+    m_priorityMode(pmPER_SOURCE_PRIORITY),
+    m_checkTimeoutTimer(Q_NULLPTR)
+{}
 
 sACNSentUniverse::~sACNSentUniverse()
 {
@@ -54,6 +54,8 @@ sACNSentUniverse::~sACNSentUniverse()
 
 void sACNSentUniverse::startSending(bool preview)
 {
+    Q_ASSERT(isSending() == false);
+
     quint8 options = 0;
 
     CStreamServer *streamServer = CStreamServer::getInstance();
@@ -68,12 +70,12 @@ void sACNSentUniverse::startSending(bool preview)
 
     if(m_unicastAddress.isNull())
         streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, options, STARTCODE_DMX,
-                                        m_universe, DMX_SLOT_MAX, m_slotData, m_handle, SEND_INTERVAL_DMX, max_tx_rate,
+                                        m_universe, m_slotCount, m_slotData, m_handle, SEND_INTERVAL_DMX, max_tx_rate,
                                         CIPAddr(), m_version==StreamingACNProtocolVersion::sACNProtocolDraft
                                      );
     else
         streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, options, STARTCODE_DMX, m_universe,
-                                        DMX_SLOT_MAX, m_slotData, m_handle, SEND_INTERVAL_DMX, max_tx_rate,
+                                        m_slotCount, m_slotData, m_handle, SEND_INTERVAL_DMX, max_tx_rate,
                                         CIPAddr(m_unicastAddress), m_version==StreamingACNProtocolVersion::sACNProtocolDraft
                                      );
 
@@ -83,7 +85,7 @@ void sACNSentUniverse::startSending(bool preview)
     {
         quint8 *pslots;
         streamServer->CreateUniverse(m_cid, qPrintable(m_name), 0, options, 0, STARTCODE_PRIORITY,
-                                        m_universe, DMX_SLOT_MAX, pslots, m_priorityHandle, SEND_INTERVAL_PRIORITY, max_tx_rate,
+                                        m_universe, m_slotCount, pslots, m_priorityHandle, SEND_INTERVAL_PRIORITY, max_tx_rate,
                                         CIPAddr(), m_version==StreamingACNProtocolVersion::sACNProtocolDraft
                                      );
         memcpy(pslots, m_perChannelPriorities, sizeof(m_perChannelPriorities));
@@ -119,6 +121,8 @@ void sACNSentUniverse::stopSending()
 void sACNSentUniverse::setLevel(quint16 address, quint8 value)
 {
     Q_ASSERT(address<DMX_SLOT_MAX);
+    if (address>=m_slotCount)
+        return;
     if(isSending())
     {
         m_slotData[address] =  value;
@@ -131,6 +135,8 @@ void sACNSentUniverse::setLevelRange(quint16 start, quint16 end, quint8 value)
     Q_ASSERT(start<DMX_SLOT_MAX);
     Q_ASSERT(end<DMX_SLOT_MAX);
     Q_ASSERT(start<=end);
+    if (start>=m_slotCount || end>=m_slotCount)
+        return;
     if(isSending())
     {
         memset(m_slotData + start, value, end-start+1);
@@ -140,6 +146,8 @@ void sACNSentUniverse::setLevelRange(quint16 start, quint16 end, quint8 value)
 
 void sACNSentUniverse::setLevel(const quint8 *data, int len, int start)
 {
+    Q_ASSERT((start + len)<=DMX_SLOT_MAX);
+    len = qMin(len, static_cast<decltype(len)>(m_slotCount));
     if(isSending())
     {
         memcpy(m_slotData + start, data, len);
@@ -153,7 +161,7 @@ void sACNSentUniverse::setVerticalBar(quint16 index, quint8 level)
 
     if(isSending())
     {
-        memset(m_slotData, 0, DMX_SLOT_MAX);
+        memset(m_slotData, 0, m_slotCount);
         for(int i=0; i<16; i++)
         {
             m_slotData[(i*32)+index] = level;
@@ -170,7 +178,7 @@ void sACNSentUniverse::setHorizontalBar(quint16 index, quint8 level)
 
     if(isSending())
     {
-        memset(m_slotData, 0, DMX_SLOT_MAX);
+        memset(m_slotData, 0, m_slotCount);
         memset(m_slotData + 32*index, level, 32);
 
         CStreamServer::getInstance()->SetUniverseDirty(m_handle);
@@ -179,7 +187,9 @@ void sACNSentUniverse::setHorizontalBar(quint16 index, quint8 level)
 
 void sACNSentUniverse::setName(const QString &name)
 {
-    m_name = name;
+    auto tmpStr = name.trimmed();
+    tmpStr.truncate(MAX_SOURCE_NAME_LEN);
+    m_name = tmpStr;
     if(isSending())
     {
         QByteArray arr = name.toUtf8();
@@ -240,6 +250,19 @@ void sACNSentUniverse::setCID(CID cid)
     }
 
     emit cidChange();
+}
+
+void sACNSentUniverse::setSlotCount(quint16 slotCount)
+{
+    if(m_slotCount==slotCount) return;
+    m_slotCount = slotCount;
+    if(m_isSending)
+    {
+        stopSending();
+        startSending();
+    }
+
+    emit slotCountChange();
 }
 
 void sACNSentUniverse::doTimeout()

@@ -90,6 +90,7 @@ public slots:
 
 private slots:
     void timerTick();
+    void slotCountChanged();
 private:
     QThread *m_thread;
     sACNSentUniverse *m_sender;

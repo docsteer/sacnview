@@ -66,6 +66,7 @@ private:
     COL_ONLINE,
     COL_VER,
     COL_DD,
+    COL_SLOTS,
     COL_END
     };
 

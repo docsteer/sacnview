@@ -122,7 +122,9 @@ SOURCES += src/main.cpp\
     src/theme/darkstyle.cpp \
     src/ipc.cpp \
     src/sacn/sacndiscovery.cpp \
-    src/sacn/sacndiscoveredsourcelistmodel.cpp
+    src/sacn/sacndiscoveredsourcelistmodel.cpp \
+    src/clssnapshot.cpp \
+    src/sacn/fpscounter.cpp
 
 HEADERS += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -167,7 +169,9 @@ HEADERS += src/mdimainwindow.h \
     src/ipc.h \
     src/qt56.h \
     src/sacn/sacndiscovery.h \
-    src/sacn/sacndiscoveredsourcelistmodel.h
+    src/sacn/sacndiscoveredsourcelistmodel.h \
+    src/clssnapshot.h \
+    src/sacn/fpscounter.h
 
 FORMS += ui/mdimainwindow.ui \
     ui/scopewindow.ui \

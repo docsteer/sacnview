@@ -32,6 +32,8 @@
 
 #include "CID.h"
 #include "tock.h"
+#include "streamcommon.h"
+#include "fpscounter.h"
 
 // Forward Declarations
 class sACNListener;
@@ -64,11 +66,12 @@ public:
                                   //(either by receiving priority or timeout).  If doing_per_channel,
                                   //used to time out the 0xdd packets to see if we lost per-channel priority
     quint16 universe;
-    quint8 level_array[512];
-    quint8 priority_array[512];
-    quint8 last_level_array[512];
-    quint8 last_priority_array[512];
-    bool dirty_array[512]; // Set if an individual level or priority has changed
+    quint8 level_array[DMX_SLOT_MAX];
+    quint16 slot_count; // Number of slots actually received
+    quint8 priority_array[DMX_SLOT_MAX];
+    quint8 last_level_array[DMX_SLOT_MAX];
+    quint8 last_priority_array[DMX_SLOT_MAX];
+    bool dirty_array[DMX_SLOT_MAX]; // Set if an individual level or priority has changed
     bool source_params_change; // Set if any parameter of the source changes between packets
     bool source_levels_change;
 
@@ -76,10 +79,7 @@ public:
     QString name;
     QString cid_string();
     QHostAddress ip;
-    // Used for the calculation of the frames per second
-    QElapsedTimer fpsTimer;
-    int fpsCounter;
-    int fps;
+    fpsCounter *fpscounter;
     // The number of sequence errors from this source
     int seqErr;
     // The number of jumps (increments by anything other than 1) of this source

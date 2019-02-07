@@ -2,11 +2,11 @@
 # feel free to change these to whatever makes sense
 #
 # debian package we rely on
-RUBY_PACKAGE=ruby
+RUBY_PACKAGE=ruby2.3
 # and the executable that comes from it
 RUBY_BIN=/usr/bin/ruby
 # the version we name the deb
-VERSION=1.8.1
+VERSION=1.10.2
 # where to get the sauce
 GIT_URL=https://github.com/jordansissel/fpm.git
 # the tag we checkout to build from

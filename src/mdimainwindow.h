@@ -20,6 +20,7 @@
 
 class sACNUniverseListModel;
 class sACNDiscoveredSourceListModel;
+class sACNSourceListProxy;
 
 namespace Ui {
 class MDIMainWindow;
@@ -62,6 +63,7 @@ private:
     Ui::MDIMainWindow *ui;
     sACNUniverseListModel *m_model;
     sACNDiscoveredSourceListModel *m_modelDiscovered;
+    sACNSourceListProxy *m_proxy;
     int getSelectedUniverse();
 };
 

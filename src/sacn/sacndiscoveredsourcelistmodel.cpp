@@ -23,7 +23,7 @@
 #include "consts.h"
 #include "preferences.h"
 
-#include <QDebug>
+#include <QtDebug>
 #include <QNetworkInterface>
 
 sACNSourceInfo::sACNSourceInfo(QString sourceName, QObject *parent): QObject(parent),
@@ -68,12 +68,12 @@ void sACNDiscoveredSourceListModel::expiredSource(QString cid)
 {
     sACNDiscoveryRX::tDiscoveryList discoveryList = m_discoveryInstance->getDiscoveryList();
     CID cidObj = CID::StringToCID(cid.toLatin1().data());
+    qDebug() << "******************* Expired source" << cid;
 
-    if (discoveryList.contains(cidObj) && !m_sources.contains(cidObj))
+    if(m_sources.contains(cidObj))
     {
         int childRow = m_sources.keys().indexOf(cidObj);
-        beginRemoveRows(
-                    index(0, 0, QModelIndex()),
+        beginRemoveRows(QModelIndex(),
                     childRow,
                     childRow);
         m_sources.remove(cidObj);
@@ -88,25 +88,21 @@ void sACNDiscoveredSourceListModel::newUniverse(QString cid, quint16 universe)
 
     if (discoveryList.contains(cidObj) && m_sources.contains(cidObj))
     {
-        m_sources.value(cidObj)->universes.append(universe);
         int parentRow = m_sources.keys().indexOf(cidObj);
+        auto parent = index(parentRow,0, QModelIndex());
 
-        qSort(m_sources.value(cidObj)->universes.begin(), m_sources.value(cidObj)->universes.end());
-        beginRemoveRows(
-            index(parentRow, 0, QModelIndex()),
-            0,
-            m_sources.count());
-        endRemoveRows();
-//        beginInsertRows(
-//                    index(parentRow, 0, QModelIndex()),
-//                    m_sources.value(cidObj)->universes.indexOf(universe),
-//                    m_sources.value(cidObj)->universes.indexOf(universe));
-//        endInsertRows();
+        beginInsertRows(parent,
+                        m_sources.value(cidObj)->universes.count(),
+                        m_sources.value(cidObj)->universes.count());
+        m_sources.value(cidObj)->universes.append(universe);
+        endInsertRows();
     }
 }
 
 void sACNDiscoveredSourceListModel::expiredUniverse(QString cid, quint16 universe)
 {
+
+    qDebug() << " Expired universe" << cid << universe;
     sACNDiscoveryRX::tDiscoveryList discoveryList = m_discoveryInstance->getDiscoveryList();
     CID cidObj = CID::StringToCID(cid.toLatin1().data());
 
@@ -128,7 +124,7 @@ int sACNDiscoveredSourceListModel::indexToUniverse(const QModelIndex &index)
     if(!index.isValid())
         return 0;
 
-    if(index.internalPointer()==NULL)
+    if(index.internalPointer()==Q_NULLPTR)
         // Source
         return 0;
 
@@ -151,6 +147,20 @@ int sACNDiscoveredSourceListModel::columnCount(const QModelIndex &parent) const
 
 QVariant sACNDiscoveredSourceListModel::data(const QModelIndex &index, int role) const
 {
+    if(!index.isValid()) return QVariant();
+
+    if(role==Qt::ToolTipRole)
+    {
+        if(index.parent().isValid())
+        {
+            return QVariant();
+        }
+        else
+        {
+            // Show CID as a tooltip
+            return QVariant(CID::CIDIntoQString(m_sources.keys()[index.row()]));
+        }
+    }
     if(role==Qt::DisplayRole)
     {
         if(index.parent().isValid())
@@ -162,12 +172,15 @@ QVariant sACNDiscoveredSourceListModel::data(const QModelIndex &index, int role)
         }
         else
         {
-            // Display sources
-            QString sourceString = QString("%1\n(%2)")
-                    .arg(m_sources.values()[index.row()]->name)
-                    .arg(CID::CIDIntoQString(m_sources.keys()[index.row()]));
-            return QVariant(sourceString);
+            // Source Name
+            return QVariant(m_sources.values()[index.row()]->name);
         }
+    }
+
+    if(role==Qt::UserRole && index.parent().isValid())
+    {
+        // Universe number
+        return QVariant(m_sources.values()[index.parent().row()]->universes.at(index.row()));
     }
     return QVariant();
 }
@@ -215,7 +228,7 @@ int sACNDiscoveredSourceListModel::rowCount(const QModelIndex &parent) const
     }
 
     // Universe count of source
-    if(parent.isValid() && parent.internalPointer()==NULL)
+    if(parent.isValid() && parent.internalPointer()==Q_NULLPTR)
     {
         if (parent.row() >= m_sources.count() || parent.row() < 0)
             return 0;
@@ -223,4 +236,33 @@ int sACNDiscoveredSourceListModel::rowCount(const QModelIndex &parent) const
     }
 
     return 0;
+}
+
+
+/******************************************* sACNSourceListProxy *********************************************/
+
+sACNSourceListProxy::sACNSourceListProxy(QObject *parent) : QSortFilterProxyModel (parent)
+{
+}
+
+
+bool sACNSourceListProxy::lessThan(const QModelIndex &left, const QModelIndex &right) const
+{
+    QVariant leftData = sourceModel()->data(left);
+    QVariant rightData = sourceModel()->data(right);
+
+    if(left.parent().isValid() && right.parent().isValid())
+    {
+        // Both have valid parents so we are looking at universes - sort by universe number
+        int leftUniverse = sourceModel()->data(left, Qt::UserRole).toInt();
+        int rightUniverse = sourceModel()->data(right, Qt::UserRole).toInt();
+        return leftUniverse<rightUniverse;
+
+    }
+    else {
+        // No parent - we are dealing with source names, sort alpahbetically
+        QString leftString = leftData.toString();
+        QString rightString = rightData.toString();
+        return QString::localeAwareCompare(leftString, rightString) < 0;
+    }
 }
