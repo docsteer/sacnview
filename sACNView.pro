@@ -104,7 +104,6 @@ SOURCES += src/main.cpp\
     src/sacn/sacnsender.cpp \
     src/configureperchanpriodlg.cpp \
     src/gridwidget.cpp \
-    src/priorityeditwidget.cpp \
     src/scopewidget.cpp \
     src/aboutdialog.cpp \
     src/sacn/sacneffectengine.cpp \
@@ -124,7 +123,8 @@ SOURCES += src/main.cpp\
     src/sacn/sacndiscovery.cpp \
     src/sacn/sacndiscoveredsourcelistmodel.cpp \
     src/clssnapshot.cpp \
-    src/sacn/fpscounter.cpp
+    src/sacn/fpscounter.cpp \
+    src/grideditwidget.cpp
 
 HEADERS += src/mdimainwindow.h \
     src/scopewindow.h \
@@ -146,7 +146,6 @@ HEADERS += src/mdimainwindow.h \
     src/sacn/sacnsender.h \
     src/configureperchanpriodlg.h \
     src/gridwidget.h \
-    src/priorityeditwidget.h \
     src/scopewidget.h \
     src/aboutdialog.h \
     src/sacn/sacneffectengine.h \
@@ -171,7 +170,8 @@ HEADERS += src/mdimainwindow.h \
     src/sacn/sacndiscovery.h \
     src/sacn/sacndiscoveredsourcelistmodel.h \
     src/clssnapshot.h \
-    src/sacn/fpscounter.h
+    src/sacn/fpscounter.h \
+    src/grideditwidget.h
 
 FORMS += ui/mdimainwindow.ui \
     ui/scopewindow.ui \

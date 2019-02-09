@@ -55,7 +55,7 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
     m_displayDDOnlySource = Preferences::getInstance()->GetDisplayDDOnly();
 
     ui->setupUi(this);
-    connect(ui->universeDisplay, SIGNAL(selectedCellChanged(int)), this, SLOT(selectedAddressChanged(int)));
+    connect(ui->universeDisplay, SIGNAL(selectedCellsChanged(QList<int>)), this, SLOT(selectedAddressesChanged(QList<int>)));
     connect(ui->universeDisplay, SIGNAL(cellDoubleClick(quint16)), this, SLOT(openBigDisplay(quint16)));
 
     connect(ui->btnShowPriority, &QPushButton::toggled,
@@ -398,4 +398,13 @@ void UniverseView::on_btnLogWindow_pressed()
     if(!mainWindow) return;
     LogWindow *w = new LogWindow(ui->sbUniverse->value(),mainWindow);
     mainWindow->showWidgetAsMdiWindow(w);
+}
+
+
+void UniverseView::selectedAddressesChanged(QList<int> addresses)
+{
+    if(addresses.count()==0)
+        selectedAddressChanged(-1);
+    if(addresses.count()==1)
+        selectedAddressChanged(addresses.first());
 }

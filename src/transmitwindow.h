@@ -37,7 +37,7 @@ class transmitwindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit transmitwindow(int universe = MIN_SACN_UNIVERSE, QWidget *parent = 0);
+    explicit transmitwindow(int universe = MIN_SACN_UNIVERSE, QWidget *parent = Q_NULLPTR);
     ~transmitwindow();
     static const int BLINK_TIME = 1000;
     static const int NUM_SLIDERS = 24;
@@ -70,6 +70,7 @@ protected slots:
     void setLevels(QSet<int> addresses, int level);
     void dateMode_toggled(int id, bool checked);
     void sourceTimeout();
+    void setLevelList(QList<QPair<int, int>> levelList);
 private slots:
     void on_rbDraft_clicked();
 
@@ -88,6 +89,7 @@ private:
     void setUniverseOptsEnabled(bool enabled);
     void updateTitle();
     void updateEnabled();
+    void setLevel(int address, int value);
     Ui::transmitwindow *ui;
     QList<QSlider *> m_sliders;
     QList<QLabel *> m_sliderLabels;

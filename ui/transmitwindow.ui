@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>903</width>
-    <height>690</height>
+    <width>1193</width>
+    <height>693</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -527,7 +527,7 @@ border-radius: 4px;
       <property name="currentIndex">
        <number>0</number>
       </property>
-      <widget class="QWidget" name="tab">
+      <widget class="QWidget" name="tabFaders">
        <attribute name="title">
         <string>Faders</string>
        </attribute>
@@ -1218,7 +1218,7 @@ border-radius: 4px;
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_3">
+      <widget class="QWidget" name="tabChanCheck">
        <attribute name="title">
         <string>Channel Check</string>
        </attribute>
@@ -1398,7 +1398,7 @@ color: rgb(255, 85, 0);</string>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_4">
+      <widget class="QWidget" name="tabFadeRange">
        <attribute name="title">
         <string>Fade Range</string>
        </attribute>
@@ -1601,6 +1601,20 @@ color: rgb(255, 85, 0);</string>
                  </widget>
                 </item>
                </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="rbVerticalBars">
+               <property name="text">
+                <string>Vertical Bars</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="rbHorizBars">
+               <property name="text">
+                <string>Horizontal Bars</string>
+               </property>
               </widget>
              </item>
              <item>
@@ -1875,12 +1889,28 @@ color: rgb(255, 85, 0);</string>
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tabGridControl">
+       <attribute name="title">
+        <string>Grid Control</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_13">
+        <item>
+         <widget class="GridEditWidget" name="gridControl" native="true"/>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </widget>
    </item>
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>GridEditWidget</class>
+   <extends>QWidget</extends>
+   <header>grideditwidget.h</header>
+   <container>1</container>
+  </customwidget>
   <customwidget>
    <class>CommandLineWidget</class>
    <extends>QPlainTextEdit</extends>

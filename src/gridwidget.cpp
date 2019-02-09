@@ -19,6 +19,7 @@
 #include <QPalette>
 #include <QApplication>
 #include <QStyle>
+#include <QToolTip>
 
 #define FIRST_COL_WIDTH 60
 #define ROW_COUNT 16
@@ -30,7 +31,6 @@
 
 GridWidget::GridWidget(QWidget *parent)
     : QWidget(parent)
-    , m_selectedAddress(-1)
     , m_colors(CELL_COUNT, this->palette().color(QPalette::Base))
     , m_cellHeight(CELL_HEIGHT)
 {
@@ -118,11 +118,13 @@ void GridWidget::paintEvent(QPaintEvent *event)
         painter.drawLine(start, end);
     }
 
-    // Draw the highlight for the selected one
-    if(m_selectedAddress>-1)
+    // Draw the highlight for the selected ones
+    QListIterator<int> i(m_selectedAddresses);
+    while(i.hasNext())
     {
-        int col = m_selectedAddress % 32;
-        int row = m_selectedAddress / 32;
+        int selectedAddress = i.next();
+        int col = selectedAddress % 32;
+        int row = selectedAddress / 32;
         QRect textRect(FIRST_COL_WIDTH + col*CELL_WIDTH, (row+1)*m_cellHeight, CELL_WIDTH, m_cellHeight);
         painter.setPen(pal.color(QPalette::Highlight));
         painter.drawRect(textRect);
@@ -165,15 +167,70 @@ void GridWidget::mousePressEvent(QMouseEvent *event)
 {
     QWidget::mousePressEvent(event);
 
-    if(event->buttons() & Qt::LeftButton)
+    if(!(event->buttons() & Qt::LeftButton))
+        return;
+
+    int address = cellHitTest(event->pos());
+
+    // Handle multi-selection
+    if(m_allowMultiSelect)
     {
-        int address = cellHitTest(event->pos());
-        if(m_selectedAddress!=address)
+        if(address==-1)
         {
-            m_selectedAddress = address;
-            emit selectedCellChanged(m_selectedAddress);
+            m_selectedAddresses.clear();
+            emit selectedCellsChanged(m_selectedAddresses);
             update();
+            return;
         }
+        if((event->modifiers() & Qt::ShiftModifier) && m_selectedAddresses.count()>0)
+        {
+            int previous = m_selectedAddresses.last();
+            int low = qMin(previous, address);
+            int high = qMax(previous, address);
+            for(int i=low; i<=high; i++)
+                if(!m_selectedAddresses.contains(i))
+                    m_selectedAddresses << i;
+            update();
+            emit selectedCellsChanged(m_selectedAddresses);
+            return;
+        }
+        if(event->modifiers() & Qt::ControlModifier)
+        {
+
+            if(m_selectedAddresses.contains(address)) {
+                m_selectedAddresses.removeAll(address);
+            }
+            else {
+                m_selectedAddresses << address;
+            }
+            update();
+            emit selectedCellsChanged(m_selectedAddresses);
+            return;
+        }
+
+        m_selectedAddresses.clear();
+        m_selectedAddresses << address;
+        update();
+        emit selectedCellsChanged(m_selectedAddresses);
+        return;
+    }
+    else // Handle single-selection
+    {
+        if(address==-1)
+        {
+            m_selectedAddresses.clear();
+            emit selectedCellsChanged(m_selectedAddresses);
+            update();
+            return;
+        }
+        else {
+            m_selectedAddresses.clear();
+            m_selectedAddresses << address;
+            emit selectedCellsChanged(m_selectedAddresses);
+            update();
+            return;
+        }
+
     }
 
 }
@@ -181,16 +238,71 @@ void GridWidget::mousePressEvent(QMouseEvent *event)
 void GridWidget::mouseMoveEvent(QMouseEvent *event)
 {
     QWidget::mouseMoveEvent(event);
-    if(event->buttons() & Qt::LeftButton)
+    if(!(event->buttons() & Qt::LeftButton))
+        return;
+
+    int address = cellHitTest(event->pos());
+
+    // Handle multi-selection
+    if(m_allowMultiSelect)
     {
-        int address = cellHitTest(event->pos());
-        if(m_selectedAddress!=address)
+        if(address==-1)
         {
-            m_selectedAddress = address;
-            emit selectedCellChanged(m_selectedAddress);
+            m_selectedAddresses.clear();
+            emit selectedCellsChanged(m_selectedAddresses);
             update();
+            return;
         }
+        if((event->modifiers() & Qt::ShiftModifier) && m_selectedAddresses.count()>0)
+        {
+            int previous = m_selectedAddresses.last();
+            int low = qMin(previous, address);
+            int high = qMax(previous, address);
+            for(int i=low; i<=high; i++)
+                if(!m_selectedAddresses.contains(i))
+                    m_selectedAddresses << i;
+            update();
+            emit selectedCellsChanged(m_selectedAddresses);
+            return;
+        }
+        if((event->modifiers() & Qt::ControlModifier) )
+        {
+            if(m_selectedAddresses.contains(address) && (address != m_selectedAddresses.last()) ) {
+                m_selectedAddresses.removeAll(address);
+            }
+            else {
+                m_selectedAddresses << address;
+            }
+            update();
+            emit selectedCellsChanged(m_selectedAddresses);
+            return;
+        }
+
+        m_selectedAddresses.clear();
+        m_selectedAddresses << address;
+        update();
+        emit selectedCellsChanged(m_selectedAddresses);
+        return;
     }
+    else // Handle single-selection
+    {
+        if(address==-1)
+        {
+            m_selectedAddresses.clear();
+            emit selectedCellsChanged(m_selectedAddresses);
+            update();
+            return;
+        }
+        else {
+            m_selectedAddresses.clear();
+            m_selectedAddresses << address;
+            emit selectedCellsChanged(m_selectedAddresses);
+            update();
+            return;
+        }
+
+    }
+
 }
 
 void GridWidget::mouseDoubleClickEvent(QMouseEvent *event)
@@ -216,4 +328,21 @@ void GridWidget::setCellValue(int cell, const QString &value)
 QString GridWidget::cellValue(int cell)
 {
     return m_values[cell];
+}
+
+bool GridWidget::event(QEvent *event)
+{
+    if (event->type() == QEvent::ToolTip) {
+        QHelpEvent *helpEvent = static_cast<QHelpEvent *>(event);
+        int cell = cellHitTest(helpEvent->pos());
+        if (cell != -1) {
+            QToolTip::showText(helpEvent->globalPos(), QString::number(cell+1));
+        } else {
+            QToolTip::hideText();
+            event->ignore();
+        }
+
+        return true;
+    }
+    return QWidget::event(event);
 }

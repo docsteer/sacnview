@@ -37,7 +37,7 @@ public:
 public slots:
     void on_sbPriority_valueChanged(int value);
     void on_btnSetAll_pressed();
-    void on_widget_selectedCellChanged(int cell);
+    void on_widget_selectedCellsChanged(QList<int> cells);
     void on_btnPresetRec_toggled(bool on);
     void presetButtonPressed();
 private:

@@ -68,9 +68,12 @@ quint8 *ConfigurePerChanPrioDlg::data()
 
 void ConfigurePerChanPrioDlg::on_sbPriority_valueChanged(int value)
 {
-    int currentCell = ui->widget->selectedCell();
-    if(currentCell<0) return;
-    ui->widget->setCellValue(currentCell, QString::number(value));
+    QListIterator<int>i(ui->widget->selectedCells());
+    while(i.hasNext())
+    {
+        int currentCell = i.next();
+        ui->widget->setCellValue(currentCell, QString::number(value));
+    }
     ui->widget->update();
 }
 
@@ -81,14 +84,14 @@ void ConfigurePerChanPrioDlg::on_btnSetAll_pressed()
     ui->widget->update();
 }
 
-void ConfigurePerChanPrioDlg::on_widget_selectedCellChanged(int cell)
+void ConfigurePerChanPrioDlg::on_widget_selectedCellsChanged(QList<int> cells)
 {
-    if(cell>-1)
+    if(cells.count()==1)
     {
         ui->sbPriority->setEnabled(true);
-        int iValue = ui->widget->cellValue(cell).toInt();
+        int iValue = ui->widget->cellValue(cells.first()).toInt();
         ui->sbPriority->setValue(iValue);
-        ui->lblAddress->setText(tr("Address %1, Priority = ").arg(cell+1));
+        ui->lblAddress->setText(tr("Address %1, Priority = ").arg(cells.first()+1));
     }
     else
     {
