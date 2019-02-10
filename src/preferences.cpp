@@ -80,7 +80,11 @@ void Preferences::SetNetworkListenAll(const bool &value)
 
 bool Preferences::GetNetworkListenAll()
 {
+#ifdef TARGET_WINXP
+    return false;
+#else
     return m_interfaceListenAll;
+#endif
 }
 
 QColor Preferences::colorForCID(const CID &cid)
