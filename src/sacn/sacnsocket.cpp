@@ -33,10 +33,15 @@ bool sACNRxSocket::bind(quint16 universe)
     m_universe = universe;
     bool ok = false;
 
-    CIPAddr addr;
-    GetUniverseAddress(universe, addr);
+    CIPAddr multicastAddr;
+    GetUniverseAddress(universe, multicastAddr);
 
-    ok = QUdpSocket::bind(QHostAddress::AnyIPv4,
+    QHostAddress listenAddr = QHostAddress::AnyIPv4;
+#ifdef TARGET_WINXP
+    #pragma message("Unicast listener unavailable for this platform")
+    listenAddr = multicastAddr.ToQHostAddress();
+#endif
+    ok = QUdpSocket::bind(listenAddr,
               STREAM_IP_PORT,
               QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
 
@@ -50,12 +55,16 @@ bool sACNRxSocket::bind(quint16 universe)
             #endif
         #endif
         setMulticastInterface(m_interface);
-        ok |= joinMulticastGroup(QHostAddress(addr.GetV4Address()), m_interface);
+        ok |= joinMulticastGroup(QHostAddress(multicastAddr.GetV4Address()), m_interface);
     }
 
     if(ok) {
+#ifdef TARGET_WINXP
+        qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Bound to IP:" << listenAddr.toString();
+#else
         qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Bound to interface:" << multicastInterface().name();
-        qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Joining Multicast Group:" << QHostAddress(addr.GetV4Address()).toString();
+#endif
+        qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Joining Multicast Group:" << QHostAddress(multicastAddr.GetV4Address()).toString();
     } else {
         close();
         qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Failed to bind RX socket";

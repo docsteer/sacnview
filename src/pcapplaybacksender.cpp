@@ -130,6 +130,9 @@ void pcapplaybacksender::run()
             const u_char *pkt_data;
             if (pcap_next_ex(m_pcap_in, &pkt_header, &pkt_data) == 1)
             {
+                // Create QT datagram to send to self
+                QNetworkDatagram pkt_datagram = createDatagram(m_pcap_in, pkt_header, pkt_data);
+
                 // Wait until time
                 if (!m_pktLastTime.isNull())
                 {
@@ -154,6 +157,29 @@ void pcapplaybacksender::run()
                     m_running = false;
                     emit sendingFinished();
                     return;
+                }
+
+                /* Send to me
+                 *
+                 * Find listener for this universe and pass the packet on
+                 *
+                 */
+                {
+
+                    CIPAddr addr;
+                    for (auto weakListener : sACNManager::getInstance()->getListenerList()) {
+                        sACNManager::tListener listener(weakListener);
+                        if (listener) {
+                            GetUniverseAddress(listener->universe(), addr);
+                            if (QHostAddress(addr.GetV4Address()) == pkt_datagram.destinationAddress()) {
+                                listener->processDatagram(
+                                            pkt_datagram.data(),
+                                            pkt_datagram.destinationAddress(),
+                                            pkt_datagram.senderAddress());
+                                break;
+                            }
+                        }
+                    }
                 }
 
                 // Save time

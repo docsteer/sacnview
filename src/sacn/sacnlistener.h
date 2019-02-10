@@ -79,7 +79,7 @@ public:
      * This allows other listeners to pass on unicast datagrams for other universes
      *
      */
-    Q_INVOKABLE void processDatagram(QByteArray data, QHostAddress receiver, QHostAddress sender);
+    Q_INVOKABLE void processDatagram(QByteArray data, QHostAddress destination, QHostAddress sender);
 
     // Diagnostic - the number of merge operations per second
 
