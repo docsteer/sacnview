@@ -42,6 +42,9 @@ ConfigurePerChanPrioDlg::ConfigurePerChanPrioDlg(QWidget *parent) :
         connect(presetButton, &QToolButton::pressed, this, &ConfigurePerChanPrioDlg::presetButtonPressed);
         m_presetButtons << presetButton;
     }
+    ui->widget->setMinimum(MIN_SACN_PRIORITY);
+    ui->widget->setMaximum(MAX_SACN_PRIORITY);
+    ui->widget->setAllValues(100);
 }
 
 ConfigurePerChanPrioDlg::~ConfigurePerChanPrioDlg()
