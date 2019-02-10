@@ -64,32 +64,54 @@ void GridWidget::paintEvent(QPaintEvent *event)
     qreal scaleHeight = height()/ wantedHeight;
 
     painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.scale(scaleWidth,scaleHeight);
 
-    painter.fillRect(QRectF(0,0, wantedWidth, wantedHeight), pal.color(QPalette::Base));
+    painter.fillRect(QRectF(0,0, wantedWidth*scaleWidth, wantedHeight*scaleHeight), pal.color(QPalette::Base));
 
     painter.setPen(pal.color(QPalette::Text));
-    painter.setFont(QFont("Segoe UI", 8));
+
+
+    // Determine the font size. This seems to look best based on increments of scale, not continuous scaling
+    QFont font = this->font();
+
+    if(scaleHeight<=1.2)
+        font.setPointSize(8);
+    else if(scaleHeight<1.9)
+        font.setPointSize(10);
+    else
+        font.setPointSize(12);
+    painter.setFont(font);
+
+    // Fill bars for background of the row and column labels
+    QRect rowLabelRect(0, 0,  FIRST_COL_WIDTH*scaleWidth, height());
+    painter.fillRect(rowLabelRect, QBrush(pal.color(QPalette::AlternateBase)));
+
+    QRect colLabelRect(0, 0,  width(), m_cellHeight*scaleHeight);
+    painter.fillRect(colLabelRect, QBrush(pal.color(QPalette::AlternateBase)));
+
+
     for(int row=1; row<ROW_COUNT+1; row++)
     {
-        QRect textRect(0, row*m_cellHeight, FIRST_COL_WIDTH, m_cellHeight);
-        QString rowLabel = QString("%1 - %2")
+        QRect textRect(0, row*m_cellHeight*scaleHeight, FIRST_COL_WIDTH*scaleWidth, m_cellHeight*scaleHeight);
+        QString rowLabel = QString("%1-%2")
                 .arg(1+(row-1)*32)
                 .arg((row)*32);
-        painter.drawText(textRect, rowLabel, QTextOption(Qt::AlignHCenter | Qt::AlignVCenter));
+
+        painter.drawText(textRect, Qt::AlignHCenter | Qt::AlignVCenter, rowLabel);
     }
     for(int col=0; col<COL_COUNT; col++)
     {
-        QRect textRect(FIRST_COL_WIDTH + col*CELL_WIDTH, 0, CELL_WIDTH, m_cellHeight);
+        QRect textRect((FIRST_COL_WIDTH + col*CELL_WIDTH) * scaleWidth, 0, CELL_WIDTH*scaleWidth, m_cellHeight*scaleHeight);
         QString rowLabel = QString("%1")
                 .arg(col+1);
-        painter.drawText(textRect, rowLabel, QTextOption(Qt::AlignHCenter | Qt::AlignVCenter));
+
+        painter.drawText(textRect, Qt::AlignHCenter | Qt::AlignVCenter, rowLabel);
     }
+
     for(int row=0; row<ROW_COUNT; row++)
         for(int col=0; col<COL_COUNT; col++)
         {
             int address = row*COL_COUNT + col;
-            QRect textRect(FIRST_COL_WIDTH + col*CELL_WIDTH, (row+1)*m_cellHeight, CELL_WIDTH, m_cellHeight);
+            QRect textRect((FIRST_COL_WIDTH + col*CELL_WIDTH)*scaleWidth, (row+1)*m_cellHeight*scaleHeight, CELL_WIDTH*scaleWidth, m_cellHeight*scaleHeight);
             QString value = m_values[address];
 
             if(!value.isEmpty())
@@ -98,7 +120,7 @@ void GridWidget::paintEvent(QPaintEvent *event)
 
                 QString rowLabel = value;
                 painter.fillRect(textRect, fillColor);
-                painter.drawText(textRect, rowLabel, QTextOption(Qt::AlignHCenter | Qt::AlignVCenter));
+                painter.drawText(textRect, Qt::AlignHCenter | Qt::AlignVCenter, rowLabel);
             }
 
         }
@@ -107,14 +129,14 @@ void GridWidget::paintEvent(QPaintEvent *event)
 
     for(int row=0; row<ROW_COUNT + 1; row++)
     {
-        QPoint start(0, row*m_cellHeight);
-        QPoint end(wantedWidth, row*m_cellHeight);
+        QPoint start(0, row*m_cellHeight*scaleHeight);
+        QPoint end(wantedWidth*scaleWidth, row*m_cellHeight*scaleHeight);
         painter.drawLine(start, end);
     }
     for(int col=0; col<COL_COUNT + 1; col++)
     {
-        QPoint start(FIRST_COL_WIDTH + col*CELL_WIDTH, 0);
-        QPoint end(FIRST_COL_WIDTH + col*CELL_WIDTH, wantedHeight);
+        QPoint start((FIRST_COL_WIDTH + col*CELL_WIDTH)*scaleWidth, 0);
+        QPoint end((FIRST_COL_WIDTH + col*CELL_WIDTH)*scaleWidth, wantedHeight*scaleHeight);
         painter.drawLine(start, end);
     }
 
@@ -125,7 +147,7 @@ void GridWidget::paintEvent(QPaintEvent *event)
         int selectedAddress = i.next();
         int col = selectedAddress % 32;
         int row = selectedAddress / 32;
-        QRect textRect(FIRST_COL_WIDTH + col*CELL_WIDTH, (row+1)*m_cellHeight, CELL_WIDTH, m_cellHeight);
+        QRect textRect((FIRST_COL_WIDTH + col*CELL_WIDTH)*scaleWidth, (row+1)*m_cellHeight*scaleHeight, CELL_WIDTH*scaleWidth, m_cellHeight*scaleHeight);
         painter.setPen(pal.color(QPalette::Highlight));
         painter.drawRect(textRect);
     }
