@@ -22,7 +22,11 @@
 #include <QThread>
 #include <QPoint>
 #include <math.h>
+#include <QtGlobal>
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
 #include <QNetworkDatagram>
+#endif
 
 //The amount of ms to wait before a source is considered offline or
 //has stopped sending per-channel-priority packets
@@ -164,6 +168,7 @@ void sACNListener::readPendingDatagrams()
     {
         while(m_socket->hasPendingDatagrams())
         {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
             QNetworkDatagram datagram = m_socket->receiveDatagram();
 
             if (datagram.data().isEmpty())
@@ -189,6 +194,17 @@ void sACNListener::readPendingDatagrams()
                             m_socket->localAddress(),
                             datagram.senderAddress());
             }
+#else
+            // Support for WindowsXP/ QT 5.6.0
+            QHostAddress senderAddr, recieverAddr;
+            int size = m_socket->pendingDatagramSize();
+            QByteArray data;
+            data.resize(size);
+            m_socket->readDatagram(data.data(), size, &senderAddr);
+            recieverAddr = m_socket->localAddress();
+
+            processDatagram(data, recieverAddr, senderAddr);
+#endif
         }
     }
 }
