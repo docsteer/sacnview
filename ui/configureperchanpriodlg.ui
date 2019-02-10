@@ -17,13 +17,6 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QLabel" name="lblAddress">
-       <property name="text">
-        <string>Address ?, Priority = </string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QSpinBox" name="sbPriority">
        <property name="minimumSize">
         <size>
@@ -33,6 +26,13 @@
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnSet">
+       <property name="text">
+        <string>Set</string>
        </property>
       </widget>
      </item>
