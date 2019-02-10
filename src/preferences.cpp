@@ -204,7 +204,9 @@ bool Preferences::interfaceSuitable(QNetworkInterface *inter)
     if (inter->isValid()
             && inter->flags().testFlag(QNetworkInterface::IsRunning)
             && inter->flags().testFlag(QNetworkInterface::IsUp)
-            && inter->flags().testFlag(QNetworkInterface::CanMulticast))
+            && inter->flags().testFlag(QNetworkInterface::CanMulticast)
+            && !inter->flags().testFlag(QNetworkInterface::IsLoopBack)
+            )
     {
         foreach (QNetworkAddressEntry addr, inter->addressEntries()) {
             if(addr.ip().protocol() == QAbstractSocket::IPv4Protocol)

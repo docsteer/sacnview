@@ -65,8 +65,8 @@ void sACNListener::startReception()
     // Clear the levels array
     memset(&m_last_levels, -1, sizeof(m_last_levels)/sizeof(m_last_levels[0]));
 
-    if (Preferences::getInstance()->GetNetworkListenAll()) {
-        // Listen on ALL interfaces
+    if (Preferences::getInstance()->GetNetworkListenAll() && !Preferences::getInstance()->networkInterface().IsLoopBack) {
+        // Listen on ALL interfaces and not working offline
         for (auto interface : QNetworkInterface::allInterfaces())
         {
             // If the interface is ok for use...
