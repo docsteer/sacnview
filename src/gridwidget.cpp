@@ -38,6 +38,7 @@ GridWidget::GridWidget(QWidget *parent)
     {
         m_values << QString();
     }
+    setFocusPolicy(Qt::StrongFocus);
 }
 
 QSize GridWidget::minimumSizeHint() const
@@ -193,6 +194,7 @@ void GridWidget::mousePressEvent(QMouseEvent *event)
         return;
 
     int address = cellHitTest(event->pos());
+    m_lastClickPoint = event->pos();
 
     // Handle multi-selection
     if(m_allowMultiSelect)
@@ -275,36 +277,32 @@ void GridWidget::mouseMoveEvent(QMouseEvent *event)
             update();
             return;
         }
-        if((event->modifiers() & Qt::ShiftModifier) && m_selectedAddresses.count()>0)
-        {
-            int previous = m_selectedAddresses.last();
-            int low = qMin(previous, address);
-            int high = qMax(previous, address);
-            for(int i=low; i<=high; i++)
-                if(!m_selectedAddresses.contains(i))
-                    m_selectedAddresses << i;
-            update();
-            emit selectedCellsChanged(m_selectedAddresses);
-            return;
-        }
-        if((event->modifiers() & Qt::ControlModifier) )
-        {
-            if(m_selectedAddresses.contains(address) && (address != m_selectedAddresses.last()) ) {
-                m_selectedAddresses.removeAll(address);
-            }
-            else {
-                m_selectedAddresses << address;
-            }
-            update();
-            emit selectedCellsChanged(m_selectedAddresses);
-            return;
-        }
+
+        // Marquee Selection
+        QRect marqueeRect(m_lastClickPoint, event->pos());
+        marqueeRect = marqueeRect.normalized();
+        int topLeftAddr = cellHitTest(marqueeRect.topLeft());
+        int bottomRightAddr = cellHitTest(marqueeRect.bottomRight());
+        int topRightAddr = cellHitTest(marqueeRect.topRight());
+        int marqueeWidth = topRightAddr - topLeftAddr;
 
         m_selectedAddresses.clear();
-        m_selectedAddresses << address;
-        update();
+        int sel_addr = topLeftAddr;
+        while(sel_addr <= bottomRightAddr)
+        {
+            for(int i=0; i<=marqueeWidth; i++)
+            {
+                m_selectedAddresses << sel_addr;
+                sel_addr++;
+            }
+
+            sel_addr+= 31-marqueeWidth;
+        }
         emit selectedCellsChanged(m_selectedAddresses);
+        update();
         return;
+
+
     }
     else // Handle single-selection
     {
@@ -367,4 +365,20 @@ bool GridWidget::event(QEvent *event)
         return true;
     }
     return QWidget::event(event);
+}
+
+
+void GridWidget::keyPressEvent(QKeyEvent *event)
+{
+    if((event->modifiers() & Qt::ControlModifier) && event->key()==Qt::Key_A)
+    {
+        m_selectedAddresses.clear();
+        for(int i=0;i<512;i++)
+            m_selectedAddresses << i;
+        emit selectedCellsChanged(m_selectedAddresses);
+        update();
+        event->setAccepted(true);
+        return;
+    }
+    QWidget::keyPressEvent(event);
 }

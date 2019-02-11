@@ -65,6 +65,7 @@ protected:
     virtual void mouseMoveEvent(QMouseEvent *event) override;
     virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
     virtual bool event(QEvent *event) override;
+    virtual void keyPressEvent(QKeyEvent *event) override;
 
     // Returns the cell under point, -1 for none
     int cellHitTest(const QPoint &point);
@@ -74,6 +75,7 @@ private:
     QVector<QColor> m_colors;
     QStringList m_values;
     bool m_allowMultiSelect = false;
+    QPoint m_lastClickPoint;
 protected:
     int m_cellHeight;
 };
