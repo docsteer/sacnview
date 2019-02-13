@@ -32,9 +32,10 @@ matrix:
             - make -j$(nproc)
         after_success:
           - FILE=$(readlink -f install/linux/sACNView_*AppImage)
-          - curl --upload-file $FILE https://transfer.sh/$(basename $FILE)
+          - BASENAME=$(basename $FILE)
+          - echo "Uploading $BASENAME to file.io..." && curl -sF "file=@$FILE" https://file.io | xargs printf "$BASENAME uploaded - %s\n"
           - FILE=$(readlink -f install/linux/sacnview_*.deb)
-          - curl --upload-file $FILE https://transfer.sh/$(basename $FILE)
+          - echo "Uploading $BASENAME to file.io..." && curl -sF "file=@$FILE" https://file.io | xargs printf "$BASENAME uploaded - %s\n"
 
       - os: osx
         osx_image: xcode8.3
@@ -51,4 +52,5 @@ matrix:
           - make -j4
         after_success:
           - FILE=$(echo `pwd`/`ls install/mac/sACNView*.dmg`)
-          - curl --upload-file $FILE https://transfer.sh/$(basename $FILE)
+          - BASENAME=$(basename $FILE)
+          - echo "Uploading $BASENAME to file.io..." && curl -sF "file=@$FILE" https://file.io | xargs printf "$BASENAME uploaded - %s\n"
