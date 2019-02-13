@@ -138,7 +138,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
 
     ui->gbFaders->adjustSize();
     ui->horizontalLayout_9->update();
-    ui->tab->adjustSize();
+    ui->tabFaders->adjustSize();
     ui->tabWidget->adjustSize();
     mainLayout->update();
 
@@ -167,6 +167,8 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     effectGroup->addButton(ui->rbFadeManual);
     effectGroup->addButton(ui->rbFadeRamp);
     effectGroup->addButton(ui->rbFadeSine);
+    effectGroup->addButton(ui->rbVerticalBars);
+    effectGroup->addButton(ui->rbHorizBars);
     effectGroup->addButton(ui->rbText);
     effectGroup->addButton(ui->rbDateTime);
     effectGroup->addButton(ui->rbChase);
@@ -206,6 +208,15 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     connect(ui->kAllOff,SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyAllOff()));
 
     connect(ui->teCommandline, SIGNAL(setLevels(QSet<int>,int)), this, SLOT(setLevels(QSet<int>,int)));
+
+    ui->gridControl->setMinimum(0);
+    if(Preferences::getInstance()->GetDisplayFormat()==Preferences::PERCENT)
+        ui->gridControl->setMaximum(100);
+    else
+        ui->gridControl->setMaximum(255);
+    ui->gridControl->setAllValues(0);
+
+    connect(ui->gridControl, SIGNAL(levelsSet(QList<QPair<int,int>>)), this, SLOT(setLevelList(QList<QPair<int,int>>)));
 }
 
 void transmitwindow::fixSize()
@@ -252,10 +263,8 @@ void transmitwindow::on_sliderMoved(int value)
     .arg(Preferences::getInstance()->GetFormattedValue(value))
     );
 
-    m_levels[address] = value;
+    setLevel(address, value);
 
-    if(m_sender)
-        m_sender->setLevel(address, value);
 }
 
 void transmitwindow::on_sbFadersStart_valueChanged(int value)
@@ -627,6 +636,18 @@ void transmitwindow::radioFadeMode_toggled(int id, bool checked)
                     m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxSinewave));
         ui->swFx->setCurrentIndex(0);
     }
+    if(ui->rbVerticalBars->isChecked())
+    {
+        QMetaObject::invokeMethod(
+                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxVerticalBar));
+        ui->swFx->setCurrentIndex(0);
+    }
+    if(ui->rbHorizBars->isChecked())
+    {
+        QMetaObject::invokeMethod(
+                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxHorizontalBar));
+        ui->swFx->setCurrentIndex(0);
+    }
     if(ui->rbText->isChecked())
     {
         QMetaObject::invokeMethod(
@@ -723,13 +744,7 @@ void transmitwindow::setLevels(QSet<int> addresses, int level)
     foreach(int addr, addresses)
     {
         addr -= 1; // Convert to 0-based
-        if (m_sender) m_sender->setLevel(addr, level);
-        m_levels[addr] = level;
-        int pos = addr - (ui->sbFadersStart->value() - 1);
-        if(pos>= 0 && pos<m_sliders.count())
-        {
-            m_sliders[pos]->setValue(level);
-        }
+        setLevel(addr, level);
     }
 }
 
@@ -793,5 +808,34 @@ void transmitwindow::updateEnabled()
     for (int n = offset; n < m_sliders.count() + offset; n++)
     {
         m_sliders[n - offset]->setEnabled(!(m_slotCount - n <= 0));
+    }
+}
+
+void transmitwindow::setLevel(int address, int value)
+{
+    m_levels[address] = value;
+
+    ui->gridControl->setCellValue(address, Preferences::getInstance()->GetFormattedValue(value));
+
+    if(m_sender)
+        m_sender->setLevel(address, value);
+
+    int pos = address - (ui->sbFadersStart->value() - 1);
+    if(pos>= 0 && pos<m_sliders.count() && m_sliders[pos]->value()!=value)
+    {
+        m_sliders[pos]->setValue(value);
+    }
+}
+
+
+void transmitwindow::setLevelList(QList<QPair<int, int>> levelList)
+{
+    // Levels are in localized format, need to convert
+    for(auto i: levelList)
+    {
+        if(Preferences::getInstance()->GetDisplayFormat()==Preferences::PERCENT)
+            setLevel(i.first, PTOHT[i.second]);
+        else
+            setLevel(i.first, i.second);
     }
 }

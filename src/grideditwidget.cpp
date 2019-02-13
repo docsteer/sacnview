@@ -13,33 +13,49 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "priorityeditwidget.h"
+#include "grideditwidget.h"
 #include <QWheelEvent>
 #include "consts.h"
 
-PriorityEditWidget::PriorityEditWidget(QWidget *parent) : GridWidget(parent)
+GridEditWidget::GridEditWidget(QWidget *parent) : GridWidget(parent)
 {
-    for(int i=0; i<512; i++)
-    {
-        setCellValue(i, QString::number(DEFAULT_SACN_PRIORITY));
-    }
+    setMultiSelect(true);
 }
 
 
-void PriorityEditWidget::wheelEvent(QWheelEvent *event)
+void GridEditWidget::wheelEvent(QWheelEvent *event)
 {
     int numDegrees = event->delta() / 8;
     int numSteps = numDegrees / 15;
 
-    if(selectedCell()<0) return;
+    QList<QPair<int, int>> level_list;
 
-    int value = cellValue(selectedCell()).toInt();
-    value += numSteps;
+    QListIterator<int>i(selectedCells());
+    while(i.hasNext())
+    {
+        int cell = i.next();
+        int value = cellValue(cell).toInt();
+        value += numSteps;
 
-    if(value<MIN_SACN_PRIORITY || value>MAX_SACN_PRIORITY) return;
+        if(!(value<m_minimum || value>m_maximum))
+        {
+            setCellValue(cell, QString::number(value));
+            level_list << QPair<int,int>(cell, value);
+        }
+    }
 
-    setCellValue(selectedCell(), QString::number(value));
+    if(level_list.count()>0)
+        emit levelsSet(level_list);
+
     update();
 
     event->accept();
+}
+
+void GridEditWidget::setAllValues(int value)
+{
+    for(int i=0; i<512; i++)
+    {
+        setCellValue(i, QString::number(value));
+    }
 }
