@@ -680,7 +680,8 @@ void transmitwindow::radioFadeMode_toggled(int id, bool checked)
 
 void transmitwindow::on_leScrollText_textChanged(const QString & text)
 {
-    m_fxEngine->setText(text);
+    if(m_fxEngine)
+        m_fxEngine->setText(text);
 }
 
 
