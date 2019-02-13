@@ -1,19 +1,16 @@
 #include "fpscounter.h"
 #include <QDateTime>
 
+#define updateInterval 1000
+
 fpsCounter::fpsCounter(QObject *parent) : QObject(parent),
-    updateTimer(new QTimer(this)),
     currentFps(0),
     previousFps(0),
     lastTime(0)
 {
-    connect(updateTimer, SIGNAL(timeout()), this, SLOT(updateFPS()));
-    updateTimer->start(1000);
-}
-
-fpsCounter::~fpsCounter()
-{
-    updateTimer->deleteLater();
+    QTimer *timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(updateFPS()));
+    timer->start(updateInterval);
 }
 
 void fpsCounter::updateFPS()
@@ -26,7 +23,7 @@ void fpsCounter::updateFPS()
         // No frames, or very old single frame
         if (
                 (frameTimes.count() == 0) ||
-                ((frameTimes.count() == 1) && (QDateTime::currentMSecsSinceEpoch() > (frameTimes.back() + (updateTimer->interval() * 2))))
+                ((frameTimes.count() == 1) && (QDateTime::currentMSecsSinceEpoch() > (frameTimes.back() + (updateInterval * 2))))
             )
         {
             previousFps = currentFps;

@@ -27,6 +27,7 @@
 #include "streamingacn.h"
 #include "sacnsocket.h"
 
+Q_DECLARE_METATYPE(QHostAddress)
 
 struct sACNMergedAddress
 {
@@ -77,10 +78,8 @@ public:
      *  @brief processDatagram Process a suspected sACN datagram.
      * This allows other listeners to pass on unicast datagrams for other universes
      *
-     * if alwaysPass is set, then the function will pass on multicast packets to the correct listener, if required.
-     * Unicast packets are always forwared,as we can not ensure which listener these arrive at.
      */
-    void processDatagram(QByteArray data, QHostAddress receiver, QHostAddress sender, bool alwaysPass = false);
+    Q_INVOKABLE void processDatagram(QByteArray data, QHostAddress destination, QHostAddress sender);
 
     // Diagnostic - the number of merge operations per second
 
@@ -131,6 +130,7 @@ private slots:
     void checkSourceExpiration();
     void sampleExpiration();
 private:
+    QMutex m_processMutex;
     void startInterface(QNetworkInterface iface);
     std::list<sACNRxSocket *> m_sockets;
     std::vector<sACNSource *> m_sources;

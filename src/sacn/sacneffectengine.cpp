@@ -52,6 +52,7 @@ sACNEffectEngine::sACNEffectEngine(sACNManager::tSender sender) : QObject(NULL),
     m_thread = new QThread();
     moveToThread(m_thread);
     connect(m_thread, &QThread::finished, this, &QObject::deleteLater);
+    m_thread->setObjectName(QString("Effect Engine Universe %1").arg(sender->universe()));
     m_thread->start();
 
     connect(m_sender, SIGNAL(slotCountChange()), this, SLOT(slotCountChanged()));

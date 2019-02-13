@@ -11,7 +11,6 @@ class fpsCounter : public QObject
     Q_OBJECT
 public:
     explicit fpsCounter(QObject *parent = nullptr);
-    virtual ~fpsCounter();
 
     // Return current FPS
     float FPS() { newFps = false; return currentFps;}
@@ -27,8 +26,6 @@ private slots:
 
 private:
     typedef time_t quint64;
-
-    QTimer *updateTimer;
 
     float currentFps;
     float previousFps;

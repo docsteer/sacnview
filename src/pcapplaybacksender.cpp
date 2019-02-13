@@ -17,8 +17,6 @@
 #include "sacn/sacnlistener.h"
 #include "ethernetstrut.h"
 
-
-
 pcapplaybacksender::pcapplaybacksender(QString FileName) :
     m_filename(FileName),
     m_pcap_in(Q_NULLPTR),
@@ -160,21 +158,28 @@ void pcapplaybacksender::run()
                     emit sendingFinished();
                     return;
                 }
+
                 /* Send to me
                  *
-                 * Send to any local listener, but set the always pass flag
+                 * Find listener for this universe and pass the packet on
                  *
                  */
                 {
-                    decltype(sACNManager::getInstance()->getListenerList()) listenerList
-                            = sACNManager::getInstance()->getListenerList();
-                    sACNManager::tListener listener = listenerList.begin().value().toStrongRef();
-                    if (listener)
-                        listener->processDatagram(
-                            pkt_datagram.data(),
-                            pkt_datagram.destinationAddress(),
-                            pkt_datagram.senderAddress(),
-                            true);
+
+                    CIPAddr addr;
+                    for (auto weakListener : sACNManager::getInstance()->getListenerList()) {
+                        sACNManager::tListener listener(weakListener);
+                        if (listener) {
+                            GetUniverseAddress(listener->universe(), addr);
+                            if (QHostAddress(addr.GetV4Address()) == pkt_datagram.destinationAddress()) {
+                                listener->processDatagram(
+                                            pkt_datagram.data(),
+                                            pkt_datagram.destinationAddress(),
+                                            pkt_datagram.senderAddress());
+                                break;
+                            }
+                        }
+                    }
                 }
 
                 // Save time

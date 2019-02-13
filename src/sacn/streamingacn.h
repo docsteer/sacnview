@@ -79,7 +79,7 @@ public:
     QString name;
     QString cid_string();
     QHostAddress ip;
-    fpsCounter *fpscounter;
+    fpsCounter fpscounter;
     // The number of sequence errors from this source
     int seqErr;
     // The number of jumps (increments by anything other than 1) of this source

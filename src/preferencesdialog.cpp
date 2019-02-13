@@ -59,6 +59,9 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         }
     }
     ui->cbListenAll->setChecked(Preferences::getInstance()->GetNetworkListenAll());
+#ifdef TARGET_WINXP
+    ui->cbListenAll->setEnabled(false);
+#endif
 
     switch (Preferences::getInstance()->GetDisplayFormat())
     {

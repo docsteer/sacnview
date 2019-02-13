@@ -26,11 +26,13 @@ class sACNRxSocket : public QUdpSocket
 public:
     sACNRxSocket(QNetworkInterface iface, QObject *parent = Q_NULLPTR);
 
-    bool bindMulticast(quint16 universe);
-    bool bindUnicast();
+    bool bind(quint16 universe);
+    int getBoundUniverse() { return m_universe; }
+    QNetworkInterface getBoundInterface() { return m_interface; }
 
 private:
     QNetworkInterface m_interface;
+    int m_universe;
 };
 
 class sACNTxSocket : public QUdpSocket
@@ -39,7 +41,12 @@ class sACNTxSocket : public QUdpSocket
 public:
     sACNTxSocket(QNetworkInterface iface, QObject *parent = Q_NULLPTR);
 
-    bool bindMulticast();
+    bool bind();
+
+    //qint64 writeDatagram(const QNetworkDatagram &datagram);
+    qint64 writeDatagram(const char *data, qint64 len, const QHostAddress &host, quint16 port);
+    inline qint64 writeDatagram(const QByteArray &datagram, const QHostAddress &host, quint16 port)
+        { return writeDatagram(datagram.constData(), datagram.size(), host, port); }
 
 private:
     QNetworkInterface m_interface;
