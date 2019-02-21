@@ -89,22 +89,7 @@ public:
      *  @brief getBindStatus Get interface bind status of listener
      *  @return A struct of bind types and status
      */
-    enum eBindStatus
-    {
-        BIND_UNKNOWN,
-        BIND_OK,
-        BIND_FAILED
-    };
-    struct sBindStatus
-    {
-        sBindStatus() {
-            unicast = BIND_UNKNOWN;
-            multicast = BIND_UNKNOWN;
-        }
-        eBindStatus unicast;
-        eBindStatus multicast;
-    };
-    sBindStatus getBindStatus() { return m_bindStatus; }
+    sACNRxSocket::sBindStatus getBindStatus() { return m_bindStatus; }
 
 public slots:
     void startReception();
@@ -153,7 +138,7 @@ private:
     int m_mergeCounter;
     QElapsedTimer m_mergesPerSecondTimer;
 
-    sBindStatus m_bindStatus;
+    sACNRxSocket::sBindStatus m_bindStatus;
 };
 
 

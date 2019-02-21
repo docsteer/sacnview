@@ -28,8 +28,9 @@ sACNRxSocket::sACNRxSocket(QNetworkInterface iface, QObject *parent) :
     m_interface(iface)
 {}
 
-bool sACNRxSocket::bind(quint16 universe)
+sACNRxSocket::sBindStatus sACNRxSocket::bind(quint16 universe)
 {
+    sACNRxSocket::sBindStatus status;
     m_universe = universe;
     bool ok = false;
 
@@ -45,6 +46,8 @@ bool sACNRxSocket::bind(quint16 universe)
               STREAM_IP_PORT,
               QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
 
+    status.unicast = ok ? BIND_OK : BIND_FAILED;
+
     // Join multicast on selected NIC
     if (ok) {
         #if (QT_VERSION <= QT_VERSION_CHECK(5, 8, 0))
@@ -56,6 +59,7 @@ bool sACNRxSocket::bind(quint16 universe)
         #endif
         setMulticastInterface(m_interface);
         ok |= joinMulticastGroup(QHostAddress(multicastAddr.GetV4Address()), m_interface);
+        status.multicast = ok ? BIND_OK : BIND_FAILED;
     }
 
     if(ok) {
@@ -70,7 +74,7 @@ bool sACNRxSocket::bind(quint16 universe)
         qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Failed to bind RX socket";
     }
 
-    return ok;
+    return status;
 }
 
 sACNTxSocket::sACNTxSocket(QNetworkInterface iface, QObject *parent) :

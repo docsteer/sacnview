@@ -26,7 +26,23 @@ class sACNRxSocket : public QUdpSocket
 public:
     sACNRxSocket(QNetworkInterface iface, QObject *parent = Q_NULLPTR);
 
-    bool bind(quint16 universe);
+    enum eBindStatus
+    {
+        BIND_UNKNOWN,
+        BIND_OK,
+        BIND_FAILED
+    };
+    struct sBindStatus
+    {
+        sBindStatus() {
+            unicast = BIND_UNKNOWN;
+            multicast = BIND_UNKNOWN;
+        }
+        eBindStatus unicast;
+        eBindStatus multicast;
+    };
+
+    sBindStatus bind(quint16 universe);
     int getBoundUniverse() { return m_universe; }
     QNetworkInterface getBoundInterface() { return m_interface; }
 

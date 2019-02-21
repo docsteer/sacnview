@@ -109,8 +109,8 @@ void UniverseView::on_btnGo_pressed()
 
 void UniverseView::checkBind()
 {
-    bool bindOk(m_listener->getBindStatus().multicast != sACNListener::BIND_FAILED);
-    bindOk &= m_listener->getBindStatus().unicast != sACNListener::BIND_FAILED;
+    bool bindOk(m_listener->getBindStatus().multicast != sACNRxSocket::BIND_FAILED);
+    bindOk &= m_listener->getBindStatus().unicast != sACNRxSocket::BIND_FAILED;
 
     if (bindOk || m_bindWarningShown)
         return;

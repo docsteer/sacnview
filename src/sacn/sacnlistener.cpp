@@ -83,8 +83,8 @@ void sACNListener::startReception()
         // Listen only to selected interface
         startInterface(Preferences::getInstance()->networkInterface());
         if (!m_sockets.empty()) {
-            m_bindStatus.multicast = (m_sockets.back()->multicastInterface().isValid()) ? eBindStatus::BIND_OK : eBindStatus::BIND_FAILED;
-            m_bindStatus.unicast = (m_sockets.back()->state() == QAbstractSocket::BoundState) ? eBindStatus::BIND_OK : eBindStatus::BIND_FAILED;
+            m_bindStatus.multicast = (m_sockets.back()->multicastInterface().isValid()) ? sACNRxSocket::BIND_OK : sACNRxSocket::BIND_FAILED;
+            m_bindStatus.unicast = (m_sockets.back()->state() == QAbstractSocket::BoundState) ? sACNRxSocket::BIND_OK : sACNRxSocket::BIND_FAILED;
         }
     }
 
@@ -111,14 +111,18 @@ void sACNListener::startReception()
 void sACNListener::startInterface(QNetworkInterface iface)
 {
     m_sockets.push_back(new sACNRxSocket(iface));
-    if (m_sockets.back()->bind(m_universe)) {
+    sACNRxSocket::sBindStatus status = m_sockets.back()->bind(m_universe);
+    if (status.unicast == sACNRxSocket::BIND_OK || status.multicast == sACNRxSocket::BIND_OK) {
         connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()), Qt::DirectConnection);
     } else {
-        // Failed to bind,
+        // Failed to bind
         m_sockets.pop_back();
-        m_bindStatus.multicast = eBindStatus::BIND_FAILED;
-        m_bindStatus.unicast = eBindStatus::BIND_FAILED;
     }
+
+    if ((m_bindStatus.unicast == sACNRxSocket::BIND_UNKNOWN) || (m_bindStatus.unicast == sACNRxSocket::BIND_OK))
+        m_bindStatus.unicast = status.unicast;
+    if ((m_bindStatus.multicast == sACNRxSocket::BIND_UNKNOWN) || (m_bindStatus.multicast == sACNRxSocket::BIND_OK))
+        m_bindStatus.multicast = status.multicast;
 }
 
 void sACNListener::sampleExpiration()
