@@ -9,19 +9,19 @@ If Windows alerts you that sACNView needs to make a network connection and that 
 The main window contains multiple smaller windows for the different functions of the program.
 
 ## Main Window Buttons
-![](./assets/images/scope.png)The Scope view button opens an Oscilloscope View
+![](./assets/images/scope.png) The Scope view button opens an Oscilloscope View
 
-![](./assets/images/univ_view.png)The View button opens a single universe view
+![](./assets/images/univ_view.png) The View button opens a single universe view
 
-![](./assets/images/transmit.png)The Transmit button opens a transmitter for an sACN universe
+![](./assets/images/transmit.png) The Transmit button opens a transmitter for an sACN universe
 
-![](./assets/images/snapshot.png)The Snapshot button opens a window to snapshot and play back sACN universes
+![](./assets/images/snapshot.png) The Snapshot button opens a window to snapshot and play back sACN universes
 
-![](./assets/images/multi_universe.png)The Multi-Universe Transmit button opens a transmitter for multiple sACN universes
+![](./assets/images/multi_universe.png) The Multi-Universe Transmit button opens a transmitter for multiple sACN universes
 
-![](./assets/images/capture_playback.png)The PCap Playback tool allows you to playback streaming ACN data captured with a packet capture tool like Wireshark
+![](./assets/images/capture_playback.png) The PCap Playback tool allows you to playback streaming ACN data captured with a packet capture tool like Wireshark
 
-![](./assets/images/settings.png)The Settings button opens the settings window
+![](./assets/images/settings.png) The Settings button opens the settings window
 
 # Universe List
 
@@ -29,7 +29,7 @@ The main window contains multiple smaller windows for the different functions of
 
 The Universe List is divided into two tabs, *All* and *Discovered*.
 
-The *All* tab shows a tree view list of twenty sACN Universes (to which you can add more). Each univese can be expanded to show the names and IP addresses of active sources. You can select the universe at which the view starts using the arrow buttons at the top, or by entering a universe number.
+The *All* tab shows a tree view list of twenty sACN Universes (to which you can add more). Each universe can be expanded to show the names and IP addresses of active sources. You can select the universe at which the view starts using the arrow buttons at the top, or by entering a universe number.
 
 The *Discovered* tab shows sources that have been discovered using the E1.17(2018) discovery method. Note that not all sources support this, so this may not show all sources in your network.
 
@@ -115,7 +115,29 @@ In addition to using the faders, you can use the other tabs at the top to perfor
 
 # Transmitting Multiple Universes
 
-You can transmit multiple universes at once using the multi-universe transmit window. Add sources to the table and select the effect or control you want.
+![](./assets/images/multi_dialog.png)
+You can transmit multiple universes at once using the multi-universe transmit window. Add sources to the table and select the effect or control you want. The same effects are available as in the standard transmit window.
+
+# Snapshot
+
+![](./assets/images/snapshot_dialog.png)
+
+Snapshot allows you to capture and playback the current levels in a range of universes. This can be useful when you are maintaining a system and you need to take a piece of control gear offline.
+
+To send a snapshot, first add the universe(s) you want to transmit by clicking the green plus button. Then, either one by one using the controls on the left of the table, or by taking all using the button at the bottom, snapshot the data you want.
+
+Then, when you are ready to transmit, press the Playback button (which again can be per-universe or overall).
+
+Once playing, the snapshots show an indictor to tell you if the state matches what it was when the snapshots were set up, so you can be certain that when you release the snapshot the lighting levels will not change. If the indicator is red, the levels are *different* to what was being sent. If the indicator is green, the levels are *the same* as what was being sent when the snapshot was set up.
+
+# PCAP Playback
+
+![](./assets/images/pcap_dialog.png)
+
+PCAP Playback allows you to replay the streaming ACN data from a packet capture (*.pcap) file. This can be useful when trying to recreate conditions from a site. You can use any packet capture tool like [wireshark](https://www.wireshark.org/) to capture this data.
+
+To use, select the PCAP file and select whether you want to loop the playback at the end. The playback will begin, and show the position in the file below.
+
 
 # Program Settings
 
@@ -123,12 +145,20 @@ You can transmit multiple universes at once using the multi-universe transmit wi
 
 The preferences dialog allows you to set up options for sACNView. These are permanently stored on your computer.
 
+The language selection sets which language the UI is presented in.
+
 If you have multiple network cards, you can select the card to be used in the 'Network Interface' selection. This network card will be used to send and recieve sACN data. If you change the network card, the application will restart.
+
+You can also select whether to listen on all network interfaces for sACN. If this is enabled then any sACN on any interface will be displayed. Note that this option is not available on Windows XP.
 
 You can choose how you prefer to have levels displayed. Choose either decimal (0-255), percentage(0-100%) or hexadecimal (00-FF)
 
 You can select whether or not to display blind or visualiser data. Blind data is data output by a console intended for display on a simulation program but not for live use
 
-You can specify a timeout after which sACN will not be displayed - i.e. once you start a source it will transmit for this amount of time and then stop.
+You can specify a timeout after which sACN will not be transmitted - i.e. once you start a source it will transmit for this amount of time and then stop.
 
 You can specify a default source name. This is the name that will be used by default when you start transmitting sACN from the application.
+
+# Other Features
+
+The application also features an interprocess communication API that allows you to use external systems to send or receive sACN. See the directory ipc example in the source code for an example of how to use it.
