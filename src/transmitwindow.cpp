@@ -77,6 +77,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     ui->slFadeLevel->setMaximum(MAX_SACN_LEVEL);
 
     ui->btnFxStart->setEnabled(false);
+    ui->btnFxPause->setEnabled(false);
 
     // Create preset buttons
     QHBoxLayout *layout = new QHBoxLayout();
@@ -217,6 +218,22 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     ui->gridControl->setAllValues(0);
 
     connect(ui->gridControl, SIGNAL(levelsSet(QList<QPair<int,int>>)), this, SLOT(setLevelList(QList<QPair<int,int>>)));
+
+    if(!m_sender)
+    {
+        m_sender = sACNManager::getInstance()->getSender(ui->sbUniverse->value());
+        connect(m_sender.data(), SIGNAL(sendingTimeout()), this, SLOT(sourceTimeout()));
+    }
+    if(!m_fxEngine)
+    {
+        m_fxEngine = new sACNEffectEngine(m_sender);
+        connect(m_fxEngine, SIGNAL(fxLevelChange(int)), ui->slFadeLevel, SLOT(setValue(int)));
+        connect(m_fxEngine, SIGNAL(textImageChanged(QPixmap)), ui->lblTextImage, SLOT(setPixmap(QPixmap)));
+        connect(m_fxEngine, &sACNEffectEngine::running, [this]() { ui->btnFxStart->setEnabled(false); ui->btnFxPause->setEnabled(true); } );
+        connect(m_fxEngine, &sACNEffectEngine::paused, [this]() { ui->btnFxStart->setEnabled(true); ui->btnFxPause->setEnabled(false); } );
+        m_fxEngine->setRange(ui->sbFadeRangeStart->value()-1, ui->sbFadeRangeEnd->value()-1);
+        ui->btnFxStart->setEnabled(true);
+    }
 }
 
 void transmitwindow::fixSize()
@@ -327,11 +344,6 @@ void transmitwindow::on_btnStart_pressed()
             return;
         }
     }
-    if(!m_sender)
-    {
-        m_sender = sACNManager::getInstance()->getSender(ui->sbUniverse->value());
-        connect(m_sender.data(), SIGNAL(sendingTimeout()), this, SLOT(sourceTimeout()));
-    }
 
     m_sender->setUnicastAddress(unicast);
     if(ui->rbRatified->isChecked())
@@ -343,6 +355,7 @@ void transmitwindow::on_btnStart_pressed()
     if(m_sender->isSending())
     {
         m_sender->stopSending();
+        on_btnFxPause_pressed();
         setUniverseOptsEnabled(true);
     }
     else
@@ -367,13 +380,6 @@ void transmitwindow::on_btnStart_pressed()
         on_tabWidget_currentChanged(ui->tabWidget->currentIndex());
 
         m_sender->setLevel(m_levels.data(), std::min(m_levels.size(), static_cast<size_t>(m_slotCount) - 1));
-        if(!m_fxEngine)
-        {
-            m_fxEngine = new sACNEffectEngine(m_sender);
-            connect(m_fxEngine, SIGNAL(fxLevelChange(int)), ui->slFadeLevel, SLOT(setValue(int)));
-            connect(m_fxEngine, SIGNAL(textImageChanged(QPixmap)), ui->lblTextImage, SLOT(setPixmap(QPixmap)));
-            m_fxEngine->setRange(ui->sbFadeRangeStart->value()-1, ui->sbFadeRangeEnd->value()-1);
-        }
     }
 
     updateTitle();
@@ -392,21 +398,13 @@ void transmitwindow::on_slFadeLevel_valueChanged(int value)
 void transmitwindow::on_btnFxPause_pressed()
 {
     if(m_fxEngine)
-    {
         m_fxEngine->pause();
-        ui->btnFxStart->setEnabled(true);
-        ui->btnFxPause->setEnabled(false);
-    }
 }
 
 void transmitwindow::on_btnFxStart_pressed()
 {
     if(m_fxEngine)
-    {
-        m_fxEngine->start();
-        ui->btnFxStart->setEnabled(false);
-        ui->btnFxPause->setEnabled(true);
-    }
+        m_fxEngine->run();
 }
 
 

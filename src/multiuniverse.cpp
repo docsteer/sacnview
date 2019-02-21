@@ -83,7 +83,7 @@ void MultiUniverse::addSource(int universe, int min_address, int max_address,
     m_fxEngines.last()->setMode(mode);
     m_fxEngines.last()->setRate(rate);
     m_fxEngines.last()->setManualLevel(level);
-    m_fxEngines.last()->start();
+    m_fxEngines.last()->run();
     m_senders.last()->setName(name);
     if(startSending)
         m_senders.last()->startSending();

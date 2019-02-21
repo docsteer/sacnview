@@ -75,14 +75,17 @@ void sACNEffectEngine::setMode(sACNEffectEngine::FxMode mode)
     clear();
 }
 
-void sACNEffectEngine::start()
+void sACNEffectEngine::run()
 {
     // Make this method thread-safe
     if(QThread::currentThread()!=this->thread())
         QMetaObject::invokeMethod(
-                    this,"start");
+                    this,"run");
     else
+    {
         m_timer->start();
+        emit running();
+    }
 }
 
 void sACNEffectEngine::pause()
@@ -91,7 +94,10 @@ void sACNEffectEngine::pause()
         QMetaObject::invokeMethod(
                     this,"pause");
     else
+    {
         m_timer->stop();
+        emit paused();
+    }
 }
 
 void sACNEffectEngine::clear()

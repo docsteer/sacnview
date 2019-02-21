@@ -1578,6 +1578,9 @@ color: rgb(255, 85, 0);</string>
                   <property name="text">
                    <string>Snap</string>
                   </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
                  </widget>
                 </item>
                 <item>
