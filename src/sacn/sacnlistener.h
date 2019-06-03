@@ -27,6 +27,7 @@
 #include "streamingacn.h"
 #include "sacnsocket.h"
 
+Q_DECLARE_METATYPE(QHostAddress)
 
 struct sACNMergedAddress
 {
@@ -77,10 +78,8 @@ public:
      *  @brief processDatagram Process a suspected sACN datagram.
      * This allows other listeners to pass on unicast datagrams for other universes
      *
-     * if alwaysPass is set, then the function will pass on multicast packets to the correct listener, if required.
-     * Unicast packets are always forwared,as we can not ensure which listener these arrive at.
      */
-    void processDatagram(QByteArray data, QHostAddress receiver, QHostAddress sender, bool alwaysPass = false);
+    Q_INVOKABLE void processDatagram(QByteArray data, QHostAddress destination, QHostAddress sender);
 
     // Diagnostic - the number of merge operations per second
 
@@ -90,22 +89,7 @@ public:
      *  @brief getBindStatus Get interface bind status of listener
      *  @return A struct of bind types and status
      */
-    enum eBindStatus
-    {
-        BIND_UNKNOWN,
-        BIND_OK,
-        BIND_FAILED
-    };
-    struct sBindStatus
-    {
-        sBindStatus() {
-            unicast = BIND_UNKNOWN;
-            multicast = BIND_UNKNOWN;
-        }
-        eBindStatus unicast;
-        eBindStatus multicast;
-    };
-    sBindStatus getBindStatus() { return m_bindStatus; }
+    sACNRxSocket::sBindStatus getBindStatus() { return m_bindStatus; }
 
 public slots:
     void startReception();
@@ -131,6 +115,7 @@ private slots:
     void checkSourceExpiration();
     void sampleExpiration();
 private:
+    QMutex m_processMutex;
     void startInterface(QNetworkInterface iface);
     std::list<sACNRxSocket *> m_sockets;
     std::vector<sACNSource *> m_sources;
@@ -153,7 +138,7 @@ private:
     int m_mergeCounter;
     QElapsedTimer m_mergesPerSecondTimer;
 
-    sBindStatus m_bindStatus;
+    sACNRxSocket::sBindStatus m_bindStatus;
 };
 
 

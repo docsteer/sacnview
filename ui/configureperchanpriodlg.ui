@@ -17,13 +17,6 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QLabel" name="lblAddress">
-       <property name="text">
-        <string>Address ?, Priority = </string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QSpinBox" name="sbPriority">
        <property name="minimumSize">
         <size>
@@ -33,6 +26,13 @@
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnSet">
+       <property name="text">
+        <string>Set</string>
        </property>
       </widget>
      </item>
@@ -108,7 +108,7 @@
     </layout>
    </item>
    <item>
-    <widget class="PriorityEditWidget" name="widget" native="true">
+    <widget class="GridEditWidget" name="widget" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -131,9 +131,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>PriorityEditWidget</class>
+   <class>GridEditWidget</class>
    <extends>QWidget</extends>
-   <header>priorityeditwidget.h</header>
+   <header>grideditwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

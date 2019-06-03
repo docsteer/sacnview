@@ -53,6 +53,14 @@ Preferences *Preferences::getInstance()
 
 QNetworkInterface Preferences::networkInterface() const
 {
+    if (!m_interface.isValid())
+    {
+        for (QNetworkInterface interface : QNetworkInterface::allInterfaces())
+        {
+            if (interface.flags().testFlag(QNetworkInterface::IsLoopBack))
+                return interface;
+        }
+    }
     return m_interface;
 }
 
@@ -72,7 +80,11 @@ void Preferences::SetNetworkListenAll(const bool &value)
 
 bool Preferences::GetNetworkListenAll()
 {
+#ifdef TARGET_WINXP
+    return false;
+#else
     return m_interfaceListenAll;
+#endif
 }
 
 QColor Preferences::colorForCID(const CID &cid)
@@ -196,7 +208,9 @@ bool Preferences::interfaceSuitable(QNetworkInterface *inter)
     if (inter->isValid()
             && inter->flags().testFlag(QNetworkInterface::IsRunning)
             && inter->flags().testFlag(QNetworkInterface::IsUp)
-            && inter->flags().testFlag(QNetworkInterface::CanMulticast))
+            && inter->flags().testFlag(QNetworkInterface::CanMulticast)
+            && !inter->flags().testFlag(QNetworkInterface::IsLoopBack)
+            )
     {
         foreach (QNetworkAddressEntry addr, inter->addressEntries()) {
             if(addr.ip().protocol() == QAbstractSocket::IPv4Protocol)

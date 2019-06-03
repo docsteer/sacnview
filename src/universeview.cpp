@@ -55,7 +55,7 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
     m_displayDDOnlySource = Preferences::getInstance()->GetDisplayDDOnly();
 
     ui->setupUi(this);
-    connect(ui->universeDisplay, SIGNAL(selectedCellChanged(int)), this, SLOT(selectedAddressChanged(int)));
+    connect(ui->universeDisplay, SIGNAL(selectedCellsChanged(QList<int>)), this, SLOT(selectedAddressesChanged(QList<int>)));
     connect(ui->universeDisplay, SIGNAL(cellDoubleClick(quint16)), this, SLOT(openBigDisplay(quint16)));
 
     connect(ui->btnShowPriority, &QPushButton::toggled,
@@ -109,8 +109,8 @@ void UniverseView::on_btnGo_pressed()
 
 void UniverseView::checkBind()
 {
-    bool bindOk(m_listener->getBindStatus().multicast != sACNListener::BIND_FAILED);
-    bindOk &= m_listener->getBindStatus().unicast != sACNListener::BIND_FAILED;
+    bool bindOk(m_listener->getBindStatus().multicast != sACNRxSocket::BIND_FAILED);
+    bindOk &= m_listener->getBindStatus().unicast != sACNRxSocket::BIND_FAILED;
 
     if (bindOk || m_bindWarningShown)
         return;
@@ -151,7 +151,7 @@ void UniverseView::sourceChanged(sACNSource *source)
     else
         ui->twSources->item(row,COL_PREVIEW)->setText(source->isPreview ? tr("Yes") : tr("No"));
     ui->twSources->item(row,COL_IP)->setText(source->ip.toString());
-    ui->twSources->item(row,COL_FPS)->setText(QString("%1Hz").arg(QString::number(source->fpscounter->FPS(), 'f', 2)));
+    ui->twSources->item(row,COL_FPS)->setText(QString("%1Hz").arg(QString::number(source->fpscounter.FPS(), 'f', 2)));
     {
         // Seq Errors
         QLabel* lbl_SEQ_ERR = qobject_cast<QLabel *>(
@@ -398,4 +398,13 @@ void UniverseView::on_btnLogWindow_pressed()
     if(!mainWindow) return;
     LogWindow *w = new LogWindow(ui->sbUniverse->value(),mainWindow);
     mainWindow->showWidgetAsMdiWindow(w);
+}
+
+
+void UniverseView::selectedAddressesChanged(QList<int> addresses)
+{
+    if(addresses.count()==0)
+        selectedAddressChanged(-1);
+    if(addresses.count()==1)
+        selectedAddressChanged(addresses.first());
 }

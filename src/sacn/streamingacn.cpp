@@ -60,7 +60,6 @@ sACNSource::sACNSource() :
     universe(0),
     slot_count(0),
     priority(0),
-    fpscounter(new fpsCounter(this)),
     seqErr(0),
     jumps(0)
 {

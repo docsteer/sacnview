@@ -69,10 +69,12 @@ signals:
     void setLevel(quint16 start, quint16 end, quint8 value);
     void fxLevelChange(int level);
     void textImageChanged(QPixmap pixmap);
+    void running();
+    void paused();
 public slots:
     void setMode(sACNEffectEngine::FxMode mode);
 
-    void start();
+    void run();
     void pause();
     void clear();
 

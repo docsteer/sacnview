@@ -13,23 +13,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PRIORITYEDITWIDGET_H
-#define PRIORITYEDITWIDGET_H
+#ifndef GRIDEDITWIDGET_H
+#define GRIDEDITWIDGET_H
 
 #include <QObject>
 #include <QWidget>
 #include "gridwidget.h"
 
 /**
- * @brief The PriorityEditWidget class provides a widget, based on the grid widget, which allows
+ * @brief The GridEditWidget class provides a widget, based on the grid widget, which allows
  * editing of per channel priority values
  */
-class PriorityEditWidget : public GridWidget
+class GridEditWidget : public GridWidget
 {
+    Q_OBJECT
 public:
-    PriorityEditWidget(QWidget *parent = 0);
+    GridEditWidget(QWidget *parent = Q_NULLPTR);
+    void setMinimum(int min) {m_minimum = min;}
+    void setMaximum(int max) {m_maximum = max;}
+    void setAllValues(int value);
+signals:
+    void levelsSet(QList<QPair<int, int>> setLevels);
 protected:
     virtual void wheelEvent(QWheelEvent *event);
+private:
+    int m_minimum = 0;
+    int m_maximum = 100;
 };
 
-#endif // PRIORITYEDITWIDGET_H
+#endif // GRIDEDITWIDGET_H

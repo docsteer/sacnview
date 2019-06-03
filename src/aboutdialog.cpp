@@ -158,17 +158,17 @@ void aboutDialog::updateDisplay()
     }
 }
 
-void aboutDialog::bindStatus(QTreeWidgetItem *treeItem, sACNListener::eBindStatus bindStatus)
+void aboutDialog::bindStatus(QTreeWidgetItem *treeItem, sACNRxSocket::eBindStatus bindStatus)
 {
     QString bindString;
     switch (bindStatus) {
-    case sACNListener::BIND_UNKNOWN:
+    case sACNRxSocket::BIND_UNKNOWN:
         bindString = QString(tr("Unknown"));
         break;
-    case sACNListener::BIND_OK:
+    case sACNRxSocket::BIND_OK:
         bindString = QString(tr("OK"));
         break;
-    case sACNListener::BIND_FAILED:
+    case sACNRxSocket::BIND_FAILED:
         bindString = QString(tr("Failed"));
         break;
     }

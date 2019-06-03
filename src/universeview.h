@@ -44,6 +44,7 @@ protected slots:
     void sourceChanged(sACNSource *source);
     void levelsChanged();
     void selectedAddressChanged(int address);
+    void selectedAddressesChanged(QList<int> addresses);
     void openBigDisplay(quint16 address);
     void on_btnStartFlickerFinder_pressed();
     void on_btnLogWindow_pressed();

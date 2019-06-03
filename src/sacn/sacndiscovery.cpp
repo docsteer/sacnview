@@ -30,7 +30,7 @@ sACNDiscoveryTX::sACNDiscoveryTX() : QObject(),
 {
     // Socket
     m_sendSock = new sACNTxSocket(Preferences::getInstance()->networkInterface(), this);
-    m_sendSock->bindMulticast();
+    m_sendSock->bind();
 
     // Setup packet send timer
     m_sendTimer->setObjectName("sACNDiscoveryTX");
@@ -160,6 +160,7 @@ sACNDiscoveryRX *sACNDiscoveryRX::getInstance()
 }
 
 sACNDiscoveryRX::sACNDiscoveryRX() : QObject(),
+    m_mutex(new QMutex()),
     m_listener(new sACNListener(E131_DISCOVERY_UNIVERSE)),
     m_thread(new QThread(this)),
     m_expiredTimer(new QTimer(this))
@@ -229,6 +230,8 @@ void sACNDiscoveryRX::processPacket(quint8* pbuf, uint buflen)
     CID cid;
     quint8 pageCount;
     quint8 pageNum;
+
+    QMutexLocker locker(m_mutex);
 
     // Check length
     if (!(buflen > E131_UNIVERSE_DISCOVERY_SIZE_MIN) ||

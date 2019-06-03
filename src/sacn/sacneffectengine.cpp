@@ -52,6 +52,7 @@ sACNEffectEngine::sACNEffectEngine(sACNManager::tSender sender) : QObject(NULL),
     m_thread = new QThread();
     moveToThread(m_thread);
     connect(m_thread, &QThread::finished, this, &QObject::deleteLater);
+    m_thread->setObjectName(QString("Effect Engine Universe %1").arg(sender->universe()));
     m_thread->start();
 
     connect(m_sender, SIGNAL(slotCountChange()), this, SLOT(slotCountChanged()));
@@ -74,14 +75,17 @@ void sACNEffectEngine::setMode(sACNEffectEngine::FxMode mode)
     clear();
 }
 
-void sACNEffectEngine::start()
+void sACNEffectEngine::run()
 {
     // Make this method thread-safe
     if(QThread::currentThread()!=this->thread())
         QMetaObject::invokeMethod(
-                    this,"start");
+                    this,"run");
     else
+    {
         m_timer->start();
+        emit running();
+    }
 }
 
 void sACNEffectEngine::pause()
@@ -90,7 +94,10 @@ void sACNEffectEngine::pause()
         QMetaObject::invokeMethod(
                     this,"pause");
     else
+    {
         m_timer->stop();
+        emit paused();
+    }
 }
 
 void sACNEffectEngine::clear()

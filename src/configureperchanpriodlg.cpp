@@ -42,6 +42,9 @@ ConfigurePerChanPrioDlg::ConfigurePerChanPrioDlg(QWidget *parent) :
         connect(presetButton, &QToolButton::pressed, this, &ConfigurePerChanPrioDlg::presetButtonPressed);
         m_presetButtons << presetButton;
     }
+    ui->widget->setMinimum(MIN_SACN_PRIORITY);
+    ui->widget->setMaximum(MAX_SACN_PRIORITY);
+    ui->widget->setAllValues(100);
 }
 
 ConfigurePerChanPrioDlg::~ConfigurePerChanPrioDlg()
@@ -65,15 +68,6 @@ quint8 *ConfigurePerChanPrioDlg::data()
     return m_data;
 }
 
-
-void ConfigurePerChanPrioDlg::on_sbPriority_valueChanged(int value)
-{
-    int currentCell = ui->widget->selectedCell();
-    if(currentCell<0) return;
-    ui->widget->setCellValue(currentCell, QString::number(value));
-    ui->widget->update();
-}
-
 void ConfigurePerChanPrioDlg::on_btnSetAll_pressed()
 {
     for(int i=0; i<512; i++)
@@ -81,20 +75,11 @@ void ConfigurePerChanPrioDlg::on_btnSetAll_pressed()
     ui->widget->update();
 }
 
-void ConfigurePerChanPrioDlg::on_widget_selectedCellChanged(int cell)
+void ConfigurePerChanPrioDlg::on_widget_selectedCellsChanged(QList<int> cells)
 {
-    if(cell>-1)
-    {
-        ui->sbPriority->setEnabled(true);
-        int iValue = ui->widget->cellValue(cell).toInt();
-        ui->sbPriority->setValue(iValue);
-        ui->lblAddress->setText(tr("Address %1, Priority = ").arg(cell+1));
-    }
-    else
-    {
-        ui->sbPriority->setEnabled(false);
-        ui->lblAddress->setText("");
-    }
+    ui->sbPriority->setEnabled(cells.count()>0);
+    ui->btnSet->setEnabled(cells.count()>0);
+    m_selectedCells = cells;
 }
 
 void ConfigurePerChanPrioDlg::on_btnPresetRec_toggled(bool on)
@@ -130,4 +115,12 @@ void ConfigurePerChanPrioDlg::presetButtonPressed()
         QByteArray data = Preferences::getInstance()->GetPriorityPreset(index);
         setData(reinterpret_cast<quint8 *>(data.data()));
     }
+}
+
+
+void ConfigurePerChanPrioDlg::on_btnSet_pressed()
+{
+    foreach(auto i, m_selectedCells)
+        ui->widget->setCellValue(i, QString::number(ui->sbPriority->value()));
+    ui->widget->update();
 }

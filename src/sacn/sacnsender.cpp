@@ -16,6 +16,7 @@
 #include "sacnsender.h"
 #include <vector>
 #include <set>
+#include <algorithm>
 
 #include "CID.h"
 #include "ipaddr.h"
@@ -88,7 +89,9 @@ void sACNSentUniverse::startSending(bool preview)
                                         m_universe, m_slotCount, pslots, m_priorityHandle, SEND_INTERVAL_PRIORITY, max_tx_rate,
                                         CIPAddr(), m_version==StreamingACNProtocolVersion::sACNProtocolDraft
                                      );
-        memcpy(pslots, m_perChannelPriorities, sizeof(m_perChannelPriorities));
+        memcpy(pslots,
+               m_perChannelPriorities,
+               std::min(static_cast<size_t>(m_slotCount), sizeof(m_perChannelPriorities)));
         streamServer->SetUniverseDirty(m_priorityHandle);
     }
     m_isSending = true;
@@ -204,7 +207,7 @@ void sACNSentUniverse::setPriorityMode(PriorityMode mode)
 
 void sACNSentUniverse::setPerChannelPriorities(quint8 *priorities)
 {
-    memcpy(m_perChannelPriorities, priorities, sizeof(m_perChannelPriorities));
+   memcpy(m_perChannelPriorities, priorities, sizeof(m_perChannelPriorities));
 }
 
 void sACNSentUniverse::setPerSourcePriority(quint8 priority)
@@ -295,12 +298,13 @@ CStreamServer::CStreamServer() :
 {
     m_sendsock = new sACNTxSocket(Preferences::getInstance()->networkInterface());
 
-    m_sendsock->bindMulticast();
+    m_sendsock->bind();
 
     m_thread = new QThread();
     connect(m_thread, SIGNAL(started()), this, SLOT(TickLoop()));
     connect(m_thread, &QThread::finished, this, &QThread::deleteLater);
     this->moveToThread(m_thread);
+    m_thread->setObjectName(QString("Interface %1 TX").arg(m_sendsock->multicastInterface().name()));
     m_thread->start();
 }
 
@@ -369,6 +373,7 @@ void CStreamServer::TickLoop()
 
     while (!m_thread_stop) {
         QThread::yieldCurrentThread();
+        QCoreApplication::processEvents();
         QThread::msleep(1);
         QMutexLocker locker(&m_writeMutex);
 

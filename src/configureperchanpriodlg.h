@@ -35,9 +35,9 @@ public:
     void setData(quint8 *data);
     quint8 *data();
 public slots:
-    void on_sbPriority_valueChanged(int value);
     void on_btnSetAll_pressed();
-    void on_widget_selectedCellChanged(int cell);
+    void on_btnSet_pressed();
+    void on_widget_selectedCellsChanged(QList<int> cells);
     void on_btnPresetRec_toggled(bool on);
     void presetButtonPressed();
 private:
@@ -45,6 +45,7 @@ private:
     quint8 m_data[MAX_DMX_ADDRESS];
     QList<QByteArray> m_presets;
     QList<QToolButton *>m_presetButtons;
+    QList<int> m_selectedCells;
 };
 
 #endif // CONFIGUREPERCHANPRIODLG_H

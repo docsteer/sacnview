@@ -22,7 +22,11 @@
 #include <QThread>
 #include <QPoint>
 #include <math.h>
+#include <QtGlobal>
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
+#include <QNetworkDatagram>
+#endif
 
 //The amount of ms to wait before a source is considered offline or
 //has stopped sending per-channel-priority packets
@@ -43,6 +47,8 @@ sACNListener::sACNListener(int universe, QObject *parent) : QObject(parent),
     m_isSampling(true),
     m_mergesPerSecond(0)
 {
+    qRegisterMetaType<QHostAddress>("QHostAddress");
+
     m_merged_levels.reserve(DMX_SLOT_MAX);
     for(int i=0; i<DMX_SLOT_MAX; i++)
         m_merged_levels << sACNMergedAddress();
@@ -63,8 +69,8 @@ void sACNListener::startReception()
     // Clear the levels array
     memset(&m_last_levels, -1, sizeof(m_last_levels)/sizeof(m_last_levels[0]));
 
-    if (Preferences::getInstance()->GetNetworkListenAll()) {
-        // Listen on ALL interfaces
+    if (Preferences::getInstance()->GetNetworkListenAll() & !Preferences::getInstance()->networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) {
+        // Listen on ALL interfaces and not working offline
         for (auto interface : QNetworkInterface::allInterfaces())
         {
             // If the interface is ok for use...
@@ -73,10 +79,13 @@ void sACNListener::startReception()
                 startInterface(interface);
             }
         }
-
     } else {
         // Listen only to selected interface
         startInterface(Preferences::getInstance()->networkInterface());
+        if (!m_sockets.empty()) {
+            m_bindStatus.multicast = (m_sockets.back()->multicastInterface().isValid()) ? sACNRxSocket::BIND_OK : sACNRxSocket::BIND_FAILED;
+            m_bindStatus.unicast = (m_sockets.back()->state() == QAbstractSocket::BoundState) ? sACNRxSocket::BIND_OK : sACNRxSocket::BIND_FAILED;
+        }
     }
 
     // Start intial sampling
@@ -101,27 +110,19 @@ void sACNListener::startReception()
 
 void sACNListener::startInterface(QNetworkInterface iface)
 {
-    // Listen multicast
     m_sockets.push_back(new sACNRxSocket(iface));
-    if (m_sockets.back()->bindMulticast(m_universe)) {
+    sACNRxSocket::sBindStatus status = m_sockets.back()->bind(m_universe);
+    if (status.unicast == sACNRxSocket::BIND_OK || status.multicast == sACNRxSocket::BIND_OK) {
         connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()), Qt::DirectConnection);
-        m_bindStatus.multicast = eBindStatus::BIND_OK;
     } else {
-       // Failed to bind,
-       m_sockets.pop_back();
-       m_bindStatus.multicast = eBindStatus::BIND_FAILED;
+        // Failed to bind
+        m_sockets.pop_back();
     }
 
-    // Listen unicast
-    m_sockets.push_back(new sACNRxSocket(iface));
-    if (m_sockets.back()->bindUnicast()) {
-        connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()), Qt::DirectConnection);
-        m_bindStatus.unicast = eBindStatus::BIND_OK;
-    } else {
-       // Failed to bind
-       m_sockets.pop_back();
-       m_bindStatus.unicast = eBindStatus::BIND_FAILED;
-    }
+    if ((m_bindStatus.unicast == sACNRxSocket::BIND_UNKNOWN) || (m_bindStatus.unicast == sACNRxSocket::BIND_OK))
+        m_bindStatus.unicast = status.unicast;
+    if ((m_bindStatus.multicast == sACNRxSocket::BIND_UNKNOWN) || (m_bindStatus.multicast == sACNRxSocket::BIND_OK))
+        m_bindStatus.multicast = status.multicast;
 }
 
 void sACNListener::sampleExpiration()
@@ -171,24 +172,64 @@ void sACNListener::readPendingDatagrams()
     {
         while(m_socket->hasPendingDatagrams())
         {
+#ifdef TARGET_WINXP
+            // Support for WindowsXP
+            QHostAddress senderAddress, destinationAddress;
+            int size = m_socket->pendingDatagramSize();
             QByteArray data;
-            data.resize(m_socket->pendingDatagramSize());
-            QHostAddress sender;
-            quint16 senderPort;
+            data.resize(size);
+            m_socket->readDatagram(data.data(), size, &senderAddress);
+            destinationAddress = m_socket->localAddress();
 
-            m_socket->readDatagram(data.data(), data.size(),
-                                    &sender, &senderPort);
+            processDatagram(data, destinationAddress, senderAddress);
+#else
+            QNetworkDatagram datagram = m_socket->receiveDatagram();
 
-            processDatagram(
-                        data,
-                        m_socket->localAddress(),
-                        sender);
+            if (datagram.data().isEmpty())
+                break;
+
+            /* Localhost - Allowed
+             * Relevant Multicast - Allowed
+             * Unicast for this interface - Allowed (Universe checked later)
+             * Broadcast - Rejected
+             */
+            QList<QHostAddress> interfaceAddress;
+            for (auto address : m_socket->getBoundInterface().addressEntries())
+                interfaceAddress << address.ip();
+
+            CIPAddr addr;
+            GetUniverseAddress(m_universe, addr);
+
+            if (
+                (datagram.destinationAddress().isMulticast() && datagram.destinationAddress() == addr.ToQHostAddress()) ||
+                interfaceAddress.contains(QHostAddress(datagram.destinationAddress()))
+                )
+            {
+                processDatagram(
+                            datagram.data(),
+                            m_socket->localAddress(),
+                            datagram.senderAddress());
+            }
+#endif
         }
     }
 }
 
-void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHostAddress sender, bool alwaysPass)
+void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QHostAddress sender)
 {
+    if(QThread::currentThread()!=this->thread())
+    {
+        QMetaObject::invokeMethod(
+                    this,
+                    "processDatagram",
+                    Q_ARG(QByteArray, data),
+                    Q_ARG(QHostAddress, destination),
+                    Q_ARG(QHostAddress, sender));
+        return;
+    };
+
+    QMutexLocker locker(&m_processMutex);
+
     // Process packet
     CID source_cid;
     quint8 start_code;
@@ -227,22 +268,21 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
     // Unpacks a uint4 from a known big endian buffer
     int root_vect = UpackBUint32((quint8*)pbuf + ROOT_VECTOR_ADDR);
 
-    // Packet for the wrong universe on this socket?
+    // Wrong universe
     if(m_universe != universe)
     {
         // Was it unicast? Send to correct listner (if listening)
-        if (!alwaysPass && receiver.isMulticast())
+        if (!destination.isMulticast())
         {
-            // Log and discard
-            qDebug() << "sACNListener" << QThread::currentThreadId() << ": Wrong Universe and is multicast";
-            return;
-        } else {
-            // Unicast, send to releivent listener!
+            // Unicast, send to correct listener!
             decltype(sACNManager::getInstance()->getListenerList()) listenerList
                     = sACNManager::getInstance()->getListenerList();
             if (listenerList.contains(universe))
-                listenerList[universe].data()->processDatagram(data, receiver, sender);
+                listenerList[universe].data()->processDatagram(data, destination, sender);
             return;
+        } else {
+            // Log and discard
+            qDebug() << "sACNListener" << QThread::currentThreadId() << ": Wrong Universe and is multicast";
         }
     }
 
@@ -479,8 +519,8 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress receiver, QHost
             }
 
             // FPS Counter - we count only DMX frames
-            ps->fpscounter->newFrame();
-            if (ps->fpscounter->isNewFPS())
+            ps->fpscounter.newFrame();
+            if (ps->fpscounter.isNewFPS())
                 ps->source_params_change = true;
         }
         else if(start_code == STARTCODE_PRIORITY)

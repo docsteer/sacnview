@@ -135,8 +135,8 @@ QVariant sACNUniverseListModel::data(const QModelIndex &index, int role) const
             QString displayString = tr("Universe %1").arg(universe);
 
             // Universe bind issues
-            bool bindOk = (listener->getBindStatus().multicast != listener->BIND_FAILED);
-            bindOk &= (listener->getBindStatus().unicast != listener->BIND_FAILED);
+            bool bindOk = (listener->getBindStatus().multicast != sACNRxSocket::BIND_FAILED);
+            bindOk &= (listener->getBindStatus().unicast != sACNRxSocket::BIND_FAILED);
 
             if (bindOk)
                 return QVariant(displayString);

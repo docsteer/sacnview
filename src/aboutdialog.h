@@ -60,7 +60,7 @@ private:
     QList<universeDetails> m_universeDetails;
 
     void resizeDiagColumn();
-    void bindStatus(QTreeWidgetItem *treeItem, sACNListener::eBindStatus bindStatus);
+    void bindStatus(QTreeWidgetItem *treeItem, sACNRxSocket::eBindStatus bindStatus);
 };
 
 #endif // ABOUTDIALOG_H
