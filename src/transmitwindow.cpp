@@ -229,8 +229,8 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
         m_fxEngine = new sACNEffectEngine(m_sender);
         connect(m_fxEngine, SIGNAL(fxLevelChange(int)), ui->slFadeLevel, SLOT(setValue(int)));
         connect(m_fxEngine, SIGNAL(textImageChanged(QPixmap)), ui->lblTextImage, SLOT(setPixmap(QPixmap)));
-        connect(m_fxEngine, &sACNEffectEngine::running, [this]() { ui->btnFxStart->setEnabled(false); ui->btnFxPause->setEnabled(true); } );
-        connect(m_fxEngine, &sACNEffectEngine::paused, [this]() { ui->btnFxStart->setEnabled(true); ui->btnFxPause->setEnabled(false); } );
+        connect(m_fxEngine, &sACNEffectEngine::running, this, [this]() { ui->btnFxStart->setEnabled(false); ui->btnFxPause->setEnabled(true); }, Qt::QueuedConnection);
+        connect(m_fxEngine, &sACNEffectEngine::paused, this, [this]() { ui->btnFxStart->setEnabled(true); ui->btnFxPause->setEnabled(false); } , Qt::QueuedConnection);
         m_fxEngine->setRange(ui->sbFadeRangeStart->value()-1, ui->sbFadeRangeEnd->value()-1);
         ui->btnFxStart->setEnabled(true);
     }
@@ -570,7 +570,7 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
         case tabEffects:
         {
             QMetaObject::invokeMethod(
-                        m_fxEngine,"start");
+                        m_fxEngine,"run");
             break;
         }
     }
