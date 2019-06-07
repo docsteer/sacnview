@@ -188,6 +188,7 @@ sACNDiscoveryRX::~sACNDiscoveryRX()
 
 void sACNDiscoveryRX::timeoutUniverses()
 {
+    QMutexLocker locker(m_mutex);
     QMutableHashIterator<CID, sACNSourceDetail*> discoveryListIterator(m_discoveryList);
     while (discoveryListIterator.hasNext())
     {
