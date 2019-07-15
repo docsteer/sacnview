@@ -2,13 +2,13 @@ language: cpp
 matrix:
   include:
       - os: linux
-        dist: trusty
+        dist: xenial
         sudo: required
         compiler: gcc
         addons:
           apt:
             sources:
-              - sourceline: 'ppa:beineri/opt-qt594-trusty'
+              - sourceline: 'ppa:beineri/opt-qt-5.12.3-xenial'
               - sourceline: 'ppa:brightbox/ruby-ng'
             packages:
               # FPM dependencies
@@ -16,9 +16,11 @@ matrix:
               - ruby2.3
               - ruby2.3-dev
               # QT
-              - qt59base
-              - qt59multimedia
-              - qt59tools
+              - qt512base
+              - qt512multimedia
+              - qt512tools
+              - mesa-common-dev
+              - libgl1-mesa-dev
               # PCap
               - libpcap-dev
 
