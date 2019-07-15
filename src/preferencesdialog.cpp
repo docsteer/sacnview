@@ -51,7 +51,9 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
                            .arg(interface.humanReadableName())
                            .arg(ipString));
 
-            radio->setChecked(Preferences::getInstance()->networkInterface().hardwareAddress() == interface.hardwareAddress());
+            radio->setChecked(
+                        Preferences::getInstance()->networkInterface().hardwareAddress() == interface.hardwareAddress() &&
+                        Preferences::getInstance()->networkInterface().name() == interface.name());
 
             ui->verticalLayout_NetworkInterfaces->addWidget(radio);
             m_interfaceList << interface;
