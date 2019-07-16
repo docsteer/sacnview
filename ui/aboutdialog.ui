@@ -97,7 +97,7 @@
              </font>
             </property>
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;sACNView&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;a href=&quot;http://docsteer.github.io/sacnview/&quot;&gt;&lt;span style=&quot; font-size:8pt; text-decoration: underline; color:#0000ff;&quot;&gt;docsteer.github.io/sacnview&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;sACNView&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;a href=&quot;http://docsteer.github.io/sacnview/&quot;&gt;&lt;span style=&quot; font-size:8pt; text-decoration: underline; color:#0000ff;&quot;&gt;docsteer.github.io/sacnview&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="openExternalLinks">
              <bool>true</bool>
@@ -118,7 +118,7 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>date</string>
+               <string notr="true">date</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -166,7 +166,7 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>#</string>
+               <string notr="true">#</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -182,7 +182,7 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>name</string>
+               <string notr="true">name</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -230,7 +230,7 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>name</string>
+               <string notr="true">name</string>
               </property>
              </widget>
             </item>
@@ -247,7 +247,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>license-info</string>
+           <string notr="true">license-info</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -269,7 +269,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>qt-info</string>
+           <string notr="true">qt-info</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -291,7 +291,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>libs-info</string>
+           <string notr="true">libs-info</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
