@@ -40,14 +40,15 @@ matrix:
           - echo "Uploading $BASENAME to file.io..." && curl -sF "file=@$FILE" https://file.io | xargs printf "$BASENAME uploaded - %s\n"
 
       - os: osx
-        osx_image: xcode8.3
+        osx_image: xcode9.4
         before_install:
           - brew update
         install:
           # PCap
           - brew install libpcap
-          # QT
-          - brew install qt
+          # QT 5.12.3
+          - git -C "$(brew --repo homebrew/core)" checkout -b qt5.12.3 65a45a9e61f15046a256cdba6a008f38f79570c9
+          - HOMEBREW_NO_AUTO_UPDATE=1 brew install qt
           - brew link --force qt
         script:
           - qmake

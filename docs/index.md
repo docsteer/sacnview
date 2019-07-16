@@ -10,7 +10,7 @@ Use the buttons at the top of this page to download and install the program for 
 # Supported Platforms
 * Windows 7 or newer
 * Windows XP (separate build)
-* MacOS 10.10 or newer
+* MacOS 10.13.4 (High Sierra) or newer 
 * Linux (Debian based e.g. Ubuntu)
 
 # How to Use
