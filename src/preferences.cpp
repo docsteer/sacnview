@@ -235,7 +235,10 @@ void Preferences::savePreferences()
     QSettings settings;
 
     if(m_interface.isValid())
-        settings.setValue(S_MAC_ADDRESS, m_interface.hardwareAddress());
+    {
+        settings.setValue(S_INTERFACE_ADDRESS, m_interface.hardwareAddress());
+        settings.setValue(S_INTERFACE_NAME, m_interface.name());
+    }
     settings.setValue(S_DISPLAY_FORMAT, QVariant(m_nDisplayFormat));
     settings.setValue(S_BLIND_VISUALIZER, QVariant(m_bBlindVisualizer));
     settings.setValue(S_DDONLY, QVariant(m_bDisplayDDOnly));
@@ -276,13 +279,19 @@ void Preferences::loadPreferences()
 {
     QSettings settings;
 
-    if(settings.contains(S_MAC_ADDRESS))
+    if(settings.contains(S_INTERFACE_ADDRESS))
     {
-        QString mac = settings.value(S_MAC_ADDRESS).toString();
-        QList<QNetworkInterface> ifaceList = QNetworkInterface::allInterfaces();
-        foreach(QNetworkInterface i, ifaceList)
-            if(i.hardwareAddress() == mac)
-                m_interface = i;
+        QString mac = settings.value(S_INTERFACE_ADDRESS).toString();
+        auto interFromName = QNetworkInterface::interfaceFromName(settings.value(S_INTERFACE_NAME).toString());
+        if (interFromName.isValid() && (interFromName.hardwareAddress() == mac))
+        {
+            m_interface = interFromName;
+        } else {
+            QList<QNetworkInterface> ifaceList = QNetworkInterface::allInterfaces();
+            for(auto i : ifaceList)
+                if(i.hardwareAddress() == mac)
+                    m_interface = i;
+        }
     }
 
     m_interfaceListenAll = settings.value(S_LISTEN_ALL, QVariant(false)).toBool();
