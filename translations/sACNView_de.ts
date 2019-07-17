@@ -142,29 +142,14 @@
 <context>
     <name>ConfigurePerChanPrioDlg</name>
     <message>
-        <location filename="../ui/configureperchanpriodlg.ui" line="14"/>
-        <source>Dialog</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../ui/configureperchanpriodlg.ui" line="22"/>
-        <source>Address ?, Priority = </source>
-        <translation>Adresse ?, Priorität = </translation>
-    </message>
-    <message>
-        <location filename="../ui/configureperchanpriodlg.ui" line="58"/>
-        <source>...</source>
-        <translation type="unfinished">...</translation>
+        <location filename="../ui/configureperchanpriodlg.ui" line="35"/>
+        <source>Set</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/configureperchanpriodlg.ui" line="91"/>
         <source>Set All Priorities to</source>
         <translation>Alle Prioritäten einstellen:</translation>
-    </message>
-    <message>
-        <location filename="../src/configureperchanpriodlg.cpp" line="91"/>
-        <source>Address %1, Priority = </source>
-        <translation>Adresse %1, Prioität = </translation>
     </message>
 </context>
 <context>
@@ -290,14 +275,6 @@
         <location filename="../ui/logwindow.ui" line="326"/>
         <source>Level Format</source>
         <translation>Niveauformat</translation>
-    </message>
-    <message>
-        <source>Copy to Clipboard</source>
-        <translation type="vanished">Kopieren</translation>
-    </message>
-    <message>
-        <source>Clear</source>
-        <translation type="vanished">Löschen</translation>
     </message>
     <message>
         <location filename="../src/logwindow.cpp" line="22"/>
@@ -636,12 +613,12 @@
         <translation>Herunterladen %1 von %2</translation>
     </message>
     <message>
-        <location filename="../ui/newversiondialog.ui" line="225"/>
+        <location filename="../ui/newversiondialog.ui" line="213"/>
         <source>Cancel download</source>
         <translation>Download stornieren</translation>
     </message>
     <message>
-        <location filename="../ui/newversiondialog.ui" line="235"/>
+        <location filename="../ui/newversiondialog.ui" line="223"/>
         <source>Exit and install</source>
         <translation>Beenden und installieren</translation>
     </message>
@@ -651,27 +628,32 @@
         <translation>sACNView %1 ist verfügbar (Sie haben %2).Möchten Sie es jetzt herunterladen?</translation>
     </message>
     <message>
-        <location filename="../src/versioncheck.cpp" line="77"/>
+        <location filename="../src/versioncheck.cpp" line="78"/>
         <source>Could not open file %1 to save - please download and install manually</source>
         <translation>Datei %1 konnte nicht geöffnet werden. Bitte laden Sie sie manuell herunter</translation>
     </message>
     <message>
-        <location filename="../src/versioncheck.cpp" line="93"/>
+        <location filename="../src/versioncheck.cpp" line="97"/>
         <source>%1 of %2 bytes</source>
         <translation>%1 von %2 bytes</translation>
     </message>
     <message>
-        <location filename="../src/versioncheck.cpp" line="122"/>
+        <location filename="../src/versioncheck.cpp" line="99"/>
+        <source>%1 of %2</source>
+        <translation>%1 von %2</translation>
+    </message>
+    <message>
+        <location filename="../src/versioncheck.cpp" line="135"/>
         <source>Error downloading : please try again</source>
         <translation>Download-Error: bitte nochmal probieren</translation>
     </message>
     <message>
-        <location filename="../src/versioncheck.cpp" line="150"/>
+        <location filename="../src/versioncheck.cpp" line="163"/>
         <source>Couldn&apos;t Run Installer</source>
         <translation>Installer konnte nicht laufen</translation>
     </message>
     <message>
-        <location filename="../src/versioncheck.cpp" line="150"/>
+        <location filename="../src/versioncheck.cpp" line="163"/>
         <source>Unable to run installer - please run %1</source>
         <translation>Installer kann nicht laufen - bitte starten Sie %1</translation>
     </message>
@@ -680,7 +662,7 @@
     <name>PcapPlayback</name>
     <message>
         <location filename="../ui/pcapplayback.ui" line="26"/>
-        <location filename="../src/pcapplayback.cpp" line="177"/>
+        <location filename="../src/pcapplayback.cpp" line="181"/>
         <source>PCap Playback</source>
         <translation>PCap-Wiedergabe</translation>
     </message>
@@ -730,29 +712,29 @@
         <translation>Wiedergabe im Kreis?</translation>
     </message>
     <message>
-        <location filename="../src/pcapplayback.cpp" line="59"/>
+        <location filename="../src/pcapplayback.cpp" line="63"/>
         <source>Open Capture</source>
         <translation>Erfassung öffnen</translation>
     </message>
     <message>
-        <location filename="../src/pcapplayback.cpp" line="61"/>
+        <location filename="../src/pcapplayback.cpp" line="65"/>
         <source>PCap Files (*.pcap);; PCapNG Files (*.pcapng);; All files (*.*)</source>
         <translation>PCap Dateien (*.pcap);; PCapNG Dateien (*.pcapng);; All Dateien (*.*)</translation>
     </message>
     <message>
-        <location filename="../src/pcapplayback.cpp" line="73"/>
+        <location filename="../src/pcapplayback.cpp" line="77"/>
         <source>Error opening %1
 %2</source>
         <translation>Fehler beim Öffnen %1 %2</translation>
     </message>
     <message>
-        <location filename="../src/pcapplayback.cpp" line="84"/>
+        <location filename="../src/pcapplayback.cpp" line="88"/>
         <source>Error opening %1
 pcap_compile failed</source>
         <translation>Fehler beim Öffnen %1 pcap_compile Fehler</translation>
     </message>
     <message>
-        <location filename="../src/pcapplayback.cpp" line="89"/>
+        <location filename="../src/pcapplayback.cpp" line="93"/>
         <source>Error opening %1
 pcap_setfilter failed</source>
         <translation>Fehler beim Öffnen %1 pcap_setfilter Fehler</translation>
@@ -804,10 +786,6 @@ pcap_setfilter failed</source>
         <location filename="../ui/preferencesdialog.ui" line="96"/>
         <source>Percent (0-100)</source>
         <translation>Prozent (0-100)</translation>
-    </message>
-    <message>
-        <source>Language</source>
-        <translation type="vanished">Sprache</translation>
     </message>
     <message>
         <location filename="../ui/preferencesdialog.ui" line="83"/>
@@ -870,12 +848,12 @@ pcap_setfilter failed</source>
         <translation>*Bei Einstellungsänderung Neustart erforderlich  </translation>
     </message>
     <message>
-        <location filename="../src/preferencesdialog.cpp" line="178"/>
+        <location filename="../src/preferencesdialog.cpp" line="181"/>
         <source>Restart requied</source>
         <translation>Neustart erforderlich</translation>
     </message>
     <message>
-        <location filename="../src/preferencesdialog.cpp" line="179"/>
+        <location filename="../src/preferencesdialog.cpp" line="182"/>
         <source>To apply these preferences, you will need to restart the application. 
 sACNView will now close and restart</source>
         <translation>Um diese Einstellungen zu speichern, müssen Sie die Software neustarten.
@@ -884,16 +862,6 @@ sACNView wird jezt schließen und neustarten</translation>
 </context>
 <context>
     <name>QObject</name>
-    <message>
-        <source>This binary is intended for Windows XP only
-There are major issues mixed IPv4 and IPv6 enviroments
-
-Please ensure IPv6 is disabled</source>
-        <translation type="vanished">Diese Binärdatei ist nur for Windows XP beabsichtigt
-Es gibt große Probleme mit gemischten IPv4 und IPv6 Umgebungen
-
-Bitte sorgen Sie dafür, dass IPv6 deaktiviert ist</translation>
-    </message>
     <message>
         <location filename="../src/main.cpp" line="82"/>
         <source>This binary is intended for Windows XP only
@@ -921,12 +889,6 @@ Please ensure IPv6 is disabled</source>
         <location filename="../src/main.cpp" line="163"/>
         <source>Incoming connections to this application are restricted by the firewall</source>
         <translation>Eingehende Verbindungen mit dieser Software werden durch eine Firewall beschränkt</translation>
-    </message>
-    <message>
-        <source>This binary is intended for Windows XP only
-This feature is unavailable</source>
-        <translation type="vanished">Diese Binärdatei ist nur for Windows XP beabsichtigt
-Diese Eigenschaft ist nicht verfügbar</translation>
     </message>
     <message>
         <location filename="../src/commandline.h" line="17"/>
@@ -962,10 +924,6 @@ Diese Eigenschaft ist nicht verfügbar</translation>
         <location filename="../src/commandline.h" line="23"/>
         <source>-</source>
         <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>AND</source>
-        <translation type="vanished">UND</translation>
     </message>
     <message>
         <location filename="../src/commandline.h" line="25"/>
@@ -1031,12 +989,6 @@ Diese Eigenschaft ist nicht verfügbar</translation>
         <location filename="../src/sacn/sacneffectengine.h" line="57"/>
         <source>Date</source>
         <translation>Datum</translation>
-    </message>
-    <message>
-        <source>Failed to start logging to file
-Error %1</source>
-        <translation type="vanished">Felher bei Dateilogerstellung
-Fehler %1</translation>
     </message>
     <message>
         <location filename="../src/preferences.h" line="75"/>
@@ -1257,45 +1209,14 @@ This feature is unavailable</source>
     </message>
     <message>
         <location filename="../ui/snapshot.ui" line="75"/>
-        <location filename="../ui/snapshot.ui" line="111"/>
+        <location filename="../ui/snapshot.ui" line="146"/>
         <source>...</source>
         <translation>...</translation>
     </message>
     <message>
-        <location filename="../ui/snapshot.ui" line="136"/>
-        <source>{INFO LABEL}</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/snapshot.ui" line="179"/>
+        <location filename="../ui/snapshot.ui" line="214"/>
         <source>Take All Snapshots</source>
         <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/snapshot.ui" line="205"/>
-        <source>{PLAY BUTTON}</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Taking Snapshot in</source>
-        <translation type="vanished">Snapshot wird genommen in</translation>
-    </message>
-    <message>
-        <location filename="../ui/snapshot.ui" line="163"/>
-        <source>5</source>
-        <translation>5</translation>
-    </message>
-    <message>
-        <source>Take Snapshot</source>
-        <translation type="vanished">Snapshot nehmen</translation>
-    </message>
-    <message>
-        <source>Play Back Snapshot</source>
-        <translation type="vanished">Snapshot wiedergeben</translation>
-    </message>
-    <message>
-        <source>Replay Last Snapshot</source>
-        <translation type="vanished">Letzten Snapshot wiedergeben</translation>
     </message>
     <message>
         <location filename="../src/snapshot.cpp" line="18"/>
@@ -1328,12 +1249,14 @@ This feature is unavailable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Playing Back Data</source>
-        <translation type="vanished">Daten werden wiedergeben</translation>
+        <location filename="../src/snapshot.cpp" line="329"/>
+        <source>All sources &lt;i&gt;match&lt;/i&gt; the background levels</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Stop Playback</source>
-        <translation type="vanished">Playback unterbrechen</translation>
+        <location filename="../src/snapshot.cpp" line="334"/>
+        <source>Not all sources match the background levels</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/snapshot.cpp" line="104"/>
@@ -1347,15 +1270,6 @@ This feature is unavailable</source>
         <location filename="translationdialog.ui" line="42"/>
         <source>Select Language</source>
         <translation>Sprache wählen</translation>
-    </message>
-    <message>
-        <source>OK</source>
-        <translatorcomment>Ok</translatorcomment>
-        <translation type="vanished">OK</translation>
-    </message>
-    <message>
-        <source>Apply</source>
-        <translation type="vanished">Anwenden</translation>
     </message>
 </context>
 <context>
@@ -1396,14 +1310,6 @@ This feature is unavailable</source>
         <location filename="../src/universeview.cpp" line="379"/>
         <source>Start Flicker Finder</source>
         <translation>Flicker Finder starten</translation>
-    </message>
-    <message>
-        <source>Start Log to File</source>
-        <translation type="vanished">Dateilog starten</translation>
-    </message>
-    <message>
-        <source>Open Log Window</source>
-        <translation type="vanished">Logfenster öffnen</translation>
     </message>
     <message>
         <location filename="../ui/universeview.ui" line="162"/>
@@ -1476,22 +1382,6 @@ This feature is unavailable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Errors binding to interface
-
-Results will be inaccurate
-Possible reasons include permission issues
-or other applications
-
-See diagnostics for more info</source>
-        <translation type="vanished">Fehler bei der Schnittstellenbindung
-
-Resultate werden ungenau sein
-Mögliche Gründe: Genehmigungsprobleme
-oder andere Software
-
-Siehe Diagnostik für weitere Details</translation>
-    </message>
-    <message>
         <location filename="../src/universeview.cpp" line="150"/>
         <source>N/A</source>
         <translation>N/A</translation>
@@ -1512,14 +1402,6 @@ Siehe Diagnostik für weitere Details</translation>
         <location filename="../src/universeview.cpp" line="170"/>
         <source>No DMX</source>
         <translation>Kein DMX</translation>
-    </message>
-    <message>
-        <source>Reset</source>
-        <translation type="vanished">Reset</translation>
-    </message>
-    <message>
-        <source>Stop Log to File</source>
-        <translation type="vanished">Dateilog unterbrechen</translation>
     </message>
     <message>
         <location filename="../src/universeview.cpp" line="121"/>
@@ -1570,15 +1452,6 @@ Andere Quellen : %1 @ %2 (Priorität %3)</translation>
         <translation>Über sACN View</translation>
     </message>
     <message>
-        <source>sACN View</source>
-        <translation type="vanished">sACN View</translation>
-    </message>
-    <message>
-        <location filename="../ui/aboutdialog.ui" line="121"/>
-        <source>date</source>
-        <translation>Datum</translation>
-    </message>
-    <message>
         <location filename="../ui/aboutdialog.ui" line="137"/>
         <source>Authors:</source>
         <translation>Autoren:</translation>
@@ -1594,40 +1467,9 @@ Andere Quellen : %1 @ %2 (Priorität %3)</translation>
         <translation>Version:</translation>
     </message>
     <message>
-        <location filename="../ui/aboutdialog.ui" line="185"/>
-        <location filename="../ui/aboutdialog.ui" line="233"/>
-        <source>name</source>
-        <translation>name</translation>
-    </message>
-    <message>
-        <location filename="../ui/aboutdialog.ui" line="100"/>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;sACNView&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;a href=&quot;http://docsteer.github.io/sacnview/&quot;&gt;&lt;span style=&quot; font-size:8pt; text-decoration: underline; color:#0000ff;&quot;&gt;docsteer.github.io/sacnview&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/aboutdialog.ui" line="169"/>
-        <source>#</source>
-        <translation>#</translation>
-    </message>
-    <message>
         <location filename="../ui/aboutdialog.ui" line="220"/>
         <source>Translators:</source>
         <translation>Übersetzer:</translation>
-    </message>
-    <message>
-        <location filename="../ui/aboutdialog.ui" line="250"/>
-        <source>license-info</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../ui/aboutdialog.ui" line="272"/>
-        <source>qt-info</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../ui/aboutdialog.ui" line="294"/>
-        <source>libs-info</source>
-        <translation></translation>
     </message>
     <message>
         <location filename="../ui/aboutdialog.ui" line="321"/>
@@ -1647,7 +1489,7 @@ Andere Quellen : %1 @ %2 (Priorität %3)</translation>
     <message>
         <location filename="../src/aboutdialog.cpp" line="63"/>
         <source>This application uses the pcap Library, version %1, licensed under the &lt;a href=&quot;https://opensource.org/licenses/BSD-3-Clause&quot;&gt;The 3-Clause BSD License&lt;/a&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>Diese Software verwendet die pcap Bibliothek, Version %1, lizenziert unter &lt;a href=&quot;https://opensource.org/licenses/BSD-3-Clause&quot;&gt;The 3-Clause BSD License&lt;/a&gt;</translation>
     </message>
     <message>
         <location filename="../src/aboutdialog.cpp" line="107"/>
@@ -1693,12 +1535,12 @@ Andere Quellen : %1 @ %2 (Priorität %3)</translation>
 <context>
     <name>clsSnapshot</name>
     <message>
-        <location filename="../src/clssnapshot.h" line="67"/>
+        <location filename="../src/clssnapshot.h" line="69"/>
         <source>The snapshot &lt;i&gt;matches&lt;/i&gt; the other sources in this universe</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/clssnapshot.h" line="68"/>
+        <location filename="../src/clssnapshot.h" line="70"/>
         <source>The snapshot &lt;i&gt;does not match&lt;/i&gt; the other sources in this universe</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1706,39 +1548,39 @@ Andere Quellen : %1 @ %2 (Priorität %3)</translation>
 <context>
     <name>pcapplaybacksender</name>
     <message>
-        <location filename="../src/pcapplaybacksender.cpp" line="62"/>
+        <location filename="../src/pcapplaybacksender.cpp" line="60"/>
         <source>%1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/pcapplaybacksender.cpp" line="103"/>
+        <location filename="../src/pcapplaybacksender.cpp" line="101"/>
         <source>%1
 %2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/pcapplaybacksender.cpp" line="118"/>
+        <location filename="../src/pcapplaybacksender.cpp" line="116"/>
         <source>Unable to open required interface
 %1</source>
         <translation>Benötigte Schnittstelle konnte nicht geöffnet werden
 %1</translation>
     </message>
     <message>
-        <location filename="../src/pcapplaybacksender.cpp" line="213"/>
+        <location filename="../src/pcapplaybacksender.cpp" line="218"/>
         <source>Error opening %1
 %2</source>
         <translation>Fehler bei der Öffnung von %1
 %2</translation>
     </message>
     <message>
-        <location filename="../src/pcapplaybacksender.cpp" line="225"/>
+        <location filename="../src/pcapplaybacksender.cpp" line="230"/>
         <source>Error opening %1
 pcap_compile failed</source>
         <translation>Fehler bei der Öffnung von %1
 pcap_compile failed</translation>
     </message>
     <message>
-        <location filename="../src/pcapplaybacksender.cpp" line="231"/>
+        <location filename="../src/pcapplaybacksender.cpp" line="236"/>
         <source>Error opening %1
 pcap_setfilter failed</source>
         <translation>Fehler bei der Öffnung von %1
@@ -1748,22 +1590,14 @@ pcap_setfilter failed</translation>
 <context>
     <name>sACNManager</name>
     <message>
-        <source>Unable to allocate listener object
-
-sACNView must close now</source>
-        <translation type="vanished">Unable to allocate listener object
-
-sACNView must close now</translation>
-    </message>
-    <message>
-        <location filename="../src/sacn/streamingacn.cpp" line="149"/>
+        <location filename="../src/sacn/streamingacn.cpp" line="145"/>
         <source>Unable to allocate listener object
 
 sACNView must close now</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/sacn/streamingacn.cpp" line="222"/>
+        <location filename="../src/sacn/streamingacn.cpp" line="218"/>
         <source>Unable to allocate sender object
 
 sACNView must close now</source>
@@ -1797,7 +1631,7 @@ sACNView must close now</source>
     <name>transmitwindow</name>
     <message>
         <location filename="../ui/transmitwindow.ui" line="14"/>
-        <location filename="../src/transmitwindow.cpp" line="299"/>
+        <location filename="../src/transmitwindow.cpp" line="325"/>
         <source>Transmit</source>
         <translation>Senden</translation>
     </message>
@@ -1858,8 +1692,8 @@ sACNView must close now</source>
     </message>
     <message>
         <location filename="../ui/transmitwindow.ui" line="370"/>
-        <location filename="../ui/transmitwindow.ui" line="1676"/>
-        <location filename="../ui/transmitwindow.ui" line="1690"/>
+        <location filename="../ui/transmitwindow.ui" line="1693"/>
+        <location filename="../ui/transmitwindow.ui" line="1707"/>
         <source>...</source>
         <translation>...</translation>
     </message>
@@ -1886,7 +1720,7 @@ sACNView must close now</source>
     <message>
         <location filename="../ui/transmitwindow.ui" line="511"/>
         <location filename="../ui/transmitwindow.ui" line="543"/>
-        <location filename="../src/transmitwindow.cpp" line="287"/>
+        <location filename="../src/transmitwindow.cpp" line="313"/>
         <source>Start</source>
         <translation>Start</translation>
     </message>
@@ -1952,13 +1786,9 @@ sACNView must close now</source>
     </message>
     <message>
         <location filename="../ui/transmitwindow.ui" line="1020"/>
-        <location filename="../ui/transmitwindow.ui" line="1739"/>
+        <location filename="../ui/transmitwindow.ui" line="1756"/>
         <source>0</source>
         <translation></translation>
-    </message>
-    <message>
-        <source>AND</source>
-        <translation type="vanished">UND</translation>
     </message>
     <message>
         <location filename="../ui/transmitwindow.ui" line="930"/>
@@ -2052,13 +1882,13 @@ sACNView must close now</source>
     </message>
     <message>
         <location filename="../ui/transmitwindow.ui" line="1534"/>
-        <location filename="../ui/transmitwindow.ui" line="1586"/>
+        <location filename="../ui/transmitwindow.ui" line="1589"/>
         <source>Sinewave</source>
         <translation>Sinusoid</translation>
     </message>
     <message>
         <location filename="../ui/transmitwindow.ui" line="1544"/>
-        <location filename="../ui/transmitwindow.ui" line="1599"/>
+        <location filename="../ui/transmitwindow.ui" line="1602"/>
         <source>Ramp</source>
         <translation>Rampe</translation>
     </message>
@@ -2074,76 +1904,91 @@ sACNView must close now</source>
     </message>
     <message>
         <location filename="../ui/transmitwindow.ui" line="1612"/>
+        <source>Vertical Bars</source>
+        <translation type="unfinished">Senkrechte Barren</translation>
+    </message>
+    <message>
+        <location filename="../ui/transmitwindow.ui" line="1619"/>
+        <source>Horizontal Bars</source>
+        <translation type="unfinished">Waagerechte Barren</translation>
+    </message>
+    <message>
+        <location filename="../ui/transmitwindow.ui" line="1629"/>
         <source>Text</source>
         <translation>Text</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1622"/>
+        <location filename="../ui/transmitwindow.ui" line="1639"/>
         <source>Date/Time</source>
         <translation>Datum/Zeit</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1645"/>
+        <location filename="../ui/transmitwindow.ui" line="1662"/>
         <source>Speed - 1Hz</source>
         <translation>Geschwindigkeit - 1Hz</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1766"/>
+        <location filename="../ui/transmitwindow.ui" line="1783"/>
         <source>Text to Scroll</source>
         <translation>Lauftext</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1791"/>
+        <location filename="../ui/transmitwindow.ui" line="1808"/>
         <source>sACN!</source>
         <translation>sACN!</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1840"/>
+        <location filename="../ui/transmitwindow.ui" line="1857"/>
         <source>EU Date Format (dd/mm/yy)</source>
         <translation>EU Datumformat (dd/mm/yy)</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1850"/>
+        <location filename="../ui/transmitwindow.ui" line="1867"/>
         <source>US Date Format (mm/ddd/yy)</source>
         <translation>USA Datumformat (mm/ddd/yy)</translation>
     </message>
     <message>
-        <location filename="../src/transmitwindow.cpp" line="238"/>
+        <location filename="../ui/transmitwindow.ui" line="1897"/>
+        <source>Grid Control</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/transmitwindow.cpp" line="266"/>
         <source>Multicast to %1</source>
         <translation>Multicast an %1</translation>
     </message>
     <message>
-        <location filename="../src/transmitwindow.cpp" line="292"/>
+        <location filename="../src/transmitwindow.cpp" line="318"/>
         <source>Stop</source>
         <translation>Stop</translation>
     </message>
     <message>
-        <location filename="../src/transmitwindow.cpp" line="301"/>
+        <location filename="../src/transmitwindow.cpp" line="327"/>
         <source> - Universe %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/transmitwindow.cpp" line="303"/>
+        <location filename="../src/transmitwindow.cpp" line="329"/>
         <source> - Not Active</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/transmitwindow.cpp" line="316"/>
+        <location filename="../src/transmitwindow.cpp" line="342"/>
         <source>Invalid Unicast Address</source>
         <translation>Ungültige Unicast-Adresse</translation>
     </message>
     <message>
-        <location filename="../src/transmitwindow.cpp" line="317"/>
+        <location filename="../src/transmitwindow.cpp" line="343"/>
         <source>Enter a valid unicast address</source>
         <translation>Geben Sie eine gültige Unicast-Adresse ein</translation>
     </message>
     <message>
-        <location filename="../src/transmitwindow.cpp" line="407"/>
+        <location filename="../src/transmitwindow.cpp" line="414"/>
         <source>Per address priority universe %1</source>
         <translation>Per-Adresse Priorität Universum %1</translation>
     </message>
     <message>
-        <location filename="../src/transmitwindow.cpp" line="578"/>
+        <location filename="../src/transmitwindow.cpp" line="582"/>
         <source>Fade Rate %1 Hz</source>
         <translation>Überblendungsgechwindigkeit %1 Hz</translation>
     </message>
