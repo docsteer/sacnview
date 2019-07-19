@@ -40,7 +40,7 @@ matrix:
           - echo "Uploading $BASENAME to file.io..." && curl -sF "file=@$FILE" https://file.io | xargs printf "$BASENAME uploaded - %s\n"
 
       - os: osx
-        osx_image: xcode9.4
+        osx_image: xcode10.2
         before_install:
           - brew update
         install:
