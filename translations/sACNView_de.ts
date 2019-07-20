@@ -144,7 +144,7 @@
     <message>
         <location filename="../ui/configureperchanpriodlg.ui" line="35"/>
         <source>Set</source>
-        <translation type="unfinished"></translation>
+        <translation>Einstellen</translation>
     </message>
     <message>
         <location filename="../ui/configureperchanpriodlg.ui" line="91"/>
@@ -368,22 +368,22 @@
     <message>
         <location filename="../ui/mdimainwindow.ui" line="136"/>
         <source>All</source>
-        <translation type="unfinished"></translation>
+        <translation>Alles</translation>
     </message>
     <message>
         <location filename="../ui/mdimainwindow.ui" line="256"/>
         <source>(-) Show Fewer</source>
-        <translation type="unfinished"></translation>
+        <translation>(-) Weniger</translation>
     </message>
     <message>
         <location filename="../ui/mdimainwindow.ui" line="269"/>
         <source>Show More (+)</source>
-        <translation type="unfinished"></translation>
+        <translation>Mehr (+)</translation>
     </message>
     <message>
         <location filename="../ui/mdimainwindow.ui" line="285"/>
         <source>Discovered</source>
-        <translation type="unfinished"></translation>
+        <translation>Gefunden</translation>
     </message>
     <message>
         <location filename="../ui/mdimainwindow.ui" line="317"/>
@@ -898,7 +898,7 @@ Please ensure IPv6 is disabled</source>
     <message>
         <location filename="../src/commandline.h" line="18"/>
         <source>OFFSET</source>
-        <translation type="unfinished"></translation>
+        <translation>OFFSET</translation>
     </message>
     <message>
         <location filename="../src/commandline.h" line="19"/>
@@ -918,12 +918,12 @@ Please ensure IPv6 is disabled</source>
     <message>
         <location filename="../src/commandline.h" line="22"/>
         <source>+</source>
-        <translation type="unfinished"></translation>
+        <translation>+</translation>
     </message>
     <message>
         <location filename="../src/commandline.h" line="23"/>
         <source>-</source>
-        <translation type="unfinished"></translation>
+        <translation>-</translation>
     </message>
     <message>
         <location filename="../src/commandline.h" line="25"/>
@@ -993,22 +993,22 @@ Please ensure IPv6 is disabled</source>
     <message>
         <location filename="../src/preferences.h" line="75"/>
         <source>Light Theme</source>
-        <translation type="unfinished"></translation>
+        <translation>Helles</translation>
     </message>
     <message>
         <location filename="../src/preferences.h" line="76"/>
         <source>Dark Theme</source>
-        <translation type="unfinished"></translation>
+        <translation>Dunkles</translation>
     </message>
     <message>
         <location filename="../src/universeview.cpp" line="32"/>
         <source>Online</source>
-        <translation type="unfinished">Online</translation>
+        <translation>Online</translation>
     </message>
     <message>
         <location filename="../src/universeview.cpp" line="33"/>
         <source>Offline</source>
-        <translation type="unfinished"></translation>
+        <translation>Offline</translation>
     </message>
     <message>
         <location filename="../src/universeview.cpp" line="41"/>
@@ -1965,7 +1965,7 @@ sACNView must close now</source>
     <message>
         <location filename="../src/transmitwindow.cpp" line="327"/>
         <source> - Universe %1</source>
-        <translation type="unfinished"></translation>
+        <translation> - Universum %1</translation>
     </message>
     <message>
         <location filename="../src/transmitwindow.cpp" line="329"/>
