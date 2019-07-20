@@ -46,7 +46,7 @@ macx {
 
     DEPLOY_COMMAND = macdeployqt
 
-    DEPLOY_CLEANUP = codesign --force --verify --verbose --sign "Thomas Steer" $${DEPLOY_TARGET} $$escape_expand(\\n\\t)
+    DEPLOY_CLEANUP = codesign --force --deep --verify --verbose --sign \"Thomas Steer\" $${DEPLOY_TARGET} $$escape_expand(\\n\\t)
     DEPLOY_CLEANUP += $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/sACNView*.dmg
 
     DEPLOY_INSTALLER = $${_PRO_FILE_PWD_}/install/mac/create-dmg --volname "sACNView_Installer" --volicon "$${_PRO_FILE_PWD_}/res/icon.icns"
