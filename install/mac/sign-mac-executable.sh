@@ -3,7 +3,7 @@
 # Uses a base64 encoded certificate in an environment variable to set up signing
 # Exits if the variable isn't set
 
-KEY_CHAIN=build.keychain
+KEY_CHAIN=buildtest2.keychain
 CERTIFICATE_P12=certificate.p12
 
 # Check for the variable
@@ -25,6 +25,9 @@ security default-keychain -s $KEY_CHAIN
 
 # Unlock the keychain
 security unlock-keychain -p travis $KEY_CHAIN
+
+# Set keychain locking timeout to 1 hour
+security set-keychain-settings -t 3600 -u $KEY_CHAIN
 
 security import $CERTIFICATE_P12 -k $KEY_CHAIN -P $CERTIFICATE_PASSWORD -T /usr/bin/codesign;
 
