@@ -45,6 +45,7 @@ macx {
     DEPLOY_TARGET = $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
 
     DEPLOY_COMMAND = macdeployqt
+    DEPLOY_OPT = -codesign="Developer ID Application: Thomas Steer"
 
     DEPLOY_CLEANUP = $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/sACNView*.dmg
 
