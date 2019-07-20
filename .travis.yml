@@ -43,7 +43,7 @@ matrix:
         osx_image: xcode9.4
         before_install:
           - chmod +x install/mac/sign-mac-executable.sh
-          - ./install/mac/sign-max-executable.sh
+          - ./install/mac/sign-mac-executable.sh
           - brew update
         install:
           # PCap
