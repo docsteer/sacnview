@@ -23,7 +23,6 @@ URL = $$shell_quote("https://docsteer.github.io/sacnview/")
 LICENSE = $$shell_quote("Apache 2.0")
 
 macx {
-    QMAKE_MAC_SDK = macosx10.12
     ICON = res/icon.icns
 }
 
