@@ -31,11 +31,13 @@
 
 		$.each(data.assets, function(index, obj){
 			var download_url = obj.browser_download_url;
-			if( download_url.endsWith('exe'))
+      			if( download_url.endsWith('-WindowsXP.exe'))
+          			$('#download-winxp').attr('href', download_url);
+			else if( download_url.endsWith('exe'))
 				$('#download-win').attr('href', download_url);
-			if( download_url.endsWith('dmg'))
+			else if( download_url.endsWith('dmg'))
 				$('#download-mac').attr('href', download_url);
-			if( download_url.endsWith('deb'))
+			else if( download_url.endsWith('deb'))
 				$('#download-linux').attr('href', download_url);
 		});
 	});
@@ -81,6 +83,7 @@
           {% if site.show_downloads %}
           <h1 id="name_release"></h1>
           <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-win" class="button"><span>Windows</span></a>
+          <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-winxp" class="button"><span>Win XP</span></a>
           <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-mac" class="button"><span>macOS</span></a>
           <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-linux" class="button"><span>Linux</span></a>
         </section>
