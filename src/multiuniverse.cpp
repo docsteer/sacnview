@@ -55,7 +55,7 @@ MultiUniverse::~MultiUniverse()
 
 void MultiUniverse::addSource(int universe, int min_address, int max_address,
                               sACNEffectEngine::FxMode mode, QString name, bool startSending,
-                              int level, int rate, int priority)
+                              int level, qreal rate, int priority)
 {
     int row = ui->tableWidget->rowCount();
     ui->tableWidget->setRowCount(row+1);
