@@ -146,9 +146,9 @@ void sACNSentUniverse::setLevelRange(quint16 start, quint16 end, quint8 value)
     if(isSending())
     {
         size_t len = end-start+1;
-        std::unique_ptr<quint8> *pTemp[DMX_SLOT_MAX];
-        memset(pTemp + start, value, len);
-        if (memcmp(pTemp + start, m_slotData + start, len) != 0)
+        std::unique_ptr<quint8[]> pTemp(new quint8[DMX_SLOT_MAX]);
+        memset(pTemp.get() + start, value, len);
+        if (memcmp(pTemp.get() + start, m_slotData + start, len) != 0)
         {
             memset(m_slotData + start, value, end-start+1);
             CStreamServer::getInstance()->SetUniverseDirty(m_handle);
