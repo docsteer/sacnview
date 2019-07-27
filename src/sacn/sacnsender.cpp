@@ -17,6 +17,7 @@
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <memory>
 
 #include "CID.h"
 #include "ipaddr.h"
