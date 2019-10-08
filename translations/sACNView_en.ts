@@ -25,7 +25,7 @@
     </message>
     <message>
         <location filename="../ui/addmultidialog.ui" line="118"/>
-        <location filename="../src/addmultidialog.cpp" line="68"/>
+        <location filename="../src/addmultidialog.cpp" line="74"/>
         <source>(last universe will be %1)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -61,23 +61,30 @@
     </message>
     <message>
         <location filename="../ui/addmultidialog.ui" line="296"/>
-        <location filename="../src/addmultidialog.cpp" line="79"/>
+        <location filename="../src/addmultidialog.cpp" line="85"/>
         <source>Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ui/addmultidialog.ui" line="324"/>
+        <location filename="../ui/addmultidialog.ui" line="365"/>
         <source>TextLabel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/addmultidialog.cpp" line="94"/>
+        <location filename="../ui/addmultidialog.ui" line="340"/>
+        <location filename="../src/addmultidialog.cpp" line="100"/>
         <source>Rate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/addmultidialog.cpp" line="119"/>
+        <location filename="../src/addmultidialog.cpp" line="125"/>
         <source>%1 Hz</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/addmultidialog.cpp" line="187"/>
+        <source>Fade Rate %1 Hz</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -520,28 +527,28 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/multiuniverse.cpp" line="172"/>
-        <location filename="../src/multiuniverse.cpp" line="426"/>
+        <location filename="../src/multiuniverse.cpp" line="175"/>
+        <location filename="../src/multiuniverse.cpp" line="429"/>
         <source>_%1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/multiuniverse.cpp" line="315"/>
+        <location filename="../src/multiuniverse.cpp" line="318"/>
         <source>Slower</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/multiuniverse.cpp" line="316"/>
+        <location filename="../src/multiuniverse.cpp" line="319"/>
         <source>Faster</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/multiuniverse.cpp" line="337"/>
+        <location filename="../src/multiuniverse.cpp" line="340"/>
         <source>EU Date Style</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/multiuniverse.cpp" line="338"/>
+        <location filename="../src/multiuniverse.cpp" line="341"/>
         <source>US Date Style</source>
         <translation type="unfinished"></translation>
     </message>
