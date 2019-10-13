@@ -29,7 +29,7 @@
     
 	$.getJSON('https://api.github.com/repos/docsteer/sacnview/releases/latest', function (data) {
 
-    document.getElementById("name_release").innerHTML = data.name;
+    document.getElementById("name_release").innerHTML = "Release Version : " + data.name;
 
 		$.each(data.assets, function(index, obj){
 			var download_url = obj.browser_download_url;
@@ -48,7 +48,7 @@
   
   $.getJSON('https://api.github.com/repos/docsteer/sacnview/releases', function (data) {
 
-    document.getElementById("name_prerelease").innerHTML = "Download Release "+data[0].name;
+    document.getElementById("name_prerelease").innerHTML = "Pre-Release Version : "+data[0].name;
 
     $.each(data[0].assets, function(index, obj){
 
@@ -78,17 +78,22 @@
     <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
   </head>
   <body>
-    <a id="skip-to-content" href="#content">Skip to the content.</a>
-
     <header class="page-header" role="banner">
       <h1 class="project-name">{{ page.title | default: site.title | default: site.github.repository_name }}</h1>
       <h2 class="project-tagline">{{ page.description | default: site.description | default: site.github.project_tagline }}</h2>
       {% if site.show_downloads %}
-	    <h2 id="name_release">Download Release</h2>
+	  <h2 id="name_release">Download Release</h2>
 	  <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-win" class="btn"><span><img src="/assets/images/win-icon.png" />Windows</span></a>
           <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-winxp" class="btn"><span><img src="/assets/images/winxp-icon.png" />Win XP</span></a>
           <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-mac" class="btn"><span><img src="/assets/images/mac-icon.png" />macOS</span></a>
           <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-linux" class="btn"><span><img src="/assets/images/linux-icon.png" />Linux</span></a>
+	  <div id="prerelease-download" style="display:none">
+            <h2 id="name_prerelease"></h1>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-win" class="button"><span>Windows</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-winxp" class="button"><span>Win XP</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-mac" class="button"><span>macOS</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-linux" class="button"><span>Linux</span></a>
+          </div>
       {% endif %}
       {% if site.github.is_project_page %}
         <a href="{{ site.github.repository_url }}" class="btn">View on GitHub</a>
