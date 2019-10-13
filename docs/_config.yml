@@ -1,4 +1,4 @@
-theme: jekyll-theme-tactile
+theme: jekyll-theme-cayman
 title: sACNView
 description: sACNView, a tool for sending and receiving the Streaming ACN control protocol
 show_downloads: true
