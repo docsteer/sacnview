@@ -42,13 +42,19 @@ AddMultiDialog::AddMultiDialog(QWidget *parent) :
     ui->sbStartUniverse->setMaximum(MAX_SACN_UNIVERSE);
 
 
-    ui->cbEffect->addItems(FX_MODE_DESCRIPTIONS);
+    ui->cbEffect->addItems(sACNEffectEngine::FxModeDescriptions());
 
 
     connect(ui->sbStartUniverse, SIGNAL(valueChanged(int)), this, SLOT(rangeChanged()));
     connect(ui->sbNumUniverses, SIGNAL(valueChanged(int)), this, SLOT(rangeChanged()));
 
+
+    ui->dlFadeRate->setMinimum(0);
+    ui->dlFadeRate->setMaximum(FX_FADE_RATES.count()-1);
+    ui->dlFadeRate->setValue(0);
+
     rangeChanged();
+    on_dlFadeRate_valueChanged(ui->dlFadeRate->value());
 }
 
 AddMultiDialog::~AddMultiDialog()
@@ -79,7 +85,9 @@ void AddMultiDialog::on_cbEffect_currentIndexChanged(int index)
         ui->lbDialFunction->setText(tr("Level"));
         break;
 
-    case sACNEffectEngine::FxChase:
+    case sACNEffectEngine::FxChaseSnap:
+    case sACNEffectEngine::FxChaseRamp:
+    case sACNEffectEngine::FxChaseSine:
     case sACNEffectEngine::FxRamp:
     case sACNEffectEngine::FxSinewave:
     case sACNEffectEngine::FxVerticalBar:
@@ -105,7 +113,8 @@ void AddMultiDialog::on_slLevel_sliderMoved(int value)
         ui->lbDialValue->setText(Preferences::getInstance()->GetFormattedValue(value, true));
         break;
 
-    case sACNEffectEngine::FxChase:
+    case sACNEffectEngine::FxChaseSnap:
+    case sACNEffectEngine::FxChaseRamp:
     case sACNEffectEngine::FxRamp:
     case sACNEffectEngine::FxSinewave:
     case sACNEffectEngine::FxVerticalBar:
@@ -150,12 +159,16 @@ bool AddMultiDialog::startNow()
 
 int AddMultiDialog::level()
 {
+    if ((sACNEffectEngine::FxMode) ui->cbEffect->currentIndex() == sACNEffectEngine::FxChaseSnap)
+        return 255;
+
     return ui->slLevel->value();
 }
 
-int AddMultiDialog::rate()
+qreal AddMultiDialog::rate()
 {
-    return ui->slLevel->value();
+    qreal rate = FX_FADE_RATES[ui->dlFadeRate->value()];
+    return rate;
 }
 
 int AddMultiDialog::priority()
@@ -166,4 +179,10 @@ int AddMultiDialog::priority()
 void AddMultiDialog::on_slLevel_valueChanged(int value)
 {
     on_slLevel_sliderMoved(value);
+}
+
+void AddMultiDialog::on_dlFadeRate_valueChanged(int value)
+{
+    qreal rate = FX_FADE_RATES[ui->dlFadeRate->value()];
+    ui->lblRate->setText(tr("Fade Rate %1 Hz").arg(rate));
 }

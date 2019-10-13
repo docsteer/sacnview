@@ -16,8 +16,9 @@
 #include "sacnsender.h"
 #include <vector>
 #include <set>
+#include <algorithm>
+#include <memory>
 
-#include "deftypes.h"
 #include "CID.h"
 #include "ipaddr.h"
 #include "tock.h"
@@ -27,24 +28,24 @@
 #include <QThread>
 #include <QTimer>
 #include <QDebug>
+#include <QCoreApplication>
 
 #include "preferences.h"
 
-sACNSentUniverse::sACNSentUniverse(int universe)
-{
-    m_priority = 100;
-    m_name = "New Source";
-    m_universe = universe;
-    m_handle = 0;
-    m_isSending = false;
-    m_priorityMode = pmPER_SOURCE_PRIORITY;
-    m_checkTimeoutTimer = Q_NULLPTR;
-}
+sACNSentUniverse::sACNSentUniverse(int universe) :
+    m_isSending(false),
+    m_handle(0),
+    m_slotCount(DMX_SLOT_MAX),
+    m_priority(100),
+    m_name("New Source"),
+    m_universe(universe),
+    m_priorityMode(pmPER_SOURCE_PRIORITY),
+    m_checkTimeoutTimer(Q_NULLPTR)
+{}
 
 sACNSentUniverse::~sACNSentUniverse()
 {
-    CStreamServer *streamServer = CStreamServer::getInstance();
-    streamServer->DestroyUniverse(m_handle);
+    stopSending();
 
     if(m_checkTimeoutTimer)
     {
@@ -55,7 +56,9 @@ sACNSentUniverse::~sACNSentUniverse()
 
 void sACNSentUniverse::startSending(bool preview)
 {
-    uint1 options = 0;
+    Q_ASSERT(isSending() == false);
+
+    quint8 options = 0;
 
     CStreamServer *streamServer = CStreamServer::getInstance();
     if(m_cid.isNull())
@@ -64,20 +67,32 @@ void sACNSentUniverse::startSending(bool preview)
     if (preview)
         options += PREVIEW_DATA_OPTION;
 
+    uint max_tx_rate =
+            Preferences::getInstance()->GetTXRateOverride() ? std::numeric_limits<decltype(max_tx_rate)>::max() : E1_11::MAX_REFRESH_RATE_HZ;
+
     if(m_unicastAddress.isNull())
-        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, options, 0,
-           m_universe, 512, m_slotData, m_handle, false, 850, CIPAddr(), m_version==StreamingACNProtocolVersion::sACNProtocolDraft );
+        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, options, STARTCODE_DMX,
+                                        m_universe, m_slotCount, m_slotData, m_handle, SEND_INTERVAL_DMX, max_tx_rate,
+                                        CIPAddr(), m_version==StreamingACNProtocolVersion::sACNProtocolDraft
+                                     );
     else
-        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, options, 0, m_universe,
-             512, m_slotData, m_handle, false, 850, CIPAddr(m_unicastAddress), m_version==StreamingACNProtocolVersion::sACNProtocolDraft );
+        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, options, STARTCODE_DMX, m_universe,
+                                        m_slotCount, m_slotData, m_handle, SEND_INTERVAL_DMX, max_tx_rate,
+                                        CIPAddr(m_unicastAddress), m_version==StreamingACNProtocolVersion::sACNProtocolDraft
+                                     );
 
     streamServer->SetUniverseDirty(m_handle);
 
     if(m_priorityMode == pmPER_ADDRESS_PRIORITY)
     {
-        uint1 *pslots;
-        streamServer->CreateUniverse(m_cid, qPrintable(m_name), 0, options, 0, 0xDD, m_universe, 512, pslots, m_priorityHandle);
-        memcpy(pslots, m_perChannelPriorities, sizeof(m_perChannelPriorities));
+        quint8 *pslots;
+        streamServer->CreateUniverse(m_cid, qPrintable(m_name), 0, options, 0, STARTCODE_PRIORITY,
+                                        m_universe, m_slotCount, pslots, m_priorityHandle, SEND_INTERVAL_PRIORITY, max_tx_rate,
+                                        CIPAddr(), m_version==StreamingACNProtocolVersion::sACNProtocolDraft
+                                     );
+        memcpy(pslots,
+               m_perChannelPriorities,
+               std::min(static_cast<size_t>(m_slotCount), sizeof(m_perChannelPriorities)));
         streamServer->SetUniverseDirty(m_priorityHandle);
     }
     m_isSending = true;
@@ -109,32 +124,50 @@ void sACNSentUniverse::stopSending()
 
 void sACNSentUniverse::setLevel(quint16 address, quint8 value)
 {
-    Q_ASSERT(address<512);
+    Q_ASSERT(address<DMX_SLOT_MAX);
+    if (address>=m_slotCount)
+        return;
     if(isSending())
     {
-        m_slotData[address] =  value;
-        CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+        if (m_slotData[address] != value)
+        {
+            m_slotData[address] =  value;
+            CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+        }
     }
 }
 
 void sACNSentUniverse::setLevelRange(quint16 start, quint16 end, quint8 value)
 {
-    Q_ASSERT(start<512);
-    Q_ASSERT(end<512);
+    Q_ASSERT(start<DMX_SLOT_MAX);
+    Q_ASSERT(end<DMX_SLOT_MAX);
     Q_ASSERT(start<=end);
+    if (start>=m_slotCount || end>=m_slotCount)
+        return;
     if(isSending())
     {
-        memset(m_slotData + start, value, end-start+1);
-        CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+        size_t len = end-start+1;
+        std::unique_ptr<quint8[]> pTemp(new quint8[DMX_SLOT_MAX]);
+        memset(pTemp.get() + start, value, len);
+        if (memcmp(pTemp.get() + start, m_slotData + start, len) != 0)
+        {
+            memset(m_slotData + start, value, end-start+1);
+            CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+        }
     }
 }
 
 void sACNSentUniverse::setLevel(const quint8 *data, int len, int start)
 {
+    Q_ASSERT((start + len)<=DMX_SLOT_MAX);
+    len = qMin(len, static_cast<decltype(len)>(m_slotCount));
     if(isSending())
     {
-        memcpy(m_slotData + start, data, len);
-        CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+        if (memcmp(data, m_slotData + start, static_cast<size_t>(len)) != 0)
+        {
+            memcpy(m_slotData + start, data, static_cast<size_t>(len));
+            CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+        }
     }
 }
 
@@ -144,7 +177,7 @@ void sACNSentUniverse::setVerticalBar(quint16 index, quint8 level)
 
     if(isSending())
     {
-        memset(m_slotData, 0, 512);
+        memset(m_slotData, 0, m_slotCount);
         for(int i=0; i<16; i++)
         {
             m_slotData[(i*32)+index] = level;
@@ -161,7 +194,7 @@ void sACNSentUniverse::setHorizontalBar(quint16 index, quint8 level)
 
     if(isSending())
     {
-        memset(m_slotData, 0, 512);
+        memset(m_slotData, 0, m_slotCount);
         memset(m_slotData + 32*index, level, 32);
 
         CStreamServer::getInstance()->SetUniverseDirty(m_handle);
@@ -170,7 +203,9 @@ void sACNSentUniverse::setHorizontalBar(quint16 index, quint8 level)
 
 void sACNSentUniverse::setName(const QString &name)
 {
-    m_name = name;
+    auto tmpStr = name.trimmed();
+    tmpStr.truncate(MAX_SOURCE_NAME_LEN);
+    m_name = tmpStr;
     if(isSending())
     {
         QByteArray arr = name.toUtf8();
@@ -183,12 +218,12 @@ void sACNSentUniverse::setPriorityMode(PriorityMode mode)
     m_priorityMode = mode;
 }
 
-void sACNSentUniverse::setPerChannelPriorities(uint1 *priorities)
+void sACNSentUniverse::setPerChannelPriorities(quint8 *priorities)
 {
-    memcpy(m_perChannelPriorities, priorities, sizeof(m_perChannelPriorities));
+   memcpy(m_perChannelPriorities, priorities, sizeof(m_perChannelPriorities));
 }
 
-void sACNSentUniverse::setPerSourcePriority(uint1 priority)
+void sACNSentUniverse::setPerSourcePriority(quint8 priority)
 {
     m_priority = priority;
     if(m_isSending)
@@ -216,18 +251,46 @@ void sACNSentUniverse::setUniverse(int universe)
         stopSending();
         startSending();
     }
+
+    emit universeChange();
+}
+
+void sACNSentUniverse::setCID(CID cid)
+{
+    if(m_cid==cid) return;
+    m_cid = cid;
+    if(m_isSending)
+    {
+        stopSending();
+        startSending();
+    }
+
+    emit cidChange();
+}
+
+void sACNSentUniverse::setSlotCount(quint16 slotCount)
+{
+    if(m_slotCount==slotCount) return;
+    m_slotCount = slotCount;
+    if(m_isSending)
+    {
+        stopSending();
+        startSending();
+    }
+
+    emit slotCountChange();
 }
 
 void sACNSentUniverse::doTimeout()
 {
     delete m_checkTimeoutTimer;
-    m_checkTimeoutTimer = 0;
+    m_checkTimeoutTimer = Q_NULLPTR;
     stopSending();
     emit sendingTimeout();
     qDebug() << "Source " << this->name() << " timeout";
 }
 
-CStreamServer *CStreamServer::m_instance = 0;
+CStreamServer *CStreamServer::m_instance = Q_NULLPTR;
 
 CStreamServer *CStreamServer::getInstance()
 {
@@ -243,19 +306,18 @@ void CStreamServer::shutdown()
     m_instance = Q_NULLPTR;
 }
 
-CStreamServer::CStreamServer()
+CStreamServer::CStreamServer() :
+    m_thread_stop(false)
 {
-    m_sendsock = new sACNTxSocket();
+    m_sendsock = new sACNTxSocket(Preferences::getInstance()->networkInterface());
 
-    m_sendsock->bindMulticast();
+    m_sendsock->bind();
 
     m_thread = new QThread();
-    connect(m_thread, &QThread::finished, this, &QObject::deleteLater);
-    m_tickTimer = new QTimer(this);
-    m_tickTimer->setInterval(10);
-    connect(m_tickTimer, SIGNAL(timeout()), this, SLOT(Tick()), Qt::DirectConnection);
-    m_tickTimer->start();
+    connect(m_thread, SIGNAL(started()), this, SLOT(TickLoop()));
+    connect(m_thread, &QThread::finished, this, &QThread::deleteLater);
     this->moveToThread(m_thread);
+    m_thread->setObjectName(QString("Interface %1 TX").arg(m_sendsock->multicastInterface().name()));
     m_thread->start();
 }
 
@@ -270,14 +332,17 @@ CStreamServer::~CStreamServer()
             it3->second.second = Q_NULLPTR;
         }
     }
+
+    m_thread_stop = true;
     m_thread->quit();
+    m_thread->wait();
 }
 
 
 //Returns a pointer to the storage location for the universe, adding if
 //need be.
 //The newly-added location contains sequence number 0.
-uint1* CStreamServer::GetPSeq(const CID &cid, uint2 universe)
+quint8* CStreamServer::GetPSeq(const CID &cid, quint16 universe)
 {
     cidanduniverse identifier(cid, universe);
 
@@ -287,9 +352,9 @@ uint1* CStreamServer::GetPSeq(const CID &cid, uint2 universe)
         ++it->second.first;
         return it->second.second;
     }
-    uint1 * p = new uint1;
+    quint8 * p = new quint8;
     if(!p)
-        return NULL;
+        return Q_NULLPTR;
     *p = 0;
     m_seqmap.insert(std::pair<cidanduniverse, seqref>(identifier, seqref(1, p)));
     return p;
@@ -297,7 +362,7 @@ uint1* CStreamServer::GetPSeq(const CID &cid, uint2 universe)
 
 //Removes a reference to the storage location for the universe, removing
 //completely if need be.
-void CStreamServer::RemovePSeq(const CID &cid, uint2 universe)
+void CStreamServer::RemovePSeq(const CID &cid, quint16 universe)
 {
     cidanduniverse identifier(cid, universe);
 
@@ -315,57 +380,77 @@ void CStreamServer::RemovePSeq(const CID &cid, uint2 universe)
 }
 
 
-void CStreamServer::Tick()
+void CStreamServer::TickLoop()
 {
-    QMutexLocker locker(&m_writeMutex);
+    qDebug() << "sACNSender" << QThread::currentThreadId() << ": Starting";
 
-    int valid_count = 0;
-    for(verseiter it = m_multiverse.begin(); it != m_multiverse.end(); ++it)
-    {
-        if(it->psend)
-            ++valid_count;
+    while (!m_thread_stop) {
+        QThread::yieldCurrentThread();
+        QCoreApplication::processEvents();
+        QThread::msleep(1);
+        QMutexLocker locker(&m_writeMutex);
 
-        //If this has been send 3 times (or more?) with a termination flag
-        //then it's time to kill it
-        if(it->num_terminates >= 3)
+        int valid_count = 0;
+        for(auto it = m_multiverse.begin(); it != m_multiverse.end(); ++it)
         {
-            DoDestruction(it->handle);
-        }
+            if(it->psend)
+                ++valid_count;
 
-        //If valid, either a dirty, inactivity count < 3 (if we're using that logic), or send_interval will cause a send
-        if(it->psend && (it->isdirty ||
-                             (it->waited_for_dirty &&
-                                ((!it->ignore_inactivity && it->inactive_count < 3) ||
-                                 it->send_interval.Expired()))))
-        {
-            //Before the send, properly reset state
-            if(it->isdirty)
-                it->inactive_count = 0;  //To recover from inactivity
-            else if(it->inactive_count < 3)  //We don't want the Expired case to reset the inactivity count
-                ++it->inactive_count;
+            //Too soon to send?
+            //E1.31:2016 6.6.1
+            if (!it->min_interval.Expired())
+                continue;
 
-            //Add the sequence number and send
-            uint1 *pseq = GetPSeq(it->cid, it->number);
-            SetStreamHeaderSequence(it->psend, *pseq, it->draft);
-            (*pseq)++;
-
-            quint64 result = m_sendsock->writeDatagram( (char*)it->psend, it->sendsize, it->sendaddr, STREAM_IP_PORT);
-            if(result!=it->sendsize)
+            //If this has been send 3 times (or more?) with a termination flag
+            //then it's time to kill it
+            if(it->num_terminates >= 3)
             {
-                qDebug() << "Error sending datagram : " << m_sendsock->errorString();
+                DoDestruction(it->handle);
             }
 
-            if(GetStreamTerminated(it->psend))
+            //If valid, either a dirty, or send_interval will cause a send
+            if(it->psend && (it->isdirty || it->send_interval.Expired()))
             {
-                it->num_terminates++;
+                // E1.31:2016 6.6.2 (clause 1) logic
+                quint8 sendCount = 1;
+                if(!it->isdirty && it->send_interval.Expired() && !it->suppresed && it->start_code == STARTCODE_DMX)
+                {
+                    it->suppresed = true;
+                    sendCount = 3;
+                }
+                else if (it->isdirty)
+                {
+                    it->suppresed = false;
+                }
+
+                for (decltype(sendCount) n = 0; n < sendCount; n++ )
+                {
+                    //Add the sequence number and send
+                    quint8 *pseq = GetPSeq(it->cid, it->number);
+                    SetStreamHeaderSequence(it->psend, *pseq, it->draft);
+                    (*pseq)++;
+
+                    quint64 result = m_sendsock->writeDatagram( (char*)it->psend, it->sendsize, it->sendaddr, STREAM_IP_PORT);
+                    if(result!=it->sendsize)
+                    {
+                        qDebug() << "Error sending datagram : " << m_sendsock->errorString();
+                    }
+                }
+
+                if(GetStreamTerminated(it->psend))
+                {
+                    it->num_terminates++;
+                }
+
+                //Finally, set the timing/dirtiness for the next interval
+                it->isdirty = false;
+                it->send_interval.Reset();
+                it->min_interval.Reset();
             }
-
-            //Finally, set the timing/dirtiness for the next interval
-            it->isdirty = false;
-            it->send_interval.Reset();
         }
-    }
+    } // Loop
 
+    qDebug() << "sACNSender" << QThread::currentThreadId() << ": Stopping";
 }
 
 
@@ -380,9 +465,8 @@ void CStreamServer::Tick()
 //  send_intervalms intervals (again defaulted for DMX).  Note that even if you are not using the
 //  inactivity logic, send_intervalms expiry will trigger a resend of the current universe packet.
 //Data on this universe will not be initially sent until marked dirty.
-bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_name, uint1 priority, uint2 reserved, uint1 options, uint1 start_code,
-                                     uint2 universe, uint2 slot_count, uint1*& pslots, uint& handle,
-                                        bool ignore_inactivity_logic, uint send_intervalms, CIPAddr unicastAddress, bool draft)
+bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_name, quint8 priority, quint16 reserved, quint8 options, quint8 start_code,
+                                     quint16 universe, quint16 slot_count, quint8*& pslots, uint& handle, uint send_intervalms, uint send_max_rate, CIPAddr unicastAddress, bool draft)
 {
     QMutexLocker locker(&m_writeMutex);
     if(universe == 0)
@@ -395,7 +479,7 @@ bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_nam
     else
         sendsize += STREAM_HEADER_SIZE;
 
-    uint1* pbuf = new uint1 [sendsize];
+    quint8* pbuf = new quint8 [sendsize];
     if(!pbuf)
         return false;
     memset(pbuf, 0, sendsize);
@@ -425,11 +509,9 @@ bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_nam
     m_multiverse[handle].handle = handle;
     m_multiverse[handle].start_code = start_code;
     m_multiverse[handle].isdirty = false;
-    m_multiverse[handle].waited_for_dirty = false;
     m_multiverse[handle].num_terminates=0;
-    m_multiverse[handle].ignore_inactivity = ignore_inactivity_logic;
-    m_multiverse[handle].inactive_count = 0;
     m_multiverse[handle].send_interval.SetInterval(send_intervalms);
+    m_multiverse[handle].min_interval.SetInterval(1000 / (std::max(send_max_rate, (decltype(send_max_rate))1)));
     m_multiverse[handle].draft = draft;
     m_multiverse[handle].cid = source_cid;
 
@@ -464,7 +546,6 @@ void CStreamServer::SetUniverseDirty(uint handle)
 {
     QMutexLocker locker(&m_writeMutex);
     m_multiverse[handle].isdirty = true;
-    m_multiverse[handle].waited_for_dirty = true;
 }
 
 //In the event that you want to send out a message for a particular
@@ -477,7 +558,7 @@ void CStreamServer::SendUniverseNow(uint handle)
     //Basically, a copy of the sending part of Tick
 
     universe* puni = &m_multiverse[handle];
-    uint1 *pseq = GetPSeq(puni->cid, puni->number);
+    quint8 *pseq = GetPSeq(puni->cid, puni->number);
     SetStreamHeaderSequence(puni->psend, *pseq, puni->draft);
     (*pseq)++;
 
@@ -496,20 +577,27 @@ void CStreamServer::DEBUG_DESTROY_PRIORITY_UNIVERSE(uint handle)
 //Not Thread Safe -- Don't call when Tick is called
 void CStreamServer::DestroyUniverse(uint handle)
 {
-    QMutexLocker locker(&m_writeMutex);
     if(handle < m_multiverse.size())
-        SetStreamTerminated(m_multiverse[handle].psend, true);
+    {
+        QMutexLocker locker(&m_writeMutex);
+        if (m_multiverse[handle].draft)
+        {
+            DoDestruction(handle);
+        } else {
+            SetStreamTerminated(m_multiverse[handle].psend, true);
+        }
+    }
 }
 
 //Perform the logical destruction and cleanup of a universe and its related
 //objects.
 void CStreamServer::DoDestruction(uint handle)
 {
-  if(m_multiverse[handle].psend)
+    if((handle < m_multiverse.size()) && m_multiverse[handle].psend)
     {
-      m_multiverse[handle].num_terminates = 0;
-      delete [] m_multiverse[handle].psend;
-      m_multiverse[handle].psend = NULL;
+        m_multiverse[handle].num_terminates = 0;
+        delete [] m_multiverse[handle].psend;
+        m_multiverse[handle].psend = NULL;
     }
 }
 
@@ -537,7 +625,7 @@ void CStreamServer::setUniverseName(uint handle, const char *name)
 }
 
 
-void CStreamServer::setUniversePriority(uint handle, uint1 priority)
+void CStreamServer::setUniversePriority(uint handle, quint8 priority)
 {
     if(m_multiverse[handle].psend && m_multiverse[handle].draft)
     {

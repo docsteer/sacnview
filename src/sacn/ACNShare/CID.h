@@ -28,9 +28,7 @@
 #ifndef _CID_H_
 #define _CID_H_
 
-#ifndef _DEFTYPES_H_
-#error "#include error, CID.h requires deftypes.h"
-#endif
+#include <QtGlobal>
 
 class CID  
 {
@@ -44,13 +42,13 @@ public:
 		CIDSTRINGBYTES = 37 //The number of bytes in a CID string, INCLUDING terminating NULL
 	};
 
-	CID(const uint1* pCID);  //The CID buffer (in binary form -- Use StringToCID to convert)
+    CID(const quint8* pCID);  //The CID buffer (in binary form -- Use StringToCID to convert)
 	CID(const CID& cid);
 	CID();
 	virtual ~CID();
 
-	void Pack(uint1* pbuf) const;	//Packs the cid into the buffer -- There must be enough space
-	void Unpack(const uint1* pbuf);	//Unpacks the cid from the buffer
+    void Pack(quint8* pbuf) const;	//Packs the cid into the buffer -- There must be enough space
+    void Unpack(const quint8* pbuf);	//Unpacks the cid from the buffer
 
 	CID& operator=(const CID& cid);
 
@@ -63,6 +61,7 @@ public:
 
 	//Translates a cid to a preallocated text string of 37 bytes, including the terminating NULL
 	static void CIDIntoString(const CID& cid, char* ptxt);
+    static QString CIDIntoQString(const CID& cid);
 
     // Create a CID using the platforms UUID methods
     static CID CreateCid();
@@ -70,7 +69,7 @@ public:
     // Is the CID null?
     bool isNull() const;
 private:
-	uint1 m_cid [CIDBYTES];
+    quint8 m_cid [CIDBYTES];
 };
 
 //Essentially the same type as a CID, but for a different semantic purpose
@@ -84,13 +83,13 @@ public:
 		DCIDFILEBYTES = CID::CIDSTRINGBYTES + 4 //The DCID in the tftp request format: [DCID].ddl, INCLUDING terminating NULL
 	};
 
-	DCID(const uint1* pDCID);  //The DCID buffer (in binary form -- Use StringToDCID to convert)
+    DCID(const quint8* pDCID);  //The DCID buffer (in binary form -- Use StringToDCID to convert)
 	DCID(const DCID& dcid);
 	DCID();
 	virtual ~DCID();
 
-	void Pack(uint1* pbuf) const;	//Packs the cid into the buffer -- There must be enough space
-	void Unpack(const uint1* pbuf);	//Unpacks the cid from the buffer
+    void Pack(quint8* pbuf) const;	//Packs the cid into the buffer -- There must be enough space
+    void Unpack(const quint8* pbuf);	//Unpacks the cid from the buffer
 
 	DCID& operator=(const DCID& dcid);
 

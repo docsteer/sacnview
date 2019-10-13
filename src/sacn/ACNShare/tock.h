@@ -39,10 +39,7 @@
 #ifndef _TOCK_H_
 #define _TOCK_H_
 
-//tock requires the default types
-#ifndef _DEFTYPES_H_
-#error "#include error: tock.h requires deftypes.h"
-#endif
+#include <QtGlobal>
 
 class tock;
 class ttimer;
@@ -62,26 +59,26 @@ class tock
 public:
 	//construction and copying
 	tock();
-	tock(uint4 ms);
+    tock(quint32 ms);
 	tock(const tock& t);
 	tock& operator=(const tock& t);
 
 	//Returns the number of milliseconds that this tock represents
-	uint4 Getms();  
+    quint32 Getms();
 
 	//Used sparingly, but sets the number of milliseconds that this tock represents
-	void Setms(uint4 ms);
+    void Setms(quint32 ms);
 
 protected:
-	int4 v;  //Signed, so the wraparound calculations will work
-	
-	friend bool operator>(const tock& t1, const tock& t2);
-	friend bool operator>=(const tock& t1, const tock& t2);
-	friend bool operator==(const tock& t1, const tock& t2);
-	friend bool operator!=(const tock& t1, const tock& t2);
-	friend bool operator<(const tock& t1, const tock& t2);
-	friend bool operator<=(const tock& t1, const tock& t2);
-	friend uint4 operator-(const tock& t1, const tock& t2);
+    qint32 v;  //Signed, so the wraparound calculations will work
+
+    friend bool operator>(const tock& t1, const tock& t2);
+    friend bool operator>=(const tock& t1, const tock& t2);
+    friend bool operator==(const tock& t1, const tock& t2);
+    friend bool operator!=(const tock& t1, const tock& t2);
+    friend bool operator<(const tock& t1, const tock& t2);
+    friend bool operator<=(const tock& t1, const tock& t2);
+    friend quint32 operator-(const tock& t1, const tock& t2);
 };
 
 //The class used for simple expiration tracking
@@ -90,15 +87,19 @@ class ttimer
 public:
 	//construction/setup
 	ttimer();				//Will immediately time out if timeout isn't set
-	ttimer(int4 ms);	//The number of milliseconds before the timer will time out
-	void SetInterval(int4 ms);	//Sets a new timeout interval (in ms) and resets the timer
-	int4 GetInterval();			//Returns the current timeout interval (in ms)
+    ttimer(qint32 ms);	//The number of milliseconds before the timer will time out
+    void SetInterval(qint32 ms);	//Sets a new timeout interval (in ms) and resets the timer
+    qint32 GetInterval();			//Returns the current timeout interval (in ms)
 
 	void Reset();	//Resets the timer, using the current timeout interval
 	bool Expired();  //Returns true if the timer has expired.
 					 //Call Reset() to use this timer again for a new interval.
+
+    friend bool operator==(const ttimer& t1, const ttimer& t2);
+    friend bool operator!=(const ttimer& t1, const ttimer& t2);
+
 protected:
-	int4 interval;
+    qint32 interval;
 	tock tockout;
 };
 
@@ -108,20 +109,22 @@ protected:
 
 /*ttimer implementation*/
 inline ttimer::ttimer():interval(0) {Reset();}
-inline ttimer::ttimer(int4 ms):interval(ms) {Reset();}
-inline void ttimer::SetInterval(int4 ms) {interval = ms; Reset();}
-inline int4 ttimer::GetInterval() {return interval;}
+inline ttimer::ttimer(qint32 ms):interval(ms) {Reset();}
+inline void ttimer::SetInterval(qint32 ms) {interval = ms; Reset();}
+inline qint32 ttimer::GetInterval() {return interval;}
 inline void ttimer::Reset() {tockout.Setms(Tock_GetTock().Getms() + interval);}
 inline bool ttimer::Expired() {return Tock_GetTock() > tockout;}
+inline bool operator==(const ttimer& t1, const ttimer& t2) { return ((t1.tockout == t2.tockout) && (t1.interval == t2.interval)); }
+inline bool operator!=(const ttimer& t1, const ttimer& t2) { return !(t1 == t2); }
 
 /*tock implementation*/
 inline tock::tock():v(0) {}
-inline tock::tock(uint4 ms):v(ms) {};
+inline tock::tock(quint32 ms):v(ms) {}
 inline tock::tock(const tock& t) {v = t.v;}
 inline tock& tock::operator=(const tock& t) {v = t.v; return *this;}
 
-inline uint4 tock::Getms() {return v;}
-inline void tock::Setms(uint4 ms) {v = ms;}
+inline quint32 tock::Getms() {return v;}
+inline void tock::Setms(quint32 ms) {v = ms;}
 	
 inline bool operator>(const tock& t1, const tock& t2)  {return t1.v - t2.v > 0;}
 inline bool operator>=(const tock& t1, const tock& t2) {return t1.v - t2.v >= 0;}
@@ -129,7 +132,7 @@ inline bool operator==(const tock& t1, const tock& t2) {return t1.v - t2.v == 0;
 inline bool operator!=(const tock& t1, const tock& t2) {return t1.v - t2.v != 0;}
 inline bool operator<(const tock& t1, const tock& t2)  {return t2.v - t1.v > 0;}
 inline bool operator<=(const tock& t1, const tock& t2) {return t2.v - t1.v >= 0;}
-inline uint4 operator-(const tock& t1, const tock& t2) {return t1.v - t2.v;}
+inline quint32 operator-(const tock& t1, const tock& t2) {return t1.v - t2.v;}
 
 
 #endif /*_TOCK_H*/

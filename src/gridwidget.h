@@ -17,6 +17,7 @@
 #define GRIDWIDGET_H
 
 #include <QWidget>
+#include <QList>
 
 /**
  * @brief The GridWidget class provides a control for a grid of 512 numeric values, with
@@ -26,7 +27,7 @@ class GridWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit GridWidget(QWidget *parent = 0);
+    explicit GridWidget(QWidget *parent = Q_NULLPTR);
 
     void setCellColor(int cell, const QColor &color);
     /**
@@ -45,28 +46,38 @@ public:
      * @brief selectedCell returns the currently selected cell, or -1 if no cell is selected
      * @return the selected cell, or -1 if no cell selected
      */
-    int selectedCell() const { return m_selectedAddress; }
+    QList<int> selectedCells() const { return m_selectedAddresses; }
+    /**
+      * @brief setMultiSelect sets whether multiple cells can be selected at once
+      **/
+    void setMultiSelect(bool value) {m_allowMultiSelect = value;}
 signals:
     // The user changed the selected address. -1 means no selected address
-    void selectedCellChanged(int cell);
+    void selectedCellsChanged(QList<int> selectedCells);
     // User double clicked on a cell.
     void cellDoubleClick(quint16 address);
 
 protected:
-    virtual void paintEvent(QPaintEvent *event);
-    virtual QSize minimumSizeHint() const;
-    virtual QSize sizeHint() const;
-    virtual void mousePressEvent(QMouseEvent *event);
-    virtual void mouseMoveEvent(QMouseEvent *event);
-    virtual void mouseDoubleClickEvent(QMouseEvent *event);
+    virtual void paintEvent(QPaintEvent *event) override;
+    virtual QSize minimumSizeHint() const override;
+    virtual QSize sizeHint() const override;
+    virtual void mousePressEvent(QMouseEvent *event) override;
+    virtual void mouseMoveEvent(QMouseEvent *event) override;
+    virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
+    virtual bool event(QEvent *event) override;
+    virtual void keyPressEvent(QKeyEvent *event) override;
 
     // Returns the cell under point, -1 for none
     int cellHitTest(const QPoint &point);
 
 private:
-    int m_selectedAddress;
-    QList<QColor> m_colors;
+    QList<int> m_selectedAddresses;
+    QVector<QColor> m_colors;
     QStringList m_values;
+    bool m_allowMultiSelect = false;
+    QPoint m_lastClickPoint;
+protected:
+    int m_cellHeight;
 };
 
 #endif // GRIDWIDGET_H

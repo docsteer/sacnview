@@ -25,10 +25,6 @@
   <property name="windowTitle">
    <string>Big Display</string>
   </property>
-  <property name="windowIcon">
-   <iconset resource="../res/resources.qrc">
-    <normaloff>:/icons/univ_view.png</normaloff>:/icons/univ_view.png</iconset>
-  </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -350,8 +346,6 @@
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="../res/resources.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

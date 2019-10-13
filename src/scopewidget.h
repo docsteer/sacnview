@@ -18,7 +18,6 @@
 
 #include <QWidget>
 #include <QElapsedTimer>
-#include "deftypes.h"
 
 #define RING_BUF_SIZE 1000
 
@@ -97,7 +96,7 @@ signals:
 protected:
     virtual void paintEvent(QPaintEvent *event);
 private:
-    QList<uint1> m_points;
+    QList<quint8> m_points;
     QList<ScopeChannel *> m_channels;
     // The timebase in ms
     int m_timebase;

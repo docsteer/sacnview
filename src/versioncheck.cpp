@@ -5,14 +5,17 @@
 
 #ifdef Q_OS_WIN
 static const QString OS_FILE_IDENTIFIER = ".exe";
+static const QString OS_EXE_HANDLER = "";
 #endif
 
 #ifdef Q_OS_MACOS
 static const QString OS_FILE_IDENTIFIER = ".dmg";
+static const QString OS_EXE_HANDLER = "open";
 #endif
 
 #ifdef Q_OS_LINUX
 static const QString OS_FILE_IDENTIFIER = ".deb";
+static const QString OS_EXE_HANDLER = "xdg-open";
 #endif
 
 
@@ -49,6 +52,7 @@ void NewVersionDialog::on_btnInstall_pressed()
                                  .arg(m_newVersion)
                                  .arg(m_dlUrl));
     ui->stackedWidget->setCurrentIndex(1);
+    this->adjustSize();
     ui->btnExitInstall->setEnabled(false);
     ui->progressBar->setValue(0);
 
@@ -83,11 +87,23 @@ void NewVersionDialog::doDownload(const QUrl &url)
 
 void NewVersionDialog::progress(qint64 bytes, qint64 total)
 {
-    ui->progressBar->setMaximum(total);
+    if (!total) return;
+    auto percent = static_cast<int>((bytes * 100) / total);
+    ui->progressBar->setMaximum(100);
     ui->progressBar->setMinimum(0);
-    ui->progressBar->setValue(bytes);
+    ui->progressBar->setValue(percent);
 
-    ui->lblProgress->setText(tr("%1 of %2 bytes").arg(bytes).arg(total));
+    #if (QT_VERSION < QT_VERSION_CHECK(5, 10, 0))
+        auto strProgress = tr("%1 of %2 bytes").arg(bytes).arg(total);
+    #else
+        auto strProgress = tr("%1 of %2")
+                .arg(this->locale().formattedDataSize(bytes))
+                .arg(this->locale().formattedDataSize(total));
+    #endif
+
+    ui->progressBar->setTextVisible(true);
+    ui->progressBar->setFormat(strProgress);
+    ui->progressBar->setAlignment(Qt::AlignCenter);
 }
 
 void NewVersionDialog::finished()
@@ -138,12 +154,11 @@ void NewVersionDialog::setNewVersionInfo(const QString &info)
 void NewVersionDialog::on_btnExitInstall_pressed()
 {
     bool ok = false;
+    if (!OS_EXE_HANDLER.isEmpty())
+        ok = QProcess::startDetached(OS_EXE_HANDLER, QStringList(m_storagePath));
+    else
+        ok = QProcess::startDetached(m_storagePath);
 
-#ifdef Q_OS_MAC
-    ok = QProcess::startDetached(QString("open ")+m_storagePath);
-#else
-    ok = QProcess::startDetached(m_storagePath);
-#endif
     if(!ok)
         QMessageBox::warning(this, tr("Couldn't Run Installer"), tr("Unable to run installer - please run %1").arg(m_storagePath));
     qApp->exit();

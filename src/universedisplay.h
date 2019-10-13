@@ -16,7 +16,6 @@
 #ifndef UNIVERSEDISPLAY_H
 #define UNIVERSEDISPLAY_H
 
-#include "deftypes.h"
 #include "sacnlistener.h"
 #include "gridwidget.h"
 #include "consts.h"
@@ -26,8 +25,14 @@ class UniverseDisplay : public GridWidget
     Q_OBJECT
 public:
     explicit UniverseDisplay(QWidget *parent = 0);
-    virtual ~UniverseDisplay() {};
-    bool flickerFinder() { return m_flickerFinder;};
+    virtual ~UniverseDisplay() {}
+    bool flickerFinder() const { return m_flickerFinder; }
+
+    Q_PROPERTY(bool showChannelPriority READ showChannelPriority WRITE setShowChannelPriority NOTIFY showChannelPriorityChanged)
+    bool showChannelPriority() const { return m_showChannelPriority; }
+    Q_SLOT void setShowChannelPriority(bool enable);
+    Q_SIGNAL void showChannelPriorityChanged(bool enable);
+
 public slots:
     void setUniverse(int universe);
     void levelsChanged();
@@ -35,10 +40,11 @@ public slots:
     void setFlickerFinder(bool on);
 private:
     sACNMergedSourceList m_sources;
-    QSharedPointer<sACNListener>m_listener;
+    sACNManager::tListener m_listener;
     quint8 m_flickerFinderLevels[MAX_DMX_ADDRESS];
     bool m_flickerFinderHasChanged[MAX_DMX_ADDRESS];
     bool m_flickerFinder;
+    bool m_showChannelPriority;
 };
 
 #endif // UNIVERSEDISPLAY_H

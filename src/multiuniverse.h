@@ -18,8 +18,9 @@
 
 #include <QWidget>
 #include <QLabel>
+#include <QSignalMapper>
 #include "consts.h"
-#include "sacnsender.h"
+#include "streamingacn.h"
 #include "sacneffectengine.h"
 #include "consts.h"
 
@@ -49,10 +50,10 @@ private slots:
     void controlSliderMoved(int value);
     void controlComboChanged(int value);
     void priorityChanged(int value);
-    void senderTimedout();
+    void senderTimedout(int index);
 private:
     Ui::MultiUniverse *ui;
-    QList <sACNSentUniverse *> m_senders;
+    QList <sACNManager::tSender> m_senders;
     QList <sACNEffectEngine *> m_fxEngines;
     QHash<QWidget*, sACNEffectEngine *> m_widgetToFxEngine;
     QHash<QWidget*, sACNSentUniverse *> m_widgetToSender;
@@ -69,10 +70,11 @@ private:
         COL_PRIORITY,
         COL_CONTROL
     };
+    QSignalMapper *m_timeoutMapper;
 
     void setupControl(int row, sACNEffectEngine::FxMode mode, int value);
     void addSource(int universe, int min_address, int max_address, sACNEffectEngine::FxMode mode,
-           QString name, bool startSending, int level = 0, int rate = 5, int priority = DEFAULT_SACN_PRIORITY);
+           QString name, bool startSending, int level = 0, qreal rate = 10.0, int priority = DEFAULT_SACN_PRIORITY);
 };
 
 #endif // MULTIUNIVERSE_H

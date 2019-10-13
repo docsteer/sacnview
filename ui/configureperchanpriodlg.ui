@@ -11,18 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string notr="true">Dialog</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QLabel" name="lblAddress">
-       <property name="text">
-        <string>Address ?, Priority = </string>
-       </property>
-      </widget>
-     </item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
       <widget class="QSpinBox" name="sbPriority">
        <property name="minimumSize">
@@ -34,6 +27,49 @@
        <property name="alignment">
         <set>Qt::AlignCenter</set>
        </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnSet">
+       <property name="text">
+        <string>Set</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QWidget" name="presetWidget" native="true">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QToolButton" name="btnPresetRec">
+          <property name="text">
+           <string notr="true">...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../res/resources.qrc">
+            <normaloff>:/icons/record.png</normaloff>:/icons/record.png</iconset>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="autoRaise">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
      <item>
@@ -72,7 +108,7 @@
     </layout>
    </item>
    <item>
-    <widget class="PriorityEditWidget" name="widget" native="true">
+    <widget class="GridEditWidget" name="widget" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -95,13 +131,15 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>PriorityEditWidget</class>
+   <class>GridEditWidget</class>
    <extends>QWidget</extends>
-   <header>priorityeditwidget.h</header>
+   <header>grideditwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../res/resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

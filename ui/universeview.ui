@@ -54,7 +54,7 @@
         <height>200</height>
        </size>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout">
+      <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
@@ -122,9 +122,25 @@
           </layout>
          </item>
          <item>
+          <widget class="QPushButton" name="btnShowPriority">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Show Channel Priorities</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="btnStartFlickerFinder">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -135,28 +151,15 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="btnLogToFile">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Start Log to File</string>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QPushButton" name="btnLogWindow">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Open Log Window</string>
+            <string>Open Logging Window</string>
            </property>
           </widget>
          </item>
@@ -185,6 +188,12 @@
             <width>0</width>
             <height>0</height>
            </size>
+          </property>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOn</enum>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustToContents</enum>
           </property>
           <property name="editTriggers">
            <set>QAbstractItemView::NoEditTriggers</set>
@@ -270,7 +279,16 @@
             <string>Per-Address</string>
            </property>
           </column>
-          <item row="0" column="2"/>
+          <column>
+           <property name="text">
+            <string>Slots</string>
+           </property>
+          </column>
+          <item row="0" column="2">
+           <property name="text">
+            <string/>
+           </property>
+          </item>
          </widget>
          <widget class="QPlainTextEdit" name="teInfo">
           <property name="sizePolicy">
@@ -324,7 +342,7 @@
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">background: blue;</string>
+       <string notr="true"/>
       </property>
      </widget>
     </widget>

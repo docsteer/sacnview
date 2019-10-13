@@ -20,16 +20,6 @@
 #include <QImage>
 #include <QPixmap>
 #include "sacnsender.h"
-#include "sacn/ACNShare/deftypes.h"
-
-static const QStringList FX_MODE_DESCRIPTIONS = { "Manual",
-        "Ramp",
-        "Sinewave",
-        "Chase",
-        "Vertical Bars",
-        "Horizontal Bars",
-        "Text",
-        "Date"};
 
 class sACNEffectEngine : public QObject
 {
@@ -39,34 +29,52 @@ public:
         FxManual,
         FxRamp,
         FxSinewave,
-        FxChase,
+        FxChaseSnap,
+        FxChaseRamp,
+        FxChaseSine,
         FxVerticalBar,
         FxHorizontalBar,
         FxText,
         FxDate
     };
 
-
     enum DateStyle {
         dsUSA,
         dsEU
     };
 
-    explicit sACNEffectEngine();
+    static const QStringList FxModeDescriptions() {
+        QList<QString> ret;
+        ret.insert(FxManual, QObject::tr("Manual"));
+        ret.insert(FxRamp, QObject::tr("Ramp"));
+        ret.insert(FxSinewave, QObject::tr("Sinewave"));
+        ret.insert(FxChaseSnap, QObject::tr("Chase (Snap)"));
+        ret.insert(FxChaseRamp, QObject::tr("Chase (Ramp)"));
+        ret.insert(FxChaseSine, QObject::tr("Chase (Sine)"));
+        ret.insert(FxVerticalBar, QObject::tr("Vertical Bars"));
+        ret.insert(FxHorizontalBar, QObject::tr("Horizontal Bars"));
+        ret.insert(FxText, QObject::tr("Text"));
+        ret.insert(FxDate, QObject::tr("Date"));
+        return QStringList(ret);
+    }
+
+    explicit sACNEffectEngine(sACNManager::tSender sender);
     virtual ~sACNEffectEngine();
-    void setSender(sACNSentUniverse *sender);
-    QString text() { return m_text;};
-    sACNEffectEngine::FxMode mode() { return m_mode;};
-    qreal rate() { return m_rate;};
+    //void setSender(sACNSentUniverse *sender);
+    QString text() { return m_text;}
+    sACNEffectEngine::FxMode mode() { return m_mode;}
+    qreal rate() { return m_rate;}
 signals:
-    void setLevel(uint2 address, uint1 value);
-    void setLevel(uint2 start, uint2 end, uint1 value);
+    void setLevel(quint16 address, quint8 value);
+    void setLevel(quint16 start, quint16 end, quint8 value);
     void fxLevelChange(int level);
     void textImageChanged(QPixmap pixmap);
+    void running();
+    void paused();
 public slots:
     void setMode(sACNEffectEngine::FxMode mode);
 
-    void start();
+    void run();
     void pause();
     void clear();
 
@@ -84,6 +92,7 @@ public slots:
 
 private slots:
     void timerTick();
+    void slotCountChanged();
 private:
     QThread *m_thread;
     sACNSentUniverse *m_sender;
@@ -92,13 +101,14 @@ private:
     DateStyle m_dateStyle;
     QString m_text;
     qreal m_rate;
-    uint2 m_start;
-    uint2 m_end;
-    uint2 m_index;
-    uint1 m_data;
-    uint1 m_manualLevel;
+    quint16 m_start;
+    quint16 m_end;
+    quint16 m_index;
+    quint16 m_index_chase;
+    quint8 m_data;
+    quint8 m_manualLevel;
     QImage m_renderedImage;
-    uint1 *m_image;
+    quint8 *m_image;
     int m_imageWidth;
 
     // Render a single line of variable width text

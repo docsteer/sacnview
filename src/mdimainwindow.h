@@ -19,6 +19,8 @@
 #include <QMainWindow>
 
 class sACNUniverseListModel;
+class sACNDiscoveredSourceListModel;
+class sACNSourceListProxy;
 
 namespace Ui {
 class MDIMainWindow;
@@ -52,9 +54,16 @@ private slots:
 
     void on_actionMultiUniverse_triggered();
 
+    void on_actionPCAPPlayback_triggered();
+
+    void on_pbFewer_clicked();
+
+    void on_pbMore_clicked();
 private:
     Ui::MDIMainWindow *ui;
     sACNUniverseListModel *m_model;
+    sACNDiscoveredSourceListModel *m_modelDiscovered;
+    sACNSourceListProxy *m_proxy;
     int getSelectedUniverse();
 };
 

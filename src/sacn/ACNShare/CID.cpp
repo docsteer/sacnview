@@ -22,7 +22,6 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "deftypes.h"
 #include <string.h>
 #include "CID.h"
 #include <stdio.h>
@@ -41,7 +40,7 @@ CID::~CID()
 
 }
 
-CID::CID(const uint1* pCID)
+CID::CID(const quint8* pCID)
 {
 	memcpy(m_cid, pCID, CIDBYTES);
 }
@@ -58,12 +57,12 @@ CID& CID::operator=(const CID& cid)
 	return (*this);
 }
 
-void CID::Pack(uint1* pbuf) const
+void CID::Pack(quint8* pbuf) const
 {
 	memcpy(pbuf, m_cid, CIDBYTES);
 }
 
-void CID::Unpack(const uint1* pbuf)
+void CID::Unpack(const quint8* pbuf)
 {
 	memcpy(m_cid, pbuf, CIDBYTES);
 }
@@ -94,12 +93,12 @@ bool CID::isNull() const
 }
 
 
-DCID::DCID(const uint1* pDCID):m_cid(pDCID) {}
+DCID::DCID(const quint8* pDCID):m_cid(pDCID) {}
 DCID::DCID(const DCID& dcid):m_cid(dcid.m_cid) {}
 DCID::DCID():m_cid() {}
 DCID::~DCID() {}
-void DCID::Pack(uint1* pbuf) const {m_cid.Pack(pbuf);}
-void DCID::Unpack(const uint1* pbuf) {m_cid.Unpack(pbuf);}
+void DCID::Pack(quint8* pbuf) const {m_cid.Pack(pbuf);}
+void DCID::Unpack(const quint8* pbuf) {m_cid.Unpack(pbuf);}
 DCID& DCID::operator=(const DCID& dcid) {m_cid = dcid.m_cid; return *this;}
 bool operator<(const DCID& d1, const DCID& d2) {return d1.m_cid < d2.m_cid;}
 bool operator==(const DCID& d1, const DCID& d2){return d1.m_cid == d2.m_cid;}
@@ -109,17 +108,17 @@ bool operator!=(const DCID& d1, const DCID& d2){return d1.m_cid != d2.m_cid;}
 ///////////////////////////////////////////////////////////////
 // Static functions
 //A quick helper function that puts fills a UUID string
-static void UUIDFillString(uint1* pbuffer, const char* ptext)
+static void UUIDFillString(quint8* pbuffer, const char* ptext)
 {
 	//This function assumes a lot of safety issues...
 	//We'll at least only put in CIDBYTES bytes
 	const char *pt = ptext;
-	uint1 *pb = pbuffer;
+	quint8 *pb = pbuffer;
 	bool first = true; //Whether we are doing the first or second nibble of the byte
 	
 	while((*pt != 0) && (pb - pbuffer < CID::CIDBYTES))
 	{
-		uint1 offset = 0;
+		quint8 offset = 0;
 		if((*pt >= 0x30) && (*pt <= 0x39))
 			offset = 0x30;
 		else if((*pt >= 0x41) && (*pt <= 0x46))
@@ -131,7 +130,7 @@ static void UUIDFillString(uint1* pbuffer, const char* ptext)
 		{
 			if(first)
 			{
-				*pb = static_cast<uint1>(*pt - offset);
+				*pb = static_cast<quint8>(*pt - offset);
 				*pb <<= 4;
 				first = false;
 			}
@@ -148,7 +147,7 @@ static void UUIDFillString(uint1* pbuffer, const char* ptext)
 
 CID CID::StringToCID(const char* ptext)  
 {
-	uint1 pbuffer [CIDBYTES];  //Temporarily holds the cid string
+	quint8 pbuffer [CIDBYTES];  //Temporarily holds the cid string
 	memset(pbuffer, 0, CIDBYTES);  //So if the string is invalid, a CID() is created
 	UUIDFillString(pbuffer, ptext);
 	return CID(pbuffer);
@@ -164,6 +163,14 @@ void CID::CIDIntoString(const CID& cid, char* ptxt)
 			cid.m_cid[15]);
 }
 
+QString CID::CIDIntoQString(const CID& cid)
+{
+    char buffer[CID::CIDSTRINGBYTES];
+    CID::CIDIntoString(cid, buffer);
+    return QString(buffer);
+}
+
+
 // Create a CID
 CID CID::CreateCid()
 {
@@ -177,7 +184,7 @@ CID CID::CreateCid()
 
 DCID DCID::StringToDCID(const char* ptext)  
 {
-	uint1 pbuffer [DCIDBYTES];  //Temporarily holds the cid string
+	quint8 pbuffer [DCIDBYTES];  //Temporarily holds the cid string
 	memset(pbuffer, 0, DCIDBYTES);  //So if the string is invalid, a DCID() is created
 	UUIDFillString(pbuffer, ptext);
 	return DCID(pbuffer);
@@ -200,7 +207,7 @@ void DCID::DCIDIntoFileName(const DCID& dcid, char* ptxt)
 uint qHash(const CID &c)
 {
     uint result;
-    uint1 buf[CID::CIDBYTES];
+    quint8 buf[CID::CIDBYTES];
     c.Pack(buf);
     memcpy(&result, buf, sizeof(uint));
     return result;

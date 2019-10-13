@@ -15,19 +15,24 @@
 
 #include <Qt>
 #include <QSettings>
+#include <QPalette>
+#include <QStyle>
+#include <QApplication>
 #include "preferences.h"
 #include "consts.h"
 
 // The base color to generate pastel shades for sources
 static const QColor mixColor = QColor("coral");
 
-Preferences *Preferences::m_instance = NULL;
+Preferences *Preferences::m_instance = Q_NULLPTR;
 
 Preferences::Preferences()
 {
     RESTART_APP = false;
     for(int i=0; i<PRESET_COUNT; i++)
-        m_presets[i] = QByteArray(MAX_DMX_ADDRESS, (char) 0);
+        m_presets[i] = QByteArray(MAX_DMX_ADDRESS, char(0));
+    for(int i=0; i<PRIORITYPRESET_COUNT; i++)
+        m_priorityPresets[i] = QByteArray(MAX_DMX_ADDRESS, char(100+i));
     loadPreferences();
 }
 
@@ -48,6 +53,14 @@ Preferences *Preferences::getInstance()
 
 QNetworkInterface Preferences::networkInterface() const
 {
+    if (!m_interface.isValid())
+    {
+        for (QNetworkInterface interface : QNetworkInterface::allInterfaces())
+        {
+            if (interface.flags().testFlag(QNetworkInterface::IsLoopBack))
+                return interface;
+        }
+    }
     return m_interface;
 }
 
@@ -58,6 +71,20 @@ void Preferences::setNetworkInterface(const QNetworkInterface &value)
         m_interface = value;
         //emit networkInterfaceChanged();
     }
+}
+
+void Preferences::SetNetworkListenAll(const bool &value)
+{
+    m_interfaceListenAll = value;
+}
+
+bool Preferences::GetNetworkListenAll()
+{
+#ifdef TARGET_WINXP
+    return false;
+#else
+    return m_interfaceListenAll;
+#endif
 }
 
 QColor Preferences::colorForCID(const CID &cid)
@@ -172,7 +199,35 @@ unsigned int Preferences::GetNumSecondsOfSacn()
 
 bool Preferences::defaultInterfaceAvailable()
 {
-    return m_interface.isValid();
+    return interfaceSuitable(&m_interface);
+}
+
+bool Preferences::interfaceSuitable(QNetworkInterface *inter)
+{
+    // Up, can multicast, and has IPv4?
+    if (inter->isValid()
+            && inter->flags().testFlag(QNetworkInterface::IsRunning)
+            && inter->flags().testFlag(QNetworkInterface::IsUp)
+            && inter->flags().testFlag(QNetworkInterface::CanMulticast)
+            && !inter->flags().testFlag(QNetworkInterface::IsLoopBack)
+            )
+    {
+        foreach (QNetworkAddressEntry addr, inter->addressEntries()) {
+            if(addr.ip().protocol() == QAbstractSocket::IPv4Protocol)
+               return true;
+        }
+    }
+    return false;
+}
+
+void Preferences::SetTheme(Theme theme)
+{
+    m_theme = theme;
+}
+
+Preferences::Theme Preferences::GetTheme()
+{
+    return m_theme;
 }
 
 void Preferences::savePreferences()
@@ -189,6 +244,11 @@ void Preferences::savePreferences()
     settings.setValue(S_FLICKERFINDERSHOWINFO, QVariant(m_flickerFinderShowInfo));
     settings.setValue(S_SAVEWINDOWLAYOUT, m_saveWindowLayout);
     settings.setValue(S_MAINWINDOWGEOM, m_mainWindowGeometry);
+    settings.setValue(S_LISTEN_ALL, m_interfaceListenAll);
+    settings.setValue(S_THEME, m_theme);
+    settings.setValue(S_TX_RATE_OVERRIDE, m_txrateoverride);
+    settings.setValue(S_LOCALE, m_locale);
+    settings.setValue(S_UNIVERSESLISTED, m_universesListed);
 
     settings.beginWriteArray(S_SUBWINDOWLIST);
     for(int i=0; i<m_windowInfo.count(); i++)
@@ -203,6 +263,13 @@ void Preferences::savePreferences()
     {
         settings.setValue(S_PRESETS.arg(i), QVariant(m_presets[i]));
     }
+
+    for(int i=0; i<PRIORITYPRESET_COUNT; i++)
+    {
+        settings.setValue(S_PRIORITYPRESET.arg(i), QVariant(m_priorityPresets[i]));
+    }
+
+    settings.sync();
 }
 
 void Preferences::loadPreferences()
@@ -218,6 +285,7 @@ void Preferences::loadPreferences()
                 m_interface = i;
     }
 
+    m_interfaceListenAll = settings.value(S_LISTEN_ALL, QVariant(false)).toBool();
     m_nDisplayFormat = settings.value(S_DISPLAY_FORMAT, QVariant(DECIMAL)).toInt();
     m_bBlindVisualizer = settings.value(S_BLIND_VISUALIZER, QVariant(true)).toBool();
     m_bDisplayDDOnly = settings.value(S_DDONLY, QVariant(true)).toBool();
@@ -226,6 +294,10 @@ void Preferences::loadPreferences()
     m_flickerFinderShowInfo = settings.value(S_FLICKERFINDERSHOWINFO, QVariant(true)).toBool();
     m_saveWindowLayout = settings.value(S_SAVEWINDOWLAYOUT, QVariant(false)).toBool();
     m_mainWindowGeometry = settings.value(S_MAINWINDOWGEOM, QVariant(QByteArray())).toByteArray();
+    m_theme = (Theme) settings.value(S_THEME, QVariant((int)THEME_LIGHT)).toInt();
+    m_txrateoverride = settings.value(S_TX_RATE_OVERRIDE, QVariant(false)).toBool();
+    m_locale = settings.value(S_LOCALE, QLocale::system()).toLocale();
+    m_universesListed = settings.value(S_UNIVERSESLISTED, QVariant(20)).toUInt();
 
     m_windowInfo.clear();
     int size = settings.beginReadArray(S_SUBWINDOWLIST);
@@ -244,6 +316,15 @@ void Preferences::loadPreferences()
         if(settings.contains(S_PRESETS.arg(i)))
         {
             m_presets[i] = settings.value(S_PRESETS.arg(i)).toByteArray();
+        }
+    }
+
+
+    for(int i=0; i<PRIORITYPRESET_COUNT; i++)
+    {
+        if(settings.contains(S_PRIORITYPRESET.arg(i)))
+        {
+            m_priorityPresets[i] = settings.value(S_PRIORITYPRESET.arg(i)).toByteArray();
         }
     }
 }
@@ -302,4 +383,26 @@ void Preferences::SetSavedWindows(QList<MDIWindowInfo> values)
 QList<MDIWindowInfo> Preferences::GetSavedWindows()
 {
     return m_windowInfo;
+}
+
+void Preferences::SetLocale(QLocale locale)
+{
+    m_locale = locale;
+}
+
+QLocale Preferences::GetLocale()
+{
+    return m_locale;
+}
+
+void Preferences::SetPriorityPreset(const QByteArray &data, int index)
+{
+    Q_ASSERT(index < PRIORITYPRESET_COUNT);
+    m_priorityPresets[index] = data;
+}
+
+QByteArray Preferences::GetPriorityPreset(int index)
+{
+    Q_ASSERT(index < PRIORITYPRESET_COUNT);
+    return m_priorityPresets[index];
 }

@@ -21,8 +21,9 @@
 #include <QLabel>
 #include <QSlider>
 #include <QToolButton>
-#include "deftypes.h"
+#include <array>
 #include "consts.h"
+#include "streamingacn.h"
 
 class sACNSentUniverse;
 class sACNEffectEngine;
@@ -36,7 +37,7 @@ class transmitwindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit transmitwindow(int universe = MIN_SACN_UNIVERSE, QWidget *parent = 0);
+    explicit transmitwindow(int universe = MIN_SACN_UNIVERSE, QWidget *parent = Q_NULLPTR);
     ~transmitwindow();
     static const int BLINK_TIME = 1000;
     static const int NUM_SLIDERS = 24;
@@ -59,7 +60,7 @@ protected slots:
     void doBlink();
     void on_sbFadeRangeStart_valueChanged(int value);
     void on_sbFadeRangeEnd_valueChanged(int value);
-    void radioFadeMode_toggled(bool checked);
+    void radioFadeMode_toggled(int id, bool checked);
     void on_slFadeLevel_valueChanged(int value);
     void on_btnFxPause_pressed();
     void on_btnFxStart_pressed();
@@ -67,12 +68,15 @@ protected slots:
     void presetButtonPressed();
     void recordButtonPressed(bool on);
     void setLevels(QSet<int> addresses, int level);
-    void dateMode_toggled(bool checked);
+    void dateMode_toggled(int id, bool checked);
     void sourceTimeout();
+    void setLevelList(QList<QPair<int, int>> levelList);
 private slots:
     void on_rbDraft_clicked();
 
     void on_rbRatified_clicked();
+
+    void on_sbSlotCount_valueChanged(int arg1);
 
 private:
     enum TABS
@@ -83,14 +87,17 @@ private:
     };
 
     void setUniverseOptsEnabled(bool enabled);
-
+    void updateTitle();
+    void updateEnabled();
+    void setLevel(int address, int value);
     Ui::transmitwindow *ui;
     QList<QSlider *> m_sliders;
     QList<QLabel *> m_sliderLabels;
     QList<QToolButton *> m_presetButtons;
-    sACNSentUniverse *m_sender;
-    uint1 m_perAddressPriorities[MAX_DMX_ADDRESS];
-    uint1 m_levels[MAX_DMX_ADDRESS];
+    sACNManager::tSender m_sender;
+    quint16 m_slotCount;
+    std::array<quint8, MAX_DMX_ADDRESS> m_perAddressPriorities;
+    std::array<quint8, MAX_DMX_ADDRESS> m_levels;
     QTimer *m_blinkTimer;
     bool m_blink;
     sACNEffectEngine *m_fxEngine;

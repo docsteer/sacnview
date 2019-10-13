@@ -16,27 +16,29 @@
 #include "gridwidget.h"
 #include <QPainter>
 #include <QMouseEvent>
+#include <QPalette>
+#include <QApplication>
+#include <QStyle>
+#include <QToolTip>
 
 #define FIRST_COL_WIDTH 60
 #define ROW_COUNT 16
 #define COL_COUNT 32
-#define CELL_HEIGHT 18
 #define CELL_WIDTH 25
+#define CELL_HEIGHT 18
 #define CELL_COUNT 512
 
-static const QColor gridLineColor = QColor::fromRgb(0xc0, 0xc0, 0xc0);
-static const QColor textColor = QColor::fromRgb(0x0, 0x0, 0x0);
 
-GridWidget::GridWidget(QWidget *parent) : QWidget(parent)
+GridWidget::GridWidget(QWidget *parent)
+    : QWidget(parent)
+    , m_colors(CELL_COUNT, this->palette().color(QPalette::Base))
+    , m_cellHeight(CELL_HEIGHT)
 {
-    m_selectedAddress = -1;
-
     for(int i=0; i<CELL_COUNT; i++)
     {
-        m_colors << QColor(Qt::white);
         m_values << QString();
     }
-
+    setFocusPolicy(Qt::StrongFocus);
 }
 
 QSize GridWidget::minimumSizeHint() const
@@ -54,42 +56,63 @@ void GridWidget::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
     QPainter painter(this);
+    QPalette pal = this->palette();
 
-    qreal wantedHeight = CELL_HEIGHT * (ROW_COUNT + 1);
+    qreal wantedHeight = m_cellHeight * (ROW_COUNT + 1);
     qreal wantedWidth = FIRST_COL_WIDTH + CELL_WIDTH * COL_COUNT;
 
     qreal scaleWidth = width()/wantedWidth;
     qreal scaleHeight = height()/ wantedHeight;
-    qreal minScale = qMin(scaleWidth, scaleHeight);
 
     painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.translate((width()-minScale*wantedWidth) /2,0);
-    painter.scale(minScale,minScale);
 
-    painter.fillRect(QRectF(0,0, wantedWidth, wantedHeight), QBrush(QColor("#FFF")));
+    painter.fillRect(QRectF(0,0, wantedWidth*scaleWidth, wantedHeight*scaleHeight), pal.color(QPalette::Base));
 
-    painter.setPen(textColor);
-    painter.setFont(QFont("Segoe UI", 8));
+    painter.setPen(pal.color(QPalette::Text));
+
+
+    // Determine the font size. This seems to look best based on increments of scale, not continuous scaling
+    QFont font = this->font();
+
+    if(scaleHeight<=1.2)
+        font.setPointSize(8);
+    else if(scaleHeight<1.9)
+        font.setPointSize(10);
+    else
+        font.setPointSize(12);
+    painter.setFont(font);
+
+    // Fill bars for background of the row and column labels
+    QRect rowLabelRect(0, 0,  FIRST_COL_WIDTH*scaleWidth, height());
+    painter.fillRect(rowLabelRect, QBrush(pal.color(QPalette::AlternateBase)));
+
+    QRect colLabelRect(0, 0,  width(), m_cellHeight*scaleHeight);
+    painter.fillRect(colLabelRect, QBrush(pal.color(QPalette::AlternateBase)));
+
+
     for(int row=1; row<ROW_COUNT+1; row++)
     {
-        QRect textRect(0, row*CELL_HEIGHT, FIRST_COL_WIDTH, CELL_HEIGHT);
-        QString rowLabel = QString("%1 - %2")
+        QRect textRect(0, row*m_cellHeight*scaleHeight, FIRST_COL_WIDTH*scaleWidth, m_cellHeight*scaleHeight);
+        QString rowLabel = QString("%1-%2")
                 .arg(1+(row-1)*32)
                 .arg((row)*32);
-        painter.drawText(textRect, rowLabel, QTextOption(Qt::AlignHCenter | Qt::AlignVCenter));
+
+        painter.drawText(textRect, Qt::AlignHCenter | Qt::AlignVCenter, rowLabel);
     }
     for(int col=0; col<COL_COUNT; col++)
     {
-        QRect textRect(FIRST_COL_WIDTH + col*CELL_WIDTH, 0, CELL_WIDTH, CELL_HEIGHT);
+        QRect textRect((FIRST_COL_WIDTH + col*CELL_WIDTH) * scaleWidth, 0, CELL_WIDTH*scaleWidth, m_cellHeight*scaleHeight);
         QString rowLabel = QString("%1")
                 .arg(col+1);
-        painter.drawText(textRect, rowLabel, QTextOption(Qt::AlignHCenter | Qt::AlignVCenter));
+
+        painter.drawText(textRect, Qt::AlignHCenter | Qt::AlignVCenter, rowLabel);
     }
+
     for(int row=0; row<ROW_COUNT; row++)
         for(int col=0; col<COL_COUNT; col++)
         {
             int address = row*COL_COUNT + col;
-            QRect textRect(FIRST_COL_WIDTH + col*CELL_WIDTH, (row+1)*CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
+            QRect textRect((FIRST_COL_WIDTH + col*CELL_WIDTH)*scaleWidth, (row+1)*m_cellHeight*scaleHeight, CELL_WIDTH*scaleWidth, m_cellHeight*scaleHeight);
             QString value = m_values[address];
 
             if(!value.isEmpty())
@@ -98,47 +121,48 @@ void GridWidget::paintEvent(QPaintEvent *event)
 
                 QString rowLabel = value;
                 painter.fillRect(textRect, fillColor);
-                painter.drawText(textRect, rowLabel, QTextOption(Qt::AlignHCenter | Qt::AlignVCenter));
+                painter.drawText(textRect, Qt::AlignHCenter | Qt::AlignVCenter, rowLabel);
             }
 
         }
 
-    painter.setPen(gridLineColor);
+    painter.setPen(pal.color(QPalette::AlternateBase));
 
     for(int row=0; row<ROW_COUNT + 1; row++)
     {
-        QPoint start(0, row*CELL_HEIGHT);
-        QPoint end(wantedWidth, row*CELL_HEIGHT);
+        QPoint start(0, row*m_cellHeight*scaleHeight);
+        QPoint end(wantedWidth*scaleWidth, row*m_cellHeight*scaleHeight);
         painter.drawLine(start, end);
     }
     for(int col=0; col<COL_COUNT + 1; col++)
     {
-        QPoint start(FIRST_COL_WIDTH + col*CELL_WIDTH, 0);
-        QPoint end(FIRST_COL_WIDTH + col*CELL_WIDTH, wantedHeight);
+        QPoint start((FIRST_COL_WIDTH + col*CELL_WIDTH)*scaleWidth, 0);
+        QPoint end((FIRST_COL_WIDTH + col*CELL_WIDTH)*scaleWidth, wantedHeight*scaleHeight);
         painter.drawLine(start, end);
     }
 
-    // Draw the highlight for the selected one
-    if(m_selectedAddress>-1)
+    // Draw the highlight for the selected ones
+    QListIterator<int> i(m_selectedAddresses);
+    while(i.hasNext())
     {
-        int col = m_selectedAddress % 32;
-        int row = m_selectedAddress / 32;
-        QRect textRect(FIRST_COL_WIDTH + col*CELL_WIDTH, (row+1)*CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
-        painter.setPen(QColor(Qt::black));
+        int selectedAddress = i.next();
+        int col = selectedAddress % 32;
+        int row = selectedAddress / 32;
+        QRect textRect((FIRST_COL_WIDTH + col*CELL_WIDTH)*scaleWidth, (row+1)*m_cellHeight*scaleHeight, CELL_WIDTH*scaleWidth, m_cellHeight*scaleHeight);
+        painter.setPen(pal.color(QPalette::Highlight));
         painter.drawRect(textRect);
     }
 }
 
 int GridWidget::cellHitTest(const QPoint &point)
 {
-    qreal wantedHeight = CELL_HEIGHT * (ROW_COUNT + 1);
+    qreal wantedHeight = m_cellHeight * (ROW_COUNT + 1);
     qreal wantedWidth = FIRST_COL_WIDTH + CELL_WIDTH * COL_COUNT;
 
     qreal scaleWidth = width()/wantedWidth;
     qreal scaleHeight = height()/ wantedHeight;
-    qreal minScale = qMin(scaleWidth, scaleHeight);
 
-    QRectF drawnRect(0, 0, wantedWidth*minScale, wantedHeight*minScale);
+    QRectF drawnRect(0, 0, wantedWidth * scaleWidth, wantedHeight * scaleHeight);
     drawnRect.moveCenter(this->rect().center());
     drawnRect.moveTop(0);
 
@@ -146,7 +170,7 @@ int GridWidget::cellHitTest(const QPoint &point)
         return -1;
 
 
-    qreal cellWidth = (drawnRect.width() - FIRST_COL_WIDTH * minScale) / COL_COUNT;
+    qreal cellWidth = (drawnRect.width() - FIRST_COL_WIDTH * scaleWidth) / COL_COUNT;
     qreal firstColWidth = drawnRect.width() - (COL_COUNT * cellWidth);
     qreal cellHeight = drawnRect.height() / (ROW_COUNT + 1);
 
@@ -166,15 +190,71 @@ void GridWidget::mousePressEvent(QMouseEvent *event)
 {
     QWidget::mousePressEvent(event);
 
-    if(event->buttons() & Qt::LeftButton)
+    if(!(event->buttons() & Qt::LeftButton))
+        return;
+
+    int address = cellHitTest(event->pos());
+    m_lastClickPoint = event->pos();
+
+    // Handle multi-selection
+    if(m_allowMultiSelect)
     {
-        int address = cellHitTest(event->pos());
-        if(m_selectedAddress!=address)
+        if(address==-1)
         {
-            m_selectedAddress = address;
-            emit selectedCellChanged(m_selectedAddress);
+            m_selectedAddresses.clear();
+            emit selectedCellsChanged(m_selectedAddresses);
             update();
+            return;
         }
+        if((event->modifiers() & Qt::ShiftModifier) && m_selectedAddresses.count()>0)
+        {
+            int previous = m_selectedAddresses.last();
+            int low = qMin(previous, address);
+            int high = qMax(previous, address);
+            for(int i=low; i<=high; i++)
+                if(!m_selectedAddresses.contains(i))
+                    m_selectedAddresses << i;
+            update();
+            emit selectedCellsChanged(m_selectedAddresses);
+            return;
+        }
+        if(event->modifiers() & Qt::ControlModifier)
+        {
+
+            if(m_selectedAddresses.contains(address)) {
+                m_selectedAddresses.removeAll(address);
+            }
+            else {
+                m_selectedAddresses << address;
+            }
+            update();
+            emit selectedCellsChanged(m_selectedAddresses);
+            return;
+        }
+
+        m_selectedAddresses.clear();
+        m_selectedAddresses << address;
+        update();
+        emit selectedCellsChanged(m_selectedAddresses);
+        return;
+    }
+    else // Handle single-selection
+    {
+        if(address==-1)
+        {
+            m_selectedAddresses.clear();
+            emit selectedCellsChanged(m_selectedAddresses);
+            update();
+            return;
+        }
+        else {
+            m_selectedAddresses.clear();
+            m_selectedAddresses << address;
+            emit selectedCellsChanged(m_selectedAddresses);
+            update();
+            return;
+        }
+
     }
 
 }
@@ -182,16 +262,67 @@ void GridWidget::mousePressEvent(QMouseEvent *event)
 void GridWidget::mouseMoveEvent(QMouseEvent *event)
 {
     QWidget::mouseMoveEvent(event);
-    if(event->buttons() & Qt::LeftButton)
+    if(!(event->buttons() & Qt::LeftButton))
+        return;
+
+    int address = cellHitTest(event->pos());
+
+    // Handle multi-selection
+    if(m_allowMultiSelect)
     {
-        int address = cellHitTest(event->pos());
-        if(m_selectedAddress!=address)
+        if(address==-1)
         {
-            m_selectedAddress = address;
-            emit selectedCellChanged(m_selectedAddress);
+            m_selectedAddresses.clear();
+            emit selectedCellsChanged(m_selectedAddresses);
             update();
+            return;
         }
+
+        // Marquee Selection
+        QRect marqueeRect(m_lastClickPoint, event->pos());
+        marqueeRect = marqueeRect.normalized();
+        int topLeftAddr = cellHitTest(marqueeRect.topLeft());
+        int bottomRightAddr = cellHitTest(marqueeRect.bottomRight());
+        int topRightAddr = cellHitTest(marqueeRect.topRight());
+        int marqueeWidth = topRightAddr - topLeftAddr;
+
+        m_selectedAddresses.clear();
+        int sel_addr = topLeftAddr;
+        while(sel_addr <= bottomRightAddr)
+        {
+            for(int i=0; i<=marqueeWidth; i++)
+            {
+                m_selectedAddresses << sel_addr;
+                sel_addr++;
+            }
+
+            sel_addr+= 31-marqueeWidth;
+        }
+        emit selectedCellsChanged(m_selectedAddresses);
+        update();
+        return;
+
+
     }
+    else // Handle single-selection
+    {
+        if(address==-1)
+        {
+            m_selectedAddresses.clear();
+            emit selectedCellsChanged(m_selectedAddresses);
+            update();
+            return;
+        }
+        else {
+            m_selectedAddresses.clear();
+            m_selectedAddresses << address;
+            emit selectedCellsChanged(m_selectedAddresses);
+            update();
+            return;
+        }
+
+    }
+
 }
 
 void GridWidget::mouseDoubleClickEvent(QMouseEvent *event)
@@ -217,4 +348,37 @@ void GridWidget::setCellValue(int cell, const QString &value)
 QString GridWidget::cellValue(int cell)
 {
     return m_values[cell];
+}
+
+bool GridWidget::event(QEvent *event)
+{
+    if (event->type() == QEvent::ToolTip) {
+        QHelpEvent *helpEvent = static_cast<QHelpEvent *>(event);
+        int cell = cellHitTest(helpEvent->pos());
+        if (cell != -1) {
+            QToolTip::showText(helpEvent->globalPos(), QString::number(cell+1));
+        } else {
+            QToolTip::hideText();
+            event->ignore();
+        }
+
+        return true;
+    }
+    return QWidget::event(event);
+}
+
+
+void GridWidget::keyPressEvent(QKeyEvent *event)
+{
+    if((event->modifiers() & Qt::ControlModifier) && event->key()==Qt::Key_A)
+    {
+        m_selectedAddresses.clear();
+        for(int i=0;i<512;i++)
+            m_selectedAddresses << i;
+        emit selectedCellsChanged(m_selectedAddresses);
+        update();
+        event->setAccepted(true);
+        return;
+    }
+    QWidget::keyPressEvent(event);
 }

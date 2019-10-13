@@ -18,11 +18,9 @@ image: Visual Studio 2015
 #       build configuration       #
 #---------------------------------#
 
-version: '{build}'
-
 environment:
   matrix:
-    - QT_Ver: 5.9.4
+    - QT_Ver: 5.9
     - QT_Ver: 5.6
 
 # build platform, i.e. x86, x64, Any CPU. This setting is optional.
@@ -37,7 +35,13 @@ build:
   # MSBuild verbosity level
   verbosity: detailed
 
+init:
+  - appveyor UpdateBuild -Version %APPVEYOR_REPO_COMMIT%
+
 install:
+  # Submodules
+  - git submodule update --init --recursive
+
   # MSVC Paths
   # https://www.appveyor.com/docs/lang/cpp/#visual-studio
   - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86

@@ -18,7 +18,7 @@
 #define CONFIGUREPERCHANPRIODLG_H
 
 #include <QDialog>
-#include "deftypes.h"
+#include <QToolButton>
 #include "consts.h"
 
 namespace Ui {
@@ -30,17 +30,22 @@ class ConfigurePerChanPrioDlg : public QDialog
     Q_OBJECT
 
 public:
-    explicit ConfigurePerChanPrioDlg(QWidget *parent = 0);
+    explicit ConfigurePerChanPrioDlg(QWidget *parent = Q_NULLPTR);
     ~ConfigurePerChanPrioDlg();
-    void setData(uint1 *data);
-    uint1 *data();
+    void setData(quint8 *data);
+    quint8 *data();
 public slots:
-    void on_sbPriority_valueChanged(int value);
     void on_btnSetAll_pressed();
-    void on_widget_selectedCellChanged(int cell);
+    void on_btnSet_pressed();
+    void on_widget_selectedCellsChanged(QList<int> cells);
+    void on_btnPresetRec_toggled(bool on);
+    void presetButtonPressed();
 private:
     Ui::ConfigurePerChanPrioDlg *ui;
-    uint1 m_data[MAX_DMX_ADDRESS];
+    quint8 m_data[MAX_DMX_ADDRESS];
+    QList<QByteArray> m_presets;
+    QList<QToolButton *>m_presetButtons;
+    QList<int> m_selectedCells;
 };
 
 #endif // CONFIGUREPERCHANPRIODLG_H

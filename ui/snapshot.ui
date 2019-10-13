@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>330</width>
-    <height>358</height>
+    <width>420</width>
+    <height>519</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,14 +17,29 @@
    <iconset resource="../res/resources.qrc">
     <normaloff>:/icons/snapshot.png</normaloff>:/icons/snapshot.png</iconset>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0,0,0,0,0">
    <item>
     <widget class="QTableWidget" name="tableWidget">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="showDropIndicator" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::MultiSelection</enum>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
      <attribute name="horizontalHeaderStretchLastSection">
       <bool>true</bool>
      </attribute>
      <attribute name="verticalHeaderVisible">
-      <bool>false</bool>
+      <bool>true</bool>
      </attribute>
      <column>
       <property name="text">
@@ -46,7 +61,87 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
+      <widget class="QToolButton" name="btnRemoveRow">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../res/resources.qrc">
+         <normaloff>:/icons/remove.png</normaloff>:/icons/remove.png</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::MinimumExpanding</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="lblMatching">
+       <property name="minimumSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::MinimumExpanding</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
       <widget class="QToolButton" name="btnAddRow">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="text">
         <string>...</string>
        </property>
@@ -62,36 +157,18 @@
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QToolButton" name="btnRemoveRow">
-       <property name="text">
-        <string>...</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../res/resources.qrc">
-         <normaloff>:/icons/remove.png</normaloff>:/icons/remove.png</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
     </layout>
    </item>
    <item>
-    <widget class="QLabel" name="lbInfo">
+    <widget class="Snapshot::InfoLbl" name="lbInfo">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="text">
-      <string>Taking Snapshot in</string>
+      <string notr="true">{INFO LABEL}</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -103,6 +180,12 @@
    </item>
    <item>
     <widget class="QLabel" name="lbTimer">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="font">
       <font>
        <family>Arial</family>
@@ -112,7 +195,7 @@
       </font>
      </property>
      <property name="text">
-      <string>5</string>
+      <string notr="true">5</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -122,13 +205,13 @@
    <item>
     <widget class="QToolButton" name="btnSnapshot">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Take Snapshot</string>
+      <string>Take All Snapshots</string>
      </property>
      <property name="icon">
       <iconset resource="../res/resources.qrc">
@@ -146,19 +229,15 @@
     </widget>
    </item>
    <item>
-    <widget class="QToolButton" name="btnPlay">
+    <widget class="Snapshot::PlaybackBtn" name="btnPlay">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Play Back Snapshot</string>
-     </property>
-     <property name="icon">
-      <iconset resource="../res/resources.qrc">
-       <normaloff>:/icons/play.png</normaloff>:/icons/play.png</iconset>
+      <string notr="true">{PLAY BUTTON}</string>
      </property>
      <property name="iconSize">
       <size>
@@ -173,6 +252,18 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Snapshot::PlaybackBtn</class>
+   <extends>QToolButton</extends>
+   <header>snapshot.h</header>
+  </customwidget>
+  <customwidget>
+   <class>Snapshot::InfoLbl</class>
+   <extends>QLabel</extends>
+   <header>snapshot.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../res/resources.qrc"/>
  </resources>

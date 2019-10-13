@@ -8,15 +8,19 @@ matrix:
         addons:
           apt:
             sources:
-              - sourceline: 'ppa:beineri/opt-qt592-trusty'
+              - sourceline: 'ppa:beineri/opt-qt594-trusty'
+              - sourceline: 'ppa:brightbox/ruby-ng'
             packages:
               # FPM dependencies
               - build-essential
-              - ruby
-              - ruby-dev
+              - ruby2.3
+              - ruby2.3-dev
               # QT
               - qt59base
               - qt59multimedia
+              - qt59tools
+              # PCap
+              - libpcap-dev
 
         install:
             # Install FPM
@@ -28,15 +32,18 @@ matrix:
             - make -j$(nproc)
         after_success:
           - FILE=$(readlink -f install/linux/sACNView_*AppImage)
-          - curl --upload-file $FILE https://transfer.sh/$(basename $FILE)
+          - BASENAME=$(basename $FILE)
+          - echo "Uploading $BASENAME to file.io..." && curl -sF "file=@$FILE" https://file.io | xargs printf "$BASENAME uploaded - %s\n"
           - FILE=$(readlink -f install/linux/sacnview_*.deb)
-          - curl --upload-file $FILE https://transfer.sh/$(basename $FILE)
+          - echo "Uploading $BASENAME to file.io..." && curl -sF "file=@$FILE" https://file.io | xargs printf "$BASENAME uploaded - %s\n"
 
       - os: osx
         osx_image: xcode8.3
         before_install:
           - brew update
         install:
+          # PCap
+          - brew install libpcap
           # QT
           - brew install qt
           - brew link --force qt
@@ -45,4 +52,5 @@ matrix:
           - make -j4
         after_success:
           - FILE=$(echo `pwd`/`ls install/mac/sACNView*.dmg`)
-          - curl --upload-file $FILE https://transfer.sh/$(basename $FILE)
+          - BASENAME=$(basename $FILE)
+          - echo "Uploading $BASENAME to file.io..." && curl -sF "file=@$FILE" https://file.io | xargs printf "$BASENAME uploaded - %s\n"

@@ -23,13 +23,22 @@
 #include <QNetworkInterface>
 #include <QProcess>
 #include <QMessageBox>
+#include <QStatusBar>
+#include <QStyleFactory>
+#include <QStandardPaths>
 #include "sacnsender.h"
 #include "versioncheck.h"
 #include "firewallcheck.h"
+#include "ipc.h"
+#include "theme/darkstyle.h"
+#include "translations/translationdialog.h"
+#ifdef USE_BREAKPAD
+    #include "crash_handler.h"
+    #include "crash_test.h"
+#endif
 
 int main(int argc, char *argv[])
 {
-    qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
     QApplication a(argc, argv);
 
     a.setApplicationName(APP_NAME);
@@ -37,22 +46,40 @@ int main(int argc, char *argv[])
     a.setOrganizationName("sACNView");
     a.setOrganizationDomain("tomsteer.net");
 
+#ifdef USE_BREAKPAD
+    // Breakpad Crash Handler
+    Breakpad::CrashHandler::instance()->Init(QStandardPaths::writableLocation(QStandardPaths::TempLocation));
+
+    // Breakpad Crash Tester
+    if (qApp->arguments().contains("CRASHTEST", Qt::CaseInsensitive)) {
+        CrashTest *crashwindow = new CrashTest;
+        crashwindow->show();
+    }
+#endif
+
+    // Setup Language
+    {
+        TranslationDialog td(Preferences::getInstance()->GetLocale());
+        if (!td.LoadTranslation())
+        {
+            td.exec();
+            td.LoadTranslation(Preferences::getInstance()->GetLocale());
+        }
+    }
+
     // Windows XP Support
     #ifdef Q_OS_WIN
-        #if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
-            #pragma message("This binary is intended for Windows >= 7")
-        #endif
-        #if (QT_VERSION < QT_VERSION_CHECK(5, 7, 0))
+        #if (TARGET_WINXP)
             #pragma message("This binary is intended for Windows XP ONLY")
             QSysInfo systemInfo;
             QMessageBox msgBox;
             msgBox.setStandardButtons(QMessageBox::Ok);
             if (
-                    (systemInfo.kernelVersion().startsWith(QString("5.1"))) // Windows XP 32bit
+                (systemInfo.kernelVersion().startsWith(QString("5.1"))) // Windows XP 32bit
                 || (systemInfo.kernelVersion().startsWith(QString("5.2")))) // Windows XP 64bit
             {
                 msgBox.setIcon(QMessageBox::Information);
-                msgBox.setText(QObject::tr("This binary is intended for Windows XP only\r\nThere are major issues in mixed IPv4 and IPv6 enviroments\r\n\r\nPlease ensure IPv6 is disabled"));
+                msgBox.setText(QObject::tr("This binary is intended for Windows XP only\r\nThere are major issues mixed IPv4 and IPv6 enviroments\r\n\r\nPlease ensure IPv6 is disabled"));
                 msgBox.exec();
             } else {
                 msgBox.setIcon(QMessageBox::Critical);
@@ -61,13 +88,15 @@ int main(int argc, char *argv[])
                 a.exit();
                 return -1;
             }
+        #else
+            #pragma message("This binary is intended for Windows >= 7")
         #endif
     #endif
 
     // Check web (if avaliable) for new version
     VersionCheck version;
 
-
+    // Setup interface
     bool newInterface = false;
     if(!Preferences::getInstance()->defaultInterfaceAvailable())
     {
@@ -82,14 +111,39 @@ int main(int argc, char *argv[])
         newInterface = true;
     }
 
+
+    a.setStyle(QStyleFactory::create("Fusion"));
+    if(Preferences::getInstance()->GetTheme() == Preferences::THEME_DARK)
+    {
+        a.setStyle(new DarkStyle);
+    }
+
+
     // Changed to heap rather than stack,
     // so that we can destroy before cleaning up the singletons
     MDIMainWindow *w = new MDIMainWindow();
     w->restoreMdiWindows();
+
+    // Setup IPC
+    IPC ipc(w);
+    if (!ipc.isListening())
+    {
+        // Single instance only
+        delete w;
+        return -1;
+    }
+
+    // Show window
     if(Preferences::getInstance()->GetSaveWindowLayout())
         w->show();
     else
         w->showMaximized();
+
+    // Show interface name on statusbar
+    w->statusBar()->showMessage(QObject::tr("Selected interface: %1").arg(
+                                    Preferences::getInstance()->networkInterface().humanReadableName())
+                                    );
+
 
     // Check firewall if not newly selected
     if (!newInterface) {

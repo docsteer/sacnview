@@ -15,35 +15,41 @@
 
 #include "sacnsocket.h"
 
-#include <QNetworkInterface>
 #include <QNetworkAddressEntry>
 #include <QDebug>
 #include <QThread>
 #include "ipaddr.h"
 #include "streamcommon.h"
+#include "streamingacn.h"
+#include "sacnlistener.h"
 
-sACNRxSocket::sACNRxSocket(QObject *parent) : QUdpSocket(parent)
+sACNRxSocket::sACNRxSocket(QNetworkInterface iface, QObject *parent) :
+    QUdpSocket(parent),
+    m_interface(iface)
+{}
+
+sACNRxSocket::sBindStatus sACNRxSocket::bind(quint16 universe)
 {
-
-}
-
-bool sACNRxSocket::bindMulticast(quint16 universe)
-{
+    sACNRxSocket::sBindStatus status;
+    m_universe = universe;
     bool ok = false;
 
-    QNetworkInterface iface = Preferences::getInstance()->networkInterface();
+    CIPAddr multicastAddr;
+    GetUniverseAddress(universe, multicastAddr);
 
-    CIPAddr addr;
-    GetUniverseAddress(universe, addr);
+    QHostAddress listenAddr = QHostAddress::AnyIPv4;
+#ifdef TARGET_WINXP
+    #pragma message("Unicast listener unavailable for this platform")
+    listenAddr = multicastAddr.ToQHostAddress();
+#endif
+    ok = QUdpSocket::bind(listenAddr,
+              STREAM_IP_PORT,
+              QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
 
-    // Bind to mutlicast address
-    ok = bind(addr.ToQHostAddress(),
-                   addr.GetIPPort(),
-                   QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
+    status.unicast = ok ? BIND_OK : BIND_FAILED;
 
     // Join multicast on selected NIC
-    if (ok)
-    {
+    if (ok) {
         #if (QT_VERSION <= QT_VERSION_CHECK(5, 8, 0))
             #ifdef Q_OS_WIN
                 #pragma message("setMulticastInterface() fails to bind to correct interface on systems running IPV4 and IPv6 with QT <= 5.8.0")
@@ -51,81 +57,80 @@ bool sACNRxSocket::bindMulticast(quint16 universe)
                 #error setMulticastInterface() fails to bind to correct interface on systems running IPV4 and IPv6 with QT <= 5.8.0
             #endif
         #endif
-        setMulticastInterface(iface);
-        ok |= joinMulticastGroup(QHostAddress(addr.GetV4Address()), iface);
+        setMulticastInterface(m_interface);
+        ok |= joinMulticastGroup(QHostAddress(multicastAddr.GetV4Address()), m_interface);
+        status.multicast = ok ? BIND_OK : BIND_FAILED;
     }
 
-    if(ok)
-    {
-        qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Bound to interface:" << iface.name();
-        qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Joining Multicast Group:" << QHostAddress(addr.GetV4Address()).toString();
-    }
-    else
-    {
+    if(ok) {
+#ifdef TARGET_WINXP
+        qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Bound to IP:" << listenAddr.toString();
+#else
+        qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Bound to interface:" << multicastInterface().name();
+#endif
+        qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Joining Multicast Group:" << QHostAddress(multicastAddr.GetV4Address()).toString();
+    } else {
         close();
         qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Failed to bind RX socket";
     }
 
-    return ok;
+    return status;
 }
 
-bool sACNRxSocket::bindUnicast()
+sACNTxSocket::sACNTxSocket(QNetworkInterface iface, QObject *parent) :
+    QUdpSocket(parent),
+    m_interface(iface)
+{}
+
+bool sACNTxSocket::bind()
 {
     bool ok = false;
 
     // Bind to first IPv4 address on selected NIC
-    QNetworkInterface iface = Preferences::getInstance()->networkInterface();
-
-    foreach (QNetworkAddressEntry ifaceAddr, iface.addressEntries())
-    {
-        if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol)
-        {
-            ok = bind(ifaceAddr.ip(),
-                      STREAM_IP_PORT,
-                      QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
+    foreach (QNetworkAddressEntry ifaceAddr, m_interface.addressEntries()) {
+        if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol) {
+            ok = QUdpSocket::bind(ifaceAddr.ip());
             if (ok) {
-                qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Bound to IP:" << ifaceAddr.ip().toString();
-                break;
+                qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Bound to IP:" << ifaceAddr.ip().toString();
+
+#ifndef Q_OS_WIN
+                // Don't send to self, this will cause issues on multihomed systems
+                setSocketOption(QAbstractSocket::MulticastLoopbackOption, QVariant(0));
+#endif
+
+                setMulticastInterface(m_interface);
+                qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Bound to interface:" << multicastInterface().name();
             }
-        }
-    }
-
-
-    if (!ok) {
-        close();
-        qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Failed to bind RX socket";
-    }
-
-    return ok;
-}
-
-sACNTxSocket::sACNTxSocket(QObject *parent) : QUdpSocket(parent)
-{
-
-}
-
-bool sACNTxSocket::bindMulticast()
-{
-    bool ok = false;
-
-    // Bind to first IPv4 address on selected NIC
-    QNetworkInterface iface = Preferences::getInstance()->networkInterface();
-
-    foreach (QNetworkAddressEntry ifaceAddr, iface.addressEntries())
-    {
-        if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol)
-        {
-            ok = bind(ifaceAddr.ip());
-            setSocketOption(QAbstractSocket::MulticastLoopbackOption, QVariant(1));
-            setMulticastInterface(iface);
-            qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Bound to IP:" << ifaceAddr.ip().toString();
             break;
         }
     }
-  
 
-    if(!ok)
-        qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Failed to bind TX socket";
+    if (!ok) qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Failed to bind TX socket";
 
     return ok;
+}
+
+qint64 sACNTxSocket::writeDatagram(const char *data, qint64 len, const QHostAddress &host, quint16 port)
+{
+#ifndef Q_OS_WIN
+    // If multicast, copy to correct internal listener(s)
+    if (host.isMulticast()) {
+        CIPAddr addr;
+        for (auto weakListener : sACNManager::getInstance()->getListenerList()) {
+            sACNManager::tListener listener(weakListener);
+            if (listener) {
+                GetUniverseAddress(listener->universe(), addr);
+                if (QHostAddress(addr.GetV4Address()) == host) {
+                    listener->processDatagram(
+                                QByteArray(data, len),
+                                QHostAddress(host),
+                                localAddress());
+                }
+            }
+        }
+    }
+#endif
+
+    // Send to world
+    return QUdpSocket::writeDatagram(data, len, host, port);
 }

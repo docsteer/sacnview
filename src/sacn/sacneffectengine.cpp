@@ -29,18 +29,21 @@ void GetCharacterCoord(unsigned char ch, int *x, int *y)
     *x = ch % 32;
 }
 
-sACNEffectEngine::sACNEffectEngine() : QObject(NULL)
+sACNEffectEngine::sACNEffectEngine(sACNManager::tSender sender) : QObject(NULL),
+  m_sender(sender.data()),
+  m_mode(FxManual),
+  m_dateStyle(dsEU),
+  m_start(0),
+  m_end(0),
+  m_index(0),
+  m_index_chase(0),
+  m_data(0),
+  m_manualLevel(0),
+  m_renderedImage(QImage(32, 16, QImage::Format_Grayscale8)),
+  m_image(Q_NULLPTR)
 {
     qRegisterMetaType<sACNEffectEngine::FxMode>("sACNEffectEngine::FxMode");
     qRegisterMetaType<sACNEffectEngine::DateStyle>("sACNEffectEngine::DateStyle");
-    m_sender = NULL;
-    m_image = NULL;
-    m_start = 0;
-    m_end = 0;
-    m_manualLevel = 0;
-    m_dateStyle = dsEU;
-    m_mode = FxRamp;
-    m_renderedImage = QImage(32, 16, QImage::Format_Grayscale8);
 
     m_timer = new QTimer(this);
     m_timer->setInterval(1000);
@@ -49,18 +52,16 @@ sACNEffectEngine::sACNEffectEngine() : QObject(NULL)
     m_thread = new QThread();
     moveToThread(m_thread);
     connect(m_thread, &QThread::finished, this, &QObject::deleteLater);
+    m_thread->setObjectName(QString("Effect Engine Universe %1").arg(sender->universe()));
     m_thread->start();
+
+    connect(m_sender, SIGNAL(slotCountChange()), this, SLOT(slotCountChanged()));
 }
 
 sACNEffectEngine::~sACNEffectEngine()
 {
     // Stop thread
     m_thread->quit();
-}
-
-void sACNEffectEngine::setSender(sACNSentUniverse *sender)
-{
-    m_sender = sender;
 }
 
 void sACNEffectEngine::setMode(sACNEffectEngine::FxMode mode)
@@ -74,14 +75,17 @@ void sACNEffectEngine::setMode(sACNEffectEngine::FxMode mode)
     clear();
 }
 
-void sACNEffectEngine::start()
+void sACNEffectEngine::run()
 {
     // Make this method thread-safe
     if(QThread::currentThread()!=this->thread())
         QMetaObject::invokeMethod(
-                    this,"start");
+                    this,"run");
     else
+    {
         m_timer->start();
+        emit running();
+    }
 }
 
 void sACNEffectEngine::pause()
@@ -90,7 +94,10 @@ void sACNEffectEngine::pause()
         QMetaObject::invokeMethod(
                     this,"pause");
     else
+    {
         m_timer->stop();
+        emit paused();
+    }
 }
 
 void sACNEffectEngine::clear()
@@ -98,7 +105,7 @@ void sACNEffectEngine::clear()
     QMetaObject::invokeMethod(
                 m_sender,"setLevelRange",
                 Q_ARG(quint16, MIN_DMX_ADDRESS - 1),
-                Q_ARG(quint16, MAX_DMX_ADDRESS - 1),
+                Q_ARG(quint16, m_sender->slotCount() - 1),
                 Q_ARG(quint8, 0));
 }
 
@@ -110,6 +117,9 @@ void sACNEffectEngine::setStartAddress(quint16 start)
                     this,"setStartAddress", Q_ARG(quint16, start));
     else
     {
+        // Limit to sender slot count
+        start = std::min(start, m_sender->slotCount());
+
         // Set unused values to 0
         if(start > m_start)
         {
@@ -132,11 +142,14 @@ void sACNEffectEngine::setEndAddress(quint16 end)
                     this,"setEndAddress", Q_ARG(quint16, end));
     else
     {
+        // Limit to sender slot count
+        end = std::min(end, m_sender->slotCount());
+
         // Set unused values to 0
         if(end < m_end)
         {
             QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, end),
-                                      Q_ARG(quint16, MAX_DMX_ADDRESS-1),
+                                      Q_ARG(quint16, m_sender->slotCount()-1),
                                       Q_ARG(quint8, 0));
         }
         m_end = end;
@@ -148,6 +161,9 @@ void sACNEffectEngine::setEndAddress(quint16 end)
 
 void sACNEffectEngine::setRange(quint16 start, quint16 end)
 {
+    Q_ASSERT(start < DMX_SLOT_MAX);
+    Q_ASSERT(end < DMX_SLOT_MAX);
+
     // Make this method thread-safe
     if(QThread::currentThread()!=this->thread())
         QMetaObject::invokeMethod(
@@ -157,24 +173,8 @@ void sACNEffectEngine::setRange(quint16 start, quint16 end)
         if(end < start)
             std::swap(start, end);
 
-        // Set unused values to 0
-        if(start > m_start)
-        {
-            QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, 0),
-                                      Q_ARG(quint16, start),
-                                      Q_ARG(quint8, 0));
-        }
-        m_start = start;
-
-        if(end < m_end)
-        {
-            QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, end),
-                                      Q_ARG(quint16, MAX_DMX_ADDRESS-1),
-                                      Q_ARG(quint8, 0));
-        }
-        m_end = end;
-
-        qDebug() << "Range start " << m_start << " End " << m_end;
+        setStartAddress(start);
+        setEndAddress(end);
     }
 }
 
@@ -185,7 +185,7 @@ void sACNEffectEngine::renderText(QString text)
         delete m_image;
     m_imageWidth = 8 * text.length();
     int img_size = 16 * m_imageWidth;
-    m_image = new uint1[img_size];
+    m_image = new quint8[img_size];
 
     memset(m_image, 0, img_size);
     renderText(text, 4, true);
@@ -198,7 +198,7 @@ void sACNEffectEngine::renderText(QString top, QString bottom)
         delete m_image;
     m_imageWidth = 32;
     int img_size = 16 * m_imageWidth;
-    m_image = new uint1[img_size];
+    m_image = new quint8[img_size];
     memset(m_image, 0, img_size);
 
     renderText(top, 1, false);
@@ -270,8 +270,12 @@ void sACNEffectEngine::setText(QString text)
 
 void sACNEffectEngine::setDateStyle(sACNEffectEngine::DateStyle style)
 {
-    Q_ASSERT(QThread::currentThread()==this->thread());
-    m_dateStyle = style;
+    // Make this method thread-safe
+    if(QThread::currentThread()!=this->thread())
+            QMetaObject::invokeMethod(
+                        this,"setDateStyle", Q_ARG(sACNEffectEngine::DateStyle, style));
+    else
+        m_dateStyle = style;
 }
 
 void sACNEffectEngine::setRate(qreal hz)
@@ -297,7 +301,8 @@ void sACNEffectEngine::timerTick()
     {
     case FxRamp:
         m_data++;
-        QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, m_start),
+        QMetaObject::invokeMethod(m_sender, "setLevelRange",
+                                  Q_ARG(quint16, m_start),
                                   Q_ARG(quint16, m_end),
                                   Q_ARG(quint8, m_data));
         emit fxLevelChange(m_data);
@@ -306,24 +311,82 @@ void sACNEffectEngine::timerTick()
         if(m_index >= sizeof(sinetable))
             m_index = 0;
         m_data = sinetable[m_index];
-        QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, m_start),
+        QMetaObject::invokeMethod(m_sender, "setLevelRange",
+                                  Q_ARG(quint16, m_start),
                                   Q_ARG(quint16, m_end),
                                   Q_ARG(quint8, m_data));
         emit fxLevelChange(m_data);
         break;
-    case FxChase:
-        if(m_index > m_end)
-            m_index = m_start;
+    case FxChaseSnap:
         QMetaObject::invokeMethod(m_sender, "setLevelRange",
                                   Q_ARG(quint16, m_start),
                                   Q_ARG(quint16, m_end),
                                   Q_ARG(quint8, 0));
-        QMetaObject::invokeMethod(m_sender, "setLevel", Q_ARG(quint16, m_index),
-                                  Q_ARG(quint8, 255));
+        QMetaObject::invokeMethod(m_sender, "setLevel",
+                                  Q_ARG(quint16, m_index_chase),
+                                  Q_ARG(quint8, m_manualLevel));
+
+        if (m_index_chase < m_start)
+            m_index_chase = m_start;
+
+        if(++m_index_chase > m_end)
+            m_index_chase = m_start;
+
+        break;
+
+    case FxChaseRamp:
+        if(m_index > std::numeric_limits<decltype(m_data)>::max())
+        {
+            m_index = std::numeric_limits<decltype(m_data)>::min();
+            if (++m_index_chase > m_end )
+                m_index_chase = m_start;
+        }
+
+        if (m_index_chase < m_start)
+            m_index_chase = m_start;
+
+        m_data = m_index;
+
+        QMetaObject::invokeMethod(m_sender, "setLevelRange",
+                                  Q_ARG(quint16, m_start),
+                                  Q_ARG(quint16, m_end),
+                                  Q_ARG(quint8, 0));
+        QMetaObject::invokeMethod(m_sender, "setLevel",
+                                  Q_ARG(quint16, m_index_chase),
+                                  Q_ARG(quint8, m_data));
+        emit fxLevelChange(m_data);
+
+
+        break;
+
+    case FxChaseSine:
+        if(m_index > sizeof(sinetable))
+        {
+            m_index = 0;
+            if (++m_index_chase > m_end )
+                m_index_chase = m_start;
+        }
+
+        if (m_index_chase < m_start)
+            m_index_chase = m_start;
+
+        m_data = sinetable[m_index];
+
+        QMetaObject::invokeMethod(m_sender, "setLevelRange",
+                                  Q_ARG(quint16, m_start),
+                                  Q_ARG(quint16, m_end),
+                                  Q_ARG(quint8, 0));
+        QMetaObject::invokeMethod(m_sender, "setLevel",
+                                  Q_ARG(quint16, m_index_chase),
+                                  Q_ARG(quint8, m_data));
+        emit fxLevelChange(m_data);
+
+
         break;
 
     case FxManual:
-        QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, m_start),
+        QMetaObject::invokeMethod(m_sender, "setLevelRange",
+                                  Q_ARG(quint16, m_start),
                                   Q_ARG(quint16, m_end),
                                   Q_ARG(quint8, m_manualLevel));
         break;
@@ -363,25 +426,33 @@ void sACNEffectEngine::timerTick()
     case FxVerticalBar:
         if(m_index > 31)
             m_index = 0;
-        QMetaObject::invokeMethod(m_sender, "setVerticalBar", Q_ARG(quint16, m_index),
-                                      Q_ARG(quint8, 255));
+        QMetaObject::invokeMethod(m_sender, "setVerticalBar",
+                                    Q_ARG(quint16, m_index),
+                                    Q_ARG(quint8, 255));
         break;
     case FxHorizontalBar:
         if(m_index > 15)
             m_index = 0;
-        QMetaObject::invokeMethod(m_sender, "setHorizontalBar", Q_ARG(quint16, m_index),
-                                      Q_ARG(quint8, 255));
+        QMetaObject::invokeMethod(m_sender, "setHorizontalBar",
+                                    Q_ARG(quint16, m_index),
+                                    Q_ARG(quint8, 255));
         break;
     }
 }
-
-
 
 void sACNEffectEngine::setManualLevel(int level)
 {
     m_manualLevel = level;
 
-    QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, m_start),
-                              Q_ARG(quint16, m_end),
-                              Q_ARG(quint8, m_manualLevel));
+    if (m_mode == FxManual) {
+        QMetaObject::invokeMethod(m_sender, "setLevelRange",
+                                      Q_ARG(quint16, m_start),
+                                      Q_ARG(quint16, m_end),
+                                      Q_ARG(quint8, m_manualLevel));
+    }
+}
+
+void sACNEffectEngine::slotCountChanged()
+{
+    setEndAddress(m_end);
 }

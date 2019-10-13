@@ -24,15 +24,13 @@
 #include "mdimainwindow.h"
 #include "bigdisplay.h"
 
-#include <QFileDialog>
-#include <QStandardPaths>
 #include <QMessageBox>
 
 QString onlineToString(bool value)
 {
     if(value)
-        return QString("Online");
-    return QString("Offline");
+        return QObject::tr("Online");
+    return QObject::tr("Offline");
 }
 
 QString protocolVerToString(int value)
@@ -40,32 +38,37 @@ QString protocolVerToString(int value)
     switch(value)
     {
     case sACNProtocolDraft:
-        return QString("Draft");
+        return QObject::tr("Draft");
     case sACNProtocolRelease:
-        return QString("Release");
+        return QObject::tr("Release");
     }
 
-    return QString("Unknown");
+    return QObject::tr("Unknown");
 }
 
 UniverseView::UniverseView(int universe, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::UniverseView)
+    ui(new Ui::UniverseView),
+    m_selectedAddress(-1),
+    m_parentWindow(parent) // needed as parent() in qobject world isn't..
 {
-    m_parentWindow = parent; // needed as parent() in qobject world isn't..
-    m_selectedAddress = -1;
-    m_logger = NULL;
     m_displayDDOnlySource = Preferences::getInstance()->GetDisplayDDOnly();
 
     ui->setupUi(this);
-    connect(ui->universeDisplay, SIGNAL(selectedCellChanged(int)), this, SLOT(selectedAddressChanged(int)));
+    connect(ui->universeDisplay, SIGNAL(selectedCellsChanged(QList<int>)), this, SLOT(selectedAddressesChanged(QList<int>)));
     connect(ui->universeDisplay, SIGNAL(cellDoubleClick(quint16)), this, SLOT(openBigDisplay(quint16)));
+
+    connect(ui->btnShowPriority, &QPushButton::toggled,
+            ui->universeDisplay, &UniverseDisplay::setShowChannelPriority);
+    connect(ui->universeDisplay, &UniverseDisplay::showChannelPriorityChanged,
+            ui->btnShowPriority, &QPushButton::setChecked);
 
     ui->btnGo->setEnabled(true);
     ui->btnPause->setEnabled(false);
     ui->sbUniverse->setEnabled(true);
     ui->sbUniverse->setValue(universe);
-    setUiForLoggingState(NOT_LOGGING);
+
+    ui->twSources->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
 
 UniverseView::~UniverseView()
@@ -75,11 +78,14 @@ UniverseView::~UniverseView()
 
 void UniverseView::startListening(int universe)
 {
+    m_sourceToTableRow.clear();
     ui->twSources->setRowCount(0);
     ui->btnGo->setEnabled(false);
     ui->btnPause->setEnabled(true);
     ui->sbUniverse->setEnabled(false);
     m_listener = sACNManager::getInstance()->getListener(universe);
+    connect(m_listener.data(), SIGNAL(listenerStarted(int)), this, SLOT(listenerStarted(int)));
+    checkBind();
     ui->universeDisplay->setUniverse(universe);
 
     // Add the existing sources
@@ -87,7 +93,6 @@ void UniverseView::startListening(int universe)
     {
         sourceOnline(m_listener->source(i));
     }
-
     connect(m_listener.data(), SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
     connect(m_listener.data(), SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
     connect(m_listener.data(), SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
@@ -100,6 +105,29 @@ void UniverseView::startListening(int universe)
 void UniverseView::on_btnGo_pressed()
 {
     startListening(ui->sbUniverse->value());
+}
+
+void UniverseView::checkBind()
+{
+    bool bindOk(m_listener->getBindStatus().multicast != sACNRxSocket::BIND_FAILED);
+    bindOk &= m_listener->getBindStatus().unicast != sACNRxSocket::BIND_FAILED;
+
+    if (bindOk || m_bindWarningShown)
+        return;
+
+    QMessageBox msgBox;
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setText(tr("Errors binding to interface\r\n\r\nResults will be inaccurate\r\nPossible reasons include permission issues\r\nor other applications\r\n\r\nSee diagnostics for more info"));
+    m_bindWarningShown = true;
+    msgBox.exec();
+}
+
+void UniverseView::listenerStarted(int universe)
+{
+    Q_UNUSED(universe);
+
+    checkBind();
 }
 
 void UniverseView::sourceChanged(sACNSource *source)
@@ -123,9 +151,19 @@ void UniverseView::sourceChanged(sACNSource *source)
     else
         ui->twSources->item(row,COL_PREVIEW)->setText(source->isPreview ? tr("Yes") : tr("No"));
     ui->twSources->item(row,COL_IP)->setText(source->ip.toString());
-    ui->twSources->item(row,COL_FPS)->setText(QString::number((source->fps)));
-    ui->twSources->item(row,COL_SEQ_ERR)->setText(QString::number(source->seqErr));
-    ui->twSources->item(row,COL_JUMPS)->setText(QString::number(source->jumps));
+    ui->twSources->item(row,COL_FPS)->setText(QString("%1Hz").arg(QString::number(source->fpscounter.FPS(), 'f', 2)));
+    {
+        // Seq Errors
+        QLabel* lbl_SEQ_ERR = qobject_cast<QLabel *>(
+                    ui->twSources->cellWidget(row,COL_SEQ_ERR)->layout()->itemAt(0)->widget());
+        lbl_SEQ_ERR->setText(QString::number(source->seqErr));
+    }
+    {
+        // Jumps
+        QLabel* lbl_SEQ_ERR = qobject_cast<QLabel *>(
+                    ui->twSources->cellWidget(row,COL_JUMPS)->layout()->itemAt(0)->widget());
+        lbl_SEQ_ERR->setText(QString::number(source->jumps));
+    }
     if (source->doing_dmx) {
         ui->twSources->item(row,COL_ONLINE)->setText(onlineToString(source->src_valid));
     } else {
@@ -133,6 +171,7 @@ void UniverseView::sourceChanged(sACNSource *source)
     }
     ui->twSources->item(row,COL_VER)->setText(protocolVerToString(source->protocol_version));
     ui->twSources->item(row,COL_DD)->setText(source->doing_per_channel ? tr("Yes") : tr("No"));
+    ui->twSources->item(row,COL_SLOTS)->setText(QString::number(source->slot_count));
 }
 
 void UniverseView::sourceOnline(sACNSource *source)
@@ -146,20 +185,68 @@ void UniverseView::sourceOnline(sACNSource *source)
     ui->twSources->setRowCount(row+1);
     m_sourceToTableRow[source] = row;
 
-    ui->twSources->setItem(row,COL_NAME,    new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_CID,     new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_PRIO,    new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_PREVIEW, new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_IP,      new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_FPS,     new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_SEQ_ERR, new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_JUMPS,   new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_ONLINE,  new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_VER,     new QTableWidgetItem() );
-    ui->twSources->setItem(row,COL_DD,      new QTableWidgetItem() );
+    for (auto col = 0; col < COL_END; col++)
+        ui->twSources->setItem(row, col, new QTableWidgetItem() );
+
+    // Seq errors, with reset
+    {
+        QWidget* pWidget = new QWidget();
+        QHBoxLayout* pLayout = new QHBoxLayout(pWidget);
+        pLayout->setAlignment(Qt::AlignCenter);
+        pLayout->setContentsMargins(3,0,0,0);
+
+        // Count
+        QLabel* lbl_seq = new QLabel();
+        lbl_seq->setText(QString::number(0));
+        pLayout->addWidget(lbl_seq);
+
+        // Reset Button
+        QPushButton* btn_seq = new QPushButton();
+        btn_seq->setIcon(QIcon(":/icons/clear.png"));
+        btn_seq->setFlat(true);
+        pLayout->addWidget(btn_seq);
+
+        // Connect button
+        connect(btn_seq, &QPushButton::clicked, [=]() {
+            source->resetSeqErr();
+            this->sourceChanged(source);
+        });
+
+        // Display!
+        pWidget->setLayout(pLayout);
+        ui->twSources->setCellWidget(row,COL_SEQ_ERR, pWidget);
+    }
+
+    // Jump counter, with reset
+    {
+        QWidget* pWidget = new QWidget();
+        QHBoxLayout* pLayout = new QHBoxLayout(pWidget);
+        pLayout->setAlignment(Qt::AlignCenter);
+        pLayout->setContentsMargins(3,0,0,0);
+
+        // Count
+        QLabel* lbl_jumps = new QLabel();
+        lbl_jumps->setText(QString::number(0));
+        pLayout->addWidget(lbl_jumps);
+
+        // Reset Button
+        QPushButton* btn_jumps = new QPushButton();
+        btn_jumps->setIcon(QIcon(":/icons/clear.png"));
+        btn_jumps->setFlat(true);
+        pLayout->addWidget(btn_jumps);
+
+        // Connect button
+        connect(btn_jumps, &QPushButton::clicked, [=]() {
+            source->resetJumps();
+            this->sourceChanged(source);
+        });
+
+        pWidget->setLayout(pLayout);
+        ui->twSources->setCellWidget(row,COL_JUMPS, pWidget);
+    }
+
 
     sourceChanged(source);
-
 }
 
 void UniverseView::sourceOffline(sACNSource *source)
@@ -218,21 +305,6 @@ void UniverseView::resizeColumns()
     ui->twSources->setColumnWidth(COL_NAME, width-used-5);
 }
 
-void UniverseView::setUiForLoggingState(UniverseView::LOG_STATE state)
-{
-    switch(state)
-    {
-    case LOGGING:
-        ui->btnLogToFile->setText(tr("Stop Log to File"));
-        break;
-
-    default:
-    case NOT_LOGGING:
-        ui->btnLogToFile->setText(tr("Start Log to File"));
-        break;
-    }
-}
-
 void UniverseView::selectedAddressChanged(int address)
 {
     ui->teInfo->clear();
@@ -274,9 +346,7 @@ void UniverseView::selectedAddressChanged(int address)
                             .arg(prio));
             }
         }
-    }
-    if(!list[address].winningSource)
-    {
+    } else {
         info.append(tr("No Sources"));
     }
 
@@ -298,41 +368,7 @@ void UniverseView::on_btnPause_pressed()
     ui->btnGo->setEnabled(true);
     ui->btnPause->setEnabled(false);
     ui->sbUniverse->setEnabled(true);
-}
-
-void UniverseView::on_btnLogToFile_pressed()
-{
-    if(!m_logger)
-    {
-        //Setup dialog box
-        QFileDialog dialog(this);
-        dialog.setWindowTitle(APP_NAME);
-        dialog.setDirectory(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
-        dialog.setNameFilter("CSV Files (*.csv)");
-        dialog.setDefaultSuffix("csv");
-        dialog.setFileMode(QFileDialog::AnyFile);
-        dialog.setViewMode(QFileDialog::Detail);
-        dialog.setAcceptMode(QFileDialog::AcceptSave);
-        if(dialog.exec()) {
-            QString saveName = dialog.selectedFiles().at(0);
-            if(saveName.isEmpty()) {
-                return;
-            }
-            m_logger = new MergedUniverseLogger();
-            m_logger->start(saveName, m_listener);
-            setUiForLoggingState(LOGGING);
-        }
-
-    }
-    else
-    {
-        m_logger->stop();
-        m_logger->deleteLater();
-        m_logger = nullptr;
-
-        setUiForLoggingState(NOT_LOGGING);
-    }
-
+    m_bindWarningShown = false;
 }
 
 void UniverseView::on_btnStartFlickerFinder_pressed()
@@ -360,7 +396,15 @@ void UniverseView::on_btnLogWindow_pressed()
 {
     MDIMainWindow *mainWindow = dynamic_cast<MDIMainWindow *>(m_parentWindow);
     if(!mainWindow) return;
-    LogWindow *w = new LogWindow(mainWindow);
-    w->setUniverse(ui->sbUniverse->value());
+    LogWindow *w = new LogWindow(ui->sbUniverse->value(),mainWindow);
     mainWindow->showWidgetAsMdiWindow(w);
+}
+
+
+void UniverseView::selectedAddressesChanged(QList<int> addresses)
+{
+    if(addresses.count()==0)
+        selectedAddressChanged(-1);
+    if(addresses.count()==1)
+        selectedAddressChanged(addresses.first());
 }
