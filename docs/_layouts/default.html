@@ -82,18 +82,20 @@
       <h1 class="project-name">{{ page.title | default: site.title | default: site.github.repository_name }}</h1>
       <h2 class="project-tagline">{{ page.description | default: site.description | default: site.github.project_tagline }}</h2>
       {% if site.show_downloads %}
+	  <section>
 	  <h2 id="name_release">Download Release</h2>
-	  <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-win" class="btn"><span><img src="/assets/images/win-icon.png" />Windows</span></a>
-          <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-winxp" class="btn"><span><img src="/assets/images/winxp-icon.png" />Win XP</span></a>
-          <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-mac" class="btn"><span><img src="/assets/images/mac-icon.png" />macOS</span></a>
-          <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-linux" class="btn"><span><img src="/assets/images/linux-icon.png" />Linux</span></a>
-	  <div id="prerelease-download" style="display:none">
+	    <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-win" class="btn"><span><img src="/assets/images/win-icon.png" /> Windows</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-winxp" class="btn"><span><img src="/assets/images/winxp-icon.png" /> Win XP</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-mac" class="btn"><span><img src="/assets/images/mac-icon.png" /> macOS</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-linux" class="btn"><span><img src="/assets/images/linux-icon.png" /> Linux</span></a>
+	  </section>
+	  <section id="prerelease-download" style="display:none">
             <h2 id="name_prerelease"></h1>
-            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-win" class="button"><span>Windows</span></a>
-            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-winxp" class="button"><span>Win XP</span></a>
-            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-mac" class="button"><span>macOS</span></a>
-            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-linux" class="button"><span>Linux</span></a>
-          </div>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-win" class="button"><span> Windows</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-winxp" class="button"><span> Win XP</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-mac" class="button"><span> macOS</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-linux" class="button"><span> Linux</span></a>
+          </section>
       {% endif %}
       {% if site.github.is_project_page %}
         <a href="{{ site.github.repository_url }}" class="btn">View on GitHub</a>
