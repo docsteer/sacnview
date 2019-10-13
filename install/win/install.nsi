@@ -18,7 +18,7 @@ SetCompressor /SOLID lzma
 
 !define PRODUCT_NAME "sACNView"
 !define PRODUCT_PUBLISHER "Tom Barthel-Steer"
-!define PRODUCT_WEB_SITE "http://www.tomsteer.net"
+!define PRODUCT_WEB_SITE "https://www.sacnview.org"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\sACNView.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
