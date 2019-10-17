@@ -74,7 +74,7 @@ private:
 
     void setupControl(int row, sACNEffectEngine::FxMode mode, int value);
     void addSource(int universe, int min_address, int max_address, sACNEffectEngine::FxMode mode,
-           QString name, bool startSending, int level = 0, int rate = 5, int priority = DEFAULT_SACN_PRIORITY);
+           QString name, bool startSending, int level = 0, qreal rate = 10.0, int priority = DEFAULT_SACN_PRIORITY);
 };
 
 #endif // MULTIUNIVERSE_H

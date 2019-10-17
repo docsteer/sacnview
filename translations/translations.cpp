@@ -10,7 +10,7 @@ const QList<Translations::sTranslations> Translations::lTranslations =
         {
             "Français",
             QLocale::French,
-            QStringList{"Tom Wickens"}
+            QStringList{"Tom Wickens", "Pilou Roy"}
         },
         {
             "Deutsch",

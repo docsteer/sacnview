@@ -17,6 +17,7 @@
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <memory>
 
 #include "CID.h"
 #include "ipaddr.h"
@@ -128,8 +129,11 @@ void sACNSentUniverse::setLevel(quint16 address, quint8 value)
         return;
     if(isSending())
     {
-        m_slotData[address] =  value;
-        CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+        if (m_slotData[address] != value)
+        {
+            m_slotData[address] =  value;
+            CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+        }
     }
 }
 
@@ -142,8 +146,14 @@ void sACNSentUniverse::setLevelRange(quint16 start, quint16 end, quint8 value)
         return;
     if(isSending())
     {
-        memset(m_slotData + start, value, end-start+1);
-        CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+        size_t len = end-start+1;
+        std::unique_ptr<quint8[]> pTemp(new quint8[DMX_SLOT_MAX]);
+        memset(pTemp.get() + start, value, len);
+        if (memcmp(pTemp.get() + start, m_slotData + start, len) != 0)
+        {
+            memset(m_slotData + start, value, end-start+1);
+            CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+        }
     }
 }
 
@@ -153,8 +163,11 @@ void sACNSentUniverse::setLevel(const quint8 *data, int len, int start)
     len = qMin(len, static_cast<decltype(len)>(m_slotCount));
     if(isSending())
     {
-        memcpy(m_slotData + start, data, len);
-        CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+        if (memcmp(data, m_slotData + start, static_cast<size_t>(len)) != 0)
+        {
+            memcpy(m_slotData + start, data, static_cast<size_t>(len));
+            CStreamServer::getInstance()->SetUniverseDirty(m_handle);
+        }
     }
 }
 
@@ -271,13 +284,13 @@ void sACNSentUniverse::setSlotCount(quint16 slotCount)
 void sACNSentUniverse::doTimeout()
 {
     delete m_checkTimeoutTimer;
-    m_checkTimeoutTimer = 0;
+    m_checkTimeoutTimer = Q_NULLPTR;
     stopSending();
     emit sendingTimeout();
     qDebug() << "Source " << this->name() << " timeout";
 }
 
-CStreamServer *CStreamServer::m_instance = 0;
+CStreamServer *CStreamServer::m_instance = Q_NULLPTR;
 
 CStreamServer *CStreamServer::getInstance()
 {
@@ -341,7 +354,7 @@ quint8* CStreamServer::GetPSeq(const CID &cid, quint16 universe)
     }
     quint8 * p = new quint8;
     if(!p)
-        return NULL;
+        return Q_NULLPTR;
     *p = 0;
     m_seqmap.insert(std::pair<cidanduniverse, seqref>(identifier, seqref(1, p)));
     return p;

@@ -38,7 +38,7 @@ public:
     int endAddress();
     bool startNow();
     int level();
-    int rate();
+    qreal rate();
     int priority();
 
 private slots:
@@ -46,7 +46,7 @@ private slots:
     void on_cbEffect_currentIndexChanged(int index);
     void on_slLevel_sliderMoved(int value);
     void on_slLevel_valueChanged(int value);
-
+    void on_dlFadeRate_valueChanged(int value);
 private:
     Ui::AddMultiDialog *ui;
     void setupFxControl();

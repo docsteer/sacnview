@@ -55,7 +55,7 @@ MultiUniverse::~MultiUniverse()
 
 void MultiUniverse::addSource(int universe, int min_address, int max_address,
                               sACNEffectEngine::FxMode mode, QString name, bool startSending,
-                              int level, int rate, int priority)
+                              int level, qreal rate, int priority)
 {
     int row = ui->tableWidget->rowCount();
     ui->tableWidget->setRowCount(row+1);
@@ -147,6 +147,9 @@ void MultiUniverse::addSource(int universe, int min_address, int max_address,
     cb->addItems(sACNEffectEngine::FxModeDescriptions());
     cb->setCurrentIndex((int) mode);
     ui->tableWidget->setCellWidget(row, COL_EFFECT, cb);
+    ui->tableWidget->setColumnWidth(
+                COL_EFFECT,
+                std::max(ui->tableWidget->columnWidth(COL_EFFECT), cb->width()));
     m_widgetToFxEngine[cb] = m_fxEngines.last();
     m_widgetToSender[cb] = m_senders.last().data();
 

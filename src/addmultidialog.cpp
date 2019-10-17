@@ -48,7 +48,13 @@ AddMultiDialog::AddMultiDialog(QWidget *parent) :
     connect(ui->sbStartUniverse, SIGNAL(valueChanged(int)), this, SLOT(rangeChanged()));
     connect(ui->sbNumUniverses, SIGNAL(valueChanged(int)), this, SLOT(rangeChanged()));
 
+
+    ui->dlFadeRate->setMinimum(0);
+    ui->dlFadeRate->setMaximum(FX_FADE_RATES.count()-1);
+    ui->dlFadeRate->setValue(0);
+
     rangeChanged();
+    on_dlFadeRate_valueChanged(ui->dlFadeRate->value());
 }
 
 AddMultiDialog::~AddMultiDialog()
@@ -159,9 +165,10 @@ int AddMultiDialog::level()
     return ui->slLevel->value();
 }
 
-int AddMultiDialog::rate()
+qreal AddMultiDialog::rate()
 {
-    return ui->slLevel->value();
+    qreal rate = FX_FADE_RATES[ui->dlFadeRate->value()];
+    return rate;
 }
 
 int AddMultiDialog::priority()
@@ -172,4 +179,10 @@ int AddMultiDialog::priority()
 void AddMultiDialog::on_slLevel_valueChanged(int value)
 {
     on_slLevel_sliderMoved(value);
+}
+
+void AddMultiDialog::on_dlFadeRate_valueChanged(int value)
+{
+    qreal rate = FX_FADE_RATES[ui->dlFadeRate->value()];
+    ui->lblRate->setText(tr("Fade Rate %1 Hz").arg(rate));
 }
