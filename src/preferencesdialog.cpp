@@ -61,6 +61,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         }
     }
     ui->cbListenAll->setChecked(Preferences::getInstance()->GetNetworkListenAll());
+    if (Preferences::getInstance()->networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack))
+        ui->cbListenAll->setEnabled(false);
 #ifdef TARGET_WINXP
     ui->cbListenAll->setEnabled(false);
 #endif

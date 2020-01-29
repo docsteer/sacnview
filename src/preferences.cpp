@@ -75,6 +75,7 @@ void Preferences::setNetworkInterface(const QNetworkInterface &value)
 
 void Preferences::SetNetworkListenAll(const bool &value)
 {
+    if (networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) return;
     m_interfaceListenAll = value;
 }
 
@@ -83,6 +84,7 @@ bool Preferences::GetNetworkListenAll()
 #ifdef TARGET_WINXP
     return false;
 #else
+    if (networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) return false;
     return m_interfaceListenAll;
 #endif
 }
@@ -204,14 +206,23 @@ bool Preferences::defaultInterfaceAvailable()
 
 bool Preferences::interfaceSuitable(QNetworkInterface *inter)
 {
-    // Up, can multicast, and has IPv4?
-    if (inter->isValid()
-            && inter->flags().testFlag(QNetworkInterface::IsRunning)
-            && inter->flags().testFlag(QNetworkInterface::IsUp)
-            && inter->flags().testFlag(QNetworkInterface::CanMulticast)
-            && !inter->flags().testFlag(QNetworkInterface::IsLoopBack)
+
+    if (inter->isValid() && (
+                (
+                    // Up, can multicast...
+                    inter->flags().testFlag(QNetworkInterface::IsRunning)
+                    && inter->flags().testFlag(QNetworkInterface::IsUp)
+                    && inter->flags().testFlag(QNetworkInterface::CanMulticast)
+                ) || (
+                    // Up, is loopback...
+                    inter->flags().testFlag(QNetworkInterface::IsRunning)
+                    && inter->flags().testFlag(QNetworkInterface::IsUp)
+                    && inter->flags().testFlag(QNetworkInterface::IsLoopBack)
+                )
             )
+        )
     {
+        // ...has IPv4
         foreach (QNetworkAddressEntry addr, inter->addressEntries()) {
             if(addr.ip().protocol() == QAbstractSocket::IPv4Protocol)
                return true;
