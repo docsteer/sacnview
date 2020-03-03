@@ -573,6 +573,13 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
                         m_fxEngine,"run");
             break;
         }
+
+        case tabGrid:
+        {
+            // Reassert levels
+            m_sender->setLevel(m_levels.data(),m_levels.size());
+            break;
+        }
     }
 }
 
