@@ -345,10 +345,6 @@ bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
   {
       return false;
   }
-  if(UpackBUint16(pbuf + RESERVED_ADDR) != RESERVED_VALUE)
-  { 
-      return false;
-  }
   if(UpackBUint8(pbuf + DMP_VECTOR_ADDR) != VECTOR_DMP_SET_PROPERTY)
   {
       return false;
