@@ -76,6 +76,7 @@ public:
     bool source_levels_change;
 
     quint8 priority;
+    quint16 synchronization;
     QString name;
     QString cid_string();
     QHostAddress ip;

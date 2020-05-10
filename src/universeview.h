@@ -59,6 +59,7 @@ private:
     COL_NAME,
     COL_CID,
     COL_PRIO,
+    COL_SYNC,
     COL_PREVIEW,
     COL_IP,
     COL_FPS,
