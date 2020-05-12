@@ -27,7 +27,8 @@
 
 
 // Strings for storing settings
-static const QString S_MAC_ADDRESS("MacAddress");
+static const QString S_INTERFACE_ADDRESS("MacAddress");
+static const QString S_INTERFACE_NAME("InterfaceName");
 static const QString S_DISPLAY_FORMAT("Display Format");
 static const QString S_BLIND_VISUALIZER("Show Blind");
 static const QString S_DDONLY("Show DDOnly");
