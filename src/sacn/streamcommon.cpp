@@ -51,7 +51,7 @@ Implementation of the common streaming ACN packing and parsing functions*/
  * cid, etc. The buffer must be at least STREAM_HEADER_SIZE bytes long
  */
 void InitStreamHeader(quint8* pbuf, const CID &source_cid, 
-		      const char* source_name, quint8 priority, quint16 reserved,
+              const char* source_name, quint8 priority, quint16 synchronization,
 		      quint8 options, quint8 start_code, quint16 universe, 
 		      quint16 slot_count) 
 {
@@ -106,8 +106,8 @@ void InitStreamHeader(quint8* pbuf, const CID &source_cid,
   PackBUint8(p, priority);
   p += 1;
 
-  //reserved
-  PackBUint16(p, reserved);
+  //Synchronization Address
+  PackBUint16(p, synchronization);
   p += 2;
    
   //framing sequence number
@@ -275,10 +275,10 @@ void SetStreamHeaderSequence(quint8* pbuf, quint8 seq, bool draft)
  * pdata is the offset into the buffer where the data is stored
  */
 e_ValidateStreamHeader ValidateStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
-			  char* source_space, quint8 &priority, 
-			  quint8 &start_code, quint16 &reserved, 
-			  quint8 &sequence, quint8 &options, quint16 &universe,
-			  quint16 &slot_count, quint8* &pdata)
+              char* source_space, quint8 &priority,
+              quint8 &start_code, quint16 &synchronization,
+              quint8 &sequence, quint8 &options, quint16 &universe,
+              quint16 &slot_count, quint8* &pdata)
 {
   if(!pbuf)
      return e_ValidateStreamHeader::SteamHeader_Invalid;
@@ -289,7 +289,7 @@ e_ValidateStreamHeader ValidateStreamHeader(quint8* pbuf, uint buflen, CID &sour
   {
   case VECTOR_ROOT_E131_DATA:
     if (VerifyStreamHeader(pbuf, buflen, source_cid, source_space,
-        priority, start_code, reserved, sequence,
+        priority, start_code, synchronization, sequence,
         options, universe, slot_count, pdata))
         return e_ValidateStreamHeader::SteamHeader_Ratified;
     else
@@ -318,7 +318,7 @@ e_ValidateStreamHeader ValidateStreamHeader(quint8* pbuf, uint buflen, CID &sour
  */
 bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid, 
 			char* source_space, quint8 &priority, 
-			quint8 &start_code, quint16 &reserved, quint8 &sequence, 
+            quint8 &start_code, quint16 &synchronization, quint8 &sequence,
 			quint8 &options, quint16 &universe,
 			quint16 &slot_count, quint8* &pdata)
 {
@@ -371,7 +371,7 @@ bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
   source_space[SOURCE_NAME_SIZE-1] = '\0';
   priority = UpackBUint8(pbuf + PRIORITY_ADDR);
   start_code = UpackBUint8(pbuf + START_CODE_ADDR);
-  reserved = UpackBUint16(pbuf + RESERVED_ADDR);
+  synchronization = UpackBUint16(pbuf + SYNC_ADDR);
   sequence = UpackBUint8(pbuf + SEQ_NUM_ADDR);
   options = UpackBUint8(pbuf + OPTIONS_ADDR);
   universe = UpackBUint16(pbuf + UNIVERSE_ADDR);

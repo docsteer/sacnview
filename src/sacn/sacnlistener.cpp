@@ -243,13 +243,13 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
      * These only apply to the ratified version of the spec, so we will hardwire
      * them to be 0 just in case they never get set.
     */
-    quint16 reserved = 0;
-    quint8 options = 0;
+    quint16 synchronization = NOT_SYNCHRONIZED_VALUE;
+    quint8 options = NO_OPTIONS_VALUE;
     bool preview = false;
     quint8 *pbuf = (quint8*)data.data();
 
     switch (ValidateStreamHeader((quint8*)data.data(), data.length(), source_cid, source_name, priority,
-            start_code, reserved, sequence, options, universe, slot_count, pdata))
+            start_code, synchronization, sequence, options, universe, slot_count, pdata))
     {
     case e_ValidateStreamHeader::SteamHeader_Invalid:
         // Recieved a packet but not valid. Log and discard
@@ -421,6 +421,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
         ps->name = QString::fromUtf8(source_name);
         ps->ip = sender;
         ps->universe = universe;
+        ps->synchronization = synchronization;
         ps->active.SetInterval(WAIT_OFFLINE + m_ssHLL);
         ps->lastseq = sequence;
         ps->src_cid = source_cid;
@@ -498,6 +499,11 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
             if(ps->priority != priority)
             {
                 ps->priority = priority;
+                ps->source_params_change = true;
+            }
+            if(ps->synchronization != synchronization)
+            {
+                ps->synchronization = synchronization;
                 ps->source_params_change = true;
             }
             // This is DMX

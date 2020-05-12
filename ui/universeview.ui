@@ -217,7 +217,7 @@
            <bool>false</bool>
           </attribute>
           <attribute name="verticalHeaderDefaultSectionSize">
-           <number>20</number>
+           <number>21</number>
           </attribute>
           <row>
            <property name="text">
@@ -237,6 +237,11 @@
           <column>
            <property name="text">
             <string>Priority</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Sync</string>
            </property>
           </column>
           <column>
