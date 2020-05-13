@@ -98,14 +98,25 @@ int main(int argc, char *argv[])
 
     // Setup interface
     bool newInterface = false;
-    if(!Preferences::getInstance()->defaultInterfaceAvailable())
+    // Interface not avaliable, or last selection was offline/localhost
+    if (!Preferences::getInstance()->defaultInterfaceAvailable()
+            || Preferences::getInstance()->getInstance()->networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)
+        )
     {
         NICSelectDialog d;
         int result = d.exec();
 
-        if(result==QDialog::Accepted)
-        {
-            Preferences::getInstance()->setNetworkInterface(d.getSelectedInterface());
+        switch (result) {
+            case QDialog::Accepted:
+            {
+                Preferences::getInstance()->setNetworkInterface(d.getSelectedInterface());
+                break;
+            }
+            case QDialog::Rejected:
+            {
+                // Exit application
+                return -1;
+            }
         }
 
         newInterface = true;
@@ -140,10 +151,12 @@ int main(int argc, char *argv[])
         w->showMaximized();
 
     // Show interface name on statusbar
-    w->statusBar()->showMessage(QObject::tr("Selected interface: %1").arg(
-                                    Preferences::getInstance()->networkInterface().humanReadableName())
-                                    );
-
+    if (Preferences::getInstance()->networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack))
+        w->statusBar()->showMessage(QObject::tr(" WORKING OFFLINE"));
+    else
+        w->statusBar()->showMessage(
+            QObject::tr("Selected interface: %1").arg(
+                Preferences::getInstance()->networkInterface().humanReadableName()));
 
     // Check firewall if not newly selected
     if (!newInterface) {

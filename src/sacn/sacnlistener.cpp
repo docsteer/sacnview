@@ -243,13 +243,13 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
      * These only apply to the ratified version of the spec, so we will hardwire
      * them to be 0 just in case they never get set.
     */
-    quint16 reserved = 0;
-    quint8 options = 0;
+    quint16 synchronization = NOT_SYNCHRONIZED_VALUE;
+    quint8 options = NO_OPTIONS_VALUE;
     bool preview = false;
     quint8 *pbuf = (quint8*)data.data();
 
     switch (ValidateStreamHeader((quint8*)data.data(), data.length(), source_cid, source_name, priority,
-            start_code, reserved, sequence, options, universe, slot_count, pdata))
+            start_code, synchronization, sequence, options, universe, slot_count, pdata))
     {
     case e_ValidateStreamHeader::SteamHeader_Invalid:
         // Recieved a packet but not valid. Log and discard
@@ -421,6 +421,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
         ps->name = QString::fromUtf8(source_name);
         ps->ip = sender;
         ps->universe = universe;
+        ps->synchronization = synchronization;
         ps->active.SetInterval(WAIT_OFFLINE + m_ssHLL);
         ps->lastseq = sequence;
         ps->src_cid = source_cid;
@@ -500,14 +501,28 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
                 ps->priority = priority;
                 ps->source_params_change = true;
             }
+            if(ps->synchronization != synchronization)
+            {
+                ps->synchronization = synchronization;
+                ps->source_params_change = true;
+            }
             // This is DMX
             // Copy the last array back
             memcpy(ps->last_level_array, ps->level_array, DMX_SLOT_MAX);
             // Fill in the new array
             memset(ps->level_array, 0, DMX_SLOT_MAX);
             memcpy(ps->level_array, pdata, slot_count);
-            // Set slot count
-            ps->slot_count = slot_count;
+
+            // Slot count change, re-merge all slots
+            if(ps->slot_count != slot_count)
+            {
+                ps->slot_count = slot_count;
+                ps->source_params_change = true;
+                ps->source_levels_change = true;
+                for(int i=0; i<DMX_SLOT_MAX; i++)
+                    ps->dirty_array[i] |= true;
+            }
+
             // Compare the two
             for(int i=0; i<DMX_SLOT_MAX; i++)
             {

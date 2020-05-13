@@ -11,17 +11,20 @@
 # Start builds on tags only
 #skip_non_tags: true
 
-# Build worker image (VM template)
-image: Visual Studio 2015
-
 #---------------------------------#
 #       build configuration       #
 #---------------------------------#
 
 environment:
   matrix:
-    - QT_Ver: 5.9
-    - QT_Ver: 5.6
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      QT_Ver: 5.6
+      MSVC_Compiler: msvc2015
+      MSVC_Name: Microsoft Visual Studio 14.0
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      QT_Ver: 5.12
+      MSVC_Compiler: msvc2017
+      MSVC_Name: Microsoft Visual Studio 14.0
 
 # build platform, i.e. x86, x64, Any CPU. This setting is optional.
 platform: x86
@@ -44,11 +47,11 @@ install:
 
   # MSVC Paths
   # https://www.appveyor.com/docs/lang/cpp/#visual-studio
-  - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+  - call "C:\Program Files (x86)\%MSVC_Name%\VC\vcvarsall.bat" x86
 
   # QT Paths
   # https://www.appveyor.com/docs/build-environment/#qt
-  - set QTDIR=C:\Qt\%QT_Ver%\msvc2015
+  - set QTDIR=C:\Qt\%QT_Ver%\%MSVC_Compiler%
   - set PATH=%PATH%;%QTDIR%\bin
 
   # NSIS Paths

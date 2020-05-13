@@ -17,6 +17,7 @@
 #include "ui_nicselectdialog.h"
 #include "preferences.h"
 #include <QNetworkInterface>
+#include <QMessageBox>
 
 NICSelectDialog::NICSelectDialog(QWidget *parent) :
     QDialog(parent),
@@ -47,7 +48,7 @@ NICSelectDialog::NICSelectDialog(QWidget *parent) :
         }
     }
 
-    ui->btnSelect->setEnabled(false);
+    on_listWidget_itemSelectionChanged();
 }
 
 NICSelectDialog::~NICSelectDialog()
@@ -57,7 +58,17 @@ NICSelectDialog::~NICSelectDialog()
 
 void NICSelectDialog::on_listWidget_itemSelectionChanged()
 {
-    ui->btnSelect->setEnabled(true);
+    // Empty or no selection
+    if (!ui->listWidget->count() || ui->listWidget->currentRow() == -1)
+    {
+        ui->btnSelect->setEnabled(false);
+        return;
+    }
+
+    // Show select if not loopback
+    qDebug() << ui->listWidget->currentRow();
+    ui->btnSelect->setEnabled(
+                !m_interfaceList[ui->listWidget->currentRow()].flags().testFlag(QNetworkInterface::IsLoopBack));
 }
 
 
@@ -69,5 +80,19 @@ void NICSelectDialog::on_btnSelect_pressed()
 
 void NICSelectDialog::on_btnWorkOffline_pressed()
 {
+    // Select localhost
+    for (auto interface : m_interfaceList)
+    {
+        if (interface.flags().testFlag(QNetworkInterface::IsLoopBack))
+            m_selectedInterface = interface;
+        accept();
+        return;
+    }
+
+    QMessageBox msgBox;
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.setText("Work Offline failed\r\nUnable to locate localhost adapter");
+    msgBox.exec();
     reject();
 }

@@ -75,6 +75,7 @@ void Preferences::setNetworkInterface(const QNetworkInterface &value)
 
 void Preferences::SetNetworkListenAll(const bool &value)
 {
+    if (networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) return;
     m_interfaceListenAll = value;
 }
 
@@ -83,6 +84,7 @@ bool Preferences::GetNetworkListenAll()
 #ifdef TARGET_WINXP
     return false;
 #else
+    if (networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) return false;
     return m_interfaceListenAll;
 #endif
 }
@@ -204,14 +206,23 @@ bool Preferences::defaultInterfaceAvailable()
 
 bool Preferences::interfaceSuitable(QNetworkInterface *inter)
 {
-    // Up, can multicast, and has IPv4?
-    if (inter->isValid()
-            && inter->flags().testFlag(QNetworkInterface::IsRunning)
-            && inter->flags().testFlag(QNetworkInterface::IsUp)
-            && inter->flags().testFlag(QNetworkInterface::CanMulticast)
-            && !inter->flags().testFlag(QNetworkInterface::IsLoopBack)
+
+    if (inter->isValid() && (
+                (
+                    // Up, can multicast...
+                    inter->flags().testFlag(QNetworkInterface::IsRunning)
+                    && inter->flags().testFlag(QNetworkInterface::IsUp)
+                    && inter->flags().testFlag(QNetworkInterface::CanMulticast)
+                ) || (
+                    // Up, is loopback...
+                    inter->flags().testFlag(QNetworkInterface::IsRunning)
+                    && inter->flags().testFlag(QNetworkInterface::IsUp)
+                    && inter->flags().testFlag(QNetworkInterface::IsLoopBack)
+                )
             )
+        )
     {
+        // ...has IPv4
         foreach (QNetworkAddressEntry addr, inter->addressEntries()) {
             if(addr.ip().protocol() == QAbstractSocket::IPv4Protocol)
                return true;
@@ -235,7 +246,10 @@ void Preferences::savePreferences()
     QSettings settings;
 
     if(m_interface.isValid())
-        settings.setValue(S_MAC_ADDRESS, m_interface.hardwareAddress());
+    {
+        settings.setValue(S_INTERFACE_ADDRESS, m_interface.hardwareAddress());
+        settings.setValue(S_INTERFACE_NAME, m_interface.name());
+    }
     settings.setValue(S_DISPLAY_FORMAT, QVariant(m_nDisplayFormat));
     settings.setValue(S_BLIND_VISUALIZER, QVariant(m_bBlindVisualizer));
     settings.setValue(S_DDONLY, QVariant(m_bDisplayDDOnly));
@@ -276,13 +290,19 @@ void Preferences::loadPreferences()
 {
     QSettings settings;
 
-    if(settings.contains(S_MAC_ADDRESS))
+    if(settings.contains(S_INTERFACE_ADDRESS))
     {
-        QString mac = settings.value(S_MAC_ADDRESS).toString();
-        QList<QNetworkInterface> ifaceList = QNetworkInterface::allInterfaces();
-        foreach(QNetworkInterface i, ifaceList)
-            if(i.hardwareAddress() == mac)
-                m_interface = i;
+        QString mac = settings.value(S_INTERFACE_ADDRESS).toString();
+        auto interFromName = QNetworkInterface::interfaceFromName(settings.value(S_INTERFACE_NAME).toString());
+        if (interFromName.isValid() && (interFromName.hardwareAddress() == mac))
+        {
+            m_interface = interFromName;
+        } else {
+            QList<QNetworkInterface> ifaceList = QNetworkInterface::allInterfaces();
+            for(auto i : ifaceList)
+                if(i.hardwareAddress() == mac)
+                    m_interface = i;
+        }
     }
 
     m_interfaceListenAll = settings.value(S_LISTEN_ALL, QVariant(false)).toBool();
