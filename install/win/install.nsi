@@ -47,7 +47,7 @@ SetCompressor /SOLID lzma
 !define MSVC_OPT "/install /passive /norestart" 
 
 Name "${PRODUCT_NAME}"
-!ifdef TARGET_WINXP
+!if TARGET_WINXP
 	!define OUTFILE "${PRODUCT_NAME}_${PRODUCT_VERSION}-WinXP.exe"
 !else
 	!define OUTFILE "${PRODUCT_NAME}_${PRODUCT_VERSION}.exe"
