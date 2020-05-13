@@ -34,7 +34,9 @@ void PcapPlayback::openThread()
     connect(sender, SIGNAL(sendingFinished()), this, SLOT(playbackFinished()));
     connect(sender, SIGNAL(sendingClosed()), this, SLOT(playbackClosed()));
     connect(sender, SIGNAL(error(QString)), this, SLOT(error(QString)));
-    connect(sender, SIGNAL(finished()), sender, SLOT(deleteLater()));
+    connect(sender, &QThread::finished, [this]() {
+        sender->deleteLater();
+        sender = Q_NULLPTR; });
     connect(sender, SIGNAL(finished()), this, SLOT(playbackThreadClosed()));
     ui->progressBar->reset();
     sender->start();
@@ -47,7 +49,6 @@ void PcapPlayback::closeThread()
         return;
 
     sender->quit();
-    sender->deleteLater();
     sender = Q_NULLPTR;
 }
 

@@ -84,6 +84,7 @@ private:
         tabSliders,
         tabChannelCheck,
         tabEffects,
+        tabGrid
     };
 
     void setUniverseOptsEnabled(bool enabled);

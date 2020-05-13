@@ -573,7 +573,14 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
                         m_fxEngine,"run");
             break;
         }
+
+        case tabGrid:
+        {
+            // Reassert levels
+            m_sender->setLevel(m_levels.data(),m_levels.size());
+            break;
     }
+}
 }
 
 void transmitwindow::on_dlFadeRate_valueChanged(int value)
@@ -689,13 +696,11 @@ void transmitwindow::presetButtonPressed()
     if(!btn) return;
 
     int index = m_presetButtons.indexOf(btn);
-    quint8 buffer[MAX_DMX_ADDRESS];
 
     if(m_recordMode)
     {
         // Record a preset
-        m_sender->copyLevels(buffer);
-        Preferences::getInstance()->SetPreset(QByteArray((const char*)buffer, MAX_DMX_ADDRESS), index);
+        Preferences::getInstance()->SetPreset(QByteArray(reinterpret_cast<const char*>(m_levels.data()), m_levels.size()), index);
         m_recordMode = false;
 
         foreach(QToolButton *btn, m_presetButtons)
@@ -703,7 +708,6 @@ void transmitwindow::presetButtonPressed()
             btn->setStyleSheet(QString(""));
             btn->setChecked(false);
         }
-
     }
     else
     {
