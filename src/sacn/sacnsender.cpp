@@ -40,7 +40,8 @@ sACNSentUniverse::sACNSentUniverse(int universe) :
     m_name("New Source"),
     m_universe(universe),
     m_priorityMode(pmPER_SOURCE_PRIORITY),
-    m_checkTimeoutTimer(Q_NULLPTR)
+    m_checkTimeoutTimer(Q_NULLPTR),
+    m_synchronization(NOT_SYNCHRONIZED_VALUE)
 {}
 
 sACNSentUniverse::~sACNSentUniverse()
@@ -58,7 +59,7 @@ void sACNSentUniverse::startSending(bool preview)
 {
     Q_ASSERT(isSending() == false);
 
-    quint8 options = 0;
+    quint8 options = NO_OPTIONS_VALUE;
 
     CStreamServer *streamServer = CStreamServer::getInstance();
     if(m_cid.isNull())
@@ -71,12 +72,12 @@ void sACNSentUniverse::startSending(bool preview)
             Preferences::getInstance()->GetTXRateOverride() ? std::numeric_limits<decltype(max_tx_rate)>::max() : E1_11::MAX_REFRESH_RATE_HZ;
 
     if(m_unicastAddress.isNull())
-        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, options, STARTCODE_DMX,
+        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, m_synchronization, options, STARTCODE_DMX,
                                         m_universe, m_slotCount, m_slotData, m_handle, SEND_INTERVAL_DMX, max_tx_rate,
                                         CIPAddr(), m_version==StreamingACNProtocolVersion::sACNProtocolDraft
                                      );
     else
-        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, 0, options, STARTCODE_DMX, m_universe,
+        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, m_synchronization, options, STARTCODE_DMX, m_universe,
                                         m_slotCount, m_slotData, m_handle, SEND_INTERVAL_DMX, max_tx_rate,
                                         CIPAddr(m_unicastAddress), m_version==StreamingACNProtocolVersion::sACNProtocolDraft
                                      );
@@ -86,7 +87,7 @@ void sACNSentUniverse::startSending(bool preview)
     if(m_priorityMode == pmPER_ADDRESS_PRIORITY)
     {
         quint8 *pslots;
-        streamServer->CreateUniverse(m_cid, qPrintable(m_name), 0, options, 0, STARTCODE_PRIORITY,
+        streamServer->CreateUniverse(m_cid, qPrintable(m_name), m_priority, NOT_SYNCHRONIZED_VALUE, options, STARTCODE_PRIORITY,
                                         m_universe, m_slotCount, pslots, m_priorityHandle, SEND_INTERVAL_PRIORITY, max_tx_rate,
                                         CIPAddr(), m_version==StreamingACNProtocolVersion::sACNProtocolDraft
                                      );
@@ -253,6 +254,17 @@ void sACNSentUniverse::setUniverse(int universe)
     }
 
     emit universeChange();
+}
+
+void sACNSentUniverse::setSynchronization(quint16 address)
+{
+    m_synchronization = address;
+    if(m_isSending)
+    {
+         CStreamServer::getInstance()->setSynchronizationAddress(m_handle, m_synchronization);
+    }
+
+    emit synchronizationChange();
 }
 
 void sACNSentUniverse::setCID(CID cid)
@@ -465,7 +477,7 @@ void CStreamServer::TickLoop()
 //  send_intervalms intervals (again defaulted for DMX).  Note that even if you are not using the
 //  inactivity logic, send_intervalms expiry will trigger a resend of the current universe packet.
 //Data on this universe will not be initially sent until marked dirty.
-bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_name, quint8 priority, quint16 reserved, quint8 options, quint8 start_code,
+bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_name, quint8 priority, quint16 synchronization, quint8 options, quint8 start_code,
                                      quint16 universe, quint16 slot_count, quint8*& pslots, uint& handle, uint send_intervalms, uint send_max_rate, CIPAddr unicastAddress, bool draft)
 {
     QMutexLocker locker(&m_writeMutex);
@@ -526,9 +538,9 @@ bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_nam
     m_multiverse[handle].sendaddr = addr.ToQHostAddress();
 
     if(draft)
-        InitStreamHeaderForDraft(pbuf, source_cid, source_name, priority, reserved, options, start_code, universe, slot_count);
+        InitStreamHeaderForDraft(pbuf, source_cid, source_name, priority, synchronization, options, start_code, universe, slot_count);
     else
-        InitStreamHeader(pbuf, source_cid, source_name, priority, reserved, options, start_code, universe, slot_count);
+        InitStreamHeader(pbuf, source_cid, source_name, priority, synchronization, options, start_code, universe, slot_count);
 
     m_multiverse[handle].psend = pbuf;
     m_multiverse[handle].sendsize = sendsize;
@@ -634,6 +646,14 @@ void CStreamServer::setUniversePriority(uint handle, quint8 priority)
     else if(m_multiverse[handle].psend)
     {
         m_multiverse[handle].psend[PRIORITY_ADDR] = priority;
+    }
+}
+
+void CStreamServer::setSynchronizationAddress(uint handle, quint16 address)
+{
+    if(m_multiverse[handle].psend && !m_multiverse[handle].draft)
+    {
+        m_multiverse[handle].psend[SYNC_ADDR] = address;
     }
 }
 

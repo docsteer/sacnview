@@ -33,7 +33,7 @@
 
 		$.each(data.assets, function(index, obj){
 			var download_url = obj.browser_download_url;
-      			if( download_url.endsWith('-WindowsXP.exe'))
+      			if( download_url.endsWith('-WinXP.exe'))
           			$('#download-winxp').attr('href', download_url);
 			else if( download_url.endsWith('exe'))
 				$('#download-win').attr('href', download_url);
@@ -53,7 +53,7 @@
     $.each(data[0].assets, function(index, obj){
 
       var download_url = obj.browser_download_url;
-      if( download_url.endsWith('-WindowsXP.exe'))
+      if( download_url.endsWith('-WinXP.exe'))
           $('#pre-download-winxp').attr('href', download_url);
       else if( download_url.endsWith('.exe'))
           $('#pre-download-win').attr('href', download_url);

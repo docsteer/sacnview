@@ -123,6 +123,13 @@ public slots:
     int universe() { return m_universe; }
 
     /**
+     * @brief setSynchronizationAddress - set the Synchronization address of this sender.
+     * @param address - new address.
+     */
+    void setSynchronization(quint16 address);
+    int synchronization() { return m_synchronization; }
+
+    /**
      * @brief setCID - set the CID of this sender.
      * If active this will stop and restart the source
      * @param cid - new CID.
@@ -149,6 +156,11 @@ signals:
      * @brief universeChange is emitted when the source changes universe
      */
     void universeChange();
+
+    /**
+     * @brief synchronizationChange is emitted when the source changes Synchronization address
+     */
+    void synchronizationChange();
 
     /**
      * @brief cidChange is emitted when the source changes CID
@@ -191,6 +203,8 @@ private:
     StreamingACNProtocolVersion m_version;
     // Timer to shutdown after timeout
     QTimer *m_checkTimeoutTimer;
+    // Synchronization Address
+    quint16 m_synchronization;
 };
 
 //These definitions are to be used with the send_intervalms parameter of CreateUniverse
@@ -225,7 +239,7 @@ public:
   //  inactivity logic, send_intervalms expiry will trigger a resend of the current universe packet.
   //Data on this universe will not be initially sent until marked dirty.
   bool CreateUniverse(const CID& source_cid, const char* source_name, quint8 priority,
-                       quint16 reserved, quint8 options, quint8 start_code,
+                       quint16 synchronization, quint8 options, quint8 start_code,
                               quint16 universe, quint16 slot_count, quint8*& pslots, uint& handle,
                               uint send_intervalms = SEND_INTERVAL_DMX,
                               uint send_max_rate = E1_11::MAX_REFRESH_RATE_HZ,
@@ -260,6 +274,7 @@ public:
 
   void setUniverseName(uint handle, const char *name);
   void setUniversePriority(uint handle, quint8 priority);
+  void setSynchronizationAddress(uint handle, quint16 address);
 
   //Use this to destroy a priority universe.
   void DEBUG_DESTROY_PRIORITY_UNIVERSE(uint handle);
