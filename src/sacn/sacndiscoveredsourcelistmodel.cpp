@@ -149,6 +149,19 @@ QVariant sACNDiscoveredSourceListModel::data(const QModelIndex &index, int role)
 {
     if(!index.isValid()) return QVariant();
 
+    // Details that no sources found
+    if (!m_sources.count()) {
+        if(role==Qt::DisplayRole)
+        {
+            return QVariant(tr("No discovery sources found"));
+        } else if(role==Qt::ToolTipRole) {
+            return QVariant(tr("Discovery relies upon\n"
+                               "E1-31:2016 universe discovery packets\n"
+                               "very few sources support this"));
+        }
+        return QVariant();
+    }
+
     if(role==Qt::ToolTipRole)
     {
         if(index.parent().isValid())
@@ -224,6 +237,7 @@ int sACNDiscoveredSourceListModel::rowCount(const QModelIndex &parent) const
     // Sources count
     if(!parent.isValid())
     {
+        if (!m_sources.count()) return 1; // Details that no sources found
         return m_sources.count();
     }
 
