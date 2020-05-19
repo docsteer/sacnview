@@ -26,13 +26,6 @@
 
 #include <QMessageBox>
 
-QString onlineToString(bool value)
-{
-    if(value)
-        return QObject::tr("Online");
-    return QObject::tr("Offline");
-}
-
 QString protocolVerToString(int value)
 {
     switch(value)
@@ -171,11 +164,20 @@ void UniverseView::sourceChanged(sACNSource *source)
                     ui->twSources->cellWidget(row,COL_JUMPS)->layout()->itemAt(0)->widget());
         lbl_SEQ_ERR->setText(QString::number(source->jumps));
     }
-    if (source->doing_dmx) {
-        ui->twSources->item(row,COL_ONLINE)->setText(onlineToString(source->src_valid));
+
+    if (source->src_valid) {
+        if (source->doing_dmx) {
+            ui->twSources->item(row,COL_ONLINE)->setBackgroundColor(Qt::green);
+            ui->twSources->item(row,COL_ONLINE)->setText(tr("Online"));
+        } else {
+            ui->twSources->item(row,COL_ONLINE)->setBackgroundColor(Qt::yellow);
+            ui->twSources->item(row,COL_ONLINE)->setText(tr("No DMX"));
+        }
     } else {
-        ui->twSources->item(row,COL_ONLINE)->setText(source->src_valid ? tr("No DMX") : onlineToString(source->src_valid));
+        ui->twSources->item(row,COL_ONLINE)->setBackgroundColor(Qt::red);
+        ui->twSources->item(row,COL_ONLINE)->setText(tr("Offline"));
     }
+
     ui->twSources->item(row,COL_VER)->setText(protocolVerToString(source->protocol_version));
     ui->twSources->item(row,COL_DD)->setText(source->doing_per_channel ? tr("Yes") : tr("No"));
     ui->twSources->item(row,COL_SLOTS)->setText(QString::number(source->slot_count));

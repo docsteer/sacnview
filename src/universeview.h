@@ -57,6 +57,7 @@ private:
     enum m_SC_ROWS
     {
     COL_NAME,
+    COL_ONLINE,
     COL_CID,
     COL_PRIO,
     COL_SYNC,
@@ -65,7 +66,6 @@ private:
     COL_FPS,
     COL_SEQ_ERR,
     COL_JUMPS,
-    COL_ONLINE,
     COL_VER,
     COL_DD,
     COL_SLOTS,
