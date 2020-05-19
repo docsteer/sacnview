@@ -229,6 +229,11 @@
             <string>Name</string>
            </property>
           </column>
+		  <column>
+           <property name="text">
+            <string>Online</string>
+           </property>
+          </column>
           <column>
            <property name="text">
             <string>CID</string>
@@ -267,11 +272,6 @@
           <column>
            <property name="text">
             <string>Jumps</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Online</string>
            </property>
           </column>
           <column>
