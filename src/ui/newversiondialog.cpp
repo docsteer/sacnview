@@ -1,4 +1,4 @@
-#include "versioncheck.h"
+#include "newversiondialog.h"
 #include "ui_newversiondialog.h"
 #include <QStandardPaths>
 #include <QProcess>
