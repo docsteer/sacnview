@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="{{ site.lang | default: "en-US" }}">
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
-    <link rel="stylesheet" type="text/css" href="{{ '/assets/css/print.css' | relative_url }}" media="print">
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-    <title>{{ site.title | default: site.github.repository_name }}</title>
-	<!-- Script updates the links to the latest release -->
+
+    {% if site.google_analytics %}
+      <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.google_analytics }}"></script>
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ site.google_analytics }}');
+      </script>
+    {% endif %}
+	  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    
+	  <!-- Script updates the links to the latest release -->
 	<script>
     
     <!-- Polyfill for older ECMAScript -->
@@ -27,15 +29,17 @@
     
 	$.getJSON('https://api.github.com/repos/docsteer/sacnview/releases/latest', function (data) {
 
-    document.getElementById("name_release").innerHTML = data.name;
+    document.getElementById("name_release").innerHTML = "Release Version : " + data.name;
 
 		$.each(data.assets, function(index, obj){
 			var download_url = obj.browser_download_url;
-			if( download_url.endsWith('exe'))
+      			if( download_url.endsWith('-WindowsXP.exe'))
+          			$('#download-winxp').attr('href', download_url);
+			else if( download_url.endsWith('exe'))
 				$('#download-win').attr('href', download_url);
-			if( download_url.endsWith('dmg'))
+			else if( download_url.endsWith('dmg'))
 				$('#download-mac').attr('href', download_url);
-			if( download_url.endsWith('deb'))
+			else if( download_url.endsWith('deb'))
 				$('#download-linux').attr('href', download_url);
 		});
 	});
@@ -44,7 +48,7 @@
   
   $.getJSON('https://api.github.com/repos/docsteer/sacnview/releases', function (data) {
 
-    document.getElementById("name_prerelease").innerHTML = data[0].name;
+    document.getElementById("name_prerelease").innerHTML = "Pre-Release Version : "+data[0].name;
 
     $.each(data[0].assets, function(index, obj){
 
@@ -64,69 +68,49 @@
     }
   });
   </script>
+	  
+    <meta charset="UTF-8">
 
+{% seo %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
   </head>
-
   <body>
-    <div id="container">
+    <header class="page-header" role="banner">
+      <h1 class="project-name">{{ page.title | default: site.title | default: site.github.repository_name }}</h1>
+      <h2 class="project-tagline">{{ page.description | default: site.description | default: site.github.project_tagline }}</h2>
+      {% if site.show_downloads %}
+	  <section>
+	  <h2 id="name_release">Download Release</h2>
+	    <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-win" class="btn"><span><img src="/assets/images/win-icon.png" /> Windows</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-winxp" class="btn"><span><img src="/assets/images/winxp-icon.png" /> Win XP</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-mac" class="btn"><span><img src="/assets/images/mac-icon.png" /> macOS</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-linux" class="btn"><span><img src="/assets/images/linux-icon.png" /> Linux</span></a>
+	  </section>
+	  <section id="prerelease-download" style="display:none">
+            <h2 id="name_prerelease"></h1>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-win" class="btn"><span> Windows</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-winxp" class="btn"><span> Win XP</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-mac" class="btn"><span> macOS</span></a>
+            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-linux" class="btn"><span> Linux</span></a>
+          </section>
+      {% endif %}
+      {% if site.github.is_project_page %}
+        <a href="{{ site.github.repository_url }}" class="btn">View on GitHub</a>
+      {% endif %}
+    </header>
 
-	<img src="./assets/images/icon.png" style="display:block; margin:auto; padding:10px" />
+    <main id="content" class="main-content" role="main">
+      {{ content }}
 
-	<div class="inner">
-        <header>
-          <h1>{{ site.title | default: site.github.repository_name }}</h1>
-          <h2>{{ site.description | default: site.github.project_tagline }}</h2>
-        </header>
-        <section id="downloads" class="clearfix">
-          {% if site.show_downloads %}
-          <h1 id="name_release"></h1>
-          <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-win" class="button"><span>Windows</span></a>
-          <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-mac" class="button"><span>macOS</span></a>
-          <a href="https://github.com/docsteer/sacnview/releases/latest" id="download-linux" class="button"><span>Linux</span></a>
-        </section>
-        <section id="pre-downloads" class="clearfix">
-          <div id="prerelease-download" style="display:none">
-            <h1 id="name_prerelease"></h1>
-            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-win" class="button"><span>Windows</span></a>
-            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-winxp" class="button"><span>Win XP</span></a>
-            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-mac" class="button"><span>macOS</span></a>
-            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-linux" class="button"><span>Linux</span></a>
-          </div>
-        </section>
-          {% endif %}
-        <section id="source" class="clearfix">
-	  {% if site.github.is_project_page %}
-          <br><h2 id="name_prerelease">Source</h2>
-          <a href="{{ site.github.repository_url }}" id="view-on-github" class="button"><span>Source</span></a>
-	  {% else %}
-          <br><h2 id="name_prerelease">Source</h2>
-          <a href="{{ site.github.owner_url }}" id="view-on-github" class="button"><span>Source</span></a>
-	  {% endif %}
-        </section>
-        <hr>
-        <section id="main_content">
-          {{ content }}
-        </section>
-
-        <footer>
+      <footer class="site-footer">
         {% if site.github.is_project_page %}
-          {{ site.title | default: site.github.repository_name }} is maintained by <a href="{{ site.github.owner_url }}">{{ site.github.owner_name }}</a><br>
+          <span class="site-footer-owner"><a href="{{ site.github.repository_url }}">{{ site.github.repository_name }}</a> is maintained by <a href="{{ site.github.owner_url }}">{{ site.github.owner_name }}</a>.</span>
         {% endif %}
-          This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.
-        </footer>
-
-      </div>
-    </div>
-
-    {% if site.google_analytics %}
-      <script type="text/javascript">
-        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-        ga('create', '{{ site.google_analytics }}', 'auto');
-        ga('send', 'pageview');
-      </script>
-    {% endif %}
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
   </body>
 </html>

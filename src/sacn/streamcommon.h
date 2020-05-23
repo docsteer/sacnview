@@ -59,7 +59,7 @@
 #define FRAMING_VECTOR_ADDR 40
 #define SOURCE_NAME_ADDR 44
 #define PRIORITY_ADDR 108
-#define RESERVED_ADDR 109
+#define SYNC_ADDR 109
 #define SEQ_NUM_ADDR 111
 #define OPTIONS_ADDR 112
 #define UNIVERSE_ADDR 113
@@ -132,7 +132,8 @@
 // Universe Discovery Layer
 #define VECTOR_UNIVERSE_DISCOVERY_UNIVERSE_LIST 0x00000001
 
-#define RESERVED_VALUE 0
+#define NOT_SYNCHRONIZED_VALUE 0
+#define NO_OPTIONS_VALUE 0
 
 /*
  *  Options
@@ -166,7 +167,7 @@
  * cid, etc. The buffer must be at least STREAM_HEADER_SIZE bytes long
  */
 void InitStreamHeader(quint8* pbuf, const CID &source_cid, 
-		      const char* source_name, quint8 priority, quint16 reserved,
+              const char* source_name, quint8 priority, quint16 synchronization,
 		      quint8 options, quint8 start_code, quint16 universe, 
 		      quint16 slot_count);
 /*
@@ -199,7 +200,7 @@ enum e_ValidateStreamHeader
 };
 e_ValidateStreamHeader ValidateStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
 			  char* source_space, quint8 &priority, 
-			  quint8 &start_code, quint16 &reserved, quint8 &sequence,
+              quint8 &start_code, quint16 &synchronization, quint8 &sequence,
 			  quint8 &options, quint16 &universe,
 			  quint16 &slot_count, quint8* &pdata);
 
@@ -207,11 +208,11 @@ e_ValidateStreamHeader ValidateStreamHeader(quint8* pbuf, uint buflen, CID &sour
  * helper function that does the actual validation of a header
  * that carries the post-ratification root vector
  */
-bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid, 
-			char* source_space, quint8 &priority, 
-			quint8 &start_code, quint16 &reserved, quint8 &sequence, 
-			quint8 &options, quint16 &universe,
- 			quint16 &slot_count, quint8* &pdata);
+bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
+            char* source_space, quint8 &priority,
+            quint8 &start_code, quint16 &synchronization, quint8 &sequence,
+            quint8 &options, quint16 &universe,
+            quint16 &slot_count, quint8* &pdata);
 /*
  * helper function that does the actual validation of a header
  * that carries the early draft's root vector

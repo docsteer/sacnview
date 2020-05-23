@@ -17,7 +17,7 @@ RESOURCES += \
 
 # Create/update .ts Files
 qtPrepareTool(LUPDATE, lupdate)
-command = $$LUPDATE $$shell_quote($$_PRO_FILE_)
+command = $$LUPDATE -no-obsolete $$shell_quote($$_PRO_FILE_)
 system($$command)|error("Failed to run: $$command")
 
 ## https://appbus.wordpress.com/2016/04/28/howto-translations-i18n/

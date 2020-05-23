@@ -146,10 +146,17 @@ void UniverseView::sourceChanged(sACNSource *source)
     ui->twSources->item(row,COL_NAME)->setBackgroundColor(Preferences::getInstance()->colorForCID(source->src_cid));
     ui->twSources->item(row,COL_CID)->setText(source->cid_string());
     ui->twSources->item(row,COL_PRIO)->setText(QString::number(source->priority));
+
     if (source->protocol_version == sACNProtocolDraft)
         ui->twSources->item(row,COL_PREVIEW)->setText(tr("N/A"));
     else
         ui->twSources->item(row,COL_PREVIEW)->setText(source->isPreview ? tr("Yes") : tr("No"));
+
+    if (source->protocol_version == sACNProtocolDraft)
+        ui->twSources->item(row,COL_SYNC)->setText(tr("N/A"));
+    else
+        ui->twSources->item(row,COL_SYNC)->setText(source->synchronization ? tr("Yes") : tr("No"));
+
     ui->twSources->item(row,COL_IP)->setText(source->ip.toString());
     ui->twSources->item(row,COL_FPS)->setText(QString("%1Hz").arg(QString::number(source->fpscounter.FPS(), 'f', 2)));
     {

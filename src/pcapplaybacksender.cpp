@@ -197,6 +197,8 @@ void pcapplaybacksender::run()
             QThread::msleep(100);
         }
     }
+
+    exec();
 }
 
 void pcapplaybacksender::quit()

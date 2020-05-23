@@ -229,8 +229,8 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
         m_fxEngine = new sACNEffectEngine(m_sender);
         connect(m_fxEngine, SIGNAL(fxLevelChange(int)), ui->slFadeLevel, SLOT(setValue(int)));
         connect(m_fxEngine, SIGNAL(textImageChanged(QPixmap)), ui->lblTextImage, SLOT(setPixmap(QPixmap)));
-        connect(m_fxEngine, &sACNEffectEngine::running, [this]() { ui->btnFxStart->setEnabled(false); ui->btnFxPause->setEnabled(true); } );
-        connect(m_fxEngine, &sACNEffectEngine::paused, [this]() { ui->btnFxStart->setEnabled(true); ui->btnFxPause->setEnabled(false); } );
+        connect(m_fxEngine, &sACNEffectEngine::running, this, [this]() { ui->btnFxStart->setEnabled(false); ui->btnFxPause->setEnabled(true); }, Qt::QueuedConnection);
+        connect(m_fxEngine, &sACNEffectEngine::paused, this, [this]() { ui->btnFxStart->setEnabled(true); ui->btnFxPause->setEnabled(false); } , Qt::QueuedConnection);
         m_fxEngine->setRange(ui->sbFadeRangeStart->value()-1, ui->sbFadeRangeEnd->value()-1);
         ui->btnFxStart->setEnabled(true);
     }
@@ -570,10 +570,17 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
         case tabEffects:
         {
             QMetaObject::invokeMethod(
-                        m_fxEngine,"start");
+                        m_fxEngine,"run");
             break;
         }
+
+        case tabGrid:
+        {
+            // Reassert levels
+            m_sender->setLevel(m_levels.data(),m_levels.size());
+            break;
     }
+}
 }
 
 void transmitwindow::on_dlFadeRate_valueChanged(int value)
@@ -689,13 +696,11 @@ void transmitwindow::presetButtonPressed()
     if(!btn) return;
 
     int index = m_presetButtons.indexOf(btn);
-    quint8 buffer[MAX_DMX_ADDRESS];
 
     if(m_recordMode)
     {
         // Record a preset
-        m_sender->copyLevels(buffer);
-        Preferences::getInstance()->SetPreset(QByteArray((const char*)buffer, MAX_DMX_ADDRESS), index);
+        Preferences::getInstance()->SetPreset(QByteArray(reinterpret_cast<const char*>(m_levels.data()), m_levels.size()), index);
         m_recordMode = false;
 
         foreach(QToolButton *btn, m_presetButtons)
@@ -703,7 +708,6 @@ void transmitwindow::presetButtonPressed()
             btn->setStyleSheet(QString(""));
             btn->setChecked(false);
         }
-
     }
     else
     {
