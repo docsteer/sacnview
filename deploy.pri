@@ -25,9 +25,13 @@ win32 {
 
     PRE_DEPLOY_COMMAND += $${QMAKE_DEL_FILE} $${DEPLOY_DIR}\*.* /S /Q $$escape_expand(\\n\\t)
     PRE_DEPLOY_COMMAND += $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR} $$escape_expand(\\n\\t)
+
     # OpenSSL
     PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$shell_quote($$system_path($$OPENSSL_PATH/*.dll)) $${DEPLOY_DIR} $$escape_expand(\\n\\t)
-    LocalDeployDlls.files += $$files($${OPENSSL_PATH}/*.dll)
+    LocalDeployOpenSSL.files += $$files($${OPENSSL_PATH}/*.dll)
+    LocalDeployOpenSSL.path = $$DESTDIR
+    COPIES += LocalDeployOpenSSL
+
     # PCap
     equals(TARGET_WINXP, 0) {
         contains(QT_ARCH, i386) {
@@ -36,11 +40,10 @@ win32 {
             PCAP_BINARY_DIR = $${PCAP_PATH}/Bin/x64
         }
         PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$shell_quote($$system_path($${PCAP_BINARY_DIR}/*)) $${DEPLOY_DIR} $$escape_expand(\\n\\t)
-        LocalDeployDlls.files += $$files($${PCAP_BINARY_DIR}/*)
+        LocalDeployPCap.files += $$files($${PCAP_BINARY_DIR}/*)
+        LocalDeployPCap.path = $$DESTDIR
+        COPIES += LocalDeployPCap
     }
-
-    LocalDeployDlls.path = $$DESTDIR
-    COPIES += LocalDeployDlls
 
     DEPLOY_COMMAND = windeployqt
     DEPLOY_OPT = --dir $${DEPLOY_DIR}
