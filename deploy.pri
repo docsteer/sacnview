@@ -40,7 +40,7 @@ win32 {
             PCAP_BINARY_DIR = $${PCAP_PATH}/Bin/x64
         }
         PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$shell_quote($$system_path($${PCAP_BINARY_DIR}/*)) $${DEPLOY_DIR} $$escape_expand(\\n\\t)
-        LocalDeployPCap.files += $$files($${PCAP_BINARY_DIR}/*)
+        LocalDeployPCap.files += $$files($${PCAP_BINARY_DIR}/*.dll)
         LocalDeployPCap.path = $$DESTDIR
         COPIES += LocalDeployPCap
     }
