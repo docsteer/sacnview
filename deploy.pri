@@ -2,6 +2,7 @@
 isEmpty(TARGET_EXT) {
     win32 {
         TARGET_CUSTOM_EXT = .exe
+        DESTDIR = $${OUT_PWD}/bin
     }
     macx {
         TARGET_CUSTOM_EXT = .app
@@ -11,6 +12,8 @@ isEmpty(TARGET_EXT) {
 }
 
 win32 {
+    CONFIG += file_copies
+
     equals($${TARGET_WINXP}, "1") {
         PRODUCT_VERSION = "$$GIT_VERSION-WindowsXP"
     } else {
@@ -18,20 +21,26 @@ win32 {
     }
 
     DEPLOY_DIR = $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/deploy))
-    DEPLOY_TARGET = $$shell_quote($$system_path($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT}))
+    DEPLOY_TARGET = $$shell_quote($$system_path($${DESTDIR}/$${TARGET}$${TARGET_CUSTOM_EXT}))
 
     PRE_DEPLOY_COMMAND += $${QMAKE_DEL_FILE} $${DEPLOY_DIR}\*.* /S /Q $$escape_expand(\\n\\t)
     PRE_DEPLOY_COMMAND += $$QMAKE_COPY $${DEPLOY_TARGET} $${DEPLOY_DIR} $$escape_expand(\\n\\t)
     # OpenSSL
     PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$shell_quote($$system_path($$OPENSSL_PATH/*.dll)) $${DEPLOY_DIR} $$escape_expand(\\n\\t)
+    LocalDeployDlls.files += $$files($${OPENSSL_PATH}/*.dll)
     # PCap
     equals(TARGET_WINXP, 0) {
         contains(QT_ARCH, i386) {
-            PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$shell_quote($$system_path($${PCAP_PATH}/Bin/*)) $${DEPLOY_DIR} $$escape_expand(\\n\\t)
+            PCAP_BINARY_DIR = $${PCAP_PATH}/Bin
         } else {
-            PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$shell_quote($$system_path($${PCAP_PATH}/Bin/x64/*)) $${DEPLOY_DIR} $$escape_expand(\\n\\t)
+            PCAP_BINARY_DIR = $${PCAP_PATH}/Bin/x64
         }
+        PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$shell_quote($$system_path($${PCAP_BINARY_DIR}/*)) $${DEPLOY_DIR} $$escape_expand(\\n\\t)
+        LocalDeployDlls.files += $$files($${PCAP_BINARY_DIR}/*)
     }
+
+    LocalDeployDlls.path = $$DESTDIR
+    COPIES += LocalDeployDlls
 
     DEPLOY_COMMAND = windeployqt
     DEPLOY_OPT = --dir $${DEPLOY_DIR}
