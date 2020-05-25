@@ -79,7 +79,7 @@ void Preferences::SetNetworkListenAll(const bool &value)
     m_interfaceListenAll = value;
 }
 
-bool Preferences::GetNetworkListenAll()
+bool Preferences::GetNetworkListenAll() const
 {
 #ifdef TARGET_WINXP
     return false;
@@ -115,7 +115,7 @@ void Preferences::SetDisplayFormat(unsigned int nDisplayFormat)
     return;
 }
 
-QString Preferences::GetFormattedValue(unsigned int nLevelInDecimal, bool decorated)
+QString Preferences::GetFormattedValue(unsigned int nLevelInDecimal, bool decorated) const
 {
     Q_ASSERT(nLevelInDecimal<=255);
     QString result;
@@ -153,11 +153,12 @@ void Preferences::SetDisplayDDOnly(bool bDDOnly)
     return;
 }
 
-void Preferences::SetDefaultTransmitName (QString sDefaultTransmitName)
+void Preferences::SetDefaultTransmitName (const QString &sDefaultTransmitName)
 {
-    sDefaultTransmitName.truncate(MAX_SOURCE_NAME_LEN);
     m_sDefaultTransmitName = sDefaultTransmitName.trimmed();
-    return;
+    m_sDefaultTransmitName.truncate(MAX_SOURCE_NAME_LEN);
+    // Don't want to leave whitespace at end
+    m_sDefaultTransmitName = m_sDefaultTransmitName.trimmed();
 }
 
 void Preferences::SetNumSecondsOfSacn (int nNumSecondsOfSacn)
@@ -167,63 +168,79 @@ void Preferences::SetNumSecondsOfSacn (int nNumSecondsOfSacn)
     return;
 }
 
-unsigned int Preferences::GetDisplayFormat()
+unsigned int Preferences::GetDisplayFormat() const
 {
     return m_nDisplayFormat;
 }
 
-unsigned int Preferences::GetMaxLevel()
+unsigned int Preferences::GetMaxLevel() const
 {
     if(m_nDisplayFormat==PERCENT)
         return 100;
     return MAX_SACN_LEVEL;
 }
 
-bool Preferences::GetBlindVisualizer()
+bool Preferences::GetBlindVisualizer() const
 {
     return m_bBlindVisualizer;
 }
 
-bool Preferences::GetDisplayDDOnly()
+bool Preferences::GetDisplayDDOnly() const
 {
     return m_bDisplayDDOnly;
 }
 
-QString Preferences::GetDefaultTransmitName()
+QString Preferences::GetDefaultTransmitName() const
 {
    return m_sDefaultTransmitName;
 }
 
-unsigned int Preferences::GetNumSecondsOfSacn()
+unsigned int Preferences::GetNumSecondsOfSacn() const
 {
    return m_nNumSecondsOfSacn;
 }
 
-bool Preferences::defaultInterfaceAvailable()
+bool Preferences::defaultInterfaceAvailable() const
 {
-    return interfaceSuitable(&m_interface);
+    return interfaceSuitable(m_interface);
 }
 
-bool Preferences::interfaceSuitable(QNetworkInterface *inter)
+QString Preferences::GetIPv4AddressString(const QNetworkInterface &iface)
 {
+    // List IPv4 Addresses
+    QString ipString;
+    for (const QNetworkAddressEntry &e : iface.addressEntries())
+    {
+        if (e.ip().protocol() == QAbstractSocket::IPv4Protocol)
+        {
+            ipString.append(e.ip().toString());
+            ipString.append(QLatin1Char(','));
+        }
+    }
+    ipString.chop(1);
+    return ipString;
+}
 
-    if (inter->isValid() && (
+bool Preferences::interfaceSuitable(const QNetworkInterface &iface) const
+{
+    if (iface.isValid() && (
                 (
                     // Up, can multicast...
-                    inter->flags().testFlag(QNetworkInterface::IsRunning)
-                    && inter->flags().testFlag(QNetworkInterface::IsUp)
-                    && inter->flags().testFlag(QNetworkInterface::CanMulticast)
+                    iface.flags().testFlag(QNetworkInterface::IsRunning)
+                    && iface.flags().testFlag(QNetworkInterface::IsUp)
+                    && iface.flags().testFlag(QNetworkInterface::CanMulticast)
                 ) || (
                     // Up, is loopback...
-                    inter->flags().testFlag(QNetworkInterface::IsRunning)
-                    && inter->flags().testFlag(QNetworkInterface::IsUp)
-                    && inter->flags().testFlag(QNetworkInterface::IsLoopBack)
+                    iface.flags().testFlag(QNetworkInterface::IsRunning)
+                    && iface.flags().testFlag(QNetworkInterface::IsUp)
+                    && iface.flags().testFlag(QNetworkInterface::IsLoopBack)
                 )
             )
         )
     {
         // ...has IPv4
-        foreach (QNetworkAddressEntry addr, inter->addressEntries()) {
+        for (const QNetworkAddressEntry &addr : iface.addressEntries())
+        {
             if(addr.ip().protocol() == QAbstractSocket::IPv4Protocol)
                return true;
         }
@@ -231,12 +248,12 @@ bool Preferences::interfaceSuitable(QNetworkInterface *inter)
     return false;
 }
 
-void Preferences::SetTheme(Theme theme)
+void Preferences::SetTheme(const Theme &theme)
 {
     m_theme = theme;
 }
 
-Preferences::Theme Preferences::GetTheme()
+Preferences::Theme Preferences::GetTheme() const
 {
     return m_theme;
 }
@@ -354,7 +371,7 @@ void Preferences::setFlickerFinderShowInfo(bool showIt)
     m_flickerFinderShowInfo = showIt;
 }
 
-bool Preferences::getFlickerFinderShowInfo()
+bool Preferences::getFlickerFinderShowInfo() const
 {
     return m_flickerFinderShowInfo;
 }
@@ -367,7 +384,7 @@ void Preferences::SetPreset(const QByteArray &data, int index)
     m_presets[index] = data;
 }
 
-QByteArray Preferences::GetPreset(int index)
+QByteArray Preferences::GetPreset(int index) const
 {
     Q_ASSERT(index>=0);
     Q_ASSERT(index<PRESET_COUNT);
@@ -380,7 +397,7 @@ void Preferences::SetSaveWindowLayout(bool value)
     m_saveWindowLayout = value;
 }
 
-bool Preferences::GetSaveWindowLayout()
+bool Preferences::GetSaveWindowLayout() const
 {
     return m_saveWindowLayout;
 }
@@ -390,27 +407,27 @@ void Preferences::SetMainWindowGeometry(const QByteArray &value)
     m_mainWindowGeometry = value;
 }
 
-QByteArray Preferences::GetMainWindowGeometry()
+QByteArray Preferences::GetMainWindowGeometry() const
 {
     return m_mainWindowGeometry;
 }
 
-void Preferences::SetSavedWindows(QList<MDIWindowInfo> values)
+void Preferences::SetSavedWindows(const QList<MDIWindowInfo> &values)
 {
     m_windowInfo = values;
 }
 
-QList<MDIWindowInfo> Preferences::GetSavedWindows()
+QList<MDIWindowInfo> Preferences::GetSavedWindows() const
 {
     return m_windowInfo;
 }
 
-void Preferences::SetLocale(QLocale locale)
+void Preferences::SetLocale(const QLocale &locale)
 {
     m_locale = locale;
 }
 
-QLocale Preferences::GetLocale()
+QLocale Preferences::GetLocale() const
 {
     return m_locale;
 }
@@ -421,7 +438,7 @@ void Preferences::SetPriorityPreset(const QByteArray &data, int index)
     m_priorityPresets[index] = data;
 }
 
-QByteArray Preferences::GetPriorityPreset(int index)
+QByteArray Preferences::GetPriorityPreset(int index) const
 {
     Q_ASSERT(index < PRIORITYPRESET_COUNT);
     return m_priorityPresets[index];

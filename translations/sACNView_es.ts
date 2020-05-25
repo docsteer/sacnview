@@ -670,7 +670,7 @@
     <name>PcapPlayback</name>
     <message>
         <location filename="../ui/pcapplayback.ui" line="26"/>
-        <location filename="../src/pcapplayback.cpp" line="181"/>
+        <location filename="../src/pcapplayback.cpp" line="182"/>
         <source>PCap Playback</source>
         <translation>Reproducción PCap</translation>
     </message>
@@ -720,31 +720,31 @@
         <translation>Reproducción en bucle?</translation>
     </message>
     <message>
-        <location filename="../src/pcapplayback.cpp" line="63"/>
+        <location filename="../src/pcapplayback.cpp" line="64"/>
         <source>Open Capture</source>
         <translation>Abrir captura</translation>
     </message>
     <message>
-        <location filename="../src/pcapplayback.cpp" line="65"/>
+        <location filename="../src/pcapplayback.cpp" line="66"/>
         <source>PCap Files (*.pcap);; PCapNG Files (*.pcapng);; All files (*.*)</source>
         <translation>Archivos PCap (*.pcap);;Archivos PCapNG (*.pcapng);; Todos los archivos (*.*)</translation>
     </message>
     <message>
-        <location filename="../src/pcapplayback.cpp" line="77"/>
+        <location filename="../src/pcapplayback.cpp" line="78"/>
         <source>Error opening %1
 %2</source>
         <translation>Error al abrir %1
 %2</translation>
     </message>
     <message>
-        <location filename="../src/pcapplayback.cpp" line="88"/>
+        <location filename="../src/pcapplayback.cpp" line="89"/>
         <source>Error opening %1
 pcap_compile failed</source>
         <translation>Error al abrir %1
 pcap_compile falló</translation>
     </message>
     <message>
-        <location filename="../src/pcapplayback.cpp" line="93"/>
+        <location filename="../src/pcapplayback.cpp" line="94"/>
         <source>Error opening %1
 pcap_setfilter failed</source>
         <translation>Error al abrir %1
@@ -859,12 +859,12 @@ pcap_setfilter falló</translation>
         <translation>En case de cambio, el programa debe ser reiniciado  </translation>
     </message>
     <message>
-        <location filename="../src/preferencesdialog.cpp" line="181"/>
+        <location filename="../src/preferencesdialog.cpp" line="185"/>
         <source>Restart requied</source>
         <translation>Reinicio requerido</translation>
     </message>
     <message>
-        <location filename="../src/preferencesdialog.cpp" line="182"/>
+        <location filename="../src/preferencesdialog.cpp" line="186"/>
         <source>To apply these preferences, you will need to restart the application. 
 sACNView will now close and restart</source>
         <translation>Para aplicar estas preferencias, tiene que reiniciar la programa</translation>
@@ -873,14 +873,12 @@ sACNView will now close and restart</source>
 <context>
     <name>QObject</name>
     <message>
-        <source>This binary is intended for Windows XP only
-There are major issues mixed IPv4 and IPv6 enviroments
-
+        <location filename="../src/main.cpp" line="82"/>
+        <source>This binary is intended for Windows XP only<byte value="xd"/>
+There are major issues mixed IPv4 and IPv6 enviroments<byte value="xd"/>
+<byte value="xd"/>
 Please ensure IPv6 is disabled</source>
-        <translation type="vanished">Este binario está diseñado solo para Windows XP
-Hay grandes problemas con abientes mixtos IPv4 y IPv6
-
-Asegúrase de que IPv6 esté inactivo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="86"/>
@@ -888,17 +886,22 @@ Asegúrase de que IPv6 esté inactivo</translation>
         <translation>Este binario está diseñado solo para Windows XP</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="143"/>
+        <location filename="../src/main.cpp" line="155"/>
+        <source> WORKING OFFLINE</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/main.cpp" line="158"/>
         <source>Selected interface: %1</source>
         <translation>Tarjeta de red seleccionada: %1</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="159"/>
+        <location filename="../src/main.cpp" line="172"/>
         <source>Incoming connections to this application are blocked by the firewall</source>
         <translation>Conexiones entrantes están bloqueados por el firewall</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="163"/>
+        <location filename="../src/main.cpp" line="176"/>
         <source>Incoming connections to this application are restricted by the firewall</source>
         <translation>Conexiones entrantes están limitados por el firewall</translation>
     </message>
@@ -1003,51 +1006,41 @@ Asegúrase de que IPv6 esté inactivo</translation>
         <translation>Fecha</translation>
     </message>
     <message>
-        <location filename="../src/preferences.h" line="75"/>
+        <location filename="../src/preferences.h" line="76"/>
         <source>Light Theme</source>
         <translation>Modo Claro</translation>
     </message>
     <message>
-        <location filename="../src/preferences.h" line="76"/>
+        <location filename="../src/preferences.h" line="77"/>
         <source>Dark Theme</source>
         <translation>Modo Oscuro</translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="32"/>
-        <source>Online</source>
-        <translation>Online</translation>
-    </message>
-    <message>
-        <location filename="../src/universeview.cpp" line="33"/>
-        <source>Offline</source>
-        <translation>Offline</translation>
-    </message>
-    <message>
-        <location filename="../src/universeview.cpp" line="41"/>
+        <location filename="../src/universeview.cpp" line="34"/>
         <source>Draft</source>
         <translation>Draft</translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="43"/>
+        <location filename="../src/universeview.cpp" line="36"/>
         <source>Release</source>
         <translation>Release</translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="46"/>
+        <location filename="../src/universeview.cpp" line="39"/>
         <source>Unknown</source>
         <translation>Desconocido</translation>
     </message>
     <message>
-        <source>Failed to start logging to file
+        <location filename="../src/logwindow.cpp" line="255"/>
+        <source>Failed to start logging to file<byte value="xd"/>
 Error %1</source>
-        <translation type="vanished">Imposible de crear archivo log
-Error %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>This binary is intended for Windows XP only
+        <location filename="../src/xpwarning.h" line="14"/>
+        <source>This binary is intended for Windows XP only<byte value="xd"/>
 This feature is unavailable</source>
-        <translation type="vanished">Este binario está diseñado solo para Windows XP
-Este función no es disponible</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1288,6 +1281,8 @@ Este función no es disponible</translation>
     <name>UniverseView</name>
     <message>
         <location filename="../ui/universeview.ui" line="14"/>
+        <location filename="../src/universeview.cpp" line="102"/>
+        <location filename="../src/universeview.cpp" line="404"/>
         <source>Universe View</source>
         <translation>Vista de universos</translation>
     </message>
@@ -1319,7 +1314,7 @@ Este función no es disponible</translation>
     </message>
     <message>
         <location filename="../ui/universeview.ui" line="149"/>
-        <location filename="../src/universeview.cpp" line="379"/>
+        <location filename="../src/universeview.cpp" line="412"/>
         <source>Start Flicker Finder</source>
         <translation>Abrir Flicker Finder</translation>
     </message>
@@ -1339,124 +1334,143 @@ Este función no es disponible</translation>
         <translation>Título</translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="234"/>
+        <location filename="../ui/universeview.ui" line="239"/>
         <source>CID</source>
         <translation>CID</translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="239"/>
+        <location filename="../ui/universeview.ui" line="244"/>
         <source>Priority</source>
         <translation>Prioridad</translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="244"/>
+        <location filename="../ui/universeview.ui" line="249"/>
+        <source>Sync</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/universeview.ui" line="254"/>
         <source>Preview</source>
         <translation>Previa</translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="249"/>
+        <location filename="../ui/universeview.ui" line="259"/>
         <source>IP Address</source>
         <translation>Dirección IP</translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="254"/>
+        <location filename="../ui/universeview.ui" line="264"/>
         <source>FPS</source>
         <translation>FPS</translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="259"/>
+        <location filename="../ui/universeview.ui" line="269"/>
         <source>SeqErr</source>
         <translation>SeqErr</translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="264"/>
+        <location filename="../ui/universeview.ui" line="274"/>
         <source>Jumps</source>
         <translation>Saltos</translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="269"/>
+        <location filename="../ui/universeview.ui" line="234"/>
+        <location filename="../src/universeview.cpp" line="190"/>
         <source>Online</source>
         <translation>Online</translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="274"/>
+        <location filename="../ui/universeview.ui" line="279"/>
         <source>Ver</source>
         <translation>Vers</translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="279"/>
+        <location filename="../ui/universeview.ui" line="284"/>
         <source>Per-Address</source>
         <translation>Por Dirección</translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="284"/>
+        <location filename="../ui/universeview.ui" line="289"/>
         <source>Slots</source>
         <translation>Slots</translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="150"/>
+        <location filename="../src/universeview.cpp" line="163"/>
+        <location filename="../src/universeview.cpp" line="168"/>
         <source>N/A</source>
         <translation>N/A</translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="152"/>
-        <location filename="../src/universeview.cpp" line="173"/>
+        <location filename="../src/universeview.cpp" line="165"/>
+        <location filename="../src/universeview.cpp" line="170"/>
+        <location filename="../src/universeview.cpp" line="201"/>
         <source>Yes</source>
         <translation>Sí</translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="152"/>
-        <location filename="../src/universeview.cpp" line="173"/>
+        <location filename="../src/universeview.cpp" line="165"/>
+        <location filename="../src/universeview.cpp" line="170"/>
+        <location filename="../src/universeview.cpp" line="201"/>
         <source>No</source>
         <translation>No</translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="170"/>
+        <location filename="../src/universeview.cpp" line="193"/>
         <source>No DMX</source>
         <translation>No hay DMX</translation>
     </message>
     <message>
-        <source>Errors binding to interface
-
-Results will be inaccurate
-Possible reasons include permission issues
-or other applications
-
+        <location filename="../src/universeview.cpp" line="131"/>
+        <source>Errors binding to interface<byte value="xd"/>
+<byte value="xd"/>
+Results will be inaccurate<byte value="xd"/>
+Possible reasons include permission issues<byte value="xd"/>
+or other applications<byte value="xd"/>
+<byte value="xd"/>
 See diagnostics for more info</source>
-        <translation type="vanished">No fue posible conectarse a la interfaz
-
-Los resultados serán inexactos
-Posibles razones: Problemas de permiso
-o otras aplicaciones
-
-Ver la ventana de diagnóstico para más información</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="320"/>
+        <location filename="../src/universeview.cpp" line="110"/>
+        <source>Universe %1 Flicker</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/universeview.cpp" line="112"/>
+        <source>Universe %1 View</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/universeview.cpp" line="197"/>
+        <source>Offline</source>
+        <translation type="unfinished">Offline</translation>
+    </message>
+    <message>
+        <location filename="../src/universeview.cpp" line="351"/>
         <source>Address : %1
 </source>
         <translation>Dirección: %1
 </translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="331"/>
+        <location filename="../src/universeview.cpp" line="362"/>
         <source>Winning Source : %1 @ %2 (Priority %3)</source>
         <translation>Fuente ganador : %1 @ %2 (Prioridad %3)</translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="343"/>
+        <location filename="../src/universeview.cpp" line="374"/>
         <source>
 Other Source : %1 @ %2 (Priority %3)</source>
         <translation>
 Otra fuente : %1 @ %2 (Prioridad %3)</translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="350"/>
+        <location filename="../src/universeview.cpp" line="381"/>
         <source>No Sources</source>
         <translation>No hay fuente</translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="390"/>
+        <location filename="../src/universeview.cpp" line="423"/>
         <source>Stop Flicker Finder</source>
         <translation>Detener Flicker Finder</translation>
     </message>
@@ -1584,21 +1598,21 @@ Otra fuente : %1 @ %2 (Prioridad %3)</translation>
 %1</translation>
     </message>
     <message>
-        <location filename="../src/pcapplaybacksender.cpp" line="218"/>
+        <location filename="../src/pcapplaybacksender.cpp" line="220"/>
         <source>Error opening %1
 %2</source>
         <translation>Error al abrir %1
 %2</translation>
     </message>
     <message>
-        <location filename="../src/pcapplaybacksender.cpp" line="230"/>
+        <location filename="../src/pcapplaybacksender.cpp" line="232"/>
         <source>Error opening %1
 pcap_compile failed</source>
         <translation>Error al abrir %1
 pcap_compile falló</translation>
     </message>
     <message>
-        <location filename="../src/pcapplaybacksender.cpp" line="236"/>
+        <location filename="../src/pcapplaybacksender.cpp" line="238"/>
         <source>Error opening %1
 pcap_setfilter failed</source>
         <translation>Error al abrir %1
@@ -1606,22 +1620,35 @@ pcap_setfilter falló</translation>
     </message>
 </context>
 <context>
-    <name>sACNManager</name>
+    <name>sACNDiscoveredSourceListModel</name>
     <message>
-        <source>Unable to allocate listener object
-
-sACNView must close now</source>
-        <translation type="vanished">Unable to allocate listener object
-
-sACNView must close now</translation>
+        <location filename="../src/sacn/sacndiscoveredsourcelistmodel.cpp" line="156"/>
+        <source>No discovery sources found</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Unable to allocate sender object
-
+        <location filename="../src/sacn/sacndiscoveredsourcelistmodel.cpp" line="158"/>
+        <source>Discovery relies upon
+E1-31:2016 universe discovery packets
+very few sources support this</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>sACNManager</name>
+    <message>
+        <location filename="../src/sacn/streamingacn.cpp" line="145"/>
+        <source>Unable to allocate listener object<byte value="xd"/>
+<byte value="xd"/>
 sACNView must close now</source>
-        <translation type="vanished">Unable to allocate sender object
-
-sACNView must close now</translation>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/sacn/streamingacn.cpp" line="218"/>
+        <source>Unable to allocate sender object<byte value="xd"/>
+<byte value="xd"/>
+sACNView must close now</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2008,7 +2035,7 @@ sACNView must close now</translation>
         <translation>Prioridad por dirección universo %1</translation>
     </message>
     <message>
-        <location filename="../src/transmitwindow.cpp" line="582"/>
+        <location filename="../src/transmitwindow.cpp" line="589"/>
         <source>Fade Rate %1 Hz</source>
         <translation>Velocidad de transición %1 Hz</translation>
     </message>

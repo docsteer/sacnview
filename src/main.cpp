@@ -152,11 +152,15 @@ int main(int argc, char *argv[])
 
     // Show interface name on statusbar
     if (Preferences::getInstance()->networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack))
-        w->statusBar()->showMessage(QObject::tr(" WORKING OFFLINE"));
+        w->statusBar()->showMessage(QObject::tr("WORKING OFFLINE"));
     else
-        w->statusBar()->showMessage(
-            QObject::tr("Selected interface: %1").arg(
-                Preferences::getInstance()->networkInterface().humanReadableName()));
+    {
+        const QNetworkInterface iface = Preferences::getInstance()->networkInterface();
+
+        w->statusBar()->showMessage(QObject::tr("Selected interface: %1 (%2)")
+                                        .arg(iface.humanReadableName())
+                                        .arg(Preferences::GetIPv4AddressString(iface)));
+    }
 
     // Check firewall if not newly selected
     if (!newInterface) {
