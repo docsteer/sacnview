@@ -1,5 +1,6 @@
 #include <QStyle>
 #include <QPainter>
+#include <QPainterPath>
 #include <QStyleOptionComplex>
 #include "darkstyle.h"
 
@@ -142,8 +143,7 @@ void DarkStyle::drawComplexControl(ComplexControl control, const QStyleOptionCom
         QColor textColor(active ? 0xffffff : 0xff000000);
         QColor textAlphaColor(active ? 0xffffff : 0xff000000 );
 
-
-        QColor titlebarColor = QColor(active ? highlight: palette.background().color());
+        QColor titlebarColor = QColor(active ? highlight: palette.window().color());
                         QLinearGradient gradient(option->rect.center().x(), option->rect.top(),
                                                  option->rect.center().x(), option->rect.bottom());
 

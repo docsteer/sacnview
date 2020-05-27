@@ -15,6 +15,7 @@
 
 #include "scopewidget.h"
 #include <QPainter>
+#include <QPainterPath>
 #include <QPointF>
 #include <QDebug>
 #include "sacn/sacnlistener.h"

@@ -25,7 +25,7 @@ GridEditWidget::GridEditWidget(QWidget *parent) : GridWidget(parent)
 
 void GridEditWidget::wheelEvent(QWheelEvent *event)
 {
-    int numDegrees = event->delta() / 8;
+    int numDegrees = event->angleDelta().y() / 8;
     int numSteps = numDegrees / 15;
 
     QList<QPair<int, int>> level_list;

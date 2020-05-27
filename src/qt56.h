@@ -1,6 +1,8 @@
 #ifndef QT56_H
 #define QT56_H
 
+#include <QtGlobal>
+
 #if (QT_VERSION < QT_VERSION_CHECK(5, 8, 0))
     /*
      * Q_FALLTHROUGH()
@@ -24,6 +26,18 @@
     #    define Q_FALLTHROUGH() (void)0
     #endif
     #endif
+#endif
+
+#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 0))
+    #include <QTextStream>
+    /*
+     * Qt::endl() nee endl()
+     * This function changed namespace in Qt 5.15
+     *
+     */
+    namespace Qt {
+        QTextStream &endl(QTextStream &s);
+    }
 #endif
 
 
