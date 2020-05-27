@@ -86,6 +86,7 @@ INCLUDEPATH += src src/sacn src/sacn/ACNShare
 
 SOURCES += src/main.cpp\
     src/mdimainwindow.cpp \
+    src/qt56.cpp \
     src/scopewindow.cpp \
     src/universeview.cpp \
     src/sacn/ACNShare/CID.cpp \

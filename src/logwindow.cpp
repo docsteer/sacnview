@@ -8,6 +8,7 @@
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QMessageBox>
+#include "qt56.h"
 
 LogWindow::LogWindow(int universe, QWidget *parent) :
     QWidget(parent),
@@ -87,7 +88,7 @@ void LogWindow::appendLogLine(QString &line) {
     // Log to file
     if (m_fileStream && ui->cbLogToFile->isChecked())
     {
-        *m_fileStream << line << endl;
+        *m_fileStream << line << Qt::endl;
     }
 }
 

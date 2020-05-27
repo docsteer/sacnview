@@ -138,7 +138,7 @@ void ScopeWindow::on_btnAddChannel_pressed()
     ui->tableWidget->setItem(m_channels.count()-1, COL_ENABLED, item);
 
     item = new QTableWidgetItem();
-    item->setBackgroundColor(col);
+    item->setBackground(col);
     item->setFlags(Qt::ItemIsEnabled);
     ui->tableWidget->setItem(m_channels.count()-1, COL_COLOUR, item);
 
@@ -191,7 +191,7 @@ void ScopeWindow::on_tableWidget_cellDoubleClicked(int row, int col)
         QColor newColor = dlg.getColor(channel->color(), this);
         channel->setColor(newColor);
         QTableWidgetItem *w = ui->tableWidget->item(row, col);
-        w->setBackgroundColor(newColor);
+        w->setBackground(newColor);
     }
 }
 
