@@ -92,7 +92,7 @@ public:
     qint32 GetInterval();			//Returns the current timeout interval (in ms)
 
 	void Reset();	//Resets the timer, using the current timeout interval
-	bool Expired();  //Returns true if the timer has expired.
+    bool Expired() const;  //Returns true if the timer has expired.
 					 //Call Reset() to use this timer again for a new interval.
 
     friend bool operator==(const ttimer& t1, const ttimer& t2);
@@ -113,7 +113,7 @@ inline ttimer::ttimer(qint32 ms):interval(ms) {Reset();}
 inline void ttimer::SetInterval(qint32 ms) {interval = ms; Reset();}
 inline qint32 ttimer::GetInterval() {return interval;}
 inline void ttimer::Reset() {tockout.Setms(Tock_GetTock().Getms() + interval);}
-inline bool ttimer::Expired() {return Tock_GetTock() > tockout;}
+inline bool ttimer::Expired() const {return Tock_GetTock() > tockout;}
 inline bool operator==(const ttimer& t1, const ttimer& t2) { return ((t1.tockout == t2.tockout) && (t1.interval == t2.interval)); }
 inline bool operator!=(const ttimer& t1, const ttimer& t2) { return !(t1 == t2); }
 

@@ -40,7 +40,6 @@ Implementation of the common streaming ACN packing and parsing functions*/
 #include <string.h>
 
 #include "streamcommon.h"
-#include "sacndiscovery.h"
 #include "defpack.h"
 #include "VHD.h"
 
@@ -304,8 +303,7 @@ e_ValidateStreamHeader ValidateStreamHeader(quint8* pbuf, uint buflen, CID &sour
         return e_ValidateStreamHeader::SteamHeader_Invalid;
 
   case VECTOR_ROOT_E131_EXTENDED:
-      sACNDiscoveryRX::getInstance()->processPacket(pbuf, buflen);
-      return e_ValidateStreamHeader::SteamHeader_Extended;
+    return e_ValidateStreamHeader::SteamHeader_Extended;
 
   default:
       return e_ValidateStreamHeader::SteamHeader_Unknown;

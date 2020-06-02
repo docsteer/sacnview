@@ -86,6 +86,8 @@ INCLUDEPATH += src src/sacn src/sacn/ACNShare
 
 SOURCES += src/main.cpp\
     src/mdimainwindow.cpp \
+    src/sacn/sacnsynchronization.cpp \
+    src/sacn/sacnsynclistmodel.cpp \
     src/scopewindow.cpp \
     src/universeview.cpp \
     src/sacn/ACNShare/CID.cpp \
@@ -126,6 +128,8 @@ SOURCES += src/main.cpp\
     src/grideditwidget.cpp
 
 HEADERS += src/mdimainwindow.h \
+    src/sacn/sacnsynchronization.h \
+    src/sacn/sacnsynclistmodel.h \
     src/scopewindow.h \
     src/universeview.h \
     src/sacn/ACNShare/CID.h \

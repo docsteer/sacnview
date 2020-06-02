@@ -23,6 +23,7 @@
 #include "aboutdialog.h"
 #include "sacnuniverselistmodel.h"
 #include "sacndiscoveredsourcelistmodel.h"
+#include "sacnsynclistmodel.h"
 #include "snapshot.h"
 #include "multiuniverse.h"
 #include "xpwarning.h"
@@ -38,13 +39,21 @@ MDIMainWindow::MDIMainWindow(QWidget *parent) :
     ui(new Ui::MDIMainWindow),
     m_model(new sACNUniverseListModel(this)),
     m_modelDiscovered(new sACNDiscoveredSourceListModel(this)),
-    m_proxy(new sACNSourceListProxy(this))
+    m_proxyDiscovered(new sACNDiscoveredSourceListProxy(this)),
+    m_modelSync(new sACNSyncListModel(this)),
+    m_proxySync(new sACNSyncListModel::proxy(this))
 {
     ui->setupUi(this);
-    ui->sbUniverseList->setMinimum(MIN_SACN_UNIVERSE);
-    ui->sbUniverseList->setMaximum(MAX_SACN_UNIVERSE - Preferences::getInstance()->GetUniversesListed() + 1);
-    ui->sbUniverseList->setWrapping(true);
-    ui->sbUniverseList->setValue(MIN_SACN_UNIVERSE);
+}
+
+MDIMainWindow::~MDIMainWindow()
+{
+    delete ui;
+}
+
+void MDIMainWindow::showEvent(QShowEvent *ev)
+{
+    QMainWindow::showEvent(ev);
 
     // Universe list
     ui->treeView->setModel(m_model);
@@ -52,17 +61,24 @@ MDIMainWindow::MDIMainWindow(QWidget *parent) :
     connect(ui->treeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(universeDoubleClick(QModelIndex)));
     connect(m_model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)), this, SLOT(rowsAboutToBeRemoved(QModelIndex,int,int)));
 
-    // Discovered sources list;
-    m_proxy->setSourceModel(m_modelDiscovered);
-    ui->treeViewDiscovered->setModel(m_proxy);
+    ui->sbUniverseList->setMinimum(MIN_SACN_UNIVERSE);
+    ui->sbUniverseList->setMaximum(MAX_SACN_UNIVERSE - Preferences::getInstance()->GetUniversesListed() + 1);
+    ui->sbUniverseList->setWrapping(true);
+    ui->sbUniverseList->setValue(MIN_SACN_UNIVERSE);
+
+    // Discovered sources list
+    m_proxyDiscovered->setSourceModel(m_modelDiscovered);
+    ui->treeViewDiscovered->setModel(m_proxyDiscovered);
     connect(ui->treeViewDiscovered, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(universeDoubleClick(QModelIndex)));
     ui->treeViewDiscovered->setSortingEnabled(true);
     ui->treeViewDiscovered->sortByColumn(0, Qt::AscendingOrder);
-}
 
-MDIMainWindow::~MDIMainWindow()
-{
-    delete ui;
+    // Universe Synchronization details
+    m_proxySync->setSourceModel(m_modelSync);
+    ui->treeViewSync->setModel(m_proxySync);
+    connect(ui->treeViewSync, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(universeDoubleClick(QModelIndex)));
+    ui->treeViewSync->setSortingEnabled(true);
+    ui->treeViewSync->sortByColumn(0, Qt::AscendingOrder);
 }
 
 void MDIMainWindow::on_actionScopeView_triggered(bool checked)
@@ -141,8 +157,12 @@ void MDIMainWindow::universeDoubleClick(const QModelIndex &index)
     } else if (ui->treeViewDiscovered->isVisible())
     {
         if(!m_modelDiscovered) return;
-        QModelIndex srcIndex = m_proxy->mapToSource(index);
+        QModelIndex srcIndex = m_proxyDiscovered->mapToSource(index);
         universe = m_modelDiscovered->indexToUniverse(srcIndex);
+    } else if (ui->treeViewSync->isVisible())
+    {
+        if(!m_modelSync) return;
+        universe = m_modelSync->indexToUniverse(index);
     }
 
     if (universe>0)

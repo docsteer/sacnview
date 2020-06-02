@@ -21,6 +21,9 @@ public:
     // Log new frame
     void newFrame();
 
+signals:
+    void updatedFPS();
+
 private slots:
     void updateFPS();
 

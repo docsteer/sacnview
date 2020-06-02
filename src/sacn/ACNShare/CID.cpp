@@ -170,6 +170,9 @@ QString CID::CIDIntoQString(const CID& cid)
     return QString(buffer);
 }
 
+CID::operator QString() const {
+    return CIDIntoQString(*this);
+}
 
 // Create a CID
 CID CID::CreateCid()

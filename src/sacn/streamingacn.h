@@ -38,6 +38,7 @@
 // Forward Declarations
 class sACNListener;
 class sACNSentUniverse;
+class sACNSource;
 
 enum StreamingACNProtocolVersion
 {
@@ -45,59 +46,6 @@ enum StreamingACNProtocolVersion
     sACNProtocolDraft,
     sACNProtocolRelease,
 };
-
-
-class sACNSource : public QObject
-{
-    Q_OBJECT
-public:
-    explicit sACNSource();
-    CID src_cid;
-    bool src_valid;
-    quint8 lastseq;
-    ttimer active;  //If this expires, we haven't received any data in over a second
-    //The per-channel priority alternate start code policy requires we detect the source only after
-    //a STARTCODE_PRIORITY packet was received or 1.5 seconds have expired
-    bool waited_for_dd;
-    bool doing_dmx; //if true, we are processing dmx data from this source
-    bool doing_per_channel;  //If true, we are tracking per-channel priority messages for this source
-    bool isPreview;
-    ttimer priority_wait;  //if !initially_notified, used to track if a source is finally detected
-                                  //(either by receiving priority or timeout).  If doing_per_channel,
-                                  //used to time out the 0xdd packets to see if we lost per-channel priority
-    quint16 universe;
-    quint8 level_array[DMX_SLOT_MAX];
-    quint16 slot_count; // Number of slots actually received
-    quint8 priority_array[DMX_SLOT_MAX];
-    quint8 last_level_array[DMX_SLOT_MAX];
-    quint8 last_priority_array[DMX_SLOT_MAX];
-    bool dirty_array[DMX_SLOT_MAX]; // Set if an individual level or priority has changed
-    bool source_params_change; // Set if any parameter of the source changes between packets
-    bool source_levels_change;
-
-    quint8 priority;
-    quint16 synchronization;
-    QString name;
-    QString cid_string();
-    QHostAddress ip;
-    fpsCounter fpscounter;
-    // The number of sequence errors from this source
-    int seqErr;
-    // The number of jumps (increments by anything other than 1) of this source
-    int jumps;
-    // Protocol Version
-    StreamingACNProtocolVersion protocol_version;
-
-public slots:
-    void resetSeqErr() {
-        seqErr = 0;
-    }
-
-    void resetJumps() {
-        jumps = 0;
-    }
-};
-
 
 // The sACNManager class is a singleton that manages the lifespan of sACNTransmitters and sACNListeners.
 class sACNManager : public QObject
@@ -136,12 +84,72 @@ public:
 
 signals:
     void newSender();
+    void deletedSender(CID cid, quint16 universe);
+
+    void newListener(quint16 universe);
+    void deletedListener(quint16 universe);
+
+    void sourceFound(quint16 universe, sACNSource *source);
+    void sourceLost(quint16 universe, sACNSource *source);
+    void sourceResumed(quint16 universe, sACNSource *source);
+    void sourceChanged(quint16 universe, sACNSource *source);
 
 private slots:
     void senderUniverseChanged();
     void senderCIDChanged();
 
 private:
+};
+
+class sACNSource : public QObject
+{
+    Q_OBJECT
+public:
+    explicit sACNSource();
+    CID src_cid;
+    bool src_valid;
+    quint8 lastseq;
+    ttimer active;  //If this expires, we haven't received any data in over a second
+    //The per-channel priority alternate start code policy requires we detect the source only after
+    //a STARTCODE_PRIORITY packet was received or 1.5 seconds have expired
+    bool waited_for_dd;
+    bool doing_dmx; //if true, we are processing dmx data from this source
+    bool doing_per_channel;  //If true, we are tracking per-channel priority messages for this source
+    bool isPreview;
+    ttimer priority_wait;  //if !initially_notified, used to track if a source is finally detected
+                                  //(either by receiving priority or timeout).  If doing_per_channel,
+                                  //used to time out the 0xdd packets to see if we lost per-channel priority
+    quint16 universe;
+    quint8 level_array[DMX_SLOT_MAX];
+    quint16 slot_count; // Number of slots actually received
+    quint8 priority_array[DMX_SLOT_MAX];
+    quint8 last_level_array[DMX_SLOT_MAX];
+    quint8 last_priority_array[DMX_SLOT_MAX];
+    bool dirty_array[DMX_SLOT_MAX]; // Set if an individual level or priority has changed
+    bool source_params_change; // Set if any parameter of the source changes between packets
+    bool source_levels_change;
+
+    quint8 priority;
+    quint16 synchronization;
+    sACNManager::tListener sync_listener;
+    QString name;
+    QHostAddress ip;
+    fpsCounter fpscounter;
+    // The number of sequence errors from this source
+    int seqErr;
+    // The number of jumps (increments by anything other than 1) of this source
+    int jumps;
+    // Protocol Version
+    StreamingACNProtocolVersion protocol_version;
+
+public slots:
+    void resetSeqErr() {
+        seqErr = 0;
+    }
+
+    void resetJumps() {
+        jumps = 0;
+    }
 };
 
 #endif // STREAMINGACN_H

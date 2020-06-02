@@ -17,10 +17,9 @@
 #define MDIMAINWINDOW_H
 
 #include <QMainWindow>
-
-class sACNUniverseListModel;
-class sACNDiscoveredSourceListModel;
-class sACNSourceListProxy;
+#include "sacnuniverselistmodel.h"
+#include "sacndiscoveredsourcelistmodel.h"
+#include "sacnsynclistmodel.h"
 
 namespace Ui {
 class MDIMainWindow;
@@ -34,10 +33,14 @@ public:
     explicit MDIMainWindow(QWidget *parent = 0);
     ~MDIMainWindow();
 
-    void showWidgetAsMdiWindow(QWidget *w);
+protected:
+      void showEvent(QShowEvent *ev);
 
+public:
+    void showWidgetAsMdiWindow(QWidget *w);
     void saveMdiWindows();
     void restoreMdiWindows();
+
 protected slots:
     void on_actionScopeView_triggered(bool checked);
     void on_actionRecieve_triggered(bool checked);
@@ -49,6 +52,7 @@ protected slots:
     void on_sbUniverseList_valueChanged(int value);
     void universeDoubleClick(const QModelIndex &index);
     void rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end);
+
 private slots:
     void on_actionAbout_triggered(bool checked);
 
@@ -63,7 +67,9 @@ private:
     Ui::MDIMainWindow *ui;
     sACNUniverseListModel *m_model;
     sACNDiscoveredSourceListModel *m_modelDiscovered;
-    sACNSourceListProxy *m_proxy;
+    sACNDiscoveredSourceListProxy *m_proxyDiscovered;
+    sACNSyncListModel *m_modelSync;
+    sACNSyncListModel::proxy *m_proxySync;
     int getSelectedUniverse();
 };
 

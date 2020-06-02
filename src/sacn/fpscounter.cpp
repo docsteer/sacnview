@@ -63,6 +63,9 @@ void fpsCounter::updateFPS()
 
     // Flag if the FPS has changed
     newFps = ((previousFps < currentFps) | (previousFps > currentFps));
+
+    if (newFps)
+        emit updatedFPS();
 }
 
 void fpsCounter::newFrame()

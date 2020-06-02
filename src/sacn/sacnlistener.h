@@ -71,8 +71,9 @@ public:
         return m_merged_levels;
     }
 
-    int sourceCount() { return m_sources.size();}
+    int sourceCount() const { return m_sources.size();}
     sACNSource *source(int index) { return m_sources[index];}
+    const std::vector<sACNSource*> getSourceList() const { return m_sources; }
 
     /**
      *  @brief processDatagram Process a suspected sACN datagram.

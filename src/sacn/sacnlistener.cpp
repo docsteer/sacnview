@@ -23,14 +23,12 @@
 #include <QPoint>
 #include <math.h>
 #include <QtGlobal>
+#include "sacndiscovery.h"
+#include "sacnsynchronization.h"
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
 #include <QNetworkDatagram>
 #endif
-
-//The amount of ms to wait before a source is considered offline or
-//has stopped sending per-channel-priority packets
-#define WAIT_OFFLINE 2500
 
 //The amount of ms to wait before determining that a newly discovered source is not doing per-channel-priority
 #define WAIT_PRIORITY 1500
@@ -255,12 +253,32 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
         // Recieved a packet but not valid. Log and discard
         qDebug() << "sACNListener" << QThread::currentThreadId() << ": Invalid Packet";
         return;
+
     case e_ValidateStreamHeader::SteamHeader_Unknown:
         qDebug() << "sACNListener" << QThread::currentThreadId() << ": Unkown Root Vector";
         return;
+
     case e_ValidateStreamHeader::SteamHeader_Extended:
-        qDebug() << "sACNListener" << QThread::currentThreadId() << ": Extended Packet";
+        quint32 vector;
+        if (static_cast<size_t>(data.length()) > ROOT_VECTOR_ADDR + sizeof(vector))
+        {
+            vector = UpackBUint32(pbuf + FRAMING_VECTOR_ADDR);
+            switch (vector)
+            {
+            case VECTOR_E131_EXTENDED_DISCOVERY:
+                sACNDiscoveryRX::getInstance()->processPacket(pbuf, data.length());
+                break;
+
+            case VECTOR_E131_EXTENDED_SYNCHRONIZATION:
+                sACNSynchronizationRX::getInstance()->processPacket(pbuf, data.length(), destination, sender);
+                break;
+
+            default:
+                qDebug() << "sACNListener" << QThread::currentThreadId() << ": Unknown Extended Packet";
+            }
+        }
         return;
+
     default:
         break;
     }
@@ -310,7 +328,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
             {
                 // This is a source which is coming back online, so we need to repeat the steps
                 // for initial source aquisition
-                ps->active.SetInterval(WAIT_OFFLINE + m_ssHLL);
+                ps->active.SetInterval(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL);
                 ps->lastseq = sequence;
                 ps->src_cid = source_cid;
                 ps->src_valid = true;
@@ -346,7 +364,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
             {
                 //No matter how valid, we got something -- but we'll tweak the interval for any hll change
                 (*it)->doing_dmx = true;
-                (*it)->active.SetInterval(WAIT_OFFLINE + m_ssHLL);
+                (*it)->active.SetInterval(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL);
             }
             else if(start_code == STARTCODE_PRIORITY && (*it)->waited_for_dd)
             {
@@ -388,14 +406,14 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
                 {
                     (*it)->waited_for_dd = true;
                     (*it)->doing_per_channel = true;
-                    (*it)->priority_wait.SetInterval(WAIT_OFFLINE + m_ssHLL);
+                    (*it)->priority_wait.SetInterval(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL);
                     newsourcenotify = true;
                 }
                 else if((*it)->priority_wait.Expired())
                 {
                     (*it)->waited_for_dd = true;
                     (*it)->doing_per_channel = false;
-                    (*it)->priority_wait.SetInterval(WAIT_OFFLINE + m_ssHLL);  //In case the source later decides to sent 0xdd packets
+                    (*it)->priority_wait.SetInterval(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL);  //In case the source later decides to sent 0xdd packets
                     newsourcenotify = true;
                 }
                 else
@@ -422,7 +440,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
         ps->ip = sender;
         ps->universe = universe;
         ps->synchronization = synchronization;
-        ps->active.SetInterval(WAIT_OFFLINE + m_ssHLL);
+        ps->active.SetInterval(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL);
         ps->lastseq = sequence;
         ps->src_cid = source_cid;
         ps->src_valid = true;
@@ -433,7 +451,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
             ps->waited_for_dd = true;
             ps->doing_per_channel = (start_code == STARTCODE_PRIORITY);
             newsourcenotify = true;
-            ps->priority_wait.SetInterval(WAIT_OFFLINE + m_ssHLL);
+            ps->priority_wait.SetInterval(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL);
         }
         else
         {
@@ -560,6 +578,12 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
         {
             emit sourceChanged(ps);
             ps->source_params_change = false;
+        }
+
+        // Listen to synchronization source
+        if (ps->synchronization &&
+                (!ps->sync_listener || ps->sync_listener->universe() != ps->synchronization)) {
+            ps->sync_listener = sACNManager::getInstance()->getListener(ps->synchronization);
         }
 
         // Merge
