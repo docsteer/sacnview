@@ -296,7 +296,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
             decltype(sACNManager::getInstance()->getListenerList()) listenerList
                     = sACNManager::getInstance()->getListenerList();
             if (listenerList.contains(universe))
-                listenerList[universe].data()->processDatagram(data, destination, sender);
+                listenerList[universe].toStrongRef()->processDatagram(data, destination, sender);
             return;
         } else {
             // Log and discard

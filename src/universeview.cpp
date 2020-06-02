@@ -136,7 +136,7 @@ void UniverseView::sourceChanged(sACNSource *source)
 
     int row = m_sourceToTableRow[source];
     ui->twSources->item(row,COL_NAME)->setText(source->name);
-    ui->twSources->item(row,COL_NAME)->setBackgroundColor(Preferences::getInstance()->colorForCID(source->src_cid));
+    ui->twSources->item(row,COL_NAME)->setBackground(Preferences::getInstance()->colorForCID(source->src_cid));
     ui->twSources->item(row,COL_CID)->setText(source->src_cid);
     ui->twSources->item(row,COL_PRIO)->setText(QString::number(source->priority));
 
@@ -169,14 +169,14 @@ void UniverseView::sourceChanged(sACNSource *source)
 
     if (source->src_valid) {
         if (source->doing_dmx) {
-            ui->twSources->item(row,COL_ONLINE)->setBackgroundColor(Qt::green);
+            ui->twSources->item(row,COL_ONLINE)->setBackground(Qt::green);
             ui->twSources->item(row,COL_ONLINE)->setText(tr("Online"));
         } else {
-            ui->twSources->item(row,COL_ONLINE)->setBackgroundColor(Qt::yellow);
+            ui->twSources->item(row,COL_ONLINE)->setBackground(Qt::yellow);
             ui->twSources->item(row,COL_ONLINE)->setText(tr("No DMX"));
         }
     } else {
-        ui->twSources->item(row,COL_ONLINE)->setBackgroundColor(Qt::red);
+        ui->twSources->item(row,COL_ONLINE)->setBackground(Qt::red);
         ui->twSources->item(row,COL_ONLINE)->setText(tr("Offline"));
     }
 

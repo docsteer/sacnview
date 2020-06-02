@@ -157,7 +157,7 @@ void NewVersionDialog::on_btnExitInstall_pressed()
     if (!OS_EXE_HANDLER.isEmpty())
         ok = QProcess::startDetached(OS_EXE_HANDLER, QStringList(m_storagePath));
     else
-        ok = QProcess::startDetached(m_storagePath);
+        ok = QProcess::startDetached(m_storagePath, QStringList());
 
     if(!ok)
         QMessageBox::warning(this, tr("Couldn't Run Installer"), tr("Unable to run installer - please run %1").arg(m_storagePath));

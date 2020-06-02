@@ -86,6 +86,7 @@ INCLUDEPATH += src src/sacn src/sacn/ACNShare
 
 SOURCES += src/main.cpp\
     src/mdimainwindow.cpp \
+    src/qt56.cpp \
     src/sacn/sacnsynchronization.cpp \
     src/sacn/sacnsynclistmodel.cpp \
     src/scopewindow.cpp \
