@@ -58,7 +58,7 @@ void sACNUniverseListModel::setStartUniverse(int start)
     QWriteLocker modelindex_locker(&rwlock_ModelIndex);
 
     // Limit max value
-    static const int startMax = (MAX_SACN_UNIVERSE - Preferences::getInstance()->GetUniversesListed() + 1);
+    const int startMax = (MAX_SACN_UNIVERSE - Preferences::getInstance()->GetUniversesListed() + 1);
     if (start > startMax) start = startMax;
 
     beginResetModel();

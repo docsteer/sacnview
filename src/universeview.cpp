@@ -58,6 +58,9 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
 
     ui->btnGo->setEnabled(true);
     ui->btnPause->setEnabled(false);
+    ui->sbUniverse->setMinimum(MIN_SACN_UNIVERSE);
+    ui->sbUniverse->setMaximum(MAX_SACN_UNIVERSE);
+    ui->sbUniverse->setWrapping(true);
     ui->sbUniverse->setEnabled(true);
     ui->sbUniverse->setValue(universe);
 

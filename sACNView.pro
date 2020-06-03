@@ -86,6 +86,7 @@ INCLUDEPATH += src src/sacn src/sacn/ACNShare
 
 SOURCES += src/main.cpp\
     src/mdimainwindow.cpp \
+    src/qspinbox_resizetocontent.cpp \
     src/qt56.cpp \
     src/scopewindow.cpp \
     src/universeview.cpp \
@@ -127,6 +128,7 @@ SOURCES += src/main.cpp\
     src/grideditwidget.cpp
 
 HEADERS += src/mdimainwindow.h \
+    src/qspinbox_resizetocontent.h \
     src/scopewindow.h \
     src/universeview.h \
     src/sacn/ACNShare/CID.h \
