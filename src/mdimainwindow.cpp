@@ -42,7 +42,7 @@ MDIMainWindow::MDIMainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->sbUniverseList->setMinimum(MIN_SACN_UNIVERSE);
-    ui->sbUniverseList->setMaximum(MAX_SACN_UNIVERSE - Preferences::getInstance()->GetUniversesListed() + 1);
+    ui->sbUniverseList->setMaximum(MAX_SACN_UNIVERSE);
     ui->sbUniverseList->setWrapping(true);
     ui->sbUniverseList->setValue(MIN_SACN_UNIVERSE);
 
@@ -125,6 +125,7 @@ void MDIMainWindow::on_btnUnivListForward_pressed()
 
 void MDIMainWindow::on_sbUniverseList_valueChanged(int value)
 {
+    ui->sbUniverseList->setMaximum(MAX_SACN_UNIVERSE - Preferences::getInstance()->GetUniversesListed() + 1);
     if(m_model)
         m_model->setStartUniverse(value);
 }
@@ -309,5 +310,7 @@ void MDIMainWindow::on_pbFewer_clicked()
 void MDIMainWindow::on_pbMore_clicked()
 {
    Preferences::getInstance()->SetUniversesListed(Preferences::getInstance()->GetUniversesListed() + 1);
+   if (ui->sbUniverseList->value() + Preferences::getInstance()->GetUniversesListed() > MAX_SACN_UNIVERSE)
+           ui->sbUniverseList->setValue(ui->sbUniverseList->value() - 1);
    on_sbUniverseList_valueChanged(ui->sbUniverseList->value());
 }

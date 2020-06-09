@@ -29,6 +29,7 @@ win32 {
 
     # Pull Breakpad dependencies
     system(mklink /j $$shell_quote($${BREAKPAD_PATH_TEMP}) $$shell_quote($${BREAKPAD_PATH}))
+    system(pushd $$shell_quote($${DEPOT_TOOLS_PATH}) && git reset --hard && git checkout master && git pull && git reset --hard && popd)
     system(cmd /c for %A in ($$shell_quote($${DEPOT_TOOLS_PATH})) do %~sA\update_depot_tools.bat)
     system(cd $${LIBS_PATH} && cmd /c for %A in ($$shell_quote($${DEPOT_TOOLS_PATH})) do %~sA\gclient sync)
     system(rd $$shell_quote($${BREAKPAD_PATH_TEMP}) /Q)

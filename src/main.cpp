@@ -122,12 +122,18 @@ int main(int argc, char *argv[])
         newInterface = true;
     }
 
+    // Setup theme
+    switch (Preferences::getInstance()->GetTheme()) {
+        case Preferences::THEME_DARK:
+            QApplication::setStyle(new DarkStyle);
+            break;
 
-    a.setStyle(QStyleFactory::create("Fusion"));
-    if(Preferences::getInstance()->GetTheme() == Preferences::THEME_DARK)
-    {
-        a.setStyle(new DarkStyle);
+        case Preferences::THEME_LIGHT:
+        default:
+            QApplication::setStyle(QStyleFactory::create("Fusion"));
+            break;
     }
+    QApplication::setPalette(QApplication::style()->standardPalette());
 
 
     // Changed to heap rather than stack,
