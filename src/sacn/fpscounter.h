@@ -3,37 +3,39 @@
 
 #include <QObject>
 #include <QList>
-#include <QTimer>
+#include <QElapsedTimer>
 #include <QMutexLocker>
 
-class fpsCounter : public QObject
+class FpsCounter : public QObject
 {
     Q_OBJECT
 public:
-    explicit fpsCounter(QObject *parent = nullptr);
+    explicit FpsCounter(QObject *parent = nullptr);
+    ~FpsCounter();
 
     // Return current FPS
-    float FPS() { newFps = false; return currentFps;}
+    float FPS() const { newFps = false; return currentFps;}
 
     // Returns true if FPS has changed since last checked
-    bool isNewFPS() { return newFps; }
+    bool isNewFPS() const { return newFps; }
 
     // Log new frame
     void newFrame();
 
-private slots:
-    void updateFPS();
+protected:
+    void timerEvent(QTimerEvent *e) final;
 
 private:
-    typedef time_t quint64;
+    QElapsedTimer elapsedTimer;
+    int timerId = 0;
 
-    float currentFps;
-    float previousFps;
-    bool newFps;
+    float currentFps = 0.0f;
+    float previousFps = 0.0f;
+    mutable bool newFps = false;
 
     QMutex queueMutex;
-    QList<time_t> frameTimes;
-    time_t lastTime;
+    QVector<qint64> frameTimes;
+    qint64 lastTime = 0;
 };
 
 #endif // FPSCounter_H
