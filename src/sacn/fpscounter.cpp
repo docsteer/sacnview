@@ -2,10 +2,7 @@
 
 #define updateInterval 1000
 
-FpsCounter::FpsCounter(QObject *parent) : QObject(parent),
-    currentFps(0),
-    previousFps(0),
-    lastTime(0)
+FpsCounter::FpsCounter(QObject *parent) : QObject(parent)
 {
     // Maximum fps permitted by standard is 44, so this should never reallocate
     frameTimes.reserve(50);
@@ -36,31 +33,36 @@ void FpsCounter::timerEvent(QTimerEvent * /*e*/)
             currentFps = 0;
         }
     } else {
-        if (lastTime == 0)
-            lastTime = frameTimes.takeFirst();
+        // Calculate average of the intervals
+        qint64 intervalTotal = 0;
+        qint64 intervalCount = 0;
 
-        // Create list of all intervals
-        QList<qint64> intervals;
-        while (frameTimes.count())
+        int frameIndex = 0;
+        if (lastFrameTime == 0)
         {
-            auto time = frameTimes.takeFirst();
+            lastFrameTime = frameTimes[0];
+            frameIndex = 1;
+        }
 
-            if (time > lastTime)
+        for (/* init above */ ; frameIndex < frameTimes.count() ; ++frameIndex)
+        {
+            auto time = frameTimes[frameIndex];
+
+            if (time > lastFrameTime)
             {
-                intervals << time - lastTime;
-                lastTime = time;
+                auto interval = time - lastFrameTime;
+                lastFrameTime = time;
+                intervalTotal += interval;
+                ++intervalCount;
             }
         }
 
-        if (intervals.isEmpty()) return;
+        frameTimes.clear();
 
-        // Calculate average of the intervals
-        qint64 intervalTotal = 0;
-        for (auto interval: intervals)
-        {
-            intervalTotal += interval;
-        }
-        auto intervalAvg = intervalTotal / intervals.count();
+        if (intervalCount == 0)
+            return;
+
+        auto intervalAvg = intervalTotal / intervalCount;
 
         // Calculate the current FPS
         previousFps = currentFps;
@@ -73,6 +75,8 @@ void FpsCounter::timerEvent(QTimerEvent * /*e*/)
 
 void FpsCounter::newFrame()
 {
+    qint64 elapsedTime = elapsedTimer.elapsed();
     QMutexLocker queueLocker(&queueMutex);
-    frameTimes.append(elapsedTimer.elapsed());
+    frameTimes.append(elapsedTime);
+    // TODO: Consider using an IIR filter to produce a rolling average
 }

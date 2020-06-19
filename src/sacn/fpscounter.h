@@ -35,7 +35,7 @@ private:
 
     QMutex queueMutex;
     QVector<qint64> frameTimes;
-    qint64 lastTime = 0;
+    qint64 lastFrameTime = 0;
 };
 
 #endif // FPSCounter_H
