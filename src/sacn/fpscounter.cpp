@@ -1,60 +1,68 @@
 #include "fpscounter.h"
-#include <QDateTime>
 
 #define updateInterval 1000
 
-fpsCounter::fpsCounter(QObject *parent) : QObject(parent),
-    currentFps(0),
-    previousFps(0),
-    lastTime(0)
+FpsCounter::FpsCounter(QObject *parent) : QObject(parent)
 {
-    QTimer *timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(updateFPS()));
-    timer->start(updateInterval);
+    // Maximum fps permitted by standard is 44, so this should never reallocate
+    frameTimes.reserve(50);
+    elapsedTimer.start();
+    timerId = startTimer(updateInterval);
 }
 
-void fpsCounter::updateFPS()
+FpsCounter::~FpsCounter()
+{
+    if (timerId != 0)
+        killTimer(timerId);
+}
+
+void FpsCounter::timerEvent(QTimerEvent * /*e*/)
 {
     QMutexLocker queueLocker(&queueMutex);
 
-    // We need at least two frame to calculate interval
-    if (frameTimes.count() < 2)
+    // We need at least two frames to calculate interval
+    if (Q_UNLIKELY(frameTimes.count() < 2))
     {
         // No frames, or very old single frame
         if (
-                (frameTimes.count() == 0) ||
-                ((frameTimes.count() == 1) && (QDateTime::currentMSecsSinceEpoch() > (frameTimes.back() + (updateInterval * 2))))
+            (frameTimes.count() == 0) ||
+            ((frameTimes.count() == 1) && (elapsedTimer.elapsed() > (frameTimes.back() + (updateInterval * 2))))
             )
         {
             previousFps = currentFps;
             currentFps = 0;
         }
     } else {
-        if (lastTime == 0)
-            lastTime = frameTimes.takeFirst();
+        // Calculate average of the intervals
+        qint64 intervalTotal = 0;
+        qint64 intervalCount = 0;
 
-        // Create list of all intervals
-        QList<time_t> intervals;
-        while (frameTimes.count())
+        int frameIndex = 0;
+        if (lastFrameTime == 0)
         {
-            auto time = frameTimes.takeFirst();
+            lastFrameTime = frameTimes[0];
+            frameIndex = 1;
+        }
 
-            if (time > lastTime)
+        for (/* init above */ ; frameIndex < frameTimes.count() ; ++frameIndex)
+        {
+            auto time = frameTimes[frameIndex];
+
+            if (time > lastFrameTime)
             {
-                intervals << time - lastTime;
-                lastTime = time;
+                auto interval = time - lastFrameTime;
+                lastFrameTime = time;
+                intervalTotal += interval;
+                ++intervalCount;
             }
         }
 
-        if (intervals.isEmpty()) return;
+        frameTimes.clear();
 
-        // Calculate average of the intervals
-        time_t intervalTotal = 0;
-        for (auto interval: intervals)
-        {
-            intervalTotal += interval;
-        }
-        auto intervalAvg = intervalTotal / intervals.count();
+        if (intervalCount == 0)
+            return;
+
+        auto intervalAvg = intervalTotal / intervalCount;
 
         // Calculate the current FPS
         previousFps = currentFps;
@@ -65,8 +73,10 @@ void fpsCounter::updateFPS()
     newFps = ((previousFps < currentFps) | (previousFps > currentFps));
 }
 
-void fpsCounter::newFrame()
+void FpsCounter::newFrame()
 {
+    qint64 elapsedTime = elapsedTimer.elapsed();
     QMutexLocker queueLocker(&queueMutex);
-    frameTimes.append(QDateTime::currentMSecsSinceEpoch());
+    frameTimes.append(elapsedTime);
+    // TODO: Consider using an IIR filter to produce a rolling average
 }
