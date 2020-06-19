@@ -2,7 +2,7 @@
 #define FPSCounter_H
 
 #include <QObject>
-#include <QList>
+#include <QVector>
 #include <QElapsedTimer>
 #include <QMutexLocker>
 
