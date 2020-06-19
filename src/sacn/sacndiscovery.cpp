@@ -235,8 +235,8 @@ void sACNDiscoveryRX::processPacket(quint8* pbuf, uint buflen)
     QMutexLocker locker(m_mutex);
 
     // Check length
-    if (!(buflen > E131_UNIVERSE_DISCOVERY_SIZE_MIN) ||
-        !(buflen < E131_UNIVERSE_DISCOVERY_SIZE_MAX)) return;
+    if (!(buflen >= E131_UNIVERSE_DISCOVERY_SIZE_MIN) ||
+        !(buflen <= E131_UNIVERSE_DISCOVERY_SIZE_MAX)) return;
 
     // Root Layer
     if (RLP_PREAMBLE_SIZE != UpackBUint16(pbuf + PREAMBLE_SIZE_ADDR)) return;
@@ -270,15 +270,21 @@ void sACNDiscoveryRX::processPacket(quint8* pbuf, uint buflen)
     pageCount = UpackBUint8(pbuf + DISCO_LAST_PAGE_ADDR);
     Q_UNUSED(pageNum);
     Q_UNUSED(pageCount);
-    for (quint16 n = 0; n < buflen - DISCO_LIST_UNIVERSE_ADDR; n += sizeof(quint16))
+    if(buflen != E131_UNIVERSE_DISCOVERY_SIZE_MIN)
     {
-        quint16 universe = UpackBUint16(pbuf + DISCO_LIST_UNIVERSE_ADDR + n);
-        if (!m_discoveryList[cid]->Universe.contains(universe))
+        for (quint16 n = 0; n < buflen - DISCO_LIST_UNIVERSE_ADDR; n += sizeof(quint16))
         {
-            qDebug() << "DiscoveryRX : New universe - CID" << CID::CIDIntoQString(cid) << ", universe" << universe;
-            emit newUniverse(CID::CIDIntoQString(cid), universe);
+            quint16 universe = UpackBUint16(pbuf + DISCO_LIST_UNIVERSE_ADDR + n);
+            if (!m_discoveryList[cid]->Universe.contains(universe))
+            {
+                qDebug() << "DiscoveryRX : New universe - CID" << CID::CIDIntoQString(cid) << ", universe" << universe;
+                emit newUniverse(CID::CIDIntoQString(cid), universe);
+            }
+            m_discoveryList[cid]->Universe[universe].SetInterval(E131_UNIVERSE_DISCOVERY_INTERVAL);
         }
-        m_discoveryList[cid]->Universe[universe].SetInterval(E131_UNIVERSE_DISCOVERY_INTERVAL);
     }
-
+    else
+    {
+        qDebug() << "DiscoveryRX : Discovery packet received with empty universe list - CID" << CID::CIDIntoQString(cid);
+    }
 }
