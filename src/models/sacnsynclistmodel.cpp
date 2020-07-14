@@ -70,16 +70,12 @@ quint16 sACNSyncListModel::indexToUniverse(const QModelIndex &index)
     if(!index.isValid())
         return 0;
 
-    auto item = static_cast<class item*>(index.internalPointer());
-    if(!item)
+    bool ok = false;
+    quint16 universe = index.data(sACNSyncListModel::Roles::Universe).toUInt(&ok);
+    if (ok)
+        return universe;
+    else
         return 0;
-
-    if (item->type() == itemType_SyncAddress_Synced_Universe)
-        return static_cast<item_SyncAddress_Synced_Universe*>(item)->universe();
-    if (item->type() == itemType_SyncAddress_Synced_Universe_Source)
-        return static_cast<item_SyncAddress_Synced_Universe_Source*>(item)->source()->universe;
-
-    return 0;
 }
 
 QVariant sACNSyncListModel::data(const QModelIndex &index, int role) const {
@@ -87,7 +83,7 @@ QVariant sACNSyncListModel::data(const QModelIndex &index, int role) const {
     if (!index.isValid())
         return QVariant();
 
-    auto *item = static_cast<struct item*>(index.internalPointer());
+    auto *item = static_cast<class item*>(index.internalPointer());
 
     return item->data(static_cast<Qt::ItemDataRole>(role));
 }
@@ -224,7 +220,7 @@ sACNSyncListModel::item *sACNSyncListModel::item::child(size_t index) const {
     if (index > static_cast<size_t>(m_children.size()))
         return Q_NULLPTR;
 
-    return m_children.at(index);
+    return m_children.at(static_cast<int>(index));
 }
 
 void sACNSyncListModel::item::addChild(item* newItem) {
@@ -588,6 +584,9 @@ QVariant sACNSyncListModel::item_SyncAddress_Synced_Universe::data(Qt::ItemDataR
         case Qt::DisplayRole:
             return QVariant(tr("Universe %1").arg(universe()));
 
+        case static_cast<Qt::ItemDataRole>(Roles::Universe):
+            return universe();
+
         default:
             return QVariant();
     }
@@ -642,6 +641,9 @@ QVariant sACNSyncListModel::item_SyncAddress_Synced_Universe_Source::data(Qt::It
              if (m_source) {
                  return QVariant(QString("CID: %1").arg(m_source->src_cid));
              } return QVariant();
+
+        case static_cast<Qt::ItemDataRole>(Roles::Universe):
+            return m_source->universe;
 
          default:
              return QVariant();

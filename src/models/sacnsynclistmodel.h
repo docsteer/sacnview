@@ -22,6 +22,9 @@ public:
 
     quint16 indexToUniverse(const QModelIndex &index);
 
+    enum Roles {
+        Universe = Qt::UserRole
+    };
     QVariant data(const QModelIndex &index, int role) const override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
     QModelIndex index(int row, int column,
