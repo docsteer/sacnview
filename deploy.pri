@@ -45,8 +45,8 @@ win32 {
         COPIES += LocalDeployPCap
     }
 
-    DEPLOY_COMMAND = windeployqt
-    DEPLOY_OPT = --dir $${DEPLOY_DIR}
+    DEPLOY_COMMAND = $$shell_quote($$system_path($$(QTDIR)/bin/windeployqt))
+    DEPLOY_OPT = --no-angle --no-opengl-sw --dir $${DEPLOY_DIR}
 
     DEPLOY_INSTALLER = makensis /DPRODUCT_VERSION="$${PRODUCT_VERSION}" /DTARGET_WINXP="$${TARGET_WINXP}" $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/win/install.nsi))
 }
