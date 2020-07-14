@@ -503,11 +503,11 @@ QVariant sACNSyncListModel::item_SyncAddress_Source_IP::data(Qt::ItemDataRole ro
 }
 
 // ---------- item_SyncAddress_Source_FPS ----------
-sACNSyncListModel::item_SyncAddress_Source_FPS::item_SyncAddress_Source_FPS(fpsCounter *fps, item *parent) :
+sACNSyncListModel::item_SyncAddress_Source_FPS::item_SyncAddress_Source_FPS(FpsCounter *fps, item *parent) :
     item(parent),
     m_fps(fps)
 {
-    connect(m_fps, &fpsCounter::updatedFPS,
+    connect(m_fps, &FpsCounter::updatedFPS,
             this, [=]()
     {
         auto parentModel = parent->parentModel();

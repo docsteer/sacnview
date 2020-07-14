@@ -190,14 +190,14 @@ private:
 
     class item_SyncAddress_Source_FPS : public item {
     public:
-        item_SyncAddress_Source_FPS(fpsCounter *fps, item *parent);
+        item_SyncAddress_Source_FPS(FpsCounter *fps, item *parent);
 
         itemTypes type() const override { return itemType_SyncAddress_Source_FPS; }
 
         QVariant data(Qt::ItemDataRole role) const override;
 
     private:
-        fpsCounter *m_fps;
+        FpsCounter *m_fps;
     };
 
     class item_SyncAddress_Synced: public item {

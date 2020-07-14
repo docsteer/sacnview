@@ -81,9 +81,9 @@ public:
 
     struct sACNSourceDetail
     {
-        sACNSourceDetail() : sequence(0), fps(new fpsCounter()) {};
+        sACNSourceDetail() : sequence(0), fps(new FpsCounter()) {};
         sACNSourceDetail(QHostAddress sender, quint8 sequence) :
-            sender(sender), sequence(sequence), fps(new fpsCounter()) {}
+            sender(sender), sequence(sequence), fps(new FpsCounter()) {}
         QHostAddress sender;
         ttimer dataLoss;
         sourceSequence sequence;
@@ -95,7 +95,7 @@ public:
         {
             return !operator==(detail);
         }
-        fpsCounter *fps;
+        FpsCounter *fps;
     };
     typedef QHash<CID, sACNSourceDetail> tCIDDetails;
     typedef QHash<tsyncAddress, tCIDDetails> tSynchronizationSources;
