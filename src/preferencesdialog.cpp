@@ -31,20 +31,13 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 
     // Network interfaces
     QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
-    foreach(QNetworkInterface interface, interfaces)
+    for(const QNetworkInterface &interface : interfaces)
     {
         // If the interface is ok for use...
-        if(Preferences::getInstance()->interfaceSuitable(&interface))
+        if(Preferences::getInstance()->interfaceSuitable(interface))
         {
             // List IPv4 Addresses
-            QString ipString;
-            foreach (QNetworkAddressEntry e, interface.addressEntries()) {
-                if (e.ip().protocol() == QAbstractSocket::IPv4Protocol) {
-                    if(!ipString.isEmpty())
-                        ipString.append(",");
-                    ipString.append(e.ip().toString());
-                }
-            }
+            const QString ipString = Preferences::GetIPv4AddressString(interface);
 
             QRadioButton *radio  = new QRadioButton(ui->gbNetworkInterface);
             radio->setText(QString("%1 (%2)")

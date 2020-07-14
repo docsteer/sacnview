@@ -41,17 +41,12 @@
 //Background merge interval
 #define BACKGROUND_MERGE 500
 
-sACNListener::sACNListener(int universe, QObject *parent) : QObject(parent),
-    m_universe(universe),
-    m_ssHLL(1000),
-    m_isSampling(true),
-    m_mergesPerSecond(0)
+sACNListener::sACNListener(int universe, QObject *parent)
+    : QObject(parent)
+    , m_merged_levels(DMX_SLOT_MAX, sACNMergedAddress())
+    , m_universe(universe)
 {
     qRegisterMetaType<QHostAddress>("QHostAddress");
-
-    m_merged_levels.reserve(DMX_SLOT_MAX);
-    for(int i=0; i<DMX_SLOT_MAX; i++)
-        m_merged_levels << sACNMergedAddress();
 }
 
 sACNListener::~sACNListener()
@@ -74,7 +69,7 @@ void sACNListener::startReception()
         for (auto interface : QNetworkInterface::allInterfaces())
         {
             // If the interface is ok for use...
-            if(Preferences::getInstance()->interfaceSuitable(&interface))
+            if(Preferences::getInstance()->interfaceSuitable(interface))
             {
                 startInterface(interface);
             }
@@ -108,7 +103,7 @@ void sACNListener::startReception()
     emit listenerStarted(m_universe);
 }
 
-void sACNListener::startInterface(QNetworkInterface iface)
+void sACNListener::startInterface(const QNetworkInterface &iface)
 {
     m_sockets.push_back(new sACNRxSocket(iface));
     sACNRxSocket::sBindStatus status = m_sockets.back()->bind(m_universe);
@@ -271,7 +266,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
     // Wrong universe
     if(m_universe != universe)
     {
-        // Was it unicast? Send to correct listner (if listening)
+        // Was it unicast? Send to correct listener (if listening)
         if (!destination.isMulticast())
         {
             // Unicast, send to correct listener!

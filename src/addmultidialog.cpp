@@ -181,7 +181,7 @@ void AddMultiDialog::on_slLevel_valueChanged(int value)
     on_slLevel_sliderMoved(value);
 }
 
-void AddMultiDialog::on_dlFadeRate_valueChanged(int value)
+void AddMultiDialog::on_dlFadeRate_valueChanged(int /*value*/)
 {
     qreal rate = FX_FADE_RATES[ui->dlFadeRate->value()];
     ui->lblRate->setText(tr("Fade Rate %1 Hz").arg(rate));
