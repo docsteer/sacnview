@@ -27,7 +27,7 @@
 #include <QStyleFactory>
 #include <QStandardPaths>
 #include "sacnsender.h"
-#include "versioncheck.h"
+#include "newversiondialog.h"
 #include "firewallcheck.h"
 #include "ipc.h"
 #include "theme/darkstyle.h"

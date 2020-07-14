@@ -19,9 +19,9 @@ linux {
     LIBS += -L$${BREAKPAD_PATH}/src/client/linux -lbreakpad_client
 
     HEADERS += src/crash_handler.h \
-        src/crash_test.h
+        src/ui/crash_test.h
     SOURCES += src/crash_handler.cpp \
-        src/crash_test.cpp
+        src/ui/crash_test.cpp
     FORMS += ui/crash_test.ui
 }
 win32 {
@@ -45,13 +45,13 @@ win32 {
         $${BREAKPAD_PATH}/src/client/windows/crash_generation/crash_generation_client.h \
         $${BREAKPAD_PATH}/src/common/scoped_ptr.h \
         src/crash_handler.h \
-        src/crash_test.h
+        src/ui/crash_test.h
     SOURCES += $${BREAKPAD_PATH}/src/client/windows/handler/exception_handler.cc \
         $${BREAKPAD_PATH}/src/common/windows/string_utils.cc \
         $${BREAKPAD_PATH}/src/common/windows/guid_string.cc \
         $${BREAKPAD_PATH}/src/client/windows/crash_generation/crash_generation_client.cc \
         src/crash_handler.cpp \
-        src/crash_test.cpp
+        src/ui/crash_test.cpp
     FORMS += ui/crash_test.ui
 }
 macx {
@@ -60,7 +60,7 @@ macx {
     DEFINES -= USE_BREAKPAD
 }
 
-# Firewall Checker
+    # Firewall Checker
 win32 {
     LIBS += -lole32 -loleaut32
 }
@@ -78,20 +78,24 @@ win32 {
         LIBS += -lwpcap -lPacket
         INCLUDEPATH += $${PCAP_PATH}/Include
 
-        SOURCES += src/pcapplayback.cpp \
-            src/pcapplaybacksender.cpp
-        HEADERS += src/pcapplayback.h \
-            src/pcapplaybacksender.h
+        INCLUDEPATH += src/pcap/
+        SOURCES += src/pcap/pcapplayback.cpp \
+            src/pcap/pcapplaybacksender.cpp
+        HEADERS += src/pcap/pcapplayback.h \
+            src/pcap/pcapplaybacksender.h \
+            src/pcap/ethernetstrut.h
         FORMS += ui/pcapplayback.ui
     }
 }
 !win32 {
     LIBS += -lpcap
 
-    SOURCES += src/pcapplayback.cpp \
-        src/pcapplaybacksender.cpp
-    HEADERS += src/pcapplayback.h \
-        src/pcapplaybacksender.h
+    INCLUDEPATH += src/pcap/
+    SOURCES += src/pcap/pcapplayback.cpp \
+        src/pcap/pcapplaybacksender.cpp
+    HEADERS += src/pcap/pcapplayback.h \
+        src/pcap/pcapplaybacksender.h \
+        src/pcap/ethernetstrut.h
     FORMS += ui/pcapplayback.ui
 }
 
