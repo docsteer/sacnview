@@ -379,7 +379,7 @@ void transmitwindow::on_btnStart_pressed()
         setUniverseOptsEnabled(false);
         on_tabWidget_currentChanged(ui->tabWidget->currentIndex());
 
-        m_sender->setLevel(m_levels.data(), std::min(m_levels.size(), static_cast<size_t>(m_slotCount) - 1));
+        m_sender->setLevel(m_levels.data(), static_cast<int>(std::min(m_levels.size(), static_cast<size_t>(m_slotCount) - 1)));
     }
 
     updateTitle();
@@ -562,7 +562,7 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
         case tabSliders:
         {
             // Reassert fader and programmer levels
-            m_sender->setLevel(m_levels.data(),m_levels.size());
+            m_sender->setLevel(m_levels.data(), static_cast<int>(m_levels.size()));
             ui->teCommandline->setFocus();
             break;
         }
@@ -577,7 +577,7 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
         case tabGrid:
         {
             // Reassert levels
-            m_sender->setLevel(m_levels.data(),m_levels.size());
+            m_sender->setLevel(m_levels.data(), static_cast<int>(m_levels.size()));
             break;
     }
 }
@@ -700,7 +700,7 @@ void transmitwindow::presetButtonPressed()
     if(m_recordMode)
     {
         // Record a preset
-        Preferences::getInstance()->SetPreset(QByteArray(reinterpret_cast<const char*>(m_levels.data()), m_levels.size()), index);
+        Preferences::getInstance()->SetPreset(QByteArray(reinterpret_cast<const char*>(m_levels.data()), static_cast<int>(m_levels.size())), index);
         m_recordMode = false;
 
         foreach(QToolButton *btn, m_presetButtons)

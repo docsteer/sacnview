@@ -37,8 +37,9 @@ public:
     ~UniverseView();
     void startListening(int universe);
 protected slots:
-    void on_btnGo_pressed();
-    void on_btnPause_pressed();
+    void refreshTitle();
+    void on_btnGo_clicked();
+    void on_btnPause_clicked();
     void sourceOnline(sACNSource *source);
     void sourceOffline(sACNSource *source);
     void sourceChanged(sACNSource *source);
@@ -46,9 +47,10 @@ protected slots:
     void selectedAddressChanged(int address);
     void selectedAddressesChanged(QList<int> addresses);
     void openBigDisplay(quint16 address);
-    void on_btnStartFlickerFinder_pressed();
-    void on_btnLogWindow_pressed();
+    void on_btnStartFlickerFinder_clicked();
+    void on_btnLogWindow_clicked();
     void listenerStarted(int universe);
+
 protected:
     virtual void resizeEvent(QResizeEvent *event);
     virtual void showEvent(QShowEvent *event);
@@ -76,12 +78,12 @@ private:
     bool m_bindWarningShown = false;
     void checkBind();
 
-    Ui::UniverseView *ui;
+    Ui::UniverseView *ui = nullptr;
     QHash<sACNSource *, int> m_sourceToTableRow;
-    int m_selectedAddress;
+    int m_selectedAddress = -1;
     sACNManager::tListener m_listener;
-    QWidget *m_parentWindow;
-    bool m_displayDDOnlySource;
+    QWidget *m_parentWindow = nullptr;
+    bool m_displayDDOnlySource = true;
 };
 
 #endif // UNIVERSEVIEW_H

@@ -134,7 +134,7 @@ public:
     sACNManager::tListener sync_listener;
     QString name;
     QHostAddress ip;
-    fpsCounter fpscounter;
+    FpsCounter fpscounter;
     // The number of sequence errors from this source
     int seqErr;
     // The number of jumps (increments by anything other than 1) of this source

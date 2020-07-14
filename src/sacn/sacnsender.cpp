@@ -512,7 +512,7 @@ bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_nam
     {
         // Allocate a new universe
         struct universe tmp;
-        handle = m_multiverse.size();
+        handle = static_cast<uint>(m_multiverse.size());
         m_multiverse.push_back(tmp);
     }
 

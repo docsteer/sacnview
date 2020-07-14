@@ -80,102 +80,107 @@ include(libs.pri)
 
 ## Project includes
 
-INCLUDEPATH += src src/sacn src/sacn/ACNShare
+INCLUDEPATH += src \
+    src/sacn src/sacn/ACNShare \
+    src/widgets \
+    src/models \
+    src/ui
 
 ## Sources
 
 SOURCES += src/main.cpp\
-    src/mdimainwindow.cpp \
+    src/qspinbox_resizetocontent.cpp \
     src/qt56.cpp \
+    src/ui/newversiondialog.cpp \
+    src/ui/mdimainwindow.cpp \
+    src/ui/scopewindow.cpp \
+    src/ui/universeview.cpp \
     src/sacn/sacnsynchronization.cpp \
     src/sacn/sacnsynclistmodel.cpp \
-    src/scopewindow.cpp \
-    src/universeview.cpp \
     src/sacn/ACNShare/CID.cpp \
     src/sacn/ACNShare/ipaddr.cpp \
     src/sacn/ACNShare/tock.cpp \
     src/sacn/ACNShare/VHD.cpp \
     src/sacn/streamcommon.cpp \
-    src/nicselectdialog.cpp \
+    src/ui/nicselectdialog.cpp \
     src/sacn/streamingacn.cpp \
-    src/preferencesdialog.cpp \
+    src/ui/preferencesdialog.cpp \
     src/preferences.cpp \
     src/sacn/sacnlistener.cpp \
-    src/universedisplay.cpp \
-    src/transmitwindow.cpp \
+    src/widgets/universedisplay.cpp \
+    src/ui/transmitwindow.cpp \
     src/sacn/sacnsender.cpp \
-    src/configureperchanpriodlg.cpp \
-    src/gridwidget.cpp \
-    src/scopewidget.cpp \
-    src/aboutdialog.cpp \
+    src/ui/configureperchanpriodlg.cpp \
+    src/widgets/gridwidget.cpp \
+    src/widgets/scopewidget.cpp \
+    src/ui/aboutdialog.cpp \
     src/sacn/sacneffectengine.cpp \
-    src/sacn/sacnuniverselistmodel.cpp \
-    src/snapshot.cpp \
+    src/models/sacnuniverselistmodel.cpp \
+    src/ui/snapshot.cpp \
     src/commandline.cpp \
-    src/multiuniverse.cpp \
-    src/flickerfinderinfoform.cpp \
+    src/ui/multiuniverse.cpp \
+    src/ui/flickerfinderinfoform.cpp \
     src/sacn/sacnsocket.cpp \
-    src/logwindow.cpp \
-    src/versioncheck.cpp \
-    src/sacn/firewallcheck.cpp \
-    src/bigdisplay.cpp \
-    src/addmultidialog.cpp \
+    src/ui/logwindow.cpp \
+    src/firewallcheck.cpp \
+    src/ui/bigdisplay.cpp \
+    src/ui/addmultidialog.cpp \
     src/theme/darkstyle.cpp \
     src/ipc.cpp \
     src/sacn/sacndiscovery.cpp \
-    src/sacn/sacndiscoveredsourcelistmodel.cpp \
-    src/clssnapshot.cpp \
+    src/models/sacndiscoveredsourcelistmodel.cpp \
+    src/widgets/clssnapshot.cpp \
     src/sacn/fpscounter.cpp \
-    src/grideditwidget.cpp
+    src/widgets/grideditwidget.cpp
 
-HEADERS += src/mdimainwindow.h \
+HEADERS += src/ui/mdimainwindow.h \
+    src/qspinbox_resizetocontent.h \
+    src/ui/newversiondialog.h \
+    src/ui/scopewindow.h \
+    src/ui/universeview.h \
     src/sacn/sacnsynchronization.h \
     src/sacn/sacnsynclistmodel.h \
-    src/scopewindow.h \
-    src/universeview.h \
     src/sacn/ACNShare/CID.h \
     src/sacn/ACNShare/defpack.h \
     src/sacn/ACNShare/ipaddr.h \
     src/sacn/ACNShare/tock.h \
     src/sacn/ACNShare/VHD.h \
     src/sacn/streamcommon.h \
-    src/nicselectdialog.h \
+    src/ui/nicselectdialog.h \
     src/sacn/streamingacn.h \
-    src/preferencesdialog.h \
+    src/ui/preferencesdialog.h \
     src/preferences.h \
     src/sacn/sacnlistener.h \
-    src/universedisplay.h \
-    src/transmitwindow.h \
+    src/widgets/universedisplay.h \
+    src/ui/transmitwindow.h \
     src/consts.h \
     src/sacn/sacnsender.h \
-    src/configureperchanpriodlg.h \
-    src/gridwidget.h \
-    src/scopewidget.h \
-    src/aboutdialog.h \
+    src/ui/configureperchanpriodlg.h \
+    src/widgets/gridwidget.h \
+    src/widgets/scopewidget.h \
+    src/ui/aboutdialog.h \
     src/sacn/sacneffectengine.h \
-    src/sacn/sacnuniverselistmodel.h \
-    src/snapshot.h \
+    src/models/sacnuniverselistmodel.h \
+    src/ui/snapshot.h \
     src/commandline.h \
     src/fontdata.h \
-    src/multiuniverse.h \
-    src/flickerfinderinfoform.h \
+    src/ui/multiuniverse.h \
+    src/ui/flickerfinderinfoform.h \
     src/sacn/sacnsocket.h \
-    src/logwindow.h \
-    src/versioncheck.h \
-    src/sacn/firewallcheck.h \
-    src/bigdisplay.h \ 
-    src/addmultidialog.h \
-    src/ethernetstrut.h \
+    src/ui/logwindow.h \
+    src/firewallcheck.h \
+    src/ui/bigdisplay.h \
+    src/ui/addmultidialog.h \
     src/theme/darkstyle.h \
     src/xpwarning.h \
     src/sacn/e1_11.h \
     src/ipc.h \
     src/qt56.h \
     src/sacn/sacndiscovery.h \
-    src/sacn/sacndiscoveredsourcelistmodel.h \
-    src/clssnapshot.h \
+    src/models/sacndiscoveredsourcelistmodel.h \
+    src/widgets/clssnapshot.h \
     src/sacn/fpscounter.h \
-    src/grideditwidget.h
+    src/widgets/grideditwidget.h
 
 FORMS += ui/mdimainwindow.ui \
     ui/scopewindow.ui \

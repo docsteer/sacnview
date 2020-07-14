@@ -20,11 +20,7 @@
 UniverseDisplay::UniverseDisplay(QWidget *parent)
     : GridWidget(parent)
     , m_sources(MAX_DMX_ADDRESS, sACNMergedAddress())
-    , m_flickerFinder(false)
-    , m_showChannelPriority(false)
 {
-    memset(m_flickerFinderLevels, 0, MAX_DMX_ADDRESS);
-    memset(m_flickerFinderHasChanged, 0, MAX_DMX_ADDRESS);
 }
 
 void UniverseDisplay::setShowChannelPriority(bool enable)
@@ -40,9 +36,15 @@ void UniverseDisplay::setShowChannelPriority(bool enable)
 
 void UniverseDisplay::setUniverse(int universe)
 {
-    m_listener = sACNManager::getInstance()->getListener(universe);
-    connect(m_listener.data(), SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
+    // Don't search if we have already found, eg pause-continue
+    if (!(m_listener && m_listener->universe() == universe))
+    {
+        m_listener = sACNManager::getInstance()->getListener(universe);
+    }
+
+    connect(m_listener.data(), &sACNListener::levelsChanged, this, &UniverseDisplay::levelsChanged);
     levelsChanged();
+    emit universeChanged();
 }
 
 void UniverseDisplay::pause()
@@ -52,14 +54,14 @@ void UniverseDisplay::pause()
 
 void UniverseDisplay::levelsChanged()
 {
-    if(!m_listener)
+    if (!m_listener)
         return;
 
-    Preferences *p = Preferences::getInstance();
+    const Preferences *p = Preferences::getInstance();
     m_sources = m_listener->mergedLevels();
-    for(int i=0; i<m_sources.count(); i++)
+    for (int i = 0; i < m_sources.count(); ++i)
     {
-        if(m_sources[i].winningSource && i < m_sources[i].winningSource->slot_count)
+        if (m_sources[i].winningSource && i < m_sources[i].winningSource->slot_count)
         {
             QString cellText(p->GetFormattedValue(m_sources[i].level));
             if (m_showChannelPriority)
@@ -106,11 +108,12 @@ void UniverseDisplay::levelsChanged()
 
 void UniverseDisplay::setFlickerFinder(bool on)
 {
-    if(!m_listener) return;
+    if (!m_listener)
+        return;
     m_flickerFinder = on;
-    if(on)
+    if (on)
     {
-        for(int i=0; i<MAX_DMX_ADDRESS; i++)
+        for (int i = 0; i < MAX_DMX_ADDRESS; ++i)
         {
             m_flickerFinderLevels[i] = m_listener->mergedLevels().at(i).level;
             m_flickerFinderHasChanged[i] = false;
@@ -122,4 +125,6 @@ void UniverseDisplay::setFlickerFinder(bool on)
         levelsChanged();
     }
     update();
+
+    emit flickerFinderChanged();
 }

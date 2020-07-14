@@ -60,7 +60,7 @@ public:
      * @brief universe
      * @return the universe which this listener is listening for
      */
-    int universe() {return m_universe;}
+    int universe() const { return m_universe; }
     /**
      * @brief mergedLevels
      * @return an sACNMergerdSourceList, a list of merged address structures, allowing you to see
@@ -71,7 +71,7 @@ public:
         return m_merged_levels;
     }
 
-    int sourceCount() const { return m_sources.size();}
+    int sourceCount() const { return static_cast<int>(m_sources.size()); }
     sACNSource *source(int index) { return m_sources[index];}
     const std::vector<sACNSource*> getSourceList() const { return m_sources; }
 
@@ -84,13 +84,13 @@ public:
 
     // Diagnostic - the number of merge operations per second
 
-    int mergesPerSecond() { return (m_mergesPerSecond > 0) ? m_mergesPerSecond : 0;}
+    int mergesPerSecond() const { return (m_mergesPerSecond > 0) ? m_mergesPerSecond : 0;}
 
     /**
      *  @brief getBindStatus Get interface bind status of listener
      *  @return A struct of bind types and status
      */
-    sACNRxSocket::sBindStatus getBindStatus() { return m_bindStatus; }
+    sACNRxSocket::sBindStatus getBindStatus() const { return m_bindStatus; }
 
 public slots:
     void startReception();
@@ -110,14 +110,16 @@ signals:
     void sourceChanged(sACNSource *source);
     void levelsChanged();
     void dataReady(int address, QPointF data);
+
 private slots:
     void readPendingDatagrams();
     void performMerge();
     void checkSourceExpiration();
     void sampleExpiration();
+
 private:
     QMutex m_processMutex;
-    void startInterface(QNetworkInterface iface);
+    void startInterface(const QNetworkInterface &iface);
     std::list<sACNRxSocket *> m_sockets;
     std::vector<sACNSource *> m_sources;
     int m_last_levels[MAX_DMX_ADDRESS];
@@ -125,17 +127,17 @@ private:
     QMutex m_merged_levelsMutex;
     int m_universe;
     // The per-source hold last look time
-    int m_ssHLL;
+    int m_ssHLL = 1000;
     // Are we in the initial sampling state
-    bool m_isSampling;
-    QTimer *m_initalSampleTimer;
-    QTimer *m_mergeTimer;
+    bool m_isSampling = true;
+    QTimer *m_initalSampleTimer = nullptr;
+    QTimer *m_mergeTimer = nullptr;
     QElapsedTimer m_elapsedTime;
     int m_predictableTimerValue;
     QMutex m_monitoredChannelsMutex;
     QSet<int> m_monitoredChannels;
     bool m_mergeAll; // A flag to initiate a complete remerge of everything
-    unsigned int m_mergesPerSecond;
+    unsigned int m_mergesPerSecond = 0;
     int m_mergeCounter;
     QElapsedTimer m_mergesPerSecondTimer;
 

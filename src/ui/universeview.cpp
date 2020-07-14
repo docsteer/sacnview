@@ -42,22 +42,25 @@ QString protocolVerToString(int value)
 UniverseView::UniverseView(int universe, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::UniverseView),
-    m_selectedAddress(-1),
-    m_parentWindow(parent) // needed as parent() in qobject world isn't..
+    m_parentWindow(parent), // needed as parent() in qobject world isn't..
+    m_displayDDOnlySource(Preferences::getInstance()->GetDisplayDDOnly())
 {
-    m_displayDDOnlySource = Preferences::getInstance()->GetDisplayDDOnly();
-
     ui->setupUi(this);
-    connect(ui->universeDisplay, SIGNAL(selectedCellsChanged(QList<int>)), this, SLOT(selectedAddressesChanged(QList<int>)));
-    connect(ui->universeDisplay, SIGNAL(cellDoubleClick(quint16)), this, SLOT(openBigDisplay(quint16)));
+    UniverseDisplay *univDisplay = ui->universeDisplay;
+    connect(univDisplay, SIGNAL(selectedCellsChanged(QList<int>)), this, SLOT(selectedAddressesChanged(QList<int>)));
+    connect(univDisplay, SIGNAL(cellDoubleClick(quint16)), this, SLOT(openBigDisplay(quint16)));
 
-    connect(ui->btnShowPriority, &QPushButton::toggled,
-            ui->universeDisplay, &UniverseDisplay::setShowChannelPriority);
-    connect(ui->universeDisplay, &UniverseDisplay::showChannelPriorityChanged,
-            ui->btnShowPriority, &QPushButton::setChecked);
+    connect(ui->btnShowPriority, &QPushButton::toggled, univDisplay, &UniverseDisplay::setShowChannelPriority);
+    connect(univDisplay, &UniverseDisplay::showChannelPriorityChanged, ui->btnShowPriority, &QPushButton::setChecked);
+
+    connect(univDisplay, &UniverseDisplay::universeChanged, this, &UniverseView::refreshTitle);
+    connect(univDisplay, &UniverseDisplay::flickerFinderChanged, this, &UniverseView::refreshTitle);
 
     ui->btnGo->setEnabled(true);
     ui->btnPause->setEnabled(false);
+    ui->sbUniverse->setMinimum(MIN_SACN_UNIVERSE);
+    ui->sbUniverse->setMaximum(MAX_SACN_UNIVERSE);
+    ui->sbUniverse->setWrapping(true);
     ui->sbUniverse->setEnabled(true);
     ui->sbUniverse->setValue(universe);
 
@@ -95,7 +98,24 @@ void UniverseView::startListening(int universe)
         ui->sbUniverse->setValue(universe);
 }
 
-void UniverseView::on_btnGo_pressed()
+void UniverseView::refreshTitle()
+{
+    if (!m_listener)
+    {
+        setWindowTitle(tr("Universe View"));
+        return;
+    }
+
+    int universe = m_listener->universe();
+    bool flicker = ui->universeDisplay->getFlickerFinder();
+
+    if (flicker)
+        setWindowTitle(tr("Universe %1 Flicker").arg(universe));
+    else
+        setWindowTitle(tr("Universe %1 View").arg(universe));
+}
+
+void UniverseView::on_btnGo_clicked()
 {
     startListening(ui->sbUniverse->value());
 }
@@ -125,8 +145,10 @@ void UniverseView::listenerStarted(int universe)
 
 void UniverseView::sourceChanged(sACNSource *source)
 {
-    if(!m_listener) return;
-    if(!m_sourceToTableRow.contains(source))
+    if (!m_listener)
+        return;
+
+    if (!m_sourceToTableRow.contains(source))
     {
         return;
     }
@@ -187,7 +209,8 @@ void UniverseView::sourceChanged(sACNSource *source)
 
 void UniverseView::sourceOnline(sACNSource *source)
 {
-    if(!m_listener) return;
+    if (!m_listener)
+        return;
 
     // Display sources that only transmit 0xdd?
     if (!m_displayDDOnlySource && !source->doing_dmx) { return; }
@@ -262,14 +285,16 @@ void UniverseView::sourceOnline(sACNSource *source)
 
 void UniverseView::sourceOffline(sACNSource *source)
 {
-    if(!m_listener) return;
+    if (!m_listener)
+        return;
     sourceChanged(source);
 }
 
 void UniverseView::levelsChanged()
 {
-    if(!m_listener) return;
-    if(m_selectedAddress>-1)
+    if (!m_listener)
+        return;
+    if (m_selectedAddress>-1)
         selectedAddressChanged(m_selectedAddress);
 }
 
@@ -294,7 +319,7 @@ void UniverseView::resizeColumns()
     int widthUnit = width/14;
 
     int used = 0;
-    for(int i=COL_NAME; i<COL_END; i++)
+    for (int i = COL_NAME; i < COL_END; ++i)
     {
         switch(i)
         {
@@ -372,7 +397,7 @@ void UniverseView::openBigDisplay(quint16 address)
     mainWindow->showWidgetAsMdiWindow(w);
 }
 
-void UniverseView::on_btnPause_pressed()
+void UniverseView::on_btnPause_clicked()
 {
     ui->universeDisplay->pause();
     this->disconnect(m_listener.data());
@@ -380,11 +405,13 @@ void UniverseView::on_btnPause_pressed()
     ui->btnPause->setEnabled(false);
     ui->sbUniverse->setEnabled(true);
     m_bindWarningShown = false;
+
+    setWindowTitle(tr("Universe View"));
 }
 
-void UniverseView::on_btnStartFlickerFinder_pressed()
+void UniverseView::on_btnStartFlickerFinder_clicked()
 {
-    if(ui->universeDisplay->flickerFinder())
+    if(ui->universeDisplay->getFlickerFinder())
     {
         ui->universeDisplay->setFlickerFinder(false);
         ui->btnStartFlickerFinder->setText(tr("Start Flicker Finder"));
@@ -403,10 +430,11 @@ void UniverseView::on_btnStartFlickerFinder_pressed()
 }
 
 
-void UniverseView::on_btnLogWindow_pressed()
+void UniverseView::on_btnLogWindow_clicked()
 {
-    MDIMainWindow *mainWindow = dynamic_cast<MDIMainWindow *>(m_parentWindow);
-    if(!mainWindow) return;
+    MDIMainWindow *mainWindow = qobject_cast<MDIMainWindow *>(m_parentWindow);
+    if (!mainWindow)
+        return;
     LogWindow *w = new LogWindow(ui->sbUniverse->value(),mainWindow);
     mainWindow->showWidgetAsMdiWindow(w);
 }

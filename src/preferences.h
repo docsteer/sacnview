@@ -96,15 +96,16 @@ public:
      * is available
      * @return true/false
      */
-    bool defaultInterfaceAvailable();
+    bool defaultInterfaceAvailable() const;
 
     /**
      * @brief interfaceSuitable - returns whether the interface is suitable for sACN
      * @param inter - the interface to check
      * @return true/false
      */
-    bool interfaceSuitable(QNetworkInterface *inter);
+    bool interfaceSuitable(const QNetworkInterface &iface) const;
 
+    static QString GetIPv4AddressString(const QNetworkInterface &inter);
 
     QColor colorForCID(const CID &cid);
 
@@ -112,39 +113,39 @@ public:
     void SetDisplayFormat(unsigned int nDisplayFormat);
     void SetBlindVisualizer (bool bBlindVisualizer);
     void SetDisplayDDOnly (bool bDDOnly);
-    void SetDefaultTransmitName (QString sDefaultTransmitName);
+    void SetDefaultTransmitName (const QString &sDefaultTransmitName);
     void SetNumSecondsOfSacn (int nNumSecondsOfSacn);
     void setFlickerFinderShowInfo(bool showIt);
     void SetPreset(const QByteArray &data, int index);
     void SetSaveWindowLayout(bool value);
     void SetMainWindowGeometry(const QByteArray &value);
-    void SetSavedWindows(QList<MDIWindowInfo> values);
+    void SetSavedWindows(const QList<MDIWindowInfo> &values);
     void SetNetworkListenAll(const bool &value);
-    void SetTheme(Theme theme);
+    void SetTheme(const Theme &theme);
     void SetTXRateOverride(bool override) { m_txrateoverride = override; }
-    void SetLocale(QLocale locale);
+    void SetLocale(const QLocale &locale);
     void SetUniversesListed(quint8 count) { m_universesListed = (std::max)(count, (quint8)1); }
     void SetPriorityPreset(const QByteArray &data, int index);
 
-    unsigned int GetDisplayFormat();
-    unsigned int GetMaxLevel();
-    bool GetBlindVisualizer();
-    bool GetDisplayDDOnly();
-    QString GetDefaultTransmitName();
-    unsigned int GetNumSecondsOfSacn();
-    bool getFlickerFinderShowInfo();
-    QByteArray GetPreset(int index);
-    bool GetSaveWindowLayout();
-    QByteArray GetMainWindowGeometry();
-    QList<MDIWindowInfo> GetSavedWindows();
-    bool GetNetworkListenAll();
-    Theme GetTheme();
-    bool GetTXRateOverride() { return m_txrateoverride; }
-    QLocale GetLocale();
-    quint8 GetUniversesListed() { return m_universesListed; }
+    unsigned int GetDisplayFormat() const;
+    unsigned int GetMaxLevel() const;
+    bool GetBlindVisualizer() const;
+    bool GetDisplayDDOnly() const;
+    QString GetDefaultTransmitName() const;
+    unsigned int GetNumSecondsOfSacn() const;
+    bool getFlickerFinderShowInfo() const;
+    QByteArray GetPreset(int index) const;
+    bool GetSaveWindowLayout() const;
+    QByteArray GetMainWindowGeometry() const;
+    QList<MDIWindowInfo> GetSavedWindows() const;
+    bool GetNetworkListenAll() const;
+    Theme GetTheme() const;
+    bool GetTXRateOverride() const { return m_txrateoverride; }
+    QLocale GetLocale() const;
+    quint8 GetUniversesListed() const { return m_universesListed; }
 
-    QString GetFormattedValue(unsigned int nLevelInDecimal, bool decorated = false);
-    QByteArray GetPriorityPreset(int index);
+    QString GetFormattedValue(unsigned int nLevelInDecimal, bool decorated = false) const;
+    QByteArray GetPriorityPreset(int index) const;
     void savePreferences();
 
     bool RESTART_APP;
@@ -164,7 +165,7 @@ private:
     QString m_sDefaultTransmitName;
     unsigned int m_nNumSecondsOfSacn;
     bool m_flickerFinderShowInfo;
-    QByteArray m_presets[MAX_DMX_ADDRESS];
+    QByteArray m_presets[PRESET_COUNT];
     bool m_saveWindowLayout;
     QByteArray m_mainWindowGeometry;
     QList<MDIWindowInfo> m_windowInfo;

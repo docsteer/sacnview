@@ -67,18 +67,12 @@
             </widget>
            </item>
            <item>
-            <widget class="QSpinBox" name="sbUniverse">
+            <widget class="QSpinBox_ResizeToContent" name="sbUniverse">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>75</width>
-               <height>0</height>
-              </size>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
@@ -229,7 +223,7 @@
             <string>Name</string>
            </property>
           </column>
-		  <column>
+          <column>
            <property name="text">
             <string>Online</string>
            </property>
@@ -360,6 +354,11 @@
    <extends>QWidget</extends>
    <header>universedisplay.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QSpinBox_ResizeToContent</class>
+   <extends>QSpinBox</extends>
+   <header>qspinbox_resizetocontent.h</header>
   </customwidget>
  </customwidgets>
  <resources>

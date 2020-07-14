@@ -19,7 +19,12 @@
 #include <QColor>
 
 #define APP_NAME        "sACNView"
-#define AUTHOR          "Tom Barthel-Steer\r\nMarcus Birkin\r\nHans Hinrichsen\r\nMatt Kerr"
+static const QStringList AUTHORS =
+        QStringList({"Tom Barthel-Steer",
+                     "Marcus Birkin",
+                     "Hans Hinrichsen",
+                     "Matt Kerr",
+                     "Richard Thompson"});
 
 // If this is a full release, only show the newer version message for other full releases
 // If this is prerelease, show all newer versions

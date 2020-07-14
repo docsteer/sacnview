@@ -58,7 +58,7 @@ void sACNUniverseListModel::setStartUniverse(int start)
     QWriteLocker modelindex_locker(&rwlock_ModelIndex);
 
     // Limit max value
-    static const int startMax = (MAX_SACN_UNIVERSE - Preferences::getInstance()->GetUniversesListed() + 1);
+    const int startMax = (MAX_SACN_UNIVERSE - Preferences::getInstance()->GetUniversesListed() + 1);
     if (start > startMax) start = startMax;
 
     beginResetModel();
@@ -66,8 +66,8 @@ void sACNUniverseListModel::setStartUniverse(int start)
     qDeleteAll(m_universes);
     m_universes.clear();
 
-    // Release listener sharedpointers
-    m_listeners.clear();
+    // Copy listener sharedpointers, to release later
+    auto old_listeners = m_listeners;
 
     // Create listeners
     m_start = start;
@@ -90,6 +90,9 @@ void sACNUniverseListModel::setStartUniverse(int start)
         connect(m_listeners.back().data(), SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
         connect(m_listeners.back().data(), SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
     }
+
+    // Release old listener sharedpointers
+    old_listeners.clear();
 
     endResetModel();
 }

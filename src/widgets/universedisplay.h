@@ -20,13 +20,25 @@
 #include "gridwidget.h"
 #include "consts.h"
 
+#include <array>
+
 class UniverseDisplay : public GridWidget
 {
     Q_OBJECT
 public:
     explicit UniverseDisplay(QWidget *parent = 0);
     virtual ~UniverseDisplay() {}
-    bool flickerFinder() const { return m_flickerFinder; }
+
+    static const int NO_UNIVERSE = 0;
+    Q_PROPERTY(int universe READ getUniverse WRITE setUniverse NOTIFY universeChanged)
+    int getUniverse() const { return m_listener ? m_listener->universe() : NO_UNIVERSE; }
+    Q_SLOT void setUniverse(int universe);
+    Q_SIGNAL void universeChanged();
+
+    Q_PROPERTY(bool flickerFinder READ getFlickerFinder WRITE setFlickerFinder NOTIFY flickerFinderChanged)
+    bool getFlickerFinder() const { return m_flickerFinder; }
+    Q_SLOT void setFlickerFinder(bool on);
+    Q_SIGNAL void flickerFinderChanged();
 
     Q_PROPERTY(bool showChannelPriority READ showChannelPriority WRITE setShowChannelPriority NOTIFY showChannelPriorityChanged)
     bool showChannelPriority() const { return m_showChannelPriority; }
@@ -34,17 +46,18 @@ public:
     Q_SIGNAL void showChannelPriorityChanged(bool enable);
 
 public slots:
-    void setUniverse(int universe);
-    void levelsChanged();
     void pause();
-    void setFlickerFinder(bool on);
+
+private slots:
+    void levelsChanged();
+
 private:
-    sACNMergedSourceList m_sources;
     sACNManager::tListener m_listener;
-    quint8 m_flickerFinderLevels[MAX_DMX_ADDRESS];
-    bool m_flickerFinderHasChanged[MAX_DMX_ADDRESS];
-    bool m_flickerFinder;
-    bool m_showChannelPriority;
+    sACNMergedSourceList m_sources;
+    std::array<quint8, MAX_DMX_ADDRESS> m_flickerFinderLevels = {};
+    std::array<bool, MAX_DMX_ADDRESS> m_flickerFinderHasChanged = {};
+    bool m_flickerFinder = false;
+    bool m_showChannelPriority = false;
 };
 
 #endif // UNIVERSEDISPLAY_H
