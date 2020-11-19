@@ -40,7 +40,7 @@ matrix:
           - echo "Uploading $BASENAME to file.io..." && curl -sF "file=@$FILE" https://file.io | xargs printf "$BASENAME uploaded - %s\n"
 
       - os: osx
-        osx_image: xcode9.4
+        osx_image: xcode11.6
         before_install:
           - chmod +x install/mac/sign-mac-executable.sh
           - ./install/mac/sign-mac-executable.sh
