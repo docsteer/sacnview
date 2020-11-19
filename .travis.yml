@@ -51,6 +51,8 @@ matrix:
           # QT
           - brew install qt
           - brew link --force qt
+          # Create-dmg
+          - brew install create-dmg
         script:
           - qmake
           - make -j4
