@@ -22,6 +22,7 @@
 #include "streamcommon.h"
 #include "streamingacn.h"
 #include "sacnlistener.h"
+#include "preferences.h"
 
 sACNRxSocket::sACNRxSocket(QNetworkInterface iface, QObject *parent) :
     QUdpSocket(parent),
@@ -98,7 +99,7 @@ bool sACNTxSocket::bind()
                 setSocketOption(QAbstractSocket::MulticastLoopbackOption, QVariant(0));
 #endif
 
-                setSocketOption(QAbstractSocket::MulticastTtlOption, QVariant(60));
+                setSocketOption(QAbstractSocket::MulticastTtlOption, QVariant(Preferences::getInstance()->GetMulticastTtl()));
 
                 setMulticastInterface(m_interface);
                 qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Bound to interface:" << multicastInterface().name();
