@@ -21,9 +21,9 @@ environment:
       QT_Ver: 5.6
       MSVC_Compiler: msvc2015
       MSVC_Name: Microsoft Visual Studio 14.0
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      QT_Ver: 5.12
-      MSVC_Compiler: msvc2017
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      QT_Ver: 5.15
+      MSVC_Compiler: msvc2019
       MSVC_Name: Microsoft Visual Studio 14.0
 
 # build platform, i.e. x86, x64, Any CPU. This setting is optional.

@@ -2,13 +2,13 @@ language: cpp
 matrix:
   include:
       - os: linux
-        dist: xenial
+        dist: focal
         sudo: required
         compiler: gcc
         addons:
           apt:
             sources:
-              - sourceline: 'ppa:beineri/opt-qt-5.12.3-xenial'
+              - sourceline: 'ppa:beineri/opt-qt-5.15.0-focal'
               - sourceline: 'ppa:brightbox/ruby-ng'
             packages:
               # FPM dependencies
@@ -16,9 +16,9 @@ matrix:
               - ruby2.3
               - ruby2.3-dev
               # QT
-              - qt512base
-              - qt512multimedia
-              - qt512tools
+              - qt515base
+              - qt515multimedia
+              - qt515tools
               - mesa-common-dev
               - libgl1-mesa-dev
               # PCap
@@ -48,10 +48,8 @@ matrix:
         install:
           # PCap
           - brew install libpcap
-          # QT 5.12.3
-          - git -C "$(brew --repo homebrew/core)" pull --unshallow
-          - git -C "$(brew --repo homebrew/core)" checkout -b qt5.12.3 65a45a9e61f15046a256cdba6a008f38f79570c9
-          - HOMEBREW_NO_AUTO_UPDATE=1 brew install qt
+          # QT
+          - brew install qt
           - brew link --force qt
         script:
           - qmake
