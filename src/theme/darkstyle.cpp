@@ -1,5 +1,6 @@
 #include <QStyle>
 #include <QPainter>
+#include <QPainterPath>
 #include <QStyleOptionComplex>
 #include "darkstyle.h"
 
