@@ -20,11 +20,11 @@ environment:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       QT_Ver: 5.6
       MSVC_Compiler: msvc2015
-      MSVC_Name: Microsoft Visual Studio 14.0
+      VCVAR: 'C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat'
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
       QT_Ver: 5.15
       MSVC_Compiler: msvc2019
-      MSVC_Name: Microsoft Visual Studio 14.0
+      VCVAR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat'
 
 # build platform, i.e. x86, x64, Any CPU. This setting is optional.
 platform: x86
@@ -47,7 +47,7 @@ install:
 
   # MSVC Paths
   # https://www.appveyor.com/docs/lang/cpp/#visual-studio
-  - call "C:\Program Files (x86)\%MSVC_Name%\VC\vcvarsall.bat" x86
+  - call "%VCVAR%" x86
 
   # QT Paths
   # https://www.appveyor.com/docs/build-environment/#qt
