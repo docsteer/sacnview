@@ -2,13 +2,13 @@ language: cpp
 matrix:
   include:
       - os: linux
-        dist: focal
+        dist: xenial
         sudo: required
         compiler: gcc
         addons:
           apt:
             sources:
-              - sourceline: 'ppa:beineri/opt-qt-5.15.0-focal'
+              - sourceline: 'ppa:beineri/opt-qt-5.15.0-xenial'
               - sourceline: 'ppa:brightbox/ruby-ng'
             packages:
               # FPM dependencies
