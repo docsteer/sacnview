@@ -116,10 +116,11 @@ bool sACNTxSocket::bind()
 qint64 sACNTxSocket::writeDatagram(const char *data, qint64 len, const QHostAddress &host, quint16 port)
 {
 #ifndef Q_OS_WIN
-    // If multicast, copy to correct internal listener(s)
-    if (host.isMulticast()) {
+    // If destination multicast (and we're not in offline mode)
+    // Copy to correct internal listener(s) for local display
+    if (host.isMulticast() && !localAddress().isLoopback()) {
         CIPAddr addr;
-        for (auto weakListener : sACNManager::getInstance()->getListenerList()) {
+        for (auto &weakListener : sACNManager::getInstance()->getListenerList()) {
             sACNManager::tListener listener(weakListener);
             if (listener) {
                 GetUniverseAddress(listener->universe(), addr);
