@@ -1,12 +1,6 @@
 #include "pcapplaybacksender.h"
-#ifdef Q_OS_LINUX
-#include <linux/socket.h>
-#include <linux/in.h>
-#endif
 #ifdef Q_OS_UNIX
 #include <sys/socket.h>
-#endif
-#ifdef Q_OS_MACOS
 #include <netinet/in.h>
 #endif
 #include <pcap.h>
