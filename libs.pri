@@ -2,21 +2,19 @@ LIBS_PATH = $$system_path($${_PRO_FILE_PWD_}/libs)
 
 # Breakpad
 BREAKPAD_PATH = $$system_path($${LIBS_PATH}/breakpad)
-BREAKPAD_PATH_TEMP = $$system_path($${BREAKPAD_PATH}/../src)
 DEPOT_TOOLS_PATH = $$system_path($${_PRO_FILE_PWD_}/tools/depot_tools)
-INCLUDEPATH += $$system_path($${BREAKPAD_PATH}/src)
+INCLUDEPATH += $$system_path($${BREAKPAD_PATH}/src/src)
 linux {
     DEFINES += USE_BREAKPAD
 
-    # Pull Breakpad dependencies
-    system(ln -s $$shell_quote($${BREAKPAD_PATH}) $$shell_quote($${BREAKPAD_PATH_TEMP}))
-    system(cd $$shell_quote($${LIBS_PATH}) && $$shell_quote($${_PRO_FILE_PWD_}/tools/depot_tools/gclient) sync)
-    system(rm $$shell_quote($${BREAKPAD_PATH_TEMP}))
-
+    # Fetch breakpad if required
+    system([ ! -d $$shell_quote($${BREAKPAD_PATH}) ] && mkdir $$shell_quote($${BREAKPAD_PATH}) && cd $$shell_quote($${BREAKPAD_PATH}) && PATH=$${DEPOT_TOOLS_PATH}:$PATH fetch breakpad)
+    # Update Breakpad
+    system(cd $$shell_quote($${BREAKPAD_PATH}) && PATH=$${DEPOT_TOOLS_PATH}:$PATH gclient sync)
     # Build
-    system(cd $${BREAKPAD_PATH} && ./configure && make)
+    system(cd $$shell_quote($${BREAKPAD_PATH}/src) && ./configure && make)
 
-    LIBS += -L$${BREAKPAD_PATH}/src/client/linux -lbreakpad_client
+    LIBS += -L$${BREAKPAD_PATH}/src/src/client/linux -lbreakpad_client
 
     HEADERS += src/crash_handler.h \
         src/ui/crash_test.h
@@ -28,11 +26,9 @@ win32 {
     DEFINES += USE_BREAKPAD
 
     # Pull Breakpad dependencies
-    system(mklink /j $$shell_quote($${BREAKPAD_PATH_TEMP}) $$shell_quote($${BREAKPAD_PATH}))
     system(pushd $$shell_quote($${DEPOT_TOOLS_PATH}) && git reset --hard && git checkout master && git pull && git reset --hard && popd)
     system(cmd /c for %A in ($$shell_quote($${DEPOT_TOOLS_PATH})) do %~sA\update_depot_tools.bat)
     system(cd $${LIBS_PATH} && cmd /c for %A in ($$shell_quote($${DEPOT_TOOLS_PATH})) do %~sA\gclient sync)
-    system(rd $$shell_quote($${BREAKPAD_PATH_TEMP}) /Q)
 
     LIBS += -luser32
     INCLUDEPATH  += {BREAKPAD_PATH}/src/
