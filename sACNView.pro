@@ -89,7 +89,7 @@ INCLUDEPATH += src \
 ## Sources
 
 SOURCES += src/main.cpp\
-    src/qspinbox_resizetocontent.cpp \
+    src/widgets/qspinbox_resizetocontent.cpp \
     src/qt56.cpp \
     src/ui/newversiondialog.cpp \
     src/ui/mdimainwindow.cpp \
@@ -132,7 +132,7 @@ SOURCES += src/main.cpp\
     src/widgets/grideditwidget.cpp
 
 HEADERS += src/ui/mdimainwindow.h \
-    src/qspinbox_resizetocontent.h \
+    src/widgets/qspinbox_resizetocontent.h \
     src/ui/newversiondialog.h \
     src/ui/scopewindow.h \
     src/ui/universeview.h \
