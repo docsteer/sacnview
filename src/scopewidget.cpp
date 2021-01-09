@@ -17,6 +17,7 @@
 #include <QPainter>
 #include <QPointF>
 #include <QDebug>
+#include <QPainterPath>
 #include "sacn/sacnlistener.h"
 
 #define AXIS_WIDTH 50
