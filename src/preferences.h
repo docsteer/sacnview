@@ -47,6 +47,7 @@ static const QString S_TX_RATE_OVERRIDE("TX Rate Override");
 static const QString S_LOCALE("LOCALE");
 static const QString S_UNIVERSESLISTED("Universe List Count");
 static const QString S_PRIORITYPRESET("PriorityPreset %1");
+static const QString S_MULTICASTTTL("Multicast TTL");
 
 struct MDIWindowInfo
 {
@@ -126,6 +127,7 @@ public:
     void SetLocale(const QLocale &locale);
     void SetUniversesListed(quint8 count) { m_universesListed = (std::max)(count, (quint8)1); }
     void SetPriorityPreset(const QByteArray &data, int index);
+    void SetMulticastTtl(quint8 ttl) { m_multicastTtl = ttl;}
 
     unsigned int GetDisplayFormat() const;
     unsigned int GetMaxLevel() const;
@@ -174,6 +176,7 @@ private:
     QLocale m_locale;
     quint8 m_universesListed;
     QByteArray m_priorityPresets[PRIORITYPRESET_COUNT];
+    quint8 m_multicastTtl;
 
     void loadPreferences();
 };

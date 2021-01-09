@@ -22,6 +22,7 @@
 #include "streamcommon.h"
 #include "streamingacn.h"
 #include "sacnlistener.h"
+#include "preferences.h"
 
 sACNRxSocket::sACNRxSocket(QNetworkInterface iface, QObject *parent) :
     QUdpSocket(parent),
@@ -98,6 +99,8 @@ bool sACNTxSocket::bind()
                 setSocketOption(QAbstractSocket::MulticastLoopbackOption, QVariant(0));
 #endif
 
+                setSocketOption(QAbstractSocket::MulticastTtlOption, QVariant(Preferences::getInstance()->GetMulticastTtl()));
+
                 setMulticastInterface(m_interface);
                 qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Bound to interface:" << multicastInterface().name();
             }
@@ -110,13 +113,26 @@ bool sACNTxSocket::bind()
     return ok;
 }
 
+bool writeDatagramLoopbackTest(const QHostAddress &dest, QHostAddress localAddress) {
+#ifdef Q_OS_WIN
+    return false;
+#endif
+
+#ifdef Q_OS_LINUX
+    return (dest.isMulticast() && !localAddress.isLoopback());
+#endif
+
+#ifdef Q_OS_MACOS
+    return (dest.isMulticast());
+#endif
+}
+
 qint64 sACNTxSocket::writeDatagram(const char *data, qint64 len, const QHostAddress &host, quint16 port)
 {
-#ifndef Q_OS_WIN
-    // If multicast, copy to correct internal listener(s)
-    if (host.isMulticast()) {
+    // Copy to correct internal listener(s) for local display, if required by platform
+    if (writeDatagramLoopbackTest(host, localAddress())) {
         CIPAddr addr;
-        for (auto weakListener : sACNManager::getInstance()->getListenerList()) {
+        for (auto &weakListener : sACNManager::getInstance()->getListenerList()) {
             sACNManager::tListener listener(weakListener);
             if (listener) {
                 GetUniverseAddress(listener->universe(), addr);
@@ -129,7 +145,6 @@ qint64 sACNTxSocket::writeDatagram(const char *data, qint64 len, const QHostAddr
             }
         }
     }
-#endif
 
     // Send to world
     return QUdpSocket::writeDatagram(data, len, host, port);

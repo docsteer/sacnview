@@ -94,6 +94,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui->cbTheme->clear();
     ui->cbTheme->addItems(Preferences::ThemeDescriptions());
     ui->cbTheme->setCurrentIndex(static_cast<int>(Preferences::getInstance()->GetTheme()));
+
+    ui->sbMulticastTtl->setValue(Preferences::getInstance()->GetMulticastTtl());
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -170,6 +172,13 @@ void PreferencesDialog::on_buttonBox_accepted()
     if (m_translation->GetSelectedLocale() != p->GetLocale())
     {
         p->SetLocale(m_translation->GetSelectedLocale());
+        requiresRestart = true;
+    }
+
+    // Multicast TTL
+    if(p->GetMulticastTtl() != ui->sbMulticastTtl->value())
+    {
+        p->SetMulticastTtl(ui->sbMulticastTtl->value());
         requiresRestart = true;
     }
 

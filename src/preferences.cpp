@@ -309,6 +309,8 @@ void Preferences::savePreferences()
         settings.setValue(S_PRIORITYPRESET.arg(i), QVariant(m_priorityPresets[i]));
     }
 
+    settings.setValue(S_MULTICASTTTL, m_multicastTtl);
+
     settings.sync();
 }
 
@@ -344,6 +346,7 @@ void Preferences::loadPreferences()
     m_txrateoverride = settings.value(S_TX_RATE_OVERRIDE, QVariant(false)).toBool();
     m_locale = settings.value(S_LOCALE, QLocale::system()).toLocale();
     m_universesListed = settings.value(S_UNIVERSESLISTED, QVariant(20)).toUInt();
+    m_multicastTtl = settings.value(S_MULTICASTTTL, QVariant(1)).toUInt();
 
     m_windowInfo.clear();
     int size = settings.beginReadArray(S_SUBWINDOWLIST);

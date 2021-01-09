@@ -117,6 +117,9 @@ win32 {
     equals(QT_MAJOR_VERSION, 5):equals(QT_MINOR_VERSION, 12) { #https://wiki.qt.io/Qt_5.12_Tools_and_Versions
         OPENSSL_VERS = 1.1.1b
     }
+    equals(QT_MAJOR_VERSION, 5):equals(QT_MINOR_VERSION, 15) { #https://wiki.qt.io/Qt_5.15_Tools_and_Versions
+        OPENSSL_VERS = 1.1.1g
+    }
     contains(QT_ARCH, i386) {
         OPENSSL_PATH = $${_PRO_FILE_PWD_}/libs/openssl-$${OPENSSL_VERS}-win32
     } else {
