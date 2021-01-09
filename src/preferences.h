@@ -145,6 +145,7 @@ public:
     bool GetTXRateOverride() const { return m_txrateoverride; }
     QLocale GetLocale() const;
     quint8 GetUniversesListed() const { return m_universesListed; }
+    quint8 GetMulticastTtl() const { return m_multicastTtl; }
 
     QString GetFormattedValue(unsigned int nLevelInDecimal, bool decorated = false) const;
     QByteArray GetPriorityPreset(int index) const;
