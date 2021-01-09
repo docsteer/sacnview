@@ -41,18 +41,18 @@ matrix:
 
       - os: osx
         osx_image: xcode11.6
+        addons:
+          homebrew:
+            packages:
+            - libpcap
+            - qt
+            - create-dmg
         before_install:
           - chmod +x install/mac/sign-mac-executable.sh
           - ./install/mac/sign-mac-executable.sh
-          - brew update
         install:
-          # PCap
-          - brew install libpcap
           # QT
-          - brew install qt
           - brew link --force qt
-          # Create-dmg
-          - brew install create-dmg
         script:
           - qmake
           - make -j4
