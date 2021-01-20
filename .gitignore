@@ -63,6 +63,8 @@ install/linux/usr/share/icons/hicolor/scalable/apps/sacnview\.png
 install/linux/build/
 install/linux/fpm-checkout/
 
+#Translations
 translations/sACNView\.ts
 
-libs/\.gclient_entries
+#Breakpad
+libs/breakpad/
