@@ -77,6 +77,7 @@ public slots:
     void run();
     void pause();
     void clear();
+    void clearUnused();
 
     void setStartAddress(quint16 start);
     void setEndAddress(quint16 end);
