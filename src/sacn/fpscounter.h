@@ -22,6 +22,9 @@ public:
     // Log new frame
     void newFrame();
 
+signals:
+    void updatedFPS();
+
 protected:
     void timerEvent(QTimerEvent *e) final;
 

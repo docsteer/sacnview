@@ -95,6 +95,8 @@ SOURCES += src/main.cpp\
     src/ui/mdimainwindow.cpp \
     src/ui/scopewindow.cpp \
     src/ui/universeview.cpp \
+    src/sacn/sacnsynchronization.cpp \
+    src/models/sacnsynclistmodel.cpp \
     src/sacn/ACNShare/CID.cpp \
     src/sacn/ACNShare/ipaddr.cpp \
     src/sacn/ACNShare/tock.cpp \
@@ -136,6 +138,8 @@ HEADERS += src/ui/mdimainwindow.h \
     src/ui/newversiondialog.h \
     src/ui/scopewindow.h \
     src/ui/universeview.h \
+    src/sacn/sacnsynchronization.h \
+    src/models/sacnsynclistmodel.h \
     src/sacn/ACNShare/CID.h \
     src/sacn/ACNShare/defpack.h \
     src/sacn/ACNShare/ipaddr.h \

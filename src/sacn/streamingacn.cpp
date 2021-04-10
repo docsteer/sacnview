@@ -67,14 +67,6 @@ sACNSource::sACNSource() :
     std::fill(priority_array, priority_array + sizeof(priority_array), 0);
 }
 
-QString sACNSource::cid_string()
-{
-    char buffer[CID::CIDSTRINGBYTES];
-    CID::CIDIntoString(this->src_cid, buffer);
-
-    return QString(buffer);
-}
-
 sACNManager *sACNManager::m_instance = NULL;
 
 sACNManager *sACNManager::getInstance()
@@ -127,12 +119,37 @@ sACNManager::tListener sACNManager::getListener(quint16 universe)
         connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
         thread->start(QThread::HighPriority);
 
+        // Emit sources from all, known, universes
+        connect(listener, &sACNListener::sourceFound, this,
+                [=](sACNSource *source)
+        {
+            emit sourceFound(universe, source);
+        });
+        connect(listener, &sACNListener::sourceLost, this,
+                [=](sACNSource *source)
+        {
+            emit sourceLost(universe, source);
+        });
+        connect(listener, &sACNListener::sourceResumed, this,
+                [=](sACNSource *source)
+        {
+            emit sourceResumed(universe, source);
+        });
+        connect(listener, &sACNListener::sourceChanged, this,
+                [=](sACNSource *source)
+        {
+            emit sourceChanged(universe, source);
+        });
+
         m_listenerThreads[universe] = thread;
 
         // Create strong pointer to return
         strongPointer = QSharedPointer<sACNListener>(listener, strongPointerDeleteListener);
         m_listenerHash[universe] = strongPointer.toWeakRef();
         m_objToUniverse[listener] = universe;
+
+        locker.unlock();
+        emit newListener(universe);
     }
     else
     {
@@ -150,6 +167,7 @@ sACNManager::tListener sACNManager::getListener(quint16 universe)
         qApp->exit(-1);
 
     }
+
     return strongPointer;
 }
 
@@ -167,6 +185,7 @@ void sACNManager::listenerDelete(QObject *obj)
     m_listenerThreads[universe]->exit();
     m_listenerThreads[universe]->wait();
     m_listenerThreads.remove(universe);
+    emit deletedListener(universe);
 }
 
 sACNManager::tSender sACNManager::createSender(CID cid, quint16 universe)
@@ -242,6 +261,7 @@ void sACNManager::senderDelete(QObject *obj)
 
     m_objToUniverse.remove(obj);
     m_objToCid.remove(obj);
+    emit deletedSender(cid, universe);
 }
 
 void sACNManager::senderUniverseChanged()

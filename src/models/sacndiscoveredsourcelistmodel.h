@@ -60,17 +60,17 @@ private:
 };
 
 /**
- * @brief The sACNSourceListProxy class provides a
+ * @brief The sACNDiscoveredSourceListProxy class provides a
  * model which sorts and filters the raw sACNDiscoveredSourceListModel.
  * Currently it just sorts items with parents by universe number; in future
  * it could be extended to add additional sorting and searching options
  */
-class sACNSourceListProxy : public QSortFilterProxyModel
+class sACNDiscoveredSourceListProxy : public QSortFilterProxyModel
 {
     Q_OBJECT
 
 public:
-    sACNSourceListProxy(QObject *parent = Q_NULLPTR);
+    sACNDiscoveredSourceListProxy(QObject *parent = Q_NULLPTR);
 protected:
     virtual bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
 };

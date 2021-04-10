@@ -72,6 +72,12 @@
 #define PROP_COUNT_ADDR 123
 #define START_CODE_ADDR 125
 #define PROP_VALUES_ADDR (START_CODE_ADDR + 1)
+// Universe Synchronization
+#define SYNC_FLAGS_AND_LENGTH_ADDR FRAMING_FLAGS_AND_LENGTH_ADDR
+#define SYNC_VECTOR_ADDR FRAMING_VECTOR_ADDR
+#define SYNC_SEQ_NUM_ADDR 44
+#define SYNC_SYNCHRONIZATION_ADDRESS 45
+#define SYNC_RESERVED 47
 // Universe Discovery
 #define DISCO_FLAGS_AND_LENGTH_ADDR 112
 #define DISCO_VECTOR_ADDR 114
@@ -148,17 +154,18 @@
 #define STREAM_IP_PORT 5568
 
 /*The start codes we'll commonly use*/
-#ifndef STARTCODE_PRIORITY
 //The payload is up to 512 1-byte dmx values
 #define STARTCODE_DMX 0
-///The payload is the per-channel priority (0-200), 
+//The payload is the per-channel priority (0-200),
 //where 0 means "ignore my values on this channel"
 #define STARTCODE_PRIORITY 0xDD     
 
 // Special universes
 #define E131_DISCOVERY_UNIVERSE 64214
 
-#endif
+// Timings
+#define E131_UNIVERSE_DISCOVERY_INTERVAL 10000 //10 Seconds
+#define E131_NETWORK_DATA_LOSS_TIMEOUT 2500 // 2.5 Seconds
 
 /*** Functions ***/
 

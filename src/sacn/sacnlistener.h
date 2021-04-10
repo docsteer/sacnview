@@ -73,6 +73,7 @@ public:
 
     int sourceCount() const { return static_cast<int>(m_sources.size()); }
     sACNSource *source(int index) { return m_sources[index];}
+    const std::vector<sACNSource*> getSourceList() const { return m_sources; }
 
     /**
      *  @brief processDatagram Process a suspected sACN datagram.

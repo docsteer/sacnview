@@ -71,6 +71,9 @@ void FpsCounter::timerEvent(QTimerEvent * /*e*/)
 
     // Flag if the FPS has changed
     newFps = ((previousFps < currentFps) | (previousFps > currentFps));
+
+    if (newFps)
+        emit updatedFPS();
 }
 
 void FpsCounter::newFrame()

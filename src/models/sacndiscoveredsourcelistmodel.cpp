@@ -253,14 +253,14 @@ int sACNDiscoveredSourceListModel::rowCount(const QModelIndex &parent) const
 }
 
 
-/******************************************* sACNSourceListProxy *********************************************/
+/******************************************* sACNDiscoveredSourceListProxy *********************************************/
 
-sACNSourceListProxy::sACNSourceListProxy(QObject *parent) : QSortFilterProxyModel (parent)
+sACNDiscoveredSourceListProxy::sACNDiscoveredSourceListProxy(QObject *parent) : QSortFilterProxyModel (parent)
 {
 }
 
 
-bool sACNSourceListProxy::lessThan(const QModelIndex &left, const QModelIndex &right) const
+bool sACNDiscoveredSourceListProxy::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
     QVariant leftData = sourceModel()->data(left);
     QVariant rightData = sourceModel()->data(right);

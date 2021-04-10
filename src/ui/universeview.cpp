@@ -159,7 +159,7 @@ void UniverseView::sourceChanged(sACNSource *source)
     int row = m_sourceToTableRow[source];
     ui->twSources->item(row,COL_NAME)->setText(source->name);
     ui->twSources->item(row,COL_NAME)->setBackground(Preferences::getInstance()->colorForCID(source->src_cid));
-    ui->twSources->item(row,COL_CID)->setText(source->cid_string());
+    ui->twSources->item(row,COL_CID)->setText(source->src_cid);
     ui->twSources->item(row,COL_PRIO)->setText(QString::number(source->priority));
 
     if (source->protocol_version == sACNProtocolDraft)
@@ -170,7 +170,9 @@ void UniverseView::sourceChanged(sACNSource *source)
     if (source->protocol_version == sACNProtocolDraft)
         ui->twSources->item(row,COL_SYNC)->setText(tr("N/A"));
     else
-        ui->twSources->item(row,COL_SYNC)->setText(source->synchronization ? tr("Yes") : tr("No"));
+        ui->twSources->item(row,COL_SYNC)->setText(source->synchronization
+            ? QString(tr("Yes (%1)")).arg(source->synchronization)
+            : tr("No"));
 
     ui->twSources->item(row,COL_IP)->setText(source->ip.toString());
     ui->twSources->item(row,COL_FPS)->setText(QString("%1Hz").arg(QString::number(source->fpscounter.FPS(), 'f', 2)));

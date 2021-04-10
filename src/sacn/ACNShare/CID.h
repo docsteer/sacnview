@@ -62,6 +62,7 @@ public:
 	//Translates a cid to a preallocated text string of 37 bytes, including the terminating NULL
 	static void CIDIntoString(const CID& cid, char* ptxt);
     static QString CIDIntoQString(const CID& cid);
+    operator QString() const;
 
     // Create a CID using the platforms UUID methods
     static CID CreateCid();
