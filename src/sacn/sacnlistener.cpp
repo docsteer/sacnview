@@ -746,6 +746,7 @@ void sACNListener::performMerge()
             m_merged_levels[address].level = -1;
             m_merged_levels[address].winningSource = NULL;
             m_merged_levels[address].otherSources.clear();
+            m_merged_levels[address].winningPriority = priorities[address];
         }
         for (auto s : sourceList)
         {
@@ -755,6 +756,7 @@ void sACNListener::performMerge()
                 m_merged_levels[address].changedSinceLastMerge = (m_merged_levels[address].level != levels[address]);
                 m_merged_levels[address].level = levels[address];
                 m_merged_levels[address].winningSource = s;
+                m_merged_levels[address].winningPriority = priorities[address];
             }
         }
         // Remove the winning source from the list of others

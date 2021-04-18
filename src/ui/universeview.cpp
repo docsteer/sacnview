@@ -244,7 +244,7 @@ void UniverseView::sourceOnline(sACNSource *source)
         pLayout->addWidget(btn_seq);
 
         // Connect button
-        connect(btn_seq, &QPushButton::clicked, [=]() {
+        connect(btn_seq, &QPushButton::clicked, this, [=]() {
             source->resetSeqErr();
             this->sourceChanged(source);
         });
@@ -273,7 +273,7 @@ void UniverseView::sourceOnline(sACNSource *source)
         pLayout->addWidget(btn_jumps);
 
         // Connect button
-        connect(btn_jumps, &QPushButton::clicked, [=]() {
+        connect(btn_jumps, &QPushButton::clicked, this, [=]() {
             source->resetJumps();
             this->sourceChanged(source);
         });
@@ -344,6 +344,20 @@ void UniverseView::resizeColumns()
     ui->twSources->setColumnWidth(COL_NAME, width-used-5);
 }
 
+QString UniverseView::prioText(sACNSource *source, quint8 address)
+{
+    if (source == nullptr)
+        return "Unknown";
+
+    if(source->doing_per_channel)
+        if (source->priority_array[address] > 0)
+            return QString::number(source->priority_array[address]);
+        else
+            return tr("Unpatched");
+    else
+        return QString::number(source->priority);
+}
+
 void UniverseView::selectedAddressChanged(int address)
 {
     ui->teInfo->clear();
@@ -361,32 +375,28 @@ void UniverseView::selectedAddressChanged(int address)
 
     if(list[address].winningSource)
     {
-        int prio;
-        if(list[address].winningSource->doing_per_channel)
-            prio = list[address].winningSource->priority_array[address];
-        else
-            prio = list[address].winningSource->priority;
+        info.append(tr("Winning Source : %1 @ %2 (Priority %3)").arg(
+                    list[address].winningSource->name,
+                    Preferences::getInstance()->GetFormattedValue(list[address].level),
+                    prioText(list[address].winningSource, address)));
 
-        info.append(tr("Winning Source : %1 @ %2 (Priority %3)")
-                    .arg(list[address].winningSource->name)
-                    .arg(Preferences::getInstance()->GetFormattedValue(list[address].level))
-                    .arg(prio));
         if(list[address].otherSources.count()>0)
         {
             foreach(sACNSource *source, list[address].otherSources)
             {
-                if(source->doing_per_channel)
-                    prio = source->priority_array[address];
-                else
-                    prio = source->priority;
-                info.append(tr("\nOther Source : %1 @ %2 (Priority %3)")
-                            .arg(source->name)
-                            .arg(Preferences::getInstance()->GetFormattedValue(source->level_array[address]))
-                            .arg(prio));
+                info.append(tr("\nOther Source : %1 @ %2 (Priority %3)").arg(
+                            source->name,
+                            Preferences::getInstance()->GetFormattedValue(source->level_array[address]),
+                            prioText(source, address)));
             }
         }
     } else {
-        info.append(tr("No Sources"));
+        if (list[address].winningPriority <= 0)
+        {
+            info.append(tr("Unpatched"));
+        } else {
+            info.append(tr("No Sources"));
+        }
     }
 
     ui->teInfo->setPlainText(info);

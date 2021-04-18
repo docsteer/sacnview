@@ -78,6 +78,8 @@ private:
     bool m_bindWarningShown = false;
     void checkBind();
 
+    QString prioText(sACNSource *source, quint8 address);
+
     Ui::UniverseView *ui = nullptr;
     QHash<sACNSource *, int> m_sourceToTableRow;
     int m_selectedAddress = -1;
