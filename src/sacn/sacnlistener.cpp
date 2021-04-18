@@ -557,7 +557,12 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
             memcpy(ps->last_priority_array, ps->priority_array, DMX_SLOT_MAX);
             // Fill in the new array
             memset(ps->priority_array, 0, DMX_SLOT_MAX);
-            memcpy(ps->priority_array, pdata, slot_count);
+            if (Preferences::getInstance()->GetIgnoreDD())
+            { // DD is ignored, fill with universe priority
+                std::fill(std::begin(ps->priority_array), std::end(ps->priority_array), ps->priority);
+            } else {
+                memcpy(ps->priority_array, pdata, slot_count);
+            }
             // Compare the two
             for(int i=0; i<DMX_SLOT_MAX; i++)
             {
@@ -741,6 +746,7 @@ void sACNListener::performMerge()
             m_merged_levels[address].level = -1;
             m_merged_levels[address].winningSource = NULL;
             m_merged_levels[address].otherSources.clear();
+            m_merged_levels[address].winningPriority = priorities[address];
         }
         for (auto s : sourceList)
         {
@@ -750,6 +756,7 @@ void sACNListener::performMerge()
                 m_merged_levels[address].changedSinceLastMerge = (m_merged_levels[address].level != levels[address]);
                 m_merged_levels[address].level = levels[address];
                 m_merged_levels[address].winningSource = s;
+                m_merged_levels[address].winningPriority = priorities[address];
             }
         }
         // Remove the winning source from the list of others

@@ -35,11 +35,13 @@ struct sACNMergedAddress
         level = -1;
         winningSource = NULL;
         changedSinceLastMerge = false;
+        winningPriority = 0;
     }
     int level;
     sACNSource *winningSource;
     QSet<sACNSource *> otherSources;
     bool changedSinceLastMerge;
+    int winningPriority;
 };
 
 typedef QVector<sACNMergedAddress> sACNMergedSourceList;

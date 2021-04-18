@@ -162,6 +162,13 @@ void Preferences::SetDisplayDDOnly(bool bDDOnly)
     return;
 }
 
+void Preferences::SetIgnoreDD(bool bIgnoreDD)
+{
+    Q_ASSERT(bIgnoreDD == 0 || bIgnoreDD == 1);
+    m_bIgnoreDD = bIgnoreDD;
+    return;
+}
+
 void Preferences::SetDefaultTransmitName (const QString &sDefaultTransmitName)
 {
     m_sDefaultTransmitName = sDefaultTransmitName.trimmed();
@@ -197,6 +204,11 @@ bool Preferences::GetBlindVisualizer() const
 bool Preferences::GetDisplayDDOnly() const
 {
     return m_bDisplayDDOnly;
+}
+
+bool Preferences::GetIgnoreDD() const
+{
+    return m_bIgnoreDD;
 }
 
 QString Preferences::GetDefaultTransmitName() const
@@ -279,6 +291,7 @@ void Preferences::savePreferences()
     settings.setValue(S_DISPLAY_FORMAT, QVariant(m_nDisplayFormat));
     settings.setValue(S_BLIND_VISUALIZER, QVariant(m_bBlindVisualizer));
     settings.setValue(S_DDONLY, QVariant(m_bDisplayDDOnly));
+    settings.setValue(S_IGNOREDD, QVariant(m_bIgnoreDD));
     settings.setValue(S_DEFAULT_SOURCENAME, m_sDefaultTransmitName);
     settings.setValue(S_TIMEOUT, QVariant(m_nNumSecondsOfSacn));
     settings.setValue(S_FLICKERFINDERSHOWINFO, QVariant(m_flickerFinderShowInfo));
@@ -337,6 +350,7 @@ void Preferences::loadPreferences()
     m_nDisplayFormat = settings.value(S_DISPLAY_FORMAT, QVariant(DECIMAL)).toInt();
     m_bBlindVisualizer = settings.value(S_BLIND_VISUALIZER, QVariant(true)).toBool();
     m_bDisplayDDOnly = settings.value(S_DDONLY, QVariant(true)).toBool();
+    m_bIgnoreDD = settings.value(S_IGNOREDD, QVariant(false)).toBool();
     m_sDefaultTransmitName = settings.value(S_DEFAULT_SOURCENAME, DEFAULT_SOURCE_NAME).toString();
     m_nNumSecondsOfSacn = settings.value(S_TIMEOUT, QVariant(0)).toInt();
     m_flickerFinderShowInfo = settings.value(S_FLICKERFINDERSHOWINFO, QVariant(true)).toBool();
