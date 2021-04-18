@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>653</width>
-    <height>491</height>
+    <width>772</width>
+    <height>511</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -196,7 +196,7 @@
        <property name="title">
         <string>Recieve Options</string>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,1">
+       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,1">
         <item>
          <widget class="QCheckBox" name="cbDisplayBlind">
           <property name="sizePolicy">
@@ -226,6 +226,13 @@
           </property>
           <property name="text">
            <string>Display sources with no DMX Data*</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cbIgnoreDD">
+          <property name="text">
+           <string>Ignore Per-Address priority (0xdd)</string>
           </property>
          </widget>
         </item>

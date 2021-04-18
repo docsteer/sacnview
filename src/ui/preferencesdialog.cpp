@@ -69,6 +69,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 
     ui->cbDisplayBlind->setChecked(Preferences::getInstance()->GetBlindVisualizer());
     ui->cbDisplayDDOnlys->setChecked(Preferences::getInstance()->GetDisplayDDOnly());
+    ui->cbIgnoreDD->setChecked(Preferences::getInstance()->GetIgnoreDD());
     ui->cbRestoreWindows->setChecked(Preferences::getInstance()->GetSaveWindowLayout());
 
     ui->leDefaultSourceName->setText(Preferences::getInstance()->GetDefaultTransmitName());
@@ -121,9 +122,13 @@ void PreferencesDialog::on_buttonBox_accepted()
     // Display Blind
     p->SetBlindVisualizer(ui->cbDisplayBlind->isChecked());
 
-    // Display DD
+    // Display sources with only DD
     if (ui->cbDisplayDDOnlys->isChecked() != p->GetDisplayDDOnly() ) {requiresRestart = true;}
     p->SetDisplayDDOnly(ui->cbDisplayDDOnlys->isChecked());
+
+    // Ignore DD
+    //if (ui->cbIgnoreDD->isChecked() != p->GetIgnoreDD() );
+    p->SetIgnoreDD(ui->cbIgnoreDD->isChecked());
 
     // Save layout
     p->SetSaveWindowLayout(ui->cbRestoreWindows->isChecked());
