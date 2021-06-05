@@ -104,40 +104,48 @@ void BigDisplay::displayLevel()
 
 void BigDisplay::dataReady(int universe, quint16 address, QPointF data)
 {
-    Q_UNUSED(universe);
     quint8 level = data.y() > 0 ? data.y() : 0;
 
     switch (ui->tabWidget->currentIndex())
     {
         case tabModes_bit8:
-            if (address == ui->spinBox_8->address())
+            if (address == ui->spinBox_8->address() && universe == ui->spinBox_8->universe())
                 m_level = level;
+
             break;
 
         case tabModes_bit16:
-            if (address == ui->spinBox_16_Coarse->address())
+            if (address == ui->spinBox_16_Coarse->address() && universe == ui->spinBox_16_Coarse->universe())
                 m_level = (m_level & 0x00FF) | (0xFF00 & (level << 8));
 
-            if (address == ui->spinBox_16_Fine->address())
+            if (address == ui->spinBox_16_Fine->address() && universe == ui->spinBox_16_Fine->universe())
                 m_level = (m_level & 0xFF00) | (0x00FF & level);
 
             break;
 
         case tabModes_rgb:
-            if (address == ui->spinBox_RGB_1->address())
+            if (address == ui->spinBox_RGB_1->address() && universe == ui->spinBox_RGB_1->universe())
                 m_level = (m_level & 0x00FFFFu) | (0xFF0000u & ((quint32)level << 16));
 
-            if (address == ui->spinBox_RGB_2->address())
+            if (address == ui->spinBox_RGB_2->address() && universe == ui->spinBox_RGB_2->universe())
                 m_level = (m_level & 0xFF00FFu) | (0x00FF00u & ((quint32)level << 8));
 
-            if (address == ui->spinBox_RGB_3->address())
+            if (address == ui->spinBox_RGB_3->address() && universe == ui->spinBox_RGB_3->universe())
                 m_level = (m_level & 0xFFFF00u) | (0x0000FFu & level);
-        break;
+
+            break;
 
         default:
             m_level = -1;
             break;
     }
 
+    displayLevel();
+}
+
+void BigDisplay::on_tabWidget_currentChanged(int index)
+{
+    Q_UNUSED(index);
+    m_level = 0;
     displayLevel();
 }
