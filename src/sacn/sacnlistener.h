@@ -96,13 +96,17 @@ public:
 
 public slots:
     void startReception();
-    void monitorAddress(int address) {
+    void monitorAddress(int address, const QObject *owner) {
         QMutexLocker locker(&m_monitoredChannelsMutex);
-        m_monitoredChannels.insert(address);
+        m_monitoredChannels.insert(owner, address);
+        connect(owner, &QObject::destroyed, this, [this](const QObject *owner) {
+            QMutexLocker locker(&m_monitoredChannelsMutex);
+            m_monitoredChannels.remove(owner);
+        });
     }
-    void unMonitorAddress(int address) {
+    void unMonitorAddress(int address, const QObject *owner) {
         QMutexLocker locker(&m_monitoredChannelsMutex);
-        m_monitoredChannels.remove(address);
+        m_monitoredChannels.remove(owner, address);
     }
 signals:
     void listenerStarted(int universe);
@@ -137,7 +141,7 @@ private:
     QElapsedTimer m_elapsedTime;
     int m_predictableTimerValue;
     QMutex m_monitoredChannelsMutex;
-    QSet<int> m_monitoredChannels;
+    QMultiMap<const QObject*, int> m_monitoredChannels;
     bool m_mergeAll; // A flag to initiate a complete remerge of everything
     unsigned int m_mergesPerSecond = 0;
     int m_mergeCounter;
