@@ -579,7 +579,8 @@ void sACNListener::performMerge()
 
     {
         QMutexLocker locker(&m_monitoredChannelsMutex);
-        for(auto chan: m_monitoredChannels)
+        const auto uniqeChannels = m_monitoredChannels.values().toSet();
+        for(auto chan: uniqeChannels)
         {
             QPointF data;
             data.setX(m_elapsedTime.nsecsElapsed()/1000000.0);

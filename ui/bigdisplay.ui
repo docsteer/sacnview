@@ -53,7 +53,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tabWidgetPage1">
         <attribute name="title">
@@ -81,7 +81,7 @@
                <enum>QLayout::SetNoConstraint</enum>
               </property>
               <item row="0" column="0">
-               <widget class="QSpinBox" name="spinBox_8">
+               <widget class="monitorspinbox" name="spinBox_8">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                   <horstretch>0</horstretch>
@@ -131,7 +131,7 @@
                <enum>QLayout::SetNoConstraint</enum>
               </property>
               <item row="0" column="0">
-               <widget class="QSpinBox" name="spinBox_16_Coarse">
+               <widget class="monitorspinbox" name="spinBox_16_Coarse">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                   <horstretch>0</horstretch>
@@ -173,7 +173,7 @@
                <enum>QLayout::SetMinimumSize</enum>
               </property>
               <item row="0" column="0">
-               <widget class="QSpinBox" name="spinBox_16_Fine">
+               <widget class="monitorspinbox" name="spinBox_16_Fine">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                   <horstretch>0</horstretch>
@@ -226,7 +226,7 @@
                <enum>QLayout::SetNoConstraint</enum>
               </property>
               <item row="0" column="0">
-               <widget class="QSpinBox" name="spinBox_RGB_2">
+               <widget class="monitorspinbox" name="spinBox_RGB_2">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                   <horstretch>0</horstretch>
@@ -268,7 +268,7 @@
                <enum>QLayout::SetNoConstraint</enum>
               </property>
               <item row="0" column="0">
-               <widget class="QSpinBox" name="spinBox_RGB_1">
+               <widget class="monitorspinbox" name="spinBox_RGB_1">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                   <horstretch>0</horstretch>
@@ -310,7 +310,7 @@
                <enum>QLayout::SetNoConstraint</enum>
               </property>
               <item row="0" column="0">
-               <widget class="QSpinBox" name="spinBox_RGB_3">
+               <widget class="monitorspinbox" name="spinBox_RGB_3">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                   <horstretch>0</horstretch>
@@ -346,6 +346,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>monitorspinbox</class>
+   <extends>QSpinBox</extends>
+   <header>monitorspinbox.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

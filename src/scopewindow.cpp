@@ -216,9 +216,9 @@ void ScopeWindow::on_tableWidget_itemChanged(QTableWidgetItem * item)
 
             listener = m_universes[ch->universe()];
 
-            listener->unMonitorAddress(ch->address());
+            listener->unMonitorAddress(ch->address(), this);
             ch->setAddress(address-1);
-            listener->monitorAddress(ch->address());
+            listener->monitorAddress(ch->address(), this);
             ch->clear();
         }
         else
@@ -245,7 +245,7 @@ void ScopeWindow::on_tableWidget_itemChanged(QTableWidgetItem * item)
             ch->setUniverse(universe);
             disconnect(listener.data(), 0, this->ui->widget, 0);
             connect(listener.data(), SIGNAL(dataReady(int, QPointF)), this->ui->widget, SLOT(dataReady(int, QPointF)));
-            listener->monitorAddress(ch->address());
+            listener->monitorAddress(ch->address(), this);
             ch->clear();
         }
         else
