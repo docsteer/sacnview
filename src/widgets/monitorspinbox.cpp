@@ -29,10 +29,13 @@ void monitorspinbox::setupListener(int universe) {
     if (m_listener == Q_NULLPTR || m_listener->universe() != universe) {
         m_listener = sACNManager::getInstance()->getListener(universe);
 
+        disconnect(m_listener.data(), Q_NULLPTR, this, Q_NULLPTR);
+
         connect(
             m_listener.data(), &sACNListener::dataReady,
-            this, [this](int address, QPointF data) {
-                emit dataReady(m_listener->universe(), address, data);
+            this, [this, universe](int address, QPointF data) {
+                if (m_listener->universe() == universe)
+                    emit dataReady(universe, address, data);
             }
         );
     }

@@ -29,6 +29,8 @@ private:
 private slots:
     void dataReady(int universe, quint16 address, QPointF data);
 
+    void on_tabWidget_currentChanged(int index);
+
 private:
     void displayLevel();
 
