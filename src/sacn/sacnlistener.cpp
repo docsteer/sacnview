@@ -64,7 +64,7 @@ void sACNListener::startReception()
 
     if (Preferences::getInstance()->GetNetworkListenAll() & !Preferences::getInstance()->networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) {
         // Listen on ALL interfaces and not working offline
-        for (auto interface : QNetworkInterface::allInterfaces())
+        for (const auto &interface : QNetworkInterface::allInterfaces())
         {
             // If the interface is ok for use...
             if(Preferences::getInstance()->interfaceSuitable(interface))
@@ -603,7 +603,8 @@ void sACNListener::performMerge()
 
     {
         QMutexLocker locker(&m_monitoredChannelsMutex);
-        for(auto chan: m_monitoredChannels)
+        const auto uniqeChannels = m_monitoredChannels.values().toSet();
+        for(auto chan: uniqeChannels)
         {
             QPointF data;
             data.setX(m_elapsedTime.nsecsElapsed()/1000000.0);
