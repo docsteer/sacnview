@@ -35,7 +35,7 @@ protected:
     QString textFromAddress(quint16 address) const;
 
 private:
-    sACNManager::tListener m_listener = Q_NULLPTR;
+    sACNManager::tListener m_listener;
     void setupListener(int universe);
     quint16 m_address;
 };
