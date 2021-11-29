@@ -77,10 +77,10 @@ private:
 
 public:
     tListener getListener(quint16 universe);
-    const decltype(m_listenerHash) getListenerList() { return m_listenerHash; }
+    const decltype(m_listenerHash) &getListenerList() { return m_listenerHash; }
 
     tSender getSender(quint16 universe, CID cid = CID::CreateCid());
-    const decltype(m_senderHash) getSenderList() { return m_senderHash; }
+    const decltype(m_senderHash) &getSenderList() { return m_senderHash; }
 
 signals:
     void newSender();
