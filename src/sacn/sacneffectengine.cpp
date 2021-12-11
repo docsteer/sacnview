@@ -1,4 +1,4 @@
-﻿// Copyright 2016 Tom Barthel-Steer
+// Copyright 2016 Tom Barthel-Steer
 // http://www.tomsteer.net
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -361,7 +361,7 @@ void sACNEffectEngine::timerTick()
         break;
 
     case FxChaseSine:
-        if(m_index > sizeof(sinetable))
+        if(m_index >= sizeof(sinetable))
         {
             m_index = 0;
             if (++m_index_chase > m_end )
