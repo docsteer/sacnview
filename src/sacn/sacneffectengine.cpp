@@ -46,6 +46,7 @@ sACNEffectEngine::sACNEffectEngine(sACNManager::tSender sender) : QObject(NULL),
     qRegisterMetaType<sACNEffectEngine::DateStyle>("sACNEffectEngine::DateStyle");
 
     m_timer = new QTimer(this);
+    m_timer->setTimerType(Qt::TimerType::PreciseTimer);
     m_timer->setInterval(1000);
     connect(m_timer, SIGNAL(timeout()), this, SLOT(timerTick()));
 
