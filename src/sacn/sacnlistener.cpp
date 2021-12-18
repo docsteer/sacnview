@@ -187,7 +187,7 @@ void sACNListener::readPendingDatagrams()
              * Broadcast - Rejected
              */
             QList<QHostAddress> interfaceAddress;
-            for (auto address : m_socket->getBoundInterface().addressEntries())
+            for (const auto &address : m_socket->getBoundInterface().addressEntries())
                 interfaceAddress << address.ip();
 
             CIPAddr addr;
@@ -603,8 +603,7 @@ void sACNListener::performMerge()
 
     {
         QMutexLocker locker(&m_monitoredChannelsMutex);
-        const auto uniqeChannels = m_monitoredChannels.values().toSet();
-        for(auto chan: uniqeChannels)
+        for(auto const &chan: qAsConst(m_monitoredChannels))
         {
             QPointF data;
             data.setX(m_elapsedTime.nsecsElapsed()/1000000.0);
