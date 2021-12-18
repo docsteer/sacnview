@@ -191,8 +191,13 @@ void UniverseView::sourceChanged(sACNSource *source)
 
     if (source->src_valid) {
         if (source->doing_dmx) {
-            ui->twSources->item(row,COL_ONLINE)->setBackground(Qt::green);
-            ui->twSources->item(row,COL_ONLINE)->setText(tr("Online"));
+            if (source->src_stable) {
+                ui->twSources->item(row,COL_ONLINE)->setBackground(Qt::green);
+                ui->twSources->item(row,COL_ONLINE)->setText(tr("Online"));
+            } else {
+                ui->twSources->item(row,COL_ONLINE)->setBackground(Qt::yellow);
+                ui->twSources->item(row,COL_ONLINE)->setText(tr("Online (Unstable)"));
+            }
         } else {
             ui->twSources->item(row,COL_ONLINE)->setBackground(Qt::yellow);
             ui->twSources->item(row,COL_ONLINE)->setText(tr("No DMX"));

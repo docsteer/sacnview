@@ -134,6 +134,7 @@ void sACNListener::checkSourceExpiration()
             if((*it)->active.Expired() && (*it)->priority_wait.Expired())
             {
                 (*it)->src_valid = false;
+                (*it)->src_stable = false;
                 CID::CIDIntoString((*it)->src_cid, cidstr);
                 emit sourceLost(*it);
                 m_mergeAll = true;
@@ -439,6 +440,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
         ps->lastseq = sequence;
         ps->src_cid = source_cid;
         ps->src_valid = true;
+        ps->src_stable = true;
         ps->doing_dmx = (start_code == STARTCODE_DMX);
         //If we are in the sampling period, let all packets through
         if(m_isSampling)

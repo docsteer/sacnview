@@ -108,6 +108,7 @@ public:
     explicit sACNSource();
     CID src_cid;
     bool src_valid;
+    bool src_stable;
     quint8 lastseq;
     ttimer active;  //If this expires, we haven't received any data in over a second
     //The per-channel priority alternate start code policy requires we detect the source only after
