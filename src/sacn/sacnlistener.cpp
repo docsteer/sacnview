@@ -591,6 +591,16 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
     }
 }
 
+inline bool isPatched(sACNSource &source, uint16_t address)
+{
+    // Can only be unpatched if we have DD packets
+    if (!source.doing_per_channel)
+        return true;
+
+    // Priority not 0
+    return source.priority_array[address] != 0;
+}
+
 void sACNListener::performMerge()
 {
     //array of addresses to merge. to prevent duplicates and because you can have
@@ -707,7 +717,7 @@ void sACNListener::performMerge()
 					ps->src_valid // Valid Source
                     && !ps->active.Expired() // Not expired
 					&& !(ps->priority_array[address] < priorities[address]) // Not lesser priority
-                    && ( (ps->priority_array[address] > 0) || (ps->priority_array[address] == 0 && !ps->doing_per_channel) ) // Priority > 0 if DD
+                    && isPatched(*ps, address) // Priority > 0 if DD
                     && (address < ps->slot_count) // Sending the required slot
 				)
 			{
@@ -723,6 +733,7 @@ void sACNListener::performMerge()
             if(
                     ps->src_valid // Valid Source
                     && !ps->active.Expired() // Not Expired
+                    && isPatched(*ps, address) // Priority > 0 if DD
                     && (address < ps->slot_count) // Sending the required slot
                 )
                 m_merged_levels[addresses_to_merge[i]].otherSources.insert(ps);
