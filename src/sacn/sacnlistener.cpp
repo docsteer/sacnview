@@ -60,7 +60,7 @@ void sACNListener::startReception()
     qDebug() << "sACNListener" << QThread::currentThreadId() << ": Starting universe" << m_universe;
 
     // Clear the levels array
-    memset(&m_last_levels, -1, sizeof(m_last_levels)/sizeof(m_last_levels[0]));
+    std::fill(std::begin(m_last_levels), std::end(m_last_levels), -1);
 
     if (Preferences::getInstance()->GetNetworkListenAll() & !Preferences::getInstance()->networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) {
         // Listen on ALL interfaces and not working offline
