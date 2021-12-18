@@ -210,7 +210,7 @@ void UniverseView::sourceChanged(sACNSource *source)
     ui->twSources->item(row,COL_VER)->setText(protocolVerToString(source->protocol_version));
     ui->twSources->item(row,COL_DD)->setText(
                 source->doing_per_channel ?
-                    (Preferences::getInstance()->GetIgnoreDD() ? "Ignored" : "Yes")
+                    (Preferences::getInstance()->GetIgnoreDD() ? tr("Ignored") : tr("Yes"))
                     : tr("No"));
     ui->twSources->item(row,COL_SLOTS)->setText(QString::number(source->slot_count));
 }
