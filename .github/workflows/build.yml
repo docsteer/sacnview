@@ -1,36 +1,92 @@
-# This is a basic workflow to help you get started with Actions
+name: Build
 
-name: CI
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ master ]
+    branches: [ main github_actions ]
   pull_request:
-    branches: [ master ]
+    branches: [ main github_actions ]
+  page_build:
+  release:
+    types:
+      - created
+      - edited
+      - prereleased
+      - released
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+  build_linux:
+    runs-on: ubuntu-18.04
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: Linux Environment Setup - install software-properties-common - ppa pre-req
+      run: sudo apt-get install software-properties-common -y -qq 
+    - name: Linux Environment Setup - install qt ppa
+      run: sudo add-apt-repository ppa:beineri/opt-qt-5.12.0-bionic -y && sudo apt-get update -y
+    - name: Linux Environment Setup - install python3
+      run:  sudo apt-get install python3-pip --yes
+    - name: Install QT 5.12.x - part 1
+      run: sudo apt-get install qt5-default qt5-qmake qt512base qt512tools libqwt-qt5-6 qt512serialport qt512svg qt512multimedia qt512connectivity qt512webengine libqt5webkit5-dev qt512charts-no-lgpl qt512networkauth-no-lgpl qt512translations qtdeclarative5-dev-tools libqwt-qt5-dev qtwebengine5-dev vlc libvlc-dev libvlccore-dev libsfml-dev libusb-1.0-0-dev -y
+    - name: Install QT 5.12.x - part 2
+      run: sudo /opt/qt512/bin/./qt512-env.sh
+    - name: Create Makefile
+      run:  |
+        qtchooser -list-versions
+        qmake -version
+        qmake PowerVelo.pro
+    - name: Run MakeFile
+      run: make
+    - name: upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: linux
+        path: build/
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+  build_windows:
+    runs-on: windows-latest
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+    steps:
+    - name: MSVC Environment Setup
+      uses: ilammy/msvc-dev-cmd@v1
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2.8.0
+
+    - name: Create Makefile
+      run: 
+        qmake sACNView.pro
+    - name: Run MakeFile
+      run: make
+    - name: upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: windows
+        path: build\ 
+
+
+  build_mac:
+    runs-on: macos-latest
+
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: QT Environment Setup
+      run:  |
+        brew install qt5 qwt sfml
+        brew link qt5 --force
+        curl -L -o /tmp/VLC-Qt_1.1.0_macos.7z  https://github.com/vlc-qt/vlc-qt/releases/download/1.1.0/VLC-Qt_1.1.0_macos.7z
+        mkdir -p /usr/local/opt/vlc-qt
+        7z x -o/usr/local/opt/vlc-qt /tmp/VLC-Qt_1.1.0_macos.7z
+        ln -sf /usr/local/opt/vlc-qt/lib/VLCQtCore.framework/Headers /usr/local/include/VLCQtCore
+        ln -sf /usr/local/opt/vlc-qt/lib/VLCQtWidgets.framework/Headers /usr/local/include/VLCQtWidgets
+    - name: Create Makefile
+      run: qmake sACNView.pro
+    - name: Run MakeFile
+      run: make
+    - name: upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: macos
+        path: build/ 
