@@ -2,9 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [ main workflows ]
   pull_request:
-    branches: [ main workflows ]
   page_build:
   release:
     types:
