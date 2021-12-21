@@ -13,10 +13,8 @@ linux {
     system(cd $$shell_quote($${LIBS_PATH}) && $$shell_quote($${_PRO_FILE_PWD_}/tools/depot_tools/gclient) sync)
     system(rm $$shell_quote($${BREAKPAD_PATH_TEMP}))
 
-    # Build
-    system(cd $${BREAKPAD_PATH} && ./configure && make)
-
-    LIBS += -L$${BREAKPAD_PATH}/src/client/linux -lbreakpad_client
+    LIBS += -L$${BREAKPAD_PATH}/src/src/client/linux -lbreakpad_client
+    INCLUDEPATH  += {BREAKPAD_PATH}/src/src/
 
     HEADERS += src/crash_handler.h \
         src/crash_test.h
