@@ -89,6 +89,7 @@ void AddMultiDialog::on_cbEffect_currentIndexChanged(int index)
     case sACNEffectEngine::FxChaseRamp:
     case sACNEffectEngine::FxChaseSine:
     case sACNEffectEngine::FxRamp:
+    case sACNEffectEngine::FxInverseRamp:
     case sACNEffectEngine::FxSinewave:
     case sACNEffectEngine::FxVerticalBar:
     case sACNEffectEngine::FxHorizontalBar:
@@ -116,6 +117,7 @@ void AddMultiDialog::on_slLevel_sliderMoved(int value)
     case sACNEffectEngine::FxChaseSnap:
     case sACNEffectEngine::FxChaseRamp:
     case sACNEffectEngine::FxRamp:
+    case sACNEffectEngine::FxInverseRamp:
     case sACNEffectEngine::FxSinewave:
     case sACNEffectEngine::FxVerticalBar:
     case sACNEffectEngine::FxHorizontalBar:
