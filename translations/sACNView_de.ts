@@ -73,17 +73,17 @@
     </message>
     <message>
         <location filename="../ui/addmultidialog.ui" line="340"/>
-        <location filename="../src/ui/addmultidialog.cpp" line="101"/>
+        <location filename="../src/ui/addmultidialog.cpp" line="100"/>
         <source>Rate</source>
         <translation>Tempo</translation>
     </message>
     <message>
-        <location filename="../src/ui/addmultidialog.cpp" line="127"/>
+        <location filename="../src/ui/addmultidialog.cpp" line="125"/>
         <source>%1 Hz</source>
         <translation>%1 Hz</translation>
     </message>
     <message>
-        <location filename="../src/ui/addmultidialog.cpp" line="189"/>
+        <location filename="../src/ui/addmultidialog.cpp" line="187"/>
         <source>Fade Rate %1 Hz</source>
         <translation>Überblendungsgechwindigkeit %1 Hz</translation>
     </message>
@@ -533,27 +533,27 @@
     </message>
     <message>
         <location filename="../src/ui/multiuniverse.cpp" line="175"/>
-        <location filename="../src/ui/multiuniverse.cpp" line="430"/>
+        <location filename="../src/ui/multiuniverse.cpp" line="429"/>
         <source>_%1</source>
         <translation>_%1</translation>
     </message>
     <message>
-        <location filename="../src/ui/multiuniverse.cpp" line="319"/>
+        <location filename="../src/ui/multiuniverse.cpp" line="318"/>
         <source>Slower</source>
         <translation>Langsamer</translation>
     </message>
     <message>
-        <location filename="../src/ui/multiuniverse.cpp" line="320"/>
+        <location filename="../src/ui/multiuniverse.cpp" line="319"/>
         <source>Faster</source>
         <translation>Schneller</translation>
     </message>
     <message>
-        <location filename="../src/ui/multiuniverse.cpp" line="341"/>
+        <location filename="../src/ui/multiuniverse.cpp" line="340"/>
         <source>EU Date Style</source>
         <translation>EU Datumformat</translation>
     </message>
     <message>
-        <location filename="../src/ui/multiuniverse.cpp" line="342"/>
+        <location filename="../src/ui/multiuniverse.cpp" line="341"/>
         <source>US Date Style</source>
         <translation>USA Datumformat</translation>
     </message>
@@ -968,57 +968,52 @@ Please ensure IPv6 is disabled</source>
         <translation>Fehler - nichts gewählt</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="49"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="48"/>
         <source>Manual</source>
         <translation>Manuell</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="50"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="49"/>
         <source>Ramp</source>
         <translation>Rampe</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="51"/>
-        <source>Inverse Ramp</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="52"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="50"/>
         <source>Sinewave</source>
         <translation>Sinusoid</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="53"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="51"/>
         <source>Chase (Snap)</source>
         <translation>Lauflicht (Cut)</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="54"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="52"/>
         <source>Chase (Ramp)</source>
         <translation>Lauflicht (Rampe)</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="55"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="53"/>
         <source>Chase (Sine)</source>
         <translation>Lauflicht (Sinus)</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="56"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="54"/>
         <source>Vertical Bars</source>
         <translation>Senkrechte Barren</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="57"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="55"/>
         <source>Horizontal Bars</source>
         <translation>Waagerechte Barren</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="58"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="56"/>
         <source>Text</source>
         <translation>Text</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="59"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="57"/>
         <source>Date</source>
         <translation>Datum</translation>
     </message>

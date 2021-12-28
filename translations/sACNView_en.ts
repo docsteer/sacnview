@@ -73,17 +73,17 @@
     </message>
     <message>
         <location filename="../ui/addmultidialog.ui" line="340"/>
-        <location filename="../src/ui/addmultidialog.cpp" line="101"/>
+        <location filename="../src/ui/addmultidialog.cpp" line="100"/>
         <source>Rate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/ui/addmultidialog.cpp" line="127"/>
+        <location filename="../src/ui/addmultidialog.cpp" line="125"/>
         <source>%1 Hz</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/ui/addmultidialog.cpp" line="189"/>
+        <location filename="../src/ui/addmultidialog.cpp" line="187"/>
         <source>Fade Rate %1 Hz</source>
         <translation type="unfinished"></translation>
     </message>
@@ -533,27 +533,27 @@
     </message>
     <message>
         <location filename="../src/ui/multiuniverse.cpp" line="175"/>
-        <location filename="../src/ui/multiuniverse.cpp" line="430"/>
+        <location filename="../src/ui/multiuniverse.cpp" line="429"/>
         <source>_%1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/ui/multiuniverse.cpp" line="319"/>
+        <location filename="../src/ui/multiuniverse.cpp" line="318"/>
         <source>Slower</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/ui/multiuniverse.cpp" line="320"/>
+        <location filename="../src/ui/multiuniverse.cpp" line="319"/>
         <source>Faster</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/ui/multiuniverse.cpp" line="341"/>
+        <location filename="../src/ui/multiuniverse.cpp" line="340"/>
         <source>EU Date Style</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/ui/multiuniverse.cpp" line="342"/>
+        <location filename="../src/ui/multiuniverse.cpp" line="341"/>
         <source>US Date Style</source>
         <translation type="unfinished"></translation>
     </message>
@@ -967,57 +967,52 @@ Please ensure IPv6 is disabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="49"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="48"/>
         <source>Manual</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="50"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="49"/>
         <source>Ramp</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="51"/>
-        <source>Inverse Ramp</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="52"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="50"/>
         <source>Sinewave</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="53"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="51"/>
         <source>Chase (Snap)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="54"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="52"/>
         <source>Chase (Ramp)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="55"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="53"/>
         <source>Chase (Sine)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="56"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="54"/>
         <source>Vertical Bars</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="57"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="55"/>
         <source>Horizontal Bars</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="58"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="56"/>
         <source>Text</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="59"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="57"/>
         <source>Date</source>
         <translation type="unfinished"></translation>
     </message>
