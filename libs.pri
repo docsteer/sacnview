@@ -3,7 +3,7 @@ LIBS_PATH = $$system_path($${_PRO_FILE_PWD_}/libs)
 # Breakpad
 BREAKPAD_PATH = $$system_path($${LIBS_PATH}/breakpad)
 DEPOT_TOOLS_PATH = $$system_path($${_PRO_FILE_PWD_}/tools/depot_tools)
-INCLUDEPATH += $$system_path($${BREAKPAD_PATH}/src)
+INCLUDEPATH += $$system_path($${BREAKPAD_PATH}/src/src)
 linux {
     DEFINES += USE_BREAKPAD
 
@@ -14,7 +14,7 @@ linux {
     # Build
     system(cd $$shell_quote($${BREAKPAD_PATH}/src) && ./configure && make)
 
-    LIBS += -L$${BREAKPAD_PATH}/src/client/linux -lbreakpad_client
+    LIBS += -L$${BREAKPAD_PATH}/src/src/client/linux -lbreakpad_client
 
     HEADERS += src/crash_handler.h \
         src/ui/crash_test.h
@@ -31,21 +31,21 @@ win32 {
     system(cd $$shell_quote($${BREAKPAD_PATH}) && $$shell_quote($${DEPOT_TOOLS_PATH}\gclient.bat) sync)
 
     LIBS += -luser32
-    INCLUDEPATH  += {BREAKPAD_PATH}/src/
-    HEADERS += $${BREAKPAD_PATH}/src/common/windows/string_utils-inl.h \
-        $${BREAKPAD_PATH}/src/common/windows/guid_string.h \
-        $${BREAKPAD_PATH}/src/client/windows/handler/exception_handler.h \
-        $${BREAKPAD_PATH}/src/client/windows/common/ipc_protocol.h \
-        $${BREAKPAD_PATH}/src/google_breakpad/common/minidump_format.h \
-        $${BREAKPAD_PATH}/src/google_breakpad/common/breakpad_types.h \
-        $${BREAKPAD_PATH}/src/client/windows/crash_generation/crash_generation_client.h \
-        $${BREAKPAD_PATH}/src/common/scoped_ptr.h \
+    INCLUDEPATH  += {BREAKPAD_PATH}/src/src/
+    HEADERS += $${BREAKPAD_PATH}/src/src/common/windows/string_utils-inl.h \
+        $${BREAKPAD_PATH}/src/src/common/windows/guid_string.h \
+        $${BREAKPAD_PATH}/src/src/client/windows/handler/exception_handler.h \
+        $${BREAKPAD_PATH}/src/src/client/windows/common/ipc_protocol.h \
+        $${BREAKPAD_PATH}/src/src/google_breakpad/common/minidump_format.h \
+        $${BREAKPAD_PATH}/src/src/google_breakpad/common/breakpad_types.h \
+        $${BREAKPAD_PATH}/src/src/client/windows/crash_generation/crash_generation_client.h \
+        $${BREAKPAD_PATH}/src/src/common/scoped_ptr.h \
         src/crash_handler.h \
         src/ui/crash_test.h
-    SOURCES += $${BREAKPAD_PATH}/src/client/windows/handler/exception_handler.cc \
-        $${BREAKPAD_PATH}/src/common/windows/string_utils.cc \
-        $${BREAKPAD_PATH}/src/common/windows/guid_string.cc \
-        $${BREAKPAD_PATH}/src/client/windows/crash_generation/crash_generation_client.cc \
+    SOURCES += $${BREAKPAD_PATH}/src/src/client/windows/handler/exception_handler.cc \
+        $${BREAKPAD_PATH}/src/src/common/windows/string_utils.cc \
+        $${BREAKPAD_PATH}/src/src/common/windows/guid_string.cc \
+        $${BREAKPAD_PATH}/src/src/client/windows/crash_generation/crash_generation_client.cc \
         src/crash_handler.cpp \
         src/ui/crash_test.cpp
     FORMS += ui/crash_test.ui
