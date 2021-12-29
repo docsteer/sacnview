@@ -309,6 +309,14 @@ void sACNEffectEngine::timerTick()
                                   Q_ARG(quint8, m_data));
         emit fxLevelChange(m_data);
         break;
+    case FxInverseRamp:
+        m_data--;
+        QMetaObject::invokeMethod(m_sender, "setLevelRange",
+                                  Q_ARG(quint16, m_start),
+                                  Q_ARG(quint16, m_end),
+                                  Q_ARG(quint8, m_data));
+        emit fxLevelChange(m_data);
+        break;
     case FxSinewave:
         if(m_index >= sizeof(sinetable))
             m_index = 0;

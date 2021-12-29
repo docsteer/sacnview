@@ -28,6 +28,7 @@ public:
     enum FxMode {
         FxManual,
         FxRamp,
+        FxInverseRamp,
         FxSinewave,
         FxChaseSnap,
         FxChaseRamp,
@@ -47,6 +48,7 @@ public:
         QList<QString> ret;
         ret.insert(FxManual, QObject::tr("Manual"));
         ret.insert(FxRamp, QObject::tr("Ramp"));
+        ret.insert(FxInverseRamp, QObject::tr("Inverse Ramp"));
         ret.insert(FxSinewave, QObject::tr("Sinewave"));
         ret.insert(FxChaseSnap, QObject::tr("Chase (Snap)"));
         ret.insert(FxChaseRamp, QObject::tr("Chase (Ramp)"));

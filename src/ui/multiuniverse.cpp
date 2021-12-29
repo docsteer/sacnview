@@ -310,6 +310,7 @@ void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode, int val
     case sACNEffectEngine::FxChaseRamp:
     case sACNEffectEngine::FxChaseSine:
     case sACNEffectEngine::FxRamp:
+    case sACNEffectEngine::FxInverseRamp:
     case sACNEffectEngine::FxSinewave:
     case sACNEffectEngine::FxVerticalBar:
     case sACNEffectEngine::FxHorizontalBar:
