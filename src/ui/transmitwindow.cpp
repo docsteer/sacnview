@@ -26,6 +26,10 @@
 #include <QToolButton>
 #include <QMessageBox>
 
+const char* FADERLABELFORMAT = "<b>%1</b><br>%2";
+const char* FADERADDRESSPROP = "ADDRESS";
+const char* FADERLABELPROP = "LABEL*";
+
 transmitwindow::transmitwindow(int universe, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::transmitwindow),
@@ -101,6 +105,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     connect(recordButton, SIGNAL(toggled(bool)), this, SLOT(recordButtonPressed(bool)));
 
     // Create faders
+    uint16_t sliderAddress = 0;
     QVBoxLayout *mainLayout = new QVBoxLayout();
     for(int row=0; row<2; row++)
     {
@@ -110,22 +115,24 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
             QVBoxLayout *faderVb = new QVBoxLayout();
             QSlider *slider = new QSlider(this);
             m_sliders << slider;
+            slider->setProperty(FADERADDRESSPROP, sliderAddress);
             slider->setMinimum(MIN_SACN_LEVEL);
             slider->setMaximum(MAX_SACN_LEVEL);
             connect(slider, SIGNAL(valueChanged(int)), this, SLOT(on_sliderMoved(int)));
             QLabel *label = new QLabel(this);
-            m_sliderLabels << label;
+            slider->setProperty(FADERLABELPROP, QVariant::fromValue(label));
             label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
             label->setMinimumWidth(25);
-            label->setText(QString("%1\r\n%2")
-                           .arg(row*NUM_SLIDERS/2 + col + 1)
-                           .arg(0)
-                           );
+            label->setText(QString(FADERLABELFORMAT)
+                .arg(sliderAddress + 1)
+                .arg(Preferences::getInstance()->GetFormattedValue(m_levels.at(sliderAddress))));
             QHBoxLayout *sliderLayout = new QHBoxLayout(); // This keeps the sliders horizontally centered
             sliderLayout->addWidget(slider);
             faderVb->addLayout(sliderLayout);
             faderVb->addWidget(label);
             rowLayout->addLayout(faderVb);
+
+            ++sliderAddress;
         }
         mainLayout->addLayout(rowLayout);
         rowLayout->update();
@@ -268,38 +275,55 @@ void transmitwindow::on_sbUniverse_valueChanged(int value)
 
 void transmitwindow::on_sliderMoved(int value)
 {
+    auto slider = qobject_cast<QSlider*>(sender());
+    if (!slider)
+        return;
     int index = m_sliders.indexOf(qobject_cast<QSlider*>(sender()));
     if(index<0) return;
 
-    int address = index + ui->sbFadersStart->value() - 1; // 0-based address
+    bool ok;
+    auto address = slider->property(FADERADDRESSPROP).toUInt(&ok);
+    if (!ok && address >= m_levels.size())
+        return;
 
-    QLabel *label = m_sliderLabels[index];
-
-    label->setText(QString("%1\r\n%2")
-    .arg(address+1)
-    .arg(Preferences::getInstance()->GetFormattedValue(value))
-    );
+    QLabel *label = slider->property(FADERLABELPROP).value<QLabel*>();
+    if (label) {
+        label->setText(QString(FADERLABELFORMAT)
+            .arg(address+1)
+            .arg(Preferences::getInstance()->GetFormattedValue(value)));
+    }
 
     setLevel(address, value);
-
 }
 
-void transmitwindow::on_sbFadersStart_valueChanged(int value)
+void transmitwindow::on_sbFadersStart_valueChanged(int address)
 {
-    updateEnabled();
-
-    for(int i=0; i<m_sliders.count(); i++)
+    for (const auto &slider : qAsConst(m_sliders))
     {
-        QSlider *slider = m_sliders[i];
-        QLabel *label = m_sliderLabels[i];
-
         slider->blockSignals(true);
-        slider->setValue(m_levels[value + i - 1]);
+
+        auto level = m_levels[address - 1];
+
+        // Store address in slider for later reference
+        slider->setProperty(FADERADDRESSPROP, address - 1);
+
+        // Fader level
+        slider->setValue(level);
+
+        // Address/level text display
+        QLabel *label = slider->property(FADERLABELPROP).value<QLabel*>();
+        if (label) {
+            label->setText(QString(FADERLABELFORMAT)
+                .arg(address)
+                .arg(Preferences::getInstance()->GetFormattedValue(level)));
+        }
+
+        if (static_cast<size_t>(address) < m_levels.size())
+            ++address;
+        else
+            address = 1;
+
         slider->blockSignals(false);
-        label->setText(QString("%1\r\n%2")
-                   .arg(i + value)
-                   .arg(Preferences::getInstance()->GetFormattedValue(m_levels[i + value - 1]))
-                   );
     }
 }
 
@@ -562,6 +586,7 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
         case tabSliders:
         {
             // Reassert fader and programmer levels
+            on_sbFadersStart_valueChanged(ui->sbFadersStart->value());
             m_sender->setLevel(m_levels.data(), static_cast<int>(m_levels.size()));
             ui->teCommandline->setFocus();
             break;
@@ -713,13 +738,9 @@ void transmitwindow::presetButtonPressed()
     {
         // Play back a preset
         QByteArray baPreset = Preferences::getInstance()->GetPreset(index);
-        if (m_sender) m_sender->setLevel((const quint8*)baPreset.constData(), m_slotCount);
-        // Apply it to the faders
-        int addr = ui->sbFadersStart->value()-1;
-        for(int i=0; i<m_sliders.count(); i++)
-        {
-            m_sliders[i]->setValue(quint8(baPreset.at(addr++)));
-        }
+        uint16_t address = 0;
+        for (uint8_t level : qAsConst(baPreset))
+            setLevel(address++, level);
     }
 }
 
@@ -800,18 +821,7 @@ void transmitwindow::on_sbSlotCount_valueChanged(int arg1)
     ui->sbFadersStart->setMaximum(m_slotCount);
     on_sbFadersStart_valueChanged(ui->sbFadersStart->value());
 
-    updateEnabled();
-
     ui->lcdNumber->display(std::min(static_cast<decltype(m_slotCount)>(ui->lcdNumber->value()), m_slotCount));
-}
-
-void transmitwindow::updateEnabled()
-{
-    auto offset = ui->sbFadersStart->value() - 1;
-    for (int n = offset; n < m_sliders.count() + offset; n++)
-    {
-        m_sliders[n - offset]->setEnabled(!(m_slotCount - n <= 0));
-    }
 }
 
 void transmitwindow::setLevel(int address, int value)
@@ -823,13 +833,16 @@ void transmitwindow::setLevel(int address, int value)
     if(m_sender)
         m_sender->setLevel(address, value);
 
-    int pos = address - (ui->sbFadersStart->value() - 1);
-    if(pos>= 0 && pos<m_sliders.count() && m_sliders[pos]->value()!=value)
+    for (const auto &slider : qAsConst(m_sliders))
     {
-        m_sliders[pos]->setValue(value);
+        bool ok;
+        auto sliderAddr = slider->property(FADERADDRESSPROP).toUInt(&ok);
+        if (ok && sliderAddr == static_cast<unsigned int>(address)) {
+            slider->setValue(value);
+            break;
+        }
     }
 }
-
 
 void transmitwindow::setLevelList(QList<QPair<int, int>> levelList)
 {
@@ -842,3 +855,4 @@ void transmitwindow::setLevelList(QList<QPair<int, int>> levelList)
             setLevel(i.first, i.second);
     }
 }
+

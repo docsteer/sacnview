@@ -48,7 +48,7 @@ protected slots:
     void on_sliderMoved(int value);
     void on_btnEditPerChan_pressed();
     void on_cbPriorityMode_currentIndexChanged(int index);
-    void on_sbFadersStart_valueChanged(int value);
+    void on_sbFadersStart_valueChanged(int address);
     void on_btnCcPrev_pressed();
     void on_btnCcNext_pressed();
     void on_lcdNumber_valueChanged(int value);
@@ -89,11 +89,9 @@ private:
 
     void setUniverseOptsEnabled(bool enabled);
     void updateTitle();
-    void updateEnabled();
     void setLevel(int address, int value);
     Ui::transmitwindow *ui;
     QList<QSlider *> m_sliders;
-    QList<QLabel *> m_sliderLabels;
     QList<QToolButton *> m_presetButtons;
     sACNManager::tSender m_sender;
     quint16 m_slotCount;
