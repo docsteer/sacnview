@@ -82,7 +82,8 @@ private:
 
     Ui::UniverseView *ui = nullptr;
     QHash<sACNSource *, int> m_sourceToTableRow;
-    int m_selectedAddress = -1;
+    static const int NO_SELECTED_ADDRESS = -1;
+    int m_selectedAddress = NO_SELECTED_ADDRESS;
     sACNManager::tListener m_listener;
     QWidget *m_parentWindow = nullptr;
     bool m_displayDDOnlySource = true;

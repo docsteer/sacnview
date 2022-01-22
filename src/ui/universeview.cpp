@@ -213,6 +213,10 @@ void UniverseView::sourceChanged(sACNSource *source)
                     (Preferences::getInstance()->GetIgnoreDD() ? tr("Ignored") : tr("Yes"))
                     : tr("No"));
     ui->twSources->item(row,COL_SLOTS)->setText(QString::number(source->slot_count));
+
+    // Update select address details
+    if (m_selectedAddress != NO_SELECTED_ADDRESS)
+        selectedAddressChanged(m_selectedAddress);
 }
 
 void UniverseView::sourceOnline(sACNSource *source)
@@ -302,7 +306,7 @@ void UniverseView::levelsChanged()
 {
     if (!m_listener)
         return;
-    if (m_selectedAddress>-1)
+    if (m_selectedAddress != NO_SELECTED_ADDRESS)
         selectedAddressChanged(m_selectedAddress);
 }
 
@@ -461,7 +465,7 @@ void UniverseView::on_btnLogWindow_clicked()
 void UniverseView::selectedAddressesChanged(QList<int> addresses)
 {
     if(addresses.count()==0)
-        selectedAddressChanged(-1);
+        selectedAddressChanged(NO_SELECTED_ADDRESS);
     if(addresses.count()==1)
         selectedAddressChanged(addresses.first());
 }
