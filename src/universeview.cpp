@@ -49,7 +49,7 @@ QString protocolVerToString(int value)
 UniverseView::UniverseView(int universe, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::UniverseView),
-    m_selectedAddress(-1),
+    m_selectedAddress(NO_SELECTED_ADDRESS),
     m_parentWindow(parent) // needed as parent() in qobject world isn't..
 {
     m_displayDDOnlySource = Preferences::getInstance()->GetDisplayDDOnly();
@@ -179,6 +179,10 @@ void UniverseView::sourceChanged(sACNSource *source)
     ui->twSources->item(row,COL_VER)->setText(protocolVerToString(source->protocol_version));
     ui->twSources->item(row,COL_DD)->setText(source->doing_per_channel ? tr("Yes") : tr("No"));
     ui->twSources->item(row,COL_SLOTS)->setText(QString::number(source->slot_count));
+
+    // Update select address details
+    if (m_selectedAddress != NO_SELECTED_ADDRESS)
+        selectedAddressChanged(m_selectedAddress);
 }
 
 void UniverseView::sourceOnline(sACNSource *source)
@@ -265,7 +269,7 @@ void UniverseView::sourceOffline(sACNSource *source)
 void UniverseView::levelsChanged()
 {
     if(!m_listener) return;
-    if(m_selectedAddress>-1)
+    if(m_selectedAddress>NO_SELECTED_ADDRESS)
         selectedAddressChanged(m_selectedAddress);
 }
 
@@ -411,7 +415,7 @@ void UniverseView::on_btnLogWindow_pressed()
 void UniverseView::selectedAddressesChanged(QList<int> addresses)
 {
     if(addresses.count()==0)
-        selectedAddressChanged(-1);
+        selectedAddressChanged(NO_SELECTED_ADDRESS);
     if(addresses.count()==1)
         selectedAddressChanged(addresses.first());
 }
