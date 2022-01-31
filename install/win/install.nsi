@@ -43,7 +43,7 @@ SetCompressor /SOLID lzma
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 
 ; MSVC RunTime
-!define MSVC_EXE "vcredist_x86.exe"
+!define MSVC_EXE "vc_redist.x86.exe"
 !define MSVC_OPT "/install /passive /norestart" 
 
 Name "${PRODUCT_NAME}"
