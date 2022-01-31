@@ -65,7 +65,7 @@ jobs:
     - name: Download NSIS SimpleFC Plugin
       uses: suisei-cn/actions-download-file@v1
       with:
-        url: "http://nsis.sourceforge.net/mediawiki/images/d/d7/NSIS_Simple_Firewall_Plugin_1.20.zip"
+        url: "https://nsis.sourceforge.io/mediawiki/images/e/e0/NSIS_Simple_Firewall_Plugin_Unicode_1.21.zip"
     - name: Install NSIS SimpleFC Plugin
       run:  7z e NSIS_Simple_Firewall_Plugin_Unicode_1.21.zip -o"C:\Program Files (x86)\NSIS\Plugins\x86-unicode"
     - name: Create Makefile
