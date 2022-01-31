@@ -1,0 +1,108 @@
+# Github Actions configuration file
+# Runs the build on Linux, Windows and MacOS
+name: Build
+
+on:
+  push:
+  pull_request:
+  page_build:
+  release:
+    types:
+      - created
+      - edited
+      - prereleased
+      - released
+
+jobs:
+  build_linux:
+  # Ubuntu Bionic
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Install Extra Packages
+      run: sudo apt-get install mesa-common-dev libgl1-mesa-dev libpcap-dev libgstreamer-plugins-base1.0-0 -y
+    - name: Install FPM
+      run: sudo gem install --no-document fpm
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2.14.0
+      with:
+        version: '5.15.2'
+    - name: Create Makefile
+      run:
+        qmake sACNView.pro
+    - name: Run MakeFile
+      run: make
+    - name: Setup TMate Session (Failure Only)
+      if: ${{ failure() }}
+      uses: mxschmitt/action-tmate@v3
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: linux
+        path: sACNView*.AppImage
+
+  build_windows:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2.14.0
+      with:
+        version: '5.15.2'
+        arch: win32_msvc2019
+    - name: MSVC Environment Setup
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: amd64_x86
+    - name: Download NSIS SimpleFC Plugin
+      uses: suisei-cn/actions-download-file@v1
+      with:
+        url: "https://nsis.sourceforge.io/mediawiki/images/e/e0/NSIS_Simple_Firewall_Plugin_Unicode_1.21.zip"
+    - name: Install NSIS SimpleFC Plugin
+      run:  7z e NSIS_Simple_Firewall_Plugin_Unicode_1.21.zip -o"C:\Program Files (x86)\NSIS\Plugins\x86-unicode"
+    - name: Create Makefile
+      run: qmake sACNView.pro
+    - name: Run MakeFile
+      run: nmake
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: windows
+        path: install\win\sACNView*.exe 
+    - name: Setup TMate Session (Failure Only)
+      if: ${{ failure() }}
+      uses: mxschmitt/action-tmate@v3
+
+
+  build_mac:
+    runs-on: macos-latest
+
+    steps:    
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2.14.0
+    - name: Install create-dmg
+      run: brew install create-dmg
+    - name: Create Makefile
+      run: qmake sACNView.pro
+    - name: Run MakeFile
+      run: make
+    - name: Setup TMate Session (Failure Only)
+      if: ${{ failure() }}
+      uses: mxschmitt/action-tmate@v3
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: macos
+        path: install/mac/sACNView*.dmg 

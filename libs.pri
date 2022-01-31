@@ -14,9 +14,10 @@ linux {
     system(rm $$shell_quote($${BREAKPAD_PATH_TEMP}))
 
     # Build
-    system(cd $${BREAKPAD_PATH} && ./configure && make)
+    system(cd $${BREAKPAD_PATH} && ./configure && make && sudo make install)
 
-    LIBS += -L$${BREAKPAD_PATH}/src/client/linux -lbreakpad_client
+    LIBS += -L$${BREAKPAD_PATH}/src/src/client/linux -lbreakpad_client
+    INCLUDEPATH  += {BREAKPAD_PATH}/src/src/
 
     HEADERS += src/crash_handler.h \
         src/crash_test.h
