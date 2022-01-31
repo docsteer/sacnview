@@ -43,7 +43,9 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: linux
-        path: sACNView*.AppImage
+        path: |
+          sACNView*.AppImage
+          sACNView*.deb
 
   build_windows:
     runs-on: windows-latest
@@ -76,7 +78,9 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: windows
-        path: install\win\sACNView*.exe 
+        path: |
+          install\win\sACNView*.exe
+          install\win\*.pdb 
     - name: Setup TMate Session (Failure Only)
       if: ${{ failure() }}
       uses: mxschmitt/action-tmate@v3
