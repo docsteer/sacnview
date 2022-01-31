@@ -78,7 +78,7 @@ jobs:
         name: windows
         path: install\win\sACNView*.exe 
     - name: Setup TMate Session (Failure Only)
-      # if: ${{ failure() }}
+      if: ${{ failure() }}
       uses: mxschmitt/action-tmate@v3
 
 
