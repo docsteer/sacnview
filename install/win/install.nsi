@@ -1,5 +1,5 @@
 ; Installation Script for sACNView
-; Copyright 2016 Tom Barthel-Steer
+; Copyright 2016 Tom Steer
 ; http://www.tomsteer.net
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
 SetCompressor /SOLID lzma
 
 !define PRODUCT_NAME "sACNView"
-!define PRODUCT_PUBLISHER "Tom Barthel-Steer"
+!define PRODUCT_PUBLISHER "Tom Steer"
 !define PRODUCT_WEB_SITE "https://www.sacnview.org"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\sACNView.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
