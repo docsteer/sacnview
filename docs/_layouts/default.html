@@ -31,6 +31,7 @@
 
     document.getElementById("name_release").innerHTML = "Release Version : " + data.name;
 
+    var download_url = obj.browser_download_url;
 		$.each(data.assets, function(index, obj){
 			if( download_url.endsWith('exe'))
 				$('#download-win').attr('href', download_url);
