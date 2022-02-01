@@ -9,10 +9,11 @@ Use the buttons at the top of this page to download and install the program for 
 
 # Supported Platforms
 * Windows 7 or newer
-* Windows XP (separate build)
 * MacOS 10.13.4 (High Sierra) or newer 
 * Linux (Debian based e.g. Ubuntu)
 
+# Windows XP
+Windows XP is no longer supported on new builds, but you can get the last version supporting XP [here](https://github.com/docsteer/sacnview/releases/download/v2.1.2/sACNView_v2.1.2-WinXP.exe)
 # How to Use
 See the [Documentation](./documentation.html) page for information on how to use the application
 
