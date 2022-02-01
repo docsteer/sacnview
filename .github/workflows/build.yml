@@ -45,7 +45,7 @@ jobs:
         name: linux
         path: |
           sACNView*.AppImage
-          sACNView*.deb
+          install/linux/*.deb
 
   build_windows:
     runs-on: windows-latest
@@ -80,7 +80,7 @@ jobs:
         name: windows
         path: |
           install\win\sACNView*.exe
-          install\win\*.pdb 
+          release\*.pdb 
     - name: Setup TMate Session (Failure Only)
       if: ${{ failure() }}
       uses: mxschmitt/action-tmate@v3
