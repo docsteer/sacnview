@@ -31,6 +31,8 @@
 
     document.getElementById("name_release").innerHTML = "Release Version : " + data.name;
 
+    $.each(data[0].assets, function(index, obj){
+
     var download_url = obj.browser_download_url;
 		$.each(data.assets, function(index, obj){
 			if( download_url.endsWith('exe'))
