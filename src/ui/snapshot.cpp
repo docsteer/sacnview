@@ -150,7 +150,7 @@ void Snapshot::on_btnAddRow_rightClicked()
                 QMessageBox::warning(this,
                     tr("Warning"),
                     tr("Adding a large number of universes\r\n"
-                       "may cause instability\r\n"
+                       "may cause instability and take a long time\r\n"
                        "\r\n"
                        "Continue?"),
                     QMessageBox::Yes|QMessageBox::No);
@@ -159,8 +159,10 @@ void Snapshot::on_btnAddRow_rightClicked()
     }
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    for (const auto universe : qAsConst(universeList))
+    for (const auto universe : qAsConst(universeList)) {
         addUniverse(universe);
+        QCoreApplication::processEvents();
+    }
     QApplication::restoreOverrideCursor();
 }
 
