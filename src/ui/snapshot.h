@@ -47,7 +47,7 @@ public:
         InfoLbl(QWidget *parent = Q_NULLPTR);
 
         void setText(Snapshot::state state);
-        virtual void setText(const QString &t) { QLabel::setText(t); }
+        void setText(const QString &t) { QLabel::setText(t); }
     };
 
 protected slots:
@@ -56,6 +56,7 @@ protected slots:
     void on_btnPlay_pressed();
     void btnPlay_update(bool updateState = false);
     void on_btnAddRow_clicked();
+    void on_btnAddRow_rightClicked();
     void on_btnRemoveRow_clicked();
     void senderTimedOut();
     void senderStopped();
@@ -74,6 +75,8 @@ private:
         COL_PRIORITY,
         COLCOUNT
     };
+
+    void addUniverse(quint16 universe);
 
     void setState(state s);
     void setState(int s) { setState(static_cast<state>(s)); }

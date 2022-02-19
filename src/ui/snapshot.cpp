@@ -6,6 +6,8 @@
 #include <QTimer>
 #include <QSound>
 #include <QSpinBox>
+#include <QInputDialog>
+#include <QMessageBox>
 
 Snapshot::PlaybackBtn::PlaybackBtn(QWidget *parent) : QToolButton(parent)
 {
@@ -97,33 +99,76 @@ Snapshot::state& operator++(Snapshot::state& s) // Prefix
 
 void Snapshot::on_btnAddRow_clicked()
 {
-    int row = ui->tableWidget->rowCount();
-    ui->tableWidget->setRowCount(row + 1);
-
     auto universe = m_snapshots.isEmpty() ? m_firstUniverse : m_snapshots.last()->getUniverse() + 1;
-    auto name = Preferences::getInstance()->GetDefaultTransmitName().append(tr(" - Snapshot"));
-    clsSnapshot* snap = new clsSnapshot(universe, m_cid, name, this);
+    addUniverse(universe);
+}
 
-    connect(snap, SIGNAL(senderStarted()), this, SLOT(senderStarted()));
-    connect(snap, SIGNAL(senderStopped()), this, SLOT(senderStopped()));
-    connect(snap, SIGNAL(senderTimedOut()), this, SLOT(senderTimedOut()));
-    connect(snap, &clsSnapshot::snapshotTaken, [this]() { ui->btnPlay->setEnabled(true); });
-    connect(snap, SIGNAL(snapshotMatches()), this, SLOT(updateMatchIcon()));
-    connect(snap, SIGNAL(snapshotDiffers()), this, SLOT(updateMatchIcon()));
-    ui->tableWidget->setCellWidget(row, COL_BUTTON, snap->getControlWidget());
-    ui->tableWidget->setCellWidget(row, COL_UNIVERSE, snap->getSbUniverse());
-    ui->tableWidget->setCellWidget(row, COL_PRIORITY, snap->getSbPriority());
+void Snapshot::on_btnAddRow_rightClicked()
+{
+    bool ok;
+    QString rawInput = QInputDialog::getText(this,
+                    tr("Capture universes"),
+                    tr("List of capture universes"), QLineEdit::Normal,
+                    "1,2,3,4-10", &ok);
 
-    setState(stSetup);
+    if (!ok)
+        return;
 
-    m_snapshots.append(snap);
+    // Decode the string range of universes
+    auto strList = rawInput.split(",", Qt::SkipEmptyParts);
+    QList<quint16> universeList;
+    for (const auto& item : qAsConst(strList)) {
+        if (item.contains("-")) {
+            // Ranges
+            auto strRange = item.split("-", Qt::SkipEmptyParts);
+            auto first = strRange.first().toUInt(&ok);
+            if (!ok) continue;
+            auto last = strRange.last().toUInt(&ok);
+            if (!ok) continue;
+            if (first > last)
+                std::swap(first, last);
+            for (unsigned int universe = first; universe <= last; ++universe) {
+                if (universe >= MIN_SACN_UNIVERSE && universe <= MAX_SACN_UNIVERSE)
+                    if (!universeList.contains(universe))
+                        universeList << universe;
+            }
+        } else {
+            // Singles
+            auto universe = item.toUInt(&ok);
+            if (ok && universe >= MIN_SACN_UNIVERSE && universe <= MAX_SACN_UNIVERSE)
+                if (!universeList.contains(universe))
+                    universeList << universe;
+        }
+    }
+    std::sort(universeList.begin(), universeList.end());
+
+    qDebug() << "Snapshot add list raw" << rawInput;
+    qDebug() << "Snapshot add list parsed" << universeList;
+
+    if (universeList.count() >= 100) {
+        auto warningReply =
+                QMessageBox::warning(this,
+                    tr("Warning"),
+                    tr("Adding a large number of universes\r\n"
+                       "may cause instability\r\n"
+                       "\r\n"
+                       "Continue?"),
+                    QMessageBox::Yes|QMessageBox::No);
+        if (warningReply == QMessageBox::No)
+            return;
+    }
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    for (const auto universe : qAsConst(universeList))
+        addUniverse(universe);
+    QApplication::restoreOverrideCursor();
 }
 
 void Snapshot::on_btnRemoveRow_clicked()
 {
     // Get selected rows
     QList<int> rows;
-    for(auto selection: ui->tableWidget->selectionModel()->selectedRows())
+    for(const auto &selection: ui->tableWidget->selectionModel()->selectedRows())
     {
         rows << selection.row();
     }
@@ -132,9 +177,9 @@ void Snapshot::on_btnRemoveRow_clicked()
     std::sort(rows.rbegin(), rows.rend());
 
     // Remove from bottom
-    for(auto row: rows)
+    for(const auto &row: qAsConst(rows))
     {
-        for(auto snap: m_snapshots)
+        for(const auto snap: qAsConst(m_snapshots))
         {
 
            if (snap->getControlWidget() == ui->tableWidget->cellWidget(row, COL_BUTTON))
@@ -149,6 +194,39 @@ void Snapshot::on_btnRemoveRow_clicked()
     ui->tableWidget->clearSelection();
     ui->btnSnapshot->setEnabled(ui->tableWidget->rowCount()>0);
     setState(stSetup);
+}
+
+void Snapshot::addUniverse(quint16 universe)
+{
+    if (universe < MIN_SACN_UNIVERSE || universe > MAX_SACN_UNIVERSE)
+        return;
+
+    // Check it's not a duplicate
+    for (const auto &snapshot : qAsConst(m_snapshots)) {
+        if (snapshot->getUniverse() == universe)
+            return;
+    }
+
+    // Add new snapshot item
+    int row = ui->tableWidget->rowCount();
+    ui->tableWidget->setRowCount(row + 1);
+
+    auto name = Preferences::getInstance()->GetDefaultTransmitName().append(tr(" - Snapshot"));
+    clsSnapshot* snap = new clsSnapshot(universe, m_cid, name, this);
+
+    connect(snap, SIGNAL(senderStarted()), this, SLOT(senderStarted()));
+    connect(snap, SIGNAL(senderStopped()), this, SLOT(senderStopped()));
+    connect(snap, SIGNAL(senderTimedOut()), this, SLOT(senderTimedOut()));
+    connect(snap, &clsSnapshot::snapshotTaken, this, [this]() { ui->btnPlay->setEnabled(true); });
+    connect(snap, SIGNAL(snapshotMatches()), this, SLOT(updateMatchIcon()));
+    connect(snap, SIGNAL(snapshotDiffers()), this, SLOT(updateMatchIcon()));
+    ui->tableWidget->setCellWidget(row, COL_BUTTON, snap->getControlWidget());
+    ui->tableWidget->setCellWidget(row, COL_UNIVERSE, snap->getSbUniverse());
+    ui->tableWidget->setCellWidget(row, COL_PRIORITY, snap->getSbPriority());
+
+    setState(stSetup);
+
+    m_snapshots.append(snap);
 }
 
 void Snapshot::setState(state s)
@@ -225,7 +303,7 @@ void Snapshot::on_btnSnapshot_pressed()
 void Snapshot::btnPlay_update(bool updateState)
 {
     bool displayPause = false;
-    for(auto snap: m_snapshots)
+    for(const auto snap: qAsConst(m_snapshots))
         if (snap->isPlaying())
             displayPause = true;
     if (displayPause)
@@ -258,19 +336,19 @@ void Snapshot::on_btnPlay_pressed()
 
 void Snapshot::saveSnapshot()
 {
-    for(auto snap: m_snapshots)
+    for(const auto snap: qAsConst(m_snapshots))
         snap->takeSnapshot();
 }
 
 void Snapshot::playSnapshot()
 {
-    for(auto snap: m_snapshots)
+    for(const auto snap: qAsConst(m_snapshots))
         snap->playSnapshot();
 }
 
 void Snapshot::stopSnapshot()
 {
-    for(auto snap: m_snapshots)
+    for(const auto snap: qAsConst(m_snapshots))
         snap->stopSnapshot();
 }
 
@@ -319,10 +397,8 @@ void Snapshot::updateMatchIcon()
     if(m_state == stPlayback)
     {
         bool allmatch = true;
-        foreach(auto s, m_snapshots)
-        {
-            allmatch &= s->isMatching();
-        }
+        for(const auto snap: qAsConst(m_snapshots))
+            allmatch &= snap->isMatching();
         if(allmatch)
         {
             ui->lblMatching->setPixmap(QPixmap(":/icons/ledgreen.png"));

@@ -90,6 +90,7 @@ INCLUDEPATH += src \
 
 SOURCES += src/main.cpp\
     src/widgets/monitorspinbox.cpp \
+    src/widgets/qpushbutton_rightclick.cpp \
     src/widgets/qspinbox_resizetocontent.cpp \
     src/qt56.cpp \
     src/ui/newversiondialog.cpp \
@@ -136,6 +137,7 @@ SOURCES += src/main.cpp\
 
 HEADERS += src/ui/mdimainwindow.h \
     src/widgets/monitorspinbox.h \
+    src/widgets/qpushbutton_rightclick.h \
     src/widgets/qspinbox_resizetocontent.h \
     src/ui/newversiondialog.h \
     src/ui/scopewindow.h \

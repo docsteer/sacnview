@@ -61,9 +61,9 @@ void clsSnapshot::setUniverse(quint16 universe) {
     //    m_listener->deleteLater();
     m_listener = sACNManager::getInstance()->getListener(m_universe);
     connect(m_listener.data(), SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
-    connect(m_listener.data(), SIGNAL(sourceFound(sACNSource *source)), this, SLOT(levelsChanged()));
-    connect(m_listener.data(), SIGNAL(sourceLost(sACNSource *source)), this, SLOT(levelsChanged()));
-    connect(m_listener.data(), SIGNAL(sourceResumed(sACNSource *source)), this, SLOT(levelsChanged()));
+    connect(m_listener.data(), SIGNAL(sourceFound(sACNSource*)), this, SLOT(levelsChanged()));
+    connect(m_listener.data(), SIGNAL(sourceLost(sACNSource*)), this, SLOT(levelsChanged()));
+    connect(m_listener.data(), SIGNAL(sourceResumed(sACNSource*)), this, SLOT(levelsChanged()));
 
     m_sender->setUniverse(m_universe);
 }
