@@ -90,7 +90,7 @@ public slots:
     void start();
     void stop();
 private slots:
-    void dataReady(int address, QPointF p);
+    void dataReady(int address, const QPointF data);
 signals:
     void stopped();
 protected:

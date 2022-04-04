@@ -271,7 +271,7 @@ void ScopeWidget::removeChannel(ScopeChannel *channel)
     m_channels.removeAll(channel);
 }
 
-void ScopeWidget::dataReady(int address, QPointF p)
+void ScopeWidget::dataReady(int address, const QPointF data)
 {
     if(!m_running) return;
 
@@ -285,25 +285,25 @@ void ScopeWidget::dataReady(int address, QPointF p)
         // Waiting for trigger
         if(listener->universe()==m_triggerUniverse && address==m_triggerChannel)
         {
-            int value = p.y();
+            int value = data.y();
             if(m_triggerMode==tmRisingEdge && value>m_triggerLevel)
             {
                 // Triggered by rising edge
                 m_triggered = true;
-                m_endTriggerTime = p.x() + m_timebase*10 - m_triggerDelay;
+                m_endTriggerTime = data.x() + m_timebase*10 - m_triggerDelay;
             }
             if(m_triggerMode==tmFallingEdge && value<m_triggerLevel)
             {
                 // Triggered by rising edge
                 m_triggered = true;
-                m_endTriggerTime = p.x() + m_timebase*10 - m_triggerDelay;
+                m_endTriggerTime = data.x() + m_timebase*10 - m_triggerDelay;
             }
         }
     }
 
     if(m_triggerMode!=tmNormal && m_triggered)
     {
-        if(p.x() > m_endTriggerTime)
+        if(data.x() > m_endTriggerTime)
         {
             // Trigger delay time is done - stop running
             m_running = false;
@@ -319,13 +319,14 @@ void ScopeWidget::dataReady(int address, QPointF p)
         if(m_channels[i]->address() == address && m_channels[i]->universe()==listener->universe())
         {
             ch = m_channels[i];
+            QPointF p(data);
 
             // To save data space, no point in storing more than 100 points per timebase division
             if(p.x() - ch->m_highestTime < (m_timebase/100.0))
                    continue;
             if(ch->sixteenBit())
             {
-                quint8 fineLevel = listener->mergedLevels()[ch->address()+1].level;
+                quint8 fineLevel = listener->mergedLevels().at(ch->address()+1).level;
                 p.setY(p.y() * 255.0 + fineLevel);
                 ch->addPoint(p);
             }
