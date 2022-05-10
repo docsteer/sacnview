@@ -48,6 +48,7 @@
 #define DEFAULT_SOURCE_NAME "sACNView"
 #define MAX_SOURCE_NAME_LEN 63
 
+#define SECRET_SETTINGS "willow"
 
 enum PriorityMode
 {

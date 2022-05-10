@@ -263,6 +263,8 @@ void Preferences::savePreferences()
     settings.setValue(S_TX_RATE_OVERRIDE, m_txrateoverride);
     settings.setValue(S_LOCALE, m_locale);
     settings.setValue(S_UNIVERSESLISTED, m_universesListed);
+    settings.setValue(S_LOCKED, m_locked);
+    settings.setValue(S_LOCKPASSWORD, m_lockPassword);
 
     settings.beginWriteArray(S_SUBWINDOWLIST);
     for(int i=0; i<m_windowInfo.count(); i++)
@@ -321,6 +323,8 @@ void Preferences::loadPreferences()
     m_locale = settings.value(S_LOCALE, QLocale::system()).toLocale();
     m_universesListed = settings.value(S_UNIVERSESLISTED, QVariant(20)).toUInt();
     m_multicastTtl = settings.value(S_MULTICASTTTL, QVariant(1)).toUInt();
+    m_locked = settings.value(S_LOCKED, QVariant(false)).toBool();
+    m_lockPassword = settings.value(S_LOCKPASSWORD, QVariant("")).toString();
 
     m_windowInfo.clear();
     int size = settings.beginReadArray(S_SUBWINDOWLIST);

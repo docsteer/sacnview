@@ -37,8 +37,10 @@ public:
 
 private slots:
     void on_buttonBox_accepted();
-
+    void on_btnLockSettings_toggled(bool on);
 private:
+    void setDialogLocked(bool lock);
+    bool setPassword();
     Ui::PreferencesDialog *ui;
     QList<QNetworkInterface> m_interfaceList;
     QList<QRadioButton*> m_interfaceButtons;

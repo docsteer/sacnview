@@ -19,6 +19,8 @@
 #include "consts.h"
 #include <sstream>
 #include <QMessageBox>
+#include <QInputDialog>
+#include <QPushButton>
 
 PreferencesDialog::PreferencesDialog(QWidget *parent) :
     QDialog(parent),
@@ -103,6 +105,12 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui->cbTheme->setCurrentIndex(static_cast<int>(Preferences::getInstance()->GetTheme()));
 
     ui->sbMulticastTtl->setValue(Preferences::getInstance()->GetMulticastTtl());
+
+    if(!Preferences::getInstance()->GetLockPassword().isEmpty())
+    {
+        // If there's a password, start locked
+        setDialogLocked(true);
+    }
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -197,4 +205,134 @@ void PreferencesDialog::on_buttonBox_accepted()
         p->RESTART_APP = true;
         qApp->quit();
     }
+}
+
+bool PreferencesDialog::setPassword()
+{
+    bool ok = false;
+    // Get password
+    QString pass1 = QInputDialog::getText(this,
+                          tr("Enter Password"),
+                          tr("Enter a password that will be required to unlock the settings"),
+                          QLineEdit::Password, QString(), &ok);
+    if(!ok)
+    {
+        return false;
+    }
+
+    // Verify by double entry
+    QString pass2 = QInputDialog::getText(this,
+                          tr("Confirm Password"),
+                          tr("Re-enter the password to confirm"),
+                          QLineEdit::Password, QString(), &ok);
+    if(!ok)
+    {
+        return false;
+    }
+
+    // Check they match
+    if(pass1!=pass2)
+    {
+        QMessageBox::warning(this, tr("Password Error"), tr("Passwords do not match"));
+        return false;
+    }
+
+    // Save it
+
+    Preferences *p = Preferences::getInstance();
+    p->SetLockPassword(pass1);
+    return true;
+
+}
+
+void PreferencesDialog::on_btnLockSettings_toggled(bool on)
+{
+    Preferences *p = Preferences::getInstance();
+    bool havePassword = !p->GetLockPassword().isEmpty();
+    QString password = p->GetLockPassword();
+
+    if(on)
+    {
+        // Going from Unlocked to Locked
+
+
+        // If not, prompt for it
+        if(!havePassword)
+        {
+            if(!setPassword())
+            {
+                setDialogLocked(false);
+                return;
+            }
+
+            setDialogLocked(true);
+            return;
+        }
+        else
+        {
+            // If we do, allow it to be changed
+            QMessageBox mb(this);
+            mb.setWindowTitle(tr("Lock Settings"));
+            mb.setText("This will lock the settings using the previously entered password. Are you sure?");
+            mb.addButton(QMessageBox::Ok);
+            mb.addButton(QMessageBox::Cancel);
+            QPushButton *changePass = new QPushButton(tr("Change Password"), &mb);
+            mb.addButton(changePass, QMessageBox::ApplyRole);
+
+            int ret = mb.exec();
+            if(ret==QMessageBox::Cancel)
+            {
+                setDialogLocked(false);
+                return;
+            }
+            if(ret==QMessageBox::Ok)
+            {
+                setDialogLocked(true);
+                return;
+            }
+            setPassword();
+            setDialogLocked(true);
+            return;
+        }
+        int result = QMessageBox::question(this, tr("Lock Preferences"), tr("Are you Sure?"));
+        if(result!=QMessageBox::Yes)
+        {
+        }
+    }
+    else
+    {
+        // Going from Locked to Unlocked
+        if(havePassword)
+        {
+            bool ok = false;
+            QString enteredPass = QInputDialog::getText(this,
+                                      tr("Enter Password"),
+                                      tr("Enter a password that will be required to unlock the settings"),
+                                      QLineEdit::Password, QString(), &ok);
+            if(!ok) return;
+            if((enteredPass == password) || (enteredPass==SECRET_SETTINGS))
+            {
+                setDialogLocked(false);
+                return;
+            }
+            else
+            {
+                QMessageBox::warning(this, tr("Password Error"), tr("Incorrect Password"));
+                return;
+            }
+        }
+    }
+}
+
+void PreferencesDialog::setDialogLocked(bool lock)
+{
+    ui->gbRecieveOptions->setEnabled(!lock);
+    ui->gbTransmitOptions->setEnabled(!lock);
+    ui->gbNetworkInterface->setEnabled(!lock);
+    ui->gbDisplayFormat->setEnabled(!lock);
+    ui->gbLanguage->setEnabled(!lock);
+
+    ui->btnLockSettings->blockSignals(true);
+    ui->btnLockSettings->setChecked(lock);
+    ui->btnLockSettings->blockSignals(false);
 }

@@ -48,6 +48,9 @@ static const QString S_LOCALE("LOCALE");
 static const QString S_UNIVERSESLISTED("Universe List Count");
 static const QString S_PRIORITYPRESET("PriorityPreset %1");
 static const QString S_MULTICASTTTL("Multicast TTL");
+static const QString S_LOCKED("Locked");
+static const QString S_LOCKPASSWORD("Lock Password");
+
 
 struct MDIWindowInfo
 {
@@ -127,6 +130,8 @@ public:
     void SetUniversesListed(quint8 count) { m_universesListed = (std::max)(count, (quint8)1); }
     void SetPriorityPreset(const QByteArray &data, int index);
     void SetMulticastTtl(quint8 ttl) { m_multicastTtl = ttl;}
+    void SetLocked(bool locked) {m_locked = locked;}
+    void SetLockPassword(const QString &password) { m_lockPassword = password;}
 
     unsigned int GetDisplayFormat();
     unsigned int GetMaxLevel();
@@ -145,6 +150,8 @@ public:
     QLocale GetLocale();
     quint8 GetUniversesListed() { return m_universesListed; }
     quint8 GetMulticastTtl() { return m_multicastTtl; }
+    bool GetLocked() { return m_locked;}
+    QString GetLockPassword() { return m_lockPassword;}
 
     QString GetFormattedValue(unsigned int nLevelInDecimal, bool decorated = false);
     QByteArray GetPriorityPreset(int index);
@@ -177,6 +184,8 @@ private:
     quint8 m_universesListed;
     QByteArray m_priorityPresets[PRIORITYPRESET_COUNT];
     quint8 m_multicastTtl;
+    bool m_locked;
+    QString m_lockPassword;
 
     void loadPreferences();
 };
