@@ -13,7 +13,7 @@ clsSnapshot::clsSnapshot(quint16 universe, CID cid, QString name, QWidget *paren
     m_controlWidget(new QWidget(this)),
     m_sender(Q_NULLPTR),
     m_listener(Q_NULLPTR),
-    m_camera(new QSound(":/sound/camera.wav", this)),
+    m_camera(new QSoundEffect(this)),
     m_backgroundMatches(false)
 {
     m_sbUniverse->setMinimum(MIN_SACN_UNIVERSE);
@@ -37,12 +37,14 @@ clsSnapshot::clsSnapshot(quint16 universe, CID cid, QString name, QWidget *paren
     m_btnPlayback->setAutoRaise(true);
     m_controlWidget->setAutoFillBackground(true);
     QHBoxLayout *layout = new QHBoxLayout(m_controlWidget);
-    layout->setMargin(0);
     layout->setContentsMargins(0,0,0,0);
     layout->addStretch();
     layout->addWidget(m_btnPlayback);
     layout->addWidget(m_lblStatus);
     layout->addStretch();
+
+
+    m_camera->setSource(QUrl("qrc:/sound/camera.wav"));
 }
 
 clsSnapshot::~clsSnapshot() {
@@ -140,7 +142,9 @@ void clsSnapshot::playSnapshot() {
     }
 
     m_sender->startSending();
-    m_sender->setLevel(reinterpret_cast<const quint8*>(m_levelData.constData()), std::min(m_levelData.count(), MAX_DMX_ADDRESS));
+    m_sender->setLevel(
+                reinterpret_cast<const quint8*>(m_levelData.constData()),
+                std::min(static_cast<quint16>(m_levelData.count()), static_cast<quint16>(MAX_DMX_ADDRESS)));
     updateIcons();
     emit senderStarted();
 }

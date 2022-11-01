@@ -5,7 +5,7 @@
 #include <QSpinBox>
 #include <QToolButton>
 #include <QMap>
-#include <QSound>
+#include <QSoundEffect>
 #include <QLabel>
 #include "streamingacn.h"
 #include "sacnlistener.h"
@@ -100,7 +100,7 @@ private:
     sACNManager::tSender m_sender;
     sACNManager::tListener m_listener;
 
-    QSound *m_camera;
+    QSoundEffect *m_camera;
 
     bool m_backgroundMatches;
 };

@@ -4,7 +4,7 @@
 #include "consts.h"
 #include "preferences.h"
 #include <QTimer>
-#include <QSound>
+#include <QSoundEffect>
 #include <QSpinBox>
 #include <QInputDialog>
 #include <QMessageBox>
@@ -64,13 +64,16 @@ Snapshot::Snapshot(int firstUniverse, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Snapshot),
     m_countdown(new QTimer(this)),
-    m_camera(new QSound(":/sound/camera.wav", this)),
-    m_beep(new QSound(":/sound/beep.wav", this)),
+    m_camera(new QSoundEffect(this)),
+    m_beep(new QSoundEffect(this)),
     m_firstUniverse(firstUniverse)
 {
     ui->setupUi(this);
 
     m_cid = CID::CreateCid();
+
+    m_camera->setSource(QUrl("qrc:/sound/camera.wav"));
+    m_beep->setSource(QUrl("qrc:/sound/beep.wav"));
 
     connect(m_countdown, SIGNAL(timeout()), this, SLOT(counterTick()));
 

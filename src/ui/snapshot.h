@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include <QLabel>
-#include <QtMultimedia/QSound>
+#include <QSoundEffect>
 #include "streamingacn.h"
 #include "clssnapshot.h"
 #include "consts.h"
@@ -86,7 +86,7 @@ private:
     Ui::Snapshot *ui;
     QTimer *m_countdown;
     state m_state;
-    QSound *m_camera, *m_beep;
+    QSoundEffect *m_camera, *m_beep;
     QList<clsSnapshot*> m_snapshots;
     quint16 m_firstUniverse;
     CID m_cid;

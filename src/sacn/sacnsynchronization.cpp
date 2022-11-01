@@ -99,7 +99,7 @@ void sACNSynchronizationRX::timeoutSyncAddresses() {
 
     for (auto syncAddr : getSynchronizationAddresses()) {
         for (auto cid : getSynchronizationSources(syncAddr).keys()) {
-            auto &source = getSynchronizationSources(syncAddr).value(cid);
+            const auto &source = getSynchronizationSources(syncAddr).value(cid);
             if (source.dataLoss.Expired()) {
                 removeSource(syncAddr, cid);
             }

@@ -286,7 +286,7 @@ void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode, int val
         slider->setValue(value);
         m_widgetToLevelLabel[slider] = controlLabel;
         QHBoxLayout *controlLayout = new QHBoxLayout();
-        controlLayout->setMargin(0);
+        controlLayout->setContentsMargins(0, 0, 0, 0);
         controlLayout->addWidget(controlLabel);
         controlLayout->addWidget(slider);
         controlWidget->setLayout(controlLayout);
@@ -323,7 +323,7 @@ void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode, int val
         slider->setMaximum(500);
         slider->setValue(m_fxEngines[row]->rate());
         QHBoxLayout *controlLayout = new QHBoxLayout();
-        controlLayout->setMargin(0);
+        controlLayout->setContentsMargins(0, 0, 0, 0);
         controlLayout->addWidget(slowerLabel);
         controlLayout->addWidget(slider);
         controlLayout->addWidget(fasterLabel);

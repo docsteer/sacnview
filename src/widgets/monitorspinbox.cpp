@@ -69,7 +69,7 @@ void monitorspinbox::stepBy(int steps)
 
 QValidator::State monitorspinbox::validate(QString &input, int &pos) const {
     bool ok;
-    quint16 value = input.midRef(pos).toUShort(&ok);
+    quint16 value = QStringView{input}.mid(pos).toUShort(&ok);
     if (!ok)
         return QValidator::Invalid;
 

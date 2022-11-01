@@ -24,11 +24,11 @@ FlickerFinderInfoForm::FlickerFinderInfoForm(QWidget *parent) :
 {
     ui->setupUi(this);
     QPalette p = ui->wLower->palette();
-    p.setColor(QPalette::Background,    flickerLowerColor);
+    p.setColor(QPalette::Window,    flickerLowerColor);
     ui->wLower->setPalette(p);
-    p.setColor(QPalette::Background,    flickerHigherColor);
+    p.setColor(QPalette::Window,    flickerHigherColor);
     ui->wHigher->setPalette(p);
-    p.setColor(QPalette::Background,    flickerChangedColor);
+    p.setColor(QPalette::Window,    flickerChangedColor);
     ui->wChange->setPalette(p);
 }
 

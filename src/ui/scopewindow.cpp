@@ -146,7 +146,7 @@ void ScopeWindow::on_btnAddChannel_pressed()
     QRadioButton *radio = new QRadioButton(containerWidget);
     m_radioGroup->addButton(radio, m_channels.count()-1);
     QHBoxLayout *layout = new QHBoxLayout;
-    layout->setMargin(0);
+    layout->setContentsMargins(0,0,0,0);
     layout->addStretch();
     layout->addWidget(radio);
     layout->addStretch();
