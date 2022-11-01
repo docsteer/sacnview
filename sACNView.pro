@@ -1,4 +1,4 @@
-## Copyright 2016 Tom Barthel-Steer
+## Copyright 2016 Tom Steer
 ## http://www.tomsteer.net
 ##
 ## Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,7 @@ macx {
 }
 
 !msvc {
-    QMAKE_CXXFLAGS += -std=gnu++0x
+    QMAKE_CXXFLAGS += -std=c++17
 }
 
 # Translations

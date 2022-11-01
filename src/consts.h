@@ -1,4 +1,4 @@
-// Copyright 2016 Tom Barthel-Steer
+// Copyright 2016 Tom Steer
 // http://www.tomsteer.net
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@
 
 #define APP_NAME        "sACNView"
 static const QStringList AUTHORS =
-        QStringList({"Tom Barthel-Steer",
+        QStringList({"Tom Steer",
                      "Marcus Birkin",
                      "Hans Hinrichsen",
                      "Matt Kerr",
