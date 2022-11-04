@@ -71,6 +71,7 @@ private:
     COL_VER,
     COL_DD,
     COL_SLOTS,
+    COL_PATHWAY_SECURE,
     COL_END
     };
 

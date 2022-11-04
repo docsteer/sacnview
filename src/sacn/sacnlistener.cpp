@@ -15,6 +15,7 @@
 
 #include "sacnlistener.h"
 #include "streamcommon.h"
+#include "securesacn.h"
 #include "preferences.h"
 #include "defpack.h"
 #include "preferences.h"
@@ -62,7 +63,7 @@ void sACNListener::startReception()
     // Clear the levels array
     std::fill(std::begin(m_last_levels), std::end(m_last_levels), -1);
 
-    if (Preferences::getInstance()->GetNetworkListenAll() & !Preferences::getInstance()->networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) {
+    if (Preferences::getInstance()->GetNetworkListenAll() && !Preferences::getInstance()->networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) {
         // Listen on ALL interfaces and not working offline
         for (const auto &interface : QNetworkInterface::allInterfaces())
         {
@@ -225,6 +226,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
     QMutexLocker locker(&m_processMutex);
 
     // Process packet
+    quint32 root_vector;
     CID source_cid;
     quint8 start_code;
     quint8 sequence;
@@ -240,33 +242,32 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
     quint16 synchronization = NOT_SYNCHRONIZED_VALUE;
     quint8 options = NO_OPTIONS_VALUE;
     bool preview = false;
-    quint8 *pbuf = (quint8*)data.data();
 
-    switch (ValidateStreamHeader((quint8*)data.data(), data.length(), source_cid, source_name, priority,
+    switch (ValidateStreamHeader((quint8*)data.data(), data.length(), root_vector, source_cid, source_name, priority,
             start_code, synchronization, sequence, options, universe, slot_count, pdata))
     {
-    case e_ValidateStreamHeader::SteamHeader_Invalid:
+    case e_ValidateStreamHeader::StreamHeader_Invalid:
         // Recieved a packet but not valid. Log and discard
         qDebug() << "sACNListener" << QThread::currentThreadId() << ": Invalid Packet";
         return;
 
-    case e_ValidateStreamHeader::SteamHeader_Unknown:
+    case e_ValidateStreamHeader::StreamHeader_Unknown:
         qDebug() << "sACNListener" << QThread::currentThreadId() << ": Unkown Root Vector";
         return;
 
-    case e_ValidateStreamHeader::SteamHeader_Extended:
+    case e_ValidateStreamHeader::StreamHeader_Extended:
         quint32 vector;
         if (static_cast<size_t>(data.length()) > ROOT_VECTOR_ADDR + sizeof(vector))
         {
-            vector = UpackBUint32(pbuf + FRAMING_VECTOR_ADDR);
+            vector = UpackBUint32((quint8*)data.data() + FRAMING_VECTOR_ADDR);
             switch (vector)
             {
             case VECTOR_E131_EXTENDED_DISCOVERY:
-                sACNDiscoveryRX::getInstance()->processPacket(pbuf, data.length());
+                sACNDiscoveryRX::getInstance()->processPacket((quint8*)data.data(), data.length());
                 break;
 
             case VECTOR_E131_EXTENDED_SYNCHRONIZATION:
-                sACNSynchronizationRX::getInstance()->processPacket(pbuf, data.length(), destination, sender);
+                sACNSynchronizationRX::getInstance()->processPacket((quint8*)data.data(), data.length(), destination, sender);
                 break;
 
             default:
@@ -275,12 +276,16 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
         }
         return;
 
+        case e_ValidateStreamHeader::StreamHeader_Pathway_Secure:
+            if (!Preferences::getInstance()->GetPathwaySecure())
+            {
+                qDebug() << "sACNListener" << QThread::currentThreadId() << ": Ignore Pathway secure";
+                return;
+            }
+
     default:
         break;
     }
-
-    // Unpacks a uint4 from a known big endian buffer
-    int root_vect = UpackBUint32((quint8*)pbuf + ROOT_VECTOR_ADDR);
 
     // Wrong universe
     if(m_universe != universe)
@@ -320,6 +325,18 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
             foundsource = true;
             ps = *it;
 
+            // Verify Pathway Secure DMX security features, do this before updating the active flag
+            if (root_vector == VECTOR_ROOT_E131_DATA_PATHWAY_SECURE) {
+                PathwaySecure::VerifyStreamSecurity(
+                            (quint8*)data.data(), data.size(),
+                            Preferences::getInstance()->GetPathwaySecurePassword(),
+                            *ps);
+            } else {
+                ps->pathway_secure.passwordOk = false;
+                ps->pathway_secure.sequenceOk = false;
+                ps->pathway_secure.digetOk = false;
+            }
+
             if(!ps->src_valid)
             {
                 // This is a source which is coming back online, so we need to repeat the steps
@@ -334,7 +351,9 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
                 ps->priority_wait.SetInterval(WAIT_PRIORITY);
             }
 
-            if((root_vect == VECTOR_ROOT_E131_DATA) && ((options & STREAM_TERMINATED_OPTION) == STREAM_TERMINATED_OPTION))
+            if(
+                ((root_vector == VECTOR_ROOT_E131_DATA) || root_vector == VECTOR_ROOT_E131_DATA_PATHWAY_SECURE)
+                && ((options & STREAM_TERMINATED_OPTION) == STREAM_TERMINATED_OPTION))
             {
               //by setting this flag to false, 0xdd packets that may come in while the terminated data
               //packets come in won't reset the priority_wait timer
@@ -491,8 +510,24 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
         }
 
         StreamingACNProtocolVersion protocolVersion = sACNProtocolUnknown;
-        if(root_vect==VECTOR_ROOT_E131_DATA) protocolVersion = sACNProtocolRelease;
-        if(root_vect==VECTOR_ROOT_E131_DATA_DRAFT) protocolVersion = sACNProtocolDraft;
+        switch (root_vector) {
+            case VECTOR_ROOT_E131_DATA:
+                protocolVersion = sACNProtocolRelease;
+                break;
+
+            case VECTOR_ROOT_E131_DATA_DRAFT:
+                protocolVersion = sACNProtocolDraft;
+                break;
+
+            case VECTOR_ROOT_E131_DATA_PATHWAY_SECURE:
+                protocolVersion = sACNProtocolPathwaySecure;
+                break;
+
+            default:
+                protocolVersion = sACNProtocolUnknown;
+                break;
+        }
+
         if(ps->protocol_version!=protocolVersion)
         {
             ps->protocol_version = protocolVersion;
@@ -559,8 +594,8 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
             memcpy(ps->last_priority_array, ps->priority_array, DMX_SLOT_MAX);
             // Fill in the new array
             memset(ps->priority_array, 0, DMX_SLOT_MAX);
-            if (Preferences::getInstance()->GetIgnoreDD())
-            { // DD is ignored, fill with universe priority
+            if (!Preferences::getInstance()->GetETCDD())
+            { // DD is disabled, fill with universe priority
                 std::fill(std::begin(ps->priority_array), std::end(ps->priority_array), ps->priority);
             } else {
                 memcpy(ps->priority_array, pdata, slot_count);
@@ -593,7 +628,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
     }
 }
 
-inline bool isPatched(sACNSource &source, uint16_t address)
+inline bool isPatched(const sACNSource &source, uint16_t address)
 {
     // Can only be unpatched if we have DD packets
     if (!source.doing_per_channel)
@@ -695,6 +730,9 @@ void sACNListener::performMerge()
     QMultiMap<int, sACNSource*> addressToSourceMap;
 
 	// Find the highest priority for the address
+    bool secureDataOnly = false;
+    if (Preferences::getInstance()->GetPathwaySecure())
+        secureDataOnly = Preferences::getInstance()->GetPathwaySecureDataOnly();
     for(std::vector<sACNSource *>::iterator it = m_sources.begin(); it != m_sources.end(); ++it)
     {
         sACNSource *ps = *it;
@@ -721,6 +759,7 @@ void sACNListener::performMerge()
 					&& !(ps->priority_array[address] < priorities[address]) // Not lesser priority
                     && isPatched(*ps, address) // Priority > 0 if DD
                     && (address < ps->slot_count) // Sending the required slot
+                    && ((!secureDataOnly) || (secureDataOnly && ps->pathway_secure.isSecure())) // Is secure, if only displaying secure sources
 				)
 			{
 				if (ps->priority_array[address] > priorities[address])

@@ -45,6 +45,7 @@ enum StreamingACNProtocolVersion
     sACNProtocolUnknown = 0,
     sACNProtocolDraft,
     sACNProtocolRelease,
+    sACNProtocolPathwaySecure // Pathway Connectivity Secure DMX Protocol
 };
 
 // The sACNManager class is a singleton that manages the lifespan of sACNTransmitters and sACNListeners.
@@ -142,6 +143,16 @@ public:
     int jumps;
     // Protocol Version
     StreamingACNProtocolVersion protocol_version;
+
+    // Pathways Secure DMX
+    struct {
+        bool passwordOk = false;
+        bool sequenceOk = false;
+        bool digetOk = false;
+        bool isSecure() {
+            return passwordOk && sequenceOk && digetOk;
+        }
+    } pathway_secure;
 
 public slots:
     void resetSeqErr() {

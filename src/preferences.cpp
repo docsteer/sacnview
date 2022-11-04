@@ -155,17 +155,17 @@ void Preferences::SetBlindVisualizer (bool bBlindVisualizer)
     return;
 }
 
-void Preferences::SetDisplayDDOnly(bool bDDOnly)
+void Preferences::SetETCDisplayDDOnly(bool bETCDDOnly)
 {
-    Q_ASSERT(bDDOnly == 0 || bDDOnly == 1);
-    m_bDisplayDDOnly = bDDOnly;
+    Q_ASSERT(bETCDDOnly == 0 || bETCDDOnly == 1);
+    m_bETCDisplayDDOnly = bETCDDOnly;
     return;
 }
 
-void Preferences::SetIgnoreDD(bool bIgnoreDD)
+void Preferences::SetETCDD(bool bETCDD)
 {
-    Q_ASSERT(bIgnoreDD == 0 || bIgnoreDD == 1);
-    m_bIgnoreDD = bIgnoreDD;
+    Q_ASSERT(bETCDD == 0 || bETCDD == 1);
+    m_bETCDD = bETCDD;
     return;
 }
 
@@ -201,14 +201,14 @@ bool Preferences::GetBlindVisualizer() const
     return m_bBlindVisualizer;
 }
 
-bool Preferences::GetDisplayDDOnly() const
+bool Preferences::GetETCDisplayDDOnly() const
 {
-    return m_bDisplayDDOnly;
+    return m_bETCDisplayDDOnly;
 }
 
-bool Preferences::GetIgnoreDD() const
+bool Preferences::GetETCDD() const
 {
-    return m_bIgnoreDD;
+    return m_bETCDD;
 }
 
 QString Preferences::GetDefaultTransmitName() const
@@ -279,6 +279,59 @@ Preferences::Theme Preferences::GetTheme() const
     return m_theme;
 }
 
+void Preferences::SetPathwaySecure(bool enable)
+{
+    m_pathwaySecure = enable;
+}
+
+bool Preferences::GetPathwaySecure() const
+{
+    return m_pathwaySecure;
+}
+
+void Preferences::SetPathwaySecurePassword(QString password)
+{
+    m_pathwaySecurePassword = password;
+}
+
+QString Preferences::GetPathwaySecurePassword() const
+{
+    return m_pathwaySecurePassword;
+}
+
+void Preferences::SetPathwaySecureDataOnly(bool value)
+{
+    m_pathwaySecureDataOnly = value;
+}
+
+bool Preferences::GetPathwaySecureDataOnly() const
+{
+    return m_pathwaySecureDataOnly;
+}
+
+void Preferences::SetPathwaySecureSequenceTimeWindow(quint32 value)
+{
+    m_pathwaySecureSequenceTimeWindow = value;
+}
+
+quint32 Preferences::GetPathwaySecureSequenceTimeWindow() const
+{
+    return m_pathwaySecureSequenceTimeWindow;
+}
+
+void Preferences::SetPathwaySecureSequenceMap(QByteArray map)
+{
+    QSettings settings;
+    settings.setValue(S_PATHWAYSECURE_SEQUENCE_MAP, map);
+    settings.sync();
+}
+
+QByteArray Preferences::GetPathwaySecureSequenceMap() const
+{
+    QSettings settings;
+    return settings.value(S_PATHWAYSECURE_SEQUENCE_MAP, QByteArray()).toByteArray();
+}
+
 void Preferences::savePreferences()
 {
     QSettings settings;
@@ -290,8 +343,8 @@ void Preferences::savePreferences()
     }
     settings.setValue(S_DISPLAY_FORMAT, QVariant(m_nDisplayFormat));
     settings.setValue(S_BLIND_VISUALIZER, QVariant(m_bBlindVisualizer));
-    settings.setValue(S_DDONLY, QVariant(m_bDisplayDDOnly));
-    settings.setValue(S_IGNOREDD, QVariant(m_bIgnoreDD));
+    settings.setValue(S_ETC_DDONLY, QVariant(m_bETCDisplayDDOnly));
+    settings.setValue(S_ETC_DD, QVariant(m_bETCDD));
     settings.setValue(S_DEFAULT_SOURCENAME, m_sDefaultTransmitName);
     settings.setValue(S_TIMEOUT, QVariant(m_nNumSecondsOfSacn));
     settings.setValue(S_FLICKERFINDERSHOWINFO, QVariant(m_flickerFinderShowInfo));
@@ -324,6 +377,10 @@ void Preferences::savePreferences()
 
     settings.setValue(S_MULTICASTTTL, m_multicastTtl);
 
+    settings.setValue(S_PATHWAYSECURE, m_pathwaySecure);
+    settings.setValue(S_PATHWAYSECURE_PASSWORD, m_pathwaySecurePassword);
+    settings.setValue(S_PATHWAYSECURE_DATA_ONLY, m_pathwaySecureDataOnly);
+    settings.setValue(S_PATHWAYSECURE_SEQUENCE_TIME_WINDOW, m_pathwaySecureSequenceTimeWindow);
     settings.sync();
 }
 
@@ -340,7 +397,7 @@ void Preferences::loadPreferences()
             m_interface = interFromName;
         } else {
             QList<QNetworkInterface> ifaceList = QNetworkInterface::allInterfaces();
-            for(auto i : ifaceList)
+            for(const auto &i : ifaceList)
                 if(i.hardwareAddress() == mac)
                     m_interface = i;
         }
@@ -349,8 +406,8 @@ void Preferences::loadPreferences()
     m_interfaceListenAll = settings.value(S_LISTEN_ALL, QVariant(false)).toBool();
     m_nDisplayFormat = settings.value(S_DISPLAY_FORMAT, QVariant(DECIMAL)).toInt();
     m_bBlindVisualizer = settings.value(S_BLIND_VISUALIZER, QVariant(true)).toBool();
-    m_bDisplayDDOnly = settings.value(S_DDONLY, QVariant(true)).toBool();
-    m_bIgnoreDD = settings.value(S_IGNOREDD, QVariant(false)).toBool();
+    m_bETCDisplayDDOnly = settings.value(S_ETC_DDONLY, QVariant(true)).toBool();
+    m_bETCDD = settings.value(S_ETC_DD, QVariant(true)).toBool();
     m_sDefaultTransmitName = settings.value(S_DEFAULT_SOURCENAME, DEFAULT_SOURCE_NAME).toString();
     m_nNumSecondsOfSacn = settings.value(S_TIMEOUT, QVariant(0)).toInt();
     m_flickerFinderShowInfo = settings.value(S_FLICKERFINDERSHOWINFO, QVariant(true)).toBool();
@@ -361,6 +418,10 @@ void Preferences::loadPreferences()
     m_locale = settings.value(S_LOCALE, QLocale::system()).toLocale();
     m_universesListed = settings.value(S_UNIVERSESLISTED, QVariant(20)).toUInt();
     m_multicastTtl = settings.value(S_MULTICASTTTL, QVariant(1)).toUInt();
+    m_pathwaySecure = settings.value(S_PATHWAYSECURE, QVariant(true)).toBool();
+    m_pathwaySecurePassword = settings.value(S_PATHWAYSECURE_PASSWORD, QString()).toString();
+    m_pathwaySecureDataOnly = settings.value(S_PATHWAYSECURE_DATA_ONLY, QVariant(false)).toBool();
+    m_pathwaySecureSequenceTimeWindow = settings.value(S_PATHWAYSECURE_SEQUENCE_TIME_WINDOW, 1000).toUInt();
 
     m_windowInfo.clear();
     int size = settings.beginReadArray(S_SUBWINDOWLIST);

@@ -60,11 +60,13 @@ aboutDialog::aboutDialog(QWidget *parent) :
                            .arg(qVersion()));
     #ifndef TARGET_WINXP
         const char *libpcap = pcap_lib_version();
-        ui->lblLibs->setText(tr("This application uses the pcap Library, version %1, licensed under the <a href=\"https://opensource.org/licenses/BSD-3-Clause\">The 3-Clause BSD License</a>")
+        ui->lblLibs->setText(ui->lblLibs->text() + tr("This application uses the pcap Library, version %1, licensed under the <a href=\"https://opensource.org/licenses/BSD-3-Clause\">The 3-Clause BSD License</a>")
                 .arg(libpcap));
     #else
         ui->lblLibs->setText(QString());
     #endif
+
+    ui->lblLibs->setText(ui->lblLibs->text() + tr("This application uses BLAKE2, licensed under the <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\">Creative Commons Zero v1.0 Universal</a>"));
 
     // Setup diagnostics tree
     ui->twDiag->setColumnCount(2);

@@ -94,6 +94,11 @@ public:
      */
     sACNRxSocket::sBindStatus getBindStatus() const { return m_bindStatus; }
 
+    /**
+     * @brief Force the listener to performa a full merge
+     */
+    void doFullMerge() { m_mergeAll = true; }
+
 public slots:
     void startReception();
     void monitorAddress(int address, const QObject *owner) {

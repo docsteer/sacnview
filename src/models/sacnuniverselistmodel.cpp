@@ -47,7 +47,7 @@ sACNUniverseListModel::sACNUniverseListModel(QObject *parent) : QAbstractItemMod
 {
     m_start = MIN_SACN_UNIVERSE;
 
-    m_displayDDOnlySource = Preferences::getInstance()->GetDisplayDDOnly();
+    m_displayDDOnlySource = Preferences::getInstance()->GetETCDisplayDDOnly();
 
     setStartUniverse(m_start);
 }
