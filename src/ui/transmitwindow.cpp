@@ -171,7 +171,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
 
     // Set up effect radio buttons
     QButtonGroup *effectGroup = new QButtonGroup(this);
-    connect(effectGroup, SIGNAL(buttonToggled(int, bool)), this, SLOT(radioFadeMode_toggled(int, bool)));
+    connect(effectGroup, SIGNAL(buttonToggled(QAbstractButton*, bool)), this, SLOT(radioFadeMode_toggled(QAbstractButton*, bool)));
     effectGroup->addButton(ui->rbFadeManual);
     effectGroup->addButton(ui->rbFadeRamp);
     effectGroup->addButton(ui->rbFadeSine);
@@ -182,12 +182,12 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     effectGroup->addButton(ui->rbChase);
 
     QButtonGroup *effectDateGroup = new QButtonGroup(this);
-    connect(effectDateGroup, SIGNAL(buttonToggled(int, bool)), this, SLOT(dateMode_toggled(int, bool)));
+    connect(effectDateGroup, SIGNAL(buttonToggled(QAbstractButton*, bool)), this, SLOT(dateMode_toggled(QAbstractButton*, bool)));
     effectDateGroup->addButton(ui->rbEuDate);
     effectDateGroup->addButton(ui->rbUsDate);
 
     QButtonGroup *effectChaseGroup = new QButtonGroup(this);
-    connect(effectChaseGroup, SIGNAL(buttonToggled(int, bool)), this, SLOT(radioFadeMode_toggled(int, bool)));
+    connect(effectChaseGroup, SIGNAL(buttonToggled(QAbstractButton*, bool)), this, SLOT(radioFadeMode_toggled(QAbstractButton*, bool)));
     effectChaseGroup->addButton(ui->rbChaseRamp);
     effectChaseGroup->addButton(ui->rbChaseSine);
     effectChaseGroup->addButton(ui->rbChaseSnap);
@@ -643,7 +643,7 @@ void transmitwindow::on_sbFadeRangeEnd_valueChanged(int value)
     }
 }
 
-void transmitwindow::radioFadeMode_toggled(int id, bool checked)
+void transmitwindow::radioFadeMode_toggled(QAbstractButton* id, bool checked)
 {
     Q_UNUSED(id);
     Q_UNUSED(checked)
@@ -772,7 +772,7 @@ void transmitwindow::setLevels(QSet<int> addresses, int level)
     }
 }
 
-void transmitwindow::dateMode_toggled(int id, bool checked)
+void transmitwindow::dateMode_toggled(QAbstractButton* id, bool checked)
 {
     Q_UNUSED(id);
     Q_UNUSED(checked);
