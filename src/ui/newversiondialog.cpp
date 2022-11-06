@@ -178,7 +178,7 @@ VersionCheck::VersionCheck(QObject *parent):
     connect(manager, SIGNAL(finished(QNetworkReply*)),
             this, SLOT(replyFinished(QNetworkReply*)));
 
-    request.setRawHeader("User-Agent", QString("%1 %2").arg(APP_NAME).arg(VERSION).toUtf8());
+    request.setRawHeader("User-Agent", QString("%1 %2").arg(APP_NAME, VERSION).toUtf8());
     request.setRawHeader("Accept", "application/vnd.github.v3.raw+json");
     request.setUrl(QUrl("https://api.github.com/repos/docsteer/sacnview/releases"));
 
@@ -191,6 +191,16 @@ void VersionCheck::replyFinished (QNetworkReply *reply)
     if(reply->error())
     {
         qDebug() << "[Version check] Unable to check for updated version: " << reply->errorString();
+        switch (reply->error()) {
+            case QNetworkReply::HostNotFoundError:
+            case QNetworkReply::TimeoutError:
+                break;
+            default:
+                QMessageBox::information(nullptr,
+                    tr("Version Check"),
+                    tr("Error %1\r\n%2").arg(QString::number(reply->error()), reply->errorString()));
+                break;
+        }
     }
     else
     {
@@ -207,7 +217,7 @@ void VersionCheck::replyFinished (QNetworkReply *reply)
             qDebug() << "[Version check] My version:" << VERSION << myDate.toString() <<  "Pre Release - " << PRERELEASE;
 
             QJsonArray jArray = jDoc.array();
-            foreach (const QJsonValue &jValue, jArray) {
+            for (const QJsonValue &jValue : jArray) {
                 QJsonObject jObj = jValue.toObject();
 
                 QDate objectDate = locale.toDateTime(
@@ -226,7 +236,7 @@ void VersionCheck::replyFinished (QNetworkReply *reply)
 
                 // Find the appropriate download URL for the platform
                 QJsonArray assetsArray = jObj["assets"].toArray();
-                foreach(const QJsonValue &asset, assetsArray)
+                for (const QJsonValue &asset : assetsArray)
                 {
                     QJsonObject oAsset = asset.toObject();
 
