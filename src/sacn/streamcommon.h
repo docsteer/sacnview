@@ -86,6 +86,7 @@
 #define DISCO_LIST_UNIVERSE_ADDR 120
 
 //for support of the early draft:
+#define DRAFT_SOURCE_NAME_ADDR SOURCE_NAME_ADDR
 #define DRAFT_PRIORITY_ADDR 76
 #define DRAFT_SEQ_NUM_ADDR 77
 #define DRAFT_UNIVERSE_ADDR 78
@@ -199,38 +200,43 @@ void SetStreamHeaderSequence(quint8* pbuf, quint8 seq, bool draft);
  */
 enum e_ValidateStreamHeader
 {
-    SteamHeader_Invalid,
-    SteamHeader_Draft,
-    SteamHeader_Ratified,
-    SteamHeader_Extended,
-    SteamHeader_Unknown
+    StreamHeader_Invalid,
+    StreamHeader_Draft,
+    StreamHeader_Ratified,
+    StreamHeader_Extended,
+    StreamHeader_Pathway_Secure,
+    StreamHeader_Unknown
 };
-e_ValidateStreamHeader ValidateStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
-			  char* source_space, quint8 &priority, 
-              quint8 &start_code, quint16 &synchronization, quint8 &sequence,
-			  quint8 &options, quint16 &universe,
-			  quint16 &slot_count, quint8* &pdata);
+e_ValidateStreamHeader ValidateStreamHeader(
+        quint8* pbuf, uint buflen,
+        quint32 &root_vector,
+        CID &source_cid, char* source_sp, quint8 &priority,
+        quint8 &start_code, quint16 &synchronization, quint8 &sequence,
+        quint8 &options, quint16 &universe,
+        quint16 &slot_count, quint8* &pdata);
 
 /*
  * helper function that does the actual validation of a header
  * that carries the post-ratification root vector
  */
-bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
-            char* source_space, quint8 &priority,
-            quint8 &start_code, quint16 &synchronization, quint8 &sequence,
-            quint8 &options, quint16 &universe,
-            quint16 &slot_count, quint8* &pdata);
+bool VerifyStreamHeader(
+        quint8 *pbuf, uint buflen,
+        CID &source_cid, char* source_name, quint8 &priority,
+        quint8 &start_code, quint16 &synchronization, quint8 &sequence,
+        quint8 &options, quint16 &universe,
+        quint16 &slot_count, quint8* &pdata);
 /*
  * helper function that does the actual validation of a header
  * that carries the early draft's root vector
  * This function is included to support legacy code from before 
  * ratification of the standard.
  */
-bool VerifyStreamHeaderForDraft(quint8* pbuf, uint buflen, CID &source_cid, 
-				char* source_space, quint8 &priority, 
-				quint8 &start_code, quint8 &sequence, 
-				quint16 &universe, quint16 &slot_count, 
-				quint8* &pdata);
+bool VerifyStreamHeaderForDraft(
+        quint8* pbuf, uint buflen,
+        CID &source_cid, char* source_space, quint8 &priority,
+        quint8 &start_code, quint8 &sequence,
+        quint16 &universe, quint16 &slot_count,
+        quint8* &pdata);
 
 /*
  * Returns true if contains draft root vector value

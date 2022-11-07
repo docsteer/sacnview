@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1193</width>
-    <height>693</height>
+    <height>748</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -214,6 +214,29 @@ border-radius: 4px;
                <property name="text">
                 <string>Draft</string>
                </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="rbPathwaySecure">
+               <property name="text">
+                <string>Pathway Connectivity Secure</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="gbPathwaySecurePassword">
+               <property name="title">
+                <string>Password</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_14">
+                <item>
+                 <widget class="QLineEdit" name="lePathwaySecurePassword">
+                  <property name="maxLength">
+                   <number>32</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </widget>
              </item>
             </layout>
@@ -645,7 +668,6 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -675,7 +697,6 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -705,7 +726,6 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -739,7 +759,6 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -769,7 +788,6 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -799,7 +817,6 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -829,7 +846,6 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -859,7 +875,6 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -889,7 +904,6 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -919,7 +933,6 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -949,7 +962,6 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -979,7 +991,6 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -1009,7 +1020,6 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -1039,7 +1049,6 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -1069,7 +1078,6 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -1105,7 +1113,6 @@ border-radius: 4px;
                     <font>
                      <family>Arial</family>
                      <pointsize>11</pointsize>
-                     <weight>75</weight>
                      <bold>true</bold>
                     </font>
                    </property>
@@ -1135,7 +1142,6 @@ border-radius: 4px;
                     <font>
                      <family>Arial</family>
                      <pointsize>11</pointsize>
-                     <weight>75</weight>
                      <bold>true</bold>
                     </font>
                    </property>
@@ -1165,7 +1171,6 @@ border-radius: 4px;
                     <font>
                      <family>Arial</family>
                      <pointsize>11</pointsize>
-                     <weight>75</weight>
                      <bold>true</bold>
                     </font>
                    </property>
@@ -1195,7 +1200,6 @@ border-radius: 4px;
                     <font>
                      <family>Arial</family>
                      <pointsize>11</pointsize>
-                     <weight>75</weight>
                      <bold>true</bold>
                     </font>
                    </property>

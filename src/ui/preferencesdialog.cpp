@@ -14,11 +14,14 @@
 // limitations under the License.
 
 #include "preferencesdialog.h"
+#include "src/sacn/sacnlistener.h"
 #include "ui_preferencesdialog.h"
 #include "preferences.h"
 #include "consts.h"
 #include <sstream>
 #include <QMessageBox>
+#include "streamingacn.h"
+#include "securesacn.h"
 
 PreferencesDialog::PreferencesDialog(QWidget *parent) :
     QDialog(parent),
@@ -68,8 +71,21 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     }
 
     ui->cbDisplayBlind->setChecked(Preferences::getInstance()->GetBlindVisualizer());
-    ui->cbDisplayDDOnlys->setChecked(Preferences::getInstance()->GetDisplayDDOnly());
-    ui->cbIgnoreDD->setChecked(Preferences::getInstance()->GetIgnoreDD());
+    ui->cbETCDisplayDDOnlys->setChecked(Preferences::getInstance()->GetETCDisplayDDOnly());
+    ui->gbETCDD->setChecked(Preferences::getInstance()->GetETCDD());
+
+    ui->gbPathwaySecureRx->setChecked(Preferences::getInstance()->GetPathwaySecureRx());
+    ui->lePathwaySecureRxPassword->setText(Preferences::getInstance()->GetPathwaySecureRxPassword());
+    ui->lePathwaySecureTxPassword->setText(Preferences::getInstance()->GetPathwaySecureTxPassword());
+    ui->cbPathwaySecureRxDataOnly->setChecked(Preferences::getInstance()->GetPathwaySecureRxDataOnly());
+    ui->sbPathwaySecureRxSequenceTimeWindow->setValue(Preferences::getInstance()->GetPathwaySecureRxSequenceTimeWindow());
+    ui->rbPathwayTxSequenceTypeTime->setChecked(
+                Preferences::getInstance()->GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_time);
+    ui->rbPathwayTxSequenceTypeVolatile->setChecked(
+                Preferences::getInstance()->GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_volatile);
+    ui->rbPathwayTxSequenceTypeNonVolatile->setChecked(
+                Preferences::getInstance()->GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_nonvolatile);
+
     ui->cbRestoreWindows->setChecked(Preferences::getInstance()->GetSaveWindowLayout());
 
     ui->leDefaultSourceName->setText(Preferences::getInstance()->GetDefaultTransmitName());
@@ -122,13 +138,25 @@ void PreferencesDialog::on_buttonBox_accepted()
     // Display Blind
     p->SetBlindVisualizer(ui->cbDisplayBlind->isChecked());
 
-    // Display sources with only DD
-    if (ui->cbDisplayDDOnlys->isChecked() != p->GetDisplayDDOnly() ) {requiresRestart = true;}
-    p->SetDisplayDDOnly(ui->cbDisplayDDOnlys->isChecked());
+    // Enable ETC DD?
+    p->SetETCDD(ui->gbETCDD->isChecked());
 
-    // Ignore DD
-    //if (ui->cbIgnoreDD->isChecked() != p->GetIgnoreDD() );
-    p->SetIgnoreDD(ui->cbIgnoreDD->isChecked());
+    // Display sources with only ETC DD?
+    if (ui->cbETCDisplayDDOnlys->isChecked() != p->GetETCDisplayDDOnly() ) {requiresRestart = true;}
+    p->SetETCDisplayDDOnly(ui->cbETCDisplayDDOnlys->isChecked());
+
+    // Pathway Secure
+    p->SetPathwaySecureRx(ui->gbPathwaySecureRx->isChecked());
+    p->SetPathwaySecureRxPassword(ui->lePathwaySecureRxPassword->text());
+    p->SetPathwaySecureTxPassword(ui->lePathwaySecureTxPassword->text());
+    p->SetPathwaySecureRxDataOnly(ui->cbPathwaySecureRxDataOnly->isChecked());
+    p->SetPathwaySecureRxSequenceTimeWindow(ui->sbPathwaySecureRxSequenceTimeWindow->value());
+    if (ui->rbPathwayTxSequenceTypeTime->isChecked())
+        p->SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_time);
+    else if (ui->rbPathwayTxSequenceTypeVolatile->isChecked())
+        p->SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_volatile);
+    else
+        p->SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_nonvolatile);
 
     // Save layout
     p->SetSaveWindowLayout(ui->cbRestoreWindows->isChecked());
@@ -187,12 +215,21 @@ void PreferencesDialog::on_buttonBox_accepted()
         requiresRestart = true;
     }
 
-    // Resstart to apply?
+    // Restart to apply?
     if (requiresRestart) {
         QMessageBox::information(this, tr("Restart requied"),
                                  tr("To apply these preferences, you will need to restart the application. \nsACNView will now close and restart"),
                                  QMessageBox::Ok);
         p->RESTART_APP = true;
         qApp->quit();
+    } else {
+        // Force all universes to perform a full remerge
+        const auto listenerList = sACNManager::getInstance()->getListenerList();
+        for (const auto &weakListener : listenerList) {
+
+            sACNManager::tListener listener(weakListener);
+            if (listener)
+                listener->doFullMerge();
+        }
     }
 }

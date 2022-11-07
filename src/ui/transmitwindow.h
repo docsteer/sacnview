@@ -78,6 +78,8 @@ private slots:
 
     void on_sbSlotCount_valueChanged(int arg1);
 
+    void on_rbPathwaySecure_toggled(bool checked);
+
 private:
     enum TABS
     {

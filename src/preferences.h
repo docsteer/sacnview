@@ -24,15 +24,13 @@
 #include "CID.h"
 #include "consts.h"
 
-
-
 // Strings for storing settings
 static const QString S_INTERFACE_ADDRESS("MacAddress");
 static const QString S_INTERFACE_NAME("InterfaceName");
 static const QString S_DISPLAY_FORMAT("Display Format");
 static const QString S_BLIND_VISUALIZER("Show Blind");
-static const QString S_DDONLY("Show DDOnly");
-static const QString S_IGNOREDD("Ignore DD");
+static const QString S_ETC_DDONLY("Show ETC DD Only");
+static const QString S_ETC_DD("Enable ETC DD");
 static const QString S_DEFAULT_SOURCENAME("Default Transmit Source Name");
 static const QString S_TIMEOUT("Timeout");
 static const QString S_FLICKERFINDERSHOWINFO("Flicker Finder Info");
@@ -49,6 +47,14 @@ static const QString S_LOCALE("LOCALE");
 static const QString S_UNIVERSESLISTED("Universe List Count");
 static const QString S_PRIORITYPRESET("PriorityPreset %1");
 static const QString S_MULTICASTTTL("Multicast TTL");
+static const QString S_PATHWAYSECURE_RX("Enable Pathway Secure Rx");
+static const QString S_PATHWAYSECURE_RX_PASSWORD("Pathway Secure Rx Password");
+static const QString S_PATHWAYSECURE_TX_PASSWORD("Pathway Secure Tx Password");
+static const QString S_PATHWAYSECURE_RX_DATA_ONLY("Show Pathway Secure RX Data Only");
+static const QString S_PATHWAYSECURE_RX_SEQUENCE_TIME_WINDOW("Pathway Secure Data RX Sequence Time Window");
+static const QString S_PATHWAYSECURE_TX_SEQUENCE_TYPE("Pathway Secure Data TX Sequence Type");
+static const QString S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT("Pathway Secure Data TX Sequence Boot Count");
+static const QString S_PATHWAYSECURE_SEQUENCE_MAP("Pathway Secure Data Sequence Map");
 
 struct MDIWindowInfo
 {
@@ -114,8 +120,8 @@ public:
     // Preferences access functions here:
     void SetDisplayFormat(unsigned int nDisplayFormat);
     void SetBlindVisualizer (bool bBlindVisualizer);
-    void SetDisplayDDOnly (bool bDDOnly);
-    void SetIgnoreDD(bool bIgnoreDD);
+    void SetETCDisplayDDOnly (bool bETCDDOnly);
+    void SetETCDD(bool bETCDD);
     void SetDefaultTransmitName (const QString &sDefaultTransmitName);
     void SetNumSecondsOfSacn (int nNumSecondsOfSacn);
     void setFlickerFinderShowInfo(bool showIt);
@@ -130,12 +136,20 @@ public:
     void SetUniversesListed(quint8 count) { m_universesListed = (std::max)(count, (quint8)1); }
     void SetPriorityPreset(const QByteArray &data, int index);
     void SetMulticastTtl(quint8 ttl) { m_multicastTtl = ttl;}
+    void SetPathwaySecureRx(bool enable);
+    void SetPathwaySecureRxPassword(QString password);
+    void SetPathwaySecureTxPassword(QString password);
+    void SetPathwaySecureRxDataOnly(bool value);
+    void SetPathwaySecureTxSequenceType(quint8 type);
+    void SetPathwaySecureRxSequenceTimeWindow(quint32 value);
+    void SetPathwaySecureRxSequenceBootCount(quint32 value);
+    void SetPathwaySecureSequenceMap(QByteArray map);
 
     unsigned int GetDisplayFormat() const;
     unsigned int GetMaxLevel() const;
     bool GetBlindVisualizer() const;
-    bool GetDisplayDDOnly() const;
-    bool GetIgnoreDD() const;
+    bool GetETCDisplayDDOnly() const;
+    bool GetETCDD() const;
     QString GetDefaultTransmitName() const;
     unsigned int GetNumSecondsOfSacn() const;
     bool getFlickerFinderShowInfo() const;
@@ -149,6 +163,14 @@ public:
     QLocale GetLocale() const;
     quint8 GetUniversesListed() const { return m_universesListed; }
     quint8 GetMulticastTtl() const { return m_multicastTtl; }
+    bool GetPathwaySecureRx() const;
+    QString GetPathwaySecureRxPassword() const;
+    QString GetPathwaySecureTxPassword() const;
+    bool GetPathwaySecureRxDataOnly() const;
+    quint8 GetPathwaySecureTxSequenceType() const;
+    quint32 GetPathwaySecureRxSequenceTimeWindow() const;
+    quint32 GetPathwaySecureRxSequenceBootCount() const;
+    QByteArray GetPathwaySecureSequenceMap() const;
 
     QString GetFormattedValue(unsigned int nLevelInDecimal, bool decorated = false) const;
     QByteArray GetPriorityPreset(int index) const;
@@ -167,8 +189,8 @@ private:
 
     unsigned int m_nDisplayFormat;
     bool m_bBlindVisualizer;
-    bool m_bDisplayDDOnly;
-    bool m_bIgnoreDD;
+    bool m_bETCDisplayDDOnly;
+    bool m_bETCDD;
     QString m_sDefaultTransmitName;
     unsigned int m_nNumSecondsOfSacn;
     bool m_flickerFinderShowInfo;
@@ -182,6 +204,14 @@ private:
     quint8 m_universesListed;
     QByteArray m_priorityPresets[PRIORITYPRESET_COUNT];
     quint8 m_multicastTtl;
+    bool m_pathwaySecureRx;
+    QString m_pathwaySecureRxPassword;
+    QString m_pathwaySecureTxPassword;
+    bool m_pathwaySecureRxDataOnly;
+    quint8 m_pathwaySecureTxSequenceType;
+    quint32 m_pathwaySecureTxSequenceBootCount;
+    quint32 m_pathwaySecureRxSequenceTimeWindow;
+    QByteArray m_pathwaySecureSequenceMap;
 
     void loadPreferences();
 };

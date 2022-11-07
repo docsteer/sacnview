@@ -35,7 +35,7 @@ MultiUniverse::MultiUniverse(int firstUniverse, QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(m_timeoutMapper, SIGNAL(mapped(int)), this, SLOT(senderTimedout(int)));
+    connect(m_timeoutMapper, SIGNAL(mappedInt(int)), this, SLOT(senderTimedout(int)));
 }
 
 MultiUniverse::~MultiUniverse()

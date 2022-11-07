@@ -115,6 +115,8 @@ bool sACNTxSocket::bind()
 
 bool writeDatagramLoopbackTest(const QHostAddress &dest, QHostAddress localAddress) {
 #ifdef Q_OS_WIN
+    Q_UNUSED(dest);
+    Q_UNUSED(localAddress);
     return false;
 #endif
 
@@ -123,6 +125,7 @@ bool writeDatagramLoopbackTest(const QHostAddress &dest, QHostAddress localAddre
 #endif
 
 #ifdef Q_OS_MACOS
+    Q_UNUSED(localAddress);
     return (dest.isMulticast());
 #endif
 }

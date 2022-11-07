@@ -34,16 +34,18 @@ QString protocolVerToString(int value)
         return QObject::tr("Draft");
     case sACNProtocolRelease:
         return QObject::tr("Release");
+    case sACNProtocolPathwaySecure:
+        return QObject::tr("Pathway Secure");
+    default:
+        return QObject::tr("Unknown");
     }
-
-    return QObject::tr("Unknown");
 }
 
 UniverseView::UniverseView(int universe, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::UniverseView),
     m_parentWindow(parent), // needed as parent() in qobject world isn't..
-    m_displayDDOnlySource(Preferences::getInstance()->GetDisplayDDOnly())
+    m_displayDDOnlySource(Preferences::getInstance()->GetETCDisplayDDOnly())
 {
     ui->setupUi(this);
     UniverseDisplay *univDisplay = ui->universeDisplay;
@@ -207,9 +209,36 @@ void UniverseView::sourceChanged(sACNSource *source)
     ui->twSources->item(row,COL_VER)->setText(protocolVerToString(source->protocol_version));
     ui->twSources->item(row,COL_DD)->setText(
                 source->doing_per_channel ?
-                    (Preferences::getInstance()->GetIgnoreDD() ? tr("Ignored") : tr("Yes"))
+                    (Preferences::getInstance()->GetETCDD() ?  tr("Yes") : tr("Ignored"))
                     : tr("No"));
     ui->twSources->item(row,COL_SLOTS)->setText(QString::number(source->slot_count));
+
+    // Pathway secure
+    if (source->protocol_version == sACNProtocolPathwaySecure) {
+        if (source->pathway_secure.isSecure()) {
+            ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("Yes"));
+            ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::green);
+        } else {
+            if (!source->pathway_secure.passwordOk) {
+                ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("Bad Password"));
+                ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::yellow);
+            } else if (!source->pathway_secure.sequenceOk) {
+                ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("Bad Sequence"));
+                ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::yellow);
+            } else if (!source->pathway_secure.digetOk) {
+                ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("Bad Message Digest"));
+                ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::red);
+            }
+        }
+    } else {
+        if (Preferences::getInstance()->GetPathwaySecureRxDataOnly()) {
+            ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("No"));
+            ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::red);
+        } else {
+            ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("N/A"));
+            ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::white);
+        }
+    }
 
     // Update select address details
     if (m_selectedAddress != NO_SELECTED_ADDRESS)

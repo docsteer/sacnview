@@ -21,153 +21,255 @@
 /*defpack.h
   This file defines the big and little endian packing/unpacking utilities that
   common code uses.
-
-  All functions follow the form PackXY and UpackXY, 
-  where X denotes endianness (B or L, for big and little, respecively),
-  and Y denotes the number of bytes (1, 2, 4, 8)
-
-  Windows version follows, 
-  which is a little endian machine with no boundary problems.
-  
-  I've added explicit masking to this version to allow anyone running with "smaller type"
-  checking to not have debug exceptions.  
 */
 #ifndef	_DEFPACK_H_
 #define	_DEFPACK_H_
 
 #include <QtGlobal>
+#include <algorithm>
+#include <QByteArray>
 
-//Declarations
-void  PackBUint8 (quint8* ptr, quint8 val);	//Packs a quint8 to a known big endian buffer
-quint8 UpackBUint8 (const quint8* ptr);		//Unpacks a quint8 from a known big endian buffer
-void  PackLUint8 (quint8* ptr, quint8 val);	//Packs a quint8 to a known little endian buffer
-quint8 UPackLUint8 (const quint8* ptr);		//Unpacks a quint8 from a known little endian buffer
-void  PackBUint16 (quint8* ptr, quint16 val);	//Packs a quint16 to a known big endian buffer
-quint16 UpackBUint16 (const quint8* ptr);		//Unpacks a quint16 from a known big endian buffer
-void  PackLUint16 (quint8* ptr, quint16 val);	//Packs a quint16 to a known little endian buffer
-quint16 UpackLUint16 (const quint8* ptr);		//Unpacks a quint16 from a known little endian buffer
-void  PackBUint32 (quint8* ptr, quint32 val);	//Packs a quint32 to a known big endian buffer
-quint32 UpackBUint32 (const quint8* ptr);		//Unpacks a quint32 from a known big endian buffer
-void  PackLUint32 (quint8* ptr, quint32 val);	//Packs a quint32 to a known little endian buffer
-quint32 UpackLUint32 (const quint8* ptr);		//Unpacks a quint32 from a known little endian buffer
-void  PackBUint64 (quint8* ptr, quint64 val);	//Packs a quint64 to a known big endian buffer
-quint64 UpackBUint64 (const quint8* ptr);		//Unpacks a quint32 from a known big endian buffer
-void  PackLUint64 (quint8* ptr, quint64 val);	//Packs a quint64 to a known little endian buffer
-quint64 UpackLUint64 (const quint8* ptr);		//Unpacks a quint64 from a known little endian buffer
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+    #define _DEFCOPY_BIG std::reverse_copy
+    #define _DEFCOPY_LITTLE std::copy
+#else
+    #define _DEFCOPY_BIG std::copy
+    #define _DEFCOPY_LITTLE std::reverse_copy
+#endif
 
-//---------------------------------------------------------------------------------
-//implementation
+/**
+ * @brief Pack QByteArray directly into a buffer
+ * @param ptr[in,out] Pointer to buffer
+ * @param count Number of bytes to pack
+ * @param value Value to pack into buffer, limited to byte count
+ */
+inline void Pack(quint8* ptr, size_t count, const QByteArray &value)
+{
+    assert(static_cast<decltype(value.size())>(value.size()) >= count);
+    std::copy(value.begin(), value.begin() + count, ptr);
+}
+
+/**
+ * @brief Unpack value direcly from a buffer
+ * @param ptr[in] Pointer to buffer
+ * @param count Number of bytes to unpack
+ * @return Unpacked QByteArray
+ */
+inline QByteArray Upack(const quint8* ptr, size_t count)
+{
+    QByteArray value;
+    value.resize(static_cast<decltype(value.size())>(count));
+    std::copy(ptr, ptr + value.size(), std::begin(value));
+    return value;
+}
+
+/**
+ * @brief Pack QByteArray into a big endian buffer
+ * @param ptr[in,out] Pointer to buffer
+ * @param count Number of bytes to pack
+ * @param value Value to pack into buffer, limited to byte count
+ */
+inline void PackB(quint8* ptr, size_t count, const QByteArray &value)
+{
+    assert(static_cast<size_t>(value.size()) >= count);
+    _DEFCOPY_BIG(value.begin(), value.begin() + count, ptr);
+}
+
+/**
+ * @brief Unpack value from a big endian buffer
+ * @param ptr[in] Pointer to buffer
+ * @param count Number of bytes to unpack
+ * @return Unpacked QByteArray
+ */
+inline QByteArray UpackB(const quint8* ptr, size_t count)
+{
+    QByteArray value;
+    value.resize(static_cast<decltype(value.size())>(count));
+    _DEFCOPY_BIG(ptr, ptr + value.size(), std::begin(value));
+    return value;
+}
+
+/**
+ * @brief Pack value into a big endian buffer
+ * @param ptr[in,out] Pointer to buffer
+ * @param count Number of bytes to pack
+ * @param value Value to pack into buffer, limited to byte count
+ */
+template<typename T>
+inline void PackBN(quint8* ptr, size_t count, T value)
+{
+    assert(sizeof(T) >= count);
+    const auto valuePtr = reinterpret_cast<quint8*>(&value);
+    _DEFCOPY_BIG(valuePtr, valuePtr + count, ptr);
+}
+
+/**
+ * @brief Unpack value from a big endian buffer
+ * @param ptr[in] Pointer to buffer
+ * @param count Number of bytes to unpack
+ * @return Unpacked value
+ */
+template<typename T>
+inline T UpackBN(const quint8* ptr, size_t count)
+{
+    assert(sizeof(T) >= count);
+    T value = 0;
+    auto valuePtr = reinterpret_cast<quint8*>(&value);
+    _DEFCOPY_BIG(ptr, ptr + count, valuePtr);
+    return value;
+}
+
+/**
+ * @brief Pack QByteArray into a little endian buffer
+ * @param ptr[in,out] Pointer to buffer
+ * @param count Number of bytes to pack
+ * @param value Value to pack into buffer, limited to byte count
+ */
+inline void PackL(quint8* ptr, size_t count, const QByteArray &value)
+{
+    assert(static_cast<size_t>(value.size()) >= count);
+    _DEFCOPY_LITTLE(value.begin(), value.begin() + count, ptr);
+}
+
+/**
+ * @brief Unpack value from a little endian buffer
+ * @param ptr[in] Pointer to buffer
+ * @param count Number of bytes to unpack
+ * @return Unpacked QByteArray
+ */
+inline QByteArray UpackL(const quint8* ptr, size_t count)
+{
+    QByteArray value;
+    value.resize(static_cast<int>(count));
+    _DEFCOPY_LITTLE(ptr, ptr + value.size(), std::begin(value));
+    return value;
+}
+
+/**
+ * @brief Pack value into a little endian buffer
+ * @param ptr[in,out] Pointer to buffer
+ * @param count Number of bytes to pack
+ * @param value Value to pack into buffer, limited to byte count
+ */
+template<typename T>
+inline void PackLN(quint8* ptr, size_t count, T value)
+{
+    assert(sizeof(T) >= count);
+    const auto valuePtr = reinterpret_cast<quint8*>(&value);
+    _DEFCOPY_LITTLE(valuePtr, valuePtr + count, ptr);
+}
+
+/**
+ * @brief Unpack value from a little endian buffer
+ * @param ptr[in] Pointer to buffer
+ * @param count Number of bytes to unpack
+ * @return Unpacked value
+ */
+template<typename T>
+inline T UpackLN(const quint8* ptr, size_t count)
+{
+    assert(sizeof(T) >= count);
+    T value = 0;
+    auto valuePtr = reinterpret_cast<quint8*>(&value);
+    _DEFCOPY_LITTLE(ptr, ptr + count, valuePtr);
+    return value;
+}
 
 //Packs a quint8 to a known big endian buffer
-inline void	PackBUint8(quint8* ptr, quint8 val)
+inline void PackBUint8 (quint8* ptr, quint8 value)
 {
-	*ptr = val;
+    PackBN<decltype(value)>(ptr, sizeof(decltype(value)), value);
 }
 
 //Unpacks a quint8 from a known big endian buffer
-inline quint8 UpackBUint8(const quint8* ptr)
+inline quint8 UpackBUint8 (const quint8* ptr)
 {
-	return *ptr;
+    return UpackBN<quint8>(ptr, sizeof(quint8));
 }
 
 //Packs a quint8 to a known little endian buffer
-inline void	PackLUint8(quint8* ptr, quint8 val)
+inline void PackLUint8 (quint8* ptr, quint8 value)
 {
-	*ptr = val;
+    PackLN<decltype(value)>(ptr, sizeof(decltype(value)), value);
 }
 
 //Unpacks a quint8 from a known little endian buffer
-inline quint8 UPackLUint8(const quint8* ptr)
+inline quint8 UpackLUint8 (const quint8* ptr)
 {
-	return *ptr;
+    return UpackLN<quint8>(ptr, sizeof(quint8));
 }
 
 //Packs a quint16 to a known big endian buffer
-inline void PackBUint16(quint8* ptr, quint16 val)
+inline void  PackBUint16 (quint8* ptr, quint16 value)
 {
-    ptr[1] = (quint8)(val & 0xff);
-    ptr[0] = (quint8)((val & 0xff00) >> 8);
+    PackBN<decltype(value)>(ptr, sizeof(decltype(value)), value);
 }
 
 //Unpacks a quint16 from a known big endian buffer
-inline quint16 UpackBUint16(const quint8* ptr)
+inline quint16 UpackBUint16 (const quint8* ptr)
 {
-    return (quint16)(ptr[1] | ptr[0] << 8);
+    return UpackBN<quint16>(ptr, sizeof(quint16));
 }
 
 //Packs a quint16 to a known little endian buffer
-inline void PackLUint16(quint8* ptr, quint16 val)
+inline void PackLUint16 (quint8* ptr, quint16 value)
 {
-    *((quint16*)ptr) = val;
+    PackLN<decltype(value)>(ptr, sizeof(decltype(value)), value);
 }
 
 //Unpacks a quint16 from a known little endian buffer
-inline quint16 UpackLUint16(const quint8* ptr)
+inline quint16 UpackLUint16 (const quint8* ptr)
 {
-    return *((quint16*)ptr);
+    return UpackLN<quint16>(ptr, sizeof(quint16));
 }
 
 //Packs a quint32 to a known big endian buffer
-inline void PackBUint32(quint8* ptr, quint32 val)
+inline void PackBUint32 (quint8* ptr, quint32 value)
 {
-    ptr[3] = (quint8) (val & 0xff);
-    ptr[2] = (quint8)((val & 0xff00) >> 8);
-    ptr[1] = (quint8)((val & 0xff0000) >> 16);
-    ptr[0] = (quint8)((val & 0xff000000) >> 24);
+    PackBN<decltype(value)>(ptr, sizeof(decltype(value)), value);
 }
 
 //Unpacks a quint32 from a known big endian buffer
-inline quint32 UpackBUint32(const quint8* ptr)
+inline quint32 UpackBUint32 (const quint8* ptr)
 {
-    return (quint32)(ptr[3] | (ptr[2] << 8) | (ptr[1] << 16) | (ptr[0] << 24));
+    return UpackBN<quint32>(ptr, sizeof(quint32));
 }
 
 //Packs a quint32 to a known little endian buffer
-inline void PackLUint32(quint8* ptr, quint32 val)
+inline void PackLUint32 (quint8* ptr, quint32 value)
 {
-    *((quint32*)ptr) = val;
+    PackLN<decltype(value)>(ptr, sizeof(decltype(value)), value);
 }
 
 //Unpacks a quint32 from a known little endian buffer
-inline quint32 UpackLUint32(const quint8* ptr)
+inline quint32 UpackLUint32 (const quint8* ptr)
 {
-    return *((quint32*)ptr);
+    return UpackLN<quint32>(ptr, sizeof(quint32));
 }
 
 //Packs a quint64 to a known big endian buffer
-inline void PackBUint64(quint8* ptr, quint64 val)
+inline void PackBUint64 (quint8* ptr, quint64 value)
 {
-    ptr[7] = (quint8) (val & 0xff);
-    ptr[6] = (quint8)((val & 0xff00) >> 8);
-    ptr[5] = (quint8)((val & 0xff0000) >> 16);
-    ptr[4] = (quint8)((val & 0xff000000) >> 24);
-    ptr[3] = (quint8)((val & 0xff00000000) >> 32);
-    ptr[2] = (quint8)((val & 0xff0000000000) >> 40);
-    ptr[1] = (quint8)((val & 0xff000000000000) >> 48);
-    ptr[0] = (quint8)((val & 0xff00000000000000) >> 56);
+    PackBN<decltype(value)>(ptr, sizeof(decltype(value)), value);
 }
 
-//Unpacks a quint32 from a known big endian buffer
-inline quint64 UpackBUint64(const quint8* ptr)
+//Unpacks a quint64 from a known big endian buffer
+inline quint64 UpackBUint64 (const quint8* ptr)
 {
-    return ((quint64)ptr[7]) | (((quint64)ptr[6]) << 8) | (((quint64)ptr[5]) << 16) |
-           (((quint64)ptr[4]) << 24) | (((quint64)ptr[3]) << 32) |
-           (((quint64)ptr[2]) << 40) | (((quint64)ptr[1]) << 48) |
-           (((quint64)ptr[0]) << 56);
+    return UpackBN<quint64>(ptr, sizeof(quint64));
 }
 
 //Packs a quint64 to a known little endian buffer
-inline void PackLUint64(quint8* ptr, quint64 val)
+inline void PackLUint64 (quint8* ptr, quint64 value)
 {
-    *((quint64*)ptr) = val;
+    PackLN<decltype(value)>(ptr, sizeof(decltype(value)), value);
 }
 
 //Unpacks a quint64 from a known little endian buffer
-inline quint64 UpackLUint64(const quint8* ptr)
+inline quint64 UpackLUint64 (const quint8* ptr)
 {
-    return *((quint64*)ptr);
+    return UpackLN<quint64>(ptr, sizeof(quint64));
 }
-
 
 #endif	/*_DEFPACK_H_*/
 

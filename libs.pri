@@ -56,7 +56,7 @@ macx {
     DEFINES -= USE_BREAKPAD
 }
 
-    # Firewall Checker
+# Firewall Checker
 win32 {
     LIBS += -lole32 -loleaut32
 }
@@ -125,3 +125,40 @@ win32 {
         OPENSSL_PATH = $${_PRO_FILE_PWD_}/libs/openssl-$${OPENSSL_VERS}-win64
     }
 }
+
+# Blake2
+contains(QT_ARCH, x86_64) {
+    # SSE Implementation
+    DEFINES += HAVE_SSE2
+    BLAKE2_PATH = $$system_path($${LIBS_PATH}/blake2/sse)
+    HEADERS += \
+        $${BLAKE2_PATH}/blake2b-load-sse2.h \
+        $${BLAKE2_PATH}/blake2b-load-sse41.h \
+        $${BLAKE2_PATH}/blake2b-round.h \
+        $${BLAKE2_PATH}/blake2-config.h \
+        $${BLAKE2_PATH}/blake2s-load-sse2.h \
+        $${BLAKE2_PATH}/blake2s-load-sse41.h \
+        $${BLAKE2_PATH}/blake2s-load-xop.h \
+        $${BLAKE2_PATH}/blake2s-round.h
+    SOURCES += \
+        $${BLAKE2_PATH}/blake2b.c \
+        $${BLAKE2_PATH}/blake2bp.c \
+        $${BLAKE2_PATH}/blake2s.c \
+        $${BLAKE2_PATH}/blake2sp.c \
+        $${BLAKE2_PATH}/blake2xb.c \
+        $${BLAKE2_PATH}/blake2xs.c
+} else {
+    # Standard Implimentation
+    BLAKE2_PATH = $$system_path($${LIBS_PATH}/blake2/ref)
+    SOURCES += \
+        $${BLAKE2_PATH}/blake2bp-ref.c \
+        $${BLAKE2_PATH}/blake2b-ref.c \
+        $${BLAKE2_PATH}/blake2sp-ref.c \
+        $${BLAKE2_PATH}/blake2s-ref.c \
+        $${BLAKE2_PATH}/blake2xb-ref.c \
+        $${BLAKE2_PATH}/blake2xs-ref.c
+}
+INCLUDEPATH  += $${BLAKE2_PATH}
+HEADERS += \
+    $${BLAKE2_PATH}/blake2.h
+    $${BLAKE2_PATH}/blake2-impl.h
