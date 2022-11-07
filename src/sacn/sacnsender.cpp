@@ -634,7 +634,7 @@ void CStreamServer::setUniverseName(uint handle, const char *name)
     {
         strncpy((char *)m_multiverse[handle].psend + SOURCE_NAME_ADDR,
                 name,
-                DRAFT_SOURCE_NAME_SIZE);
+                m_multiverse[handle].draft ? DRAFT_SOURCE_NAME_SIZE : SOURCE_NAME_SIZE);
     }
 }
 
