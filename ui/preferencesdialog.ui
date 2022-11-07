@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>710</width>
-    <height>644</height>
+    <width>820</width>
+    <height>719</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -328,7 +328,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QGroupBox" name="gbPathway">
+         <widget class="QGroupBox" name="gbPathwayRx">
           <property name="title">
            <string>Pathway Connectivity Extensions</string>
           </property>
@@ -337,7 +337,7 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <item>
-            <widget class="QGroupBox" name="gbPathwaySecure">
+            <widget class="QGroupBox" name="gbPathwaySecureRx">
              <property name="toolTip">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable processing of Pathway Connectivity &amp;quot;Secure DMX Protocol&amp;quot;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
@@ -367,7 +367,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="lePathwaySecurePassword">
+                 <widget class="QLineEdit" name="lePathwaySecureRxPassword">
                   <property name="maximumSize">
                    <size>
                     <width>16777215</width>
@@ -388,7 +388,7 @@
                </layout>
               </item>
               <item>
-               <widget class="QCheckBox" name="cbPathwaySecureDataOnly">
+               <widget class="QCheckBox" name="cbPathwaySecureRxDataOnly">
                 <property name="maximumSize">
                  <size>
                   <width>16777215</width>
@@ -404,13 +404,13 @@
                </widget>
               </item>
               <item>
-               <widget class="QGroupBox" name="gbPathwaySecureSequenceTimeWindow">
+               <widget class="QGroupBox" name="gbPathwaySecureRxSequenceTimeWindow">
                 <property name="title">
                  <string>Sequence Time Window</string>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_11">
                  <item>
-                  <widget class="QSpinBox" name="sbPathwaySecureSequenceTimeWindow">
+                  <widget class="QSpinBox" name="sbPathwaySecureRxSequenceTimeWindow">
                    <property name="toolTip">
                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;For sources using time as a sequence, what is the maximum allowable window &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
@@ -712,6 +712,63 @@
               </widget>
              </item>
             </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="gbPathwayTx">
+          <property name="title">
+           <string>Pathway Connectivity Extensions</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_12">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_6">
+             <item>
+              <widget class="QLabel" name="label_8">
+               <property name="text">
+                <string>Default Password</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="lePathwaySecureTxPassword">
+               <property name="maxLength">
+                <number>32</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="gbPathwayTxSequenceType">
+             <property name="title">
+              <string>Sequence Type</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_13">
+              <item>
+               <widget class="QRadioButton" name="rbPathwayTxSequenceTypeTime">
+                <property name="text">
+                 <string>Time</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="rbPathwayTxSequenceTypeVolatile">
+                <property name="text">
+                 <string>Volatile</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="rbPathwayTxSequenceTypeNonVolatile">
+                <property name="text">
+                 <string>Non-Volatile</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
            </item>
           </layout>
          </widget>

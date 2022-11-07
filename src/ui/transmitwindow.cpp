@@ -71,6 +71,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
 
     ui->leSourceName->setText(Preferences::getInstance()->GetDefaultTransmitName());
 
+
     ui->dlFadeRate->setMinimum(0);
     ui->dlFadeRate->setMaximum(FX_FADE_RATES.count()-1);
     ui->dlFadeRate->setValue(0);
@@ -191,6 +192,10 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     effectChaseGroup->addButton(ui->rbChaseRamp);
     effectChaseGroup->addButton(ui->rbChaseSine);
     effectChaseGroup->addButton(ui->rbChaseSnap);
+
+    // Pathway secure options
+    ui->gbPathwaySecurePassword->setVisible(ui->rbPathwaySecure->isChecked());
+    ui->lePathwaySecurePassword->setText(Preferences::getInstance()->GetPathwaySecureTxPassword());
 
     setUniverseOptsEnabled(true);
 
@@ -372,9 +377,14 @@ void transmitwindow::on_btnStart_pressed()
     m_sender->setUnicastAddress(unicast);
     if(ui->rbRatified->isChecked())
         m_sender->setProtocolVersion(StreamingACNProtocolVersion::sACNProtocolRelease);
-    else
+    else if (ui->rbDraft->isChecked())
         m_sender->setProtocolVersion(StreamingACNProtocolVersion::sACNProtocolDraft);
-
+    else if (ui->rbPathwaySecure->isChecked()) {
+        m_sender->setProtocolVersion(StreamingACNProtocolVersion::sACNProtocolPathwaySecure);
+        m_sender->setSecurePassword(ui->lePathwaySecurePassword->text());
+    }
+    else
+        m_sender->setProtocolVersion(StreamingACNProtocolVersion::sACNProtocolUnknown);
 
     if(m_sender->isSending())
     {
@@ -854,5 +864,11 @@ void transmitwindow::setLevelList(QList<QPair<int, int>> levelList)
         else
             setLevel(i.first, i.second);
     }
+}
+
+
+void transmitwindow::on_rbPathwaySecure_toggled(bool checked)
+{
+    ui->gbPathwaySecurePassword->setVisible(checked);
 }
 

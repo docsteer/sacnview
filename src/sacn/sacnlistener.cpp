@@ -277,7 +277,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
         return;
 
         case e_ValidateStreamHeader::StreamHeader_Pathway_Secure:
-            if (!Preferences::getInstance()->GetPathwaySecure())
+            if (!Preferences::getInstance()->GetPathwaySecureRx())
             {
                 qDebug() << "sACNListener" << QThread::currentThreadId() << ": Ignore Pathway secure";
                 return;
@@ -329,7 +329,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
             if (root_vector == VECTOR_ROOT_E131_DATA_PATHWAY_SECURE) {
                 PathwaySecure::VerifyStreamSecurity(
                             (quint8*)data.data(), data.size(),
-                            Preferences::getInstance()->GetPathwaySecurePassword(),
+                            Preferences::getInstance()->GetPathwaySecureRxPassword(),
                             *ps);
             } else {
                 ps->pathway_secure.passwordOk = false;
@@ -731,8 +731,8 @@ void sACNListener::performMerge()
 
 	// Find the highest priority for the address
     bool secureDataOnly = false;
-    if (Preferences::getInstance()->GetPathwaySecure())
-        secureDataOnly = Preferences::getInstance()->GetPathwaySecureDataOnly();
+    if (Preferences::getInstance()->GetPathwaySecureRx())
+        secureDataOnly = Preferences::getInstance()->GetPathwaySecureRxDataOnly();
     for(std::vector<sACNSource *>::iterator it = m_sources.begin(); it != m_sources.end(); ++it)
     {
         sACNSource *ps = *it;

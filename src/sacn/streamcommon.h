@@ -86,6 +86,7 @@
 #define DISCO_LIST_UNIVERSE_ADDR 120
 
 //for support of the early draft:
+#define DRAFT_SOURCE_NAME_ADDR SOURCE_NAME_ADDR
 #define DRAFT_PRIORITY_ADDR 76
 #define DRAFT_SEQ_NUM_ADDR 77
 #define DRAFT_UNIVERSE_ADDR 78

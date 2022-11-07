@@ -21,6 +21,7 @@
 #include <sstream>
 #include <QMessageBox>
 #include "streamingacn.h"
+#include "securesacn.h"
 
 PreferencesDialog::PreferencesDialog(QWidget *parent) :
     QDialog(parent),
@@ -72,10 +73,19 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui->cbDisplayBlind->setChecked(Preferences::getInstance()->GetBlindVisualizer());
     ui->cbETCDisplayDDOnlys->setChecked(Preferences::getInstance()->GetETCDisplayDDOnly());
     ui->gbETCDD->setChecked(Preferences::getInstance()->GetETCDD());
-    ui->gbPathwaySecure->setChecked(Preferences::getInstance()->GetPathwaySecure());
-    ui->lePathwaySecurePassword->setText(Preferences::getInstance()->GetPathwaySecurePassword());
-    ui->cbPathwaySecureDataOnly->setChecked(Preferences::getInstance()->GetPathwaySecureDataOnly());
-    ui->sbPathwaySecureSequenceTimeWindow->setValue(Preferences::getInstance()->GetPathwaySecureSequenceTimeWindow());
+
+    ui->gbPathwaySecureRx->setChecked(Preferences::getInstance()->GetPathwaySecureRx());
+    ui->lePathwaySecureRxPassword->setText(Preferences::getInstance()->GetPathwaySecureRxPassword());
+    ui->lePathwaySecureTxPassword->setText(Preferences::getInstance()->GetPathwaySecureTxPassword());
+    ui->cbPathwaySecureRxDataOnly->setChecked(Preferences::getInstance()->GetPathwaySecureRxDataOnly());
+    ui->sbPathwaySecureRxSequenceTimeWindow->setValue(Preferences::getInstance()->GetPathwaySecureRxSequenceTimeWindow());
+    ui->rbPathwayTxSequenceTypeTime->setChecked(
+                Preferences::getInstance()->GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_time);
+    ui->rbPathwayTxSequenceTypeVolatile->setChecked(
+                Preferences::getInstance()->GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_volatile);
+    ui->rbPathwayTxSequenceTypeNonVolatile->setChecked(
+                Preferences::getInstance()->GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_nonvolatile);
+
     ui->cbRestoreWindows->setChecked(Preferences::getInstance()->GetSaveWindowLayout());
 
     ui->leDefaultSourceName->setText(Preferences::getInstance()->GetDefaultTransmitName());
@@ -136,10 +146,17 @@ void PreferencesDialog::on_buttonBox_accepted()
     p->SetETCDisplayDDOnly(ui->cbETCDisplayDDOnlys->isChecked());
 
     // Pathway Secure
-    p->SetPathwaySecure(ui->gbPathwaySecure->isChecked());
-    p->SetPathwaySecurePassword(ui->lePathwaySecurePassword->text());
-    p->SetPathwaySecureDataOnly(ui->cbPathwaySecureDataOnly->isChecked());
-    p->SetPathwaySecureSequenceTimeWindow(ui->sbPathwaySecureSequenceTimeWindow->value());
+    p->SetPathwaySecureRx(ui->gbPathwaySecureRx->isChecked());
+    p->SetPathwaySecureRxPassword(ui->lePathwaySecureRxPassword->text());
+    p->SetPathwaySecureTxPassword(ui->lePathwaySecureTxPassword->text());
+    p->SetPathwaySecureRxDataOnly(ui->cbPathwaySecureRxDataOnly->isChecked());
+    p->SetPathwaySecureRxSequenceTimeWindow(ui->sbPathwaySecureRxSequenceTimeWindow->value());
+    if (ui->rbPathwayTxSequenceTypeTime->isChecked())
+        p->SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_time);
+    else if (ui->rbPathwayTxSequenceTypeVolatile->isChecked())
+        p->SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_volatile);
+    else
+        p->SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_nonvolatile);
 
     // Save layout
     p->SetSaveWindowLayout(ui->cbRestoreWindows->isChecked());

@@ -224,14 +224,14 @@ void UniverseView::sourceChanged(sACNSource *source)
                 ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::yellow);
             } else if (!source->pathway_secure.sequenceOk) {
                 ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("Bad Sequence"));
-                ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::darkYellow);
+                ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::yellow);
             } else if (!source->pathway_secure.digetOk) {
                 ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("Bad Message Digest"));
                 ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::red);
             }
         }
     } else {
-        if (Preferences::getInstance()->GetPathwaySecureDataOnly()) {
+        if (Preferences::getInstance()->GetPathwaySecureRxDataOnly()) {
             ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("No"));
             ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::red);
         } else {

@@ -279,57 +279,84 @@ Preferences::Theme Preferences::GetTheme() const
     return m_theme;
 }
 
-void Preferences::SetPathwaySecure(bool enable)
+void Preferences::SetPathwaySecureRx(bool enable)
 {
-    m_pathwaySecure = enable;
+    m_pathwaySecureRx = enable;
 }
 
-bool Preferences::GetPathwaySecure() const
+bool Preferences::GetPathwaySecureRx() const
 {
-    return m_pathwaySecure;
+    return m_pathwaySecureRx;
 }
 
-void Preferences::SetPathwaySecurePassword(QString password)
+void Preferences::SetPathwaySecureRxPassword(QString password)
 {
-    m_pathwaySecurePassword = password;
+    m_pathwaySecureRxPassword = password;
 }
 
-QString Preferences::GetPathwaySecurePassword() const
+QString Preferences::GetPathwaySecureRxPassword() const
 {
-    return m_pathwaySecurePassword;
+    return m_pathwaySecureRxPassword;
 }
 
-void Preferences::SetPathwaySecureDataOnly(bool value)
+void Preferences::SetPathwaySecureTxPassword(QString password)
 {
-    m_pathwaySecureDataOnly = value;
+    m_pathwaySecureTxPassword = password;
 }
 
-bool Preferences::GetPathwaySecureDataOnly() const
+QString Preferences::GetPathwaySecureTxPassword() const
 {
-    return m_pathwaySecureDataOnly;
+    return m_pathwaySecureTxPassword;
 }
 
-void Preferences::SetPathwaySecureSequenceTimeWindow(quint32 value)
+void Preferences::SetPathwaySecureRxDataOnly(bool value)
 {
-    m_pathwaySecureSequenceTimeWindow = value;
+    m_pathwaySecureRxDataOnly = value;
 }
 
-quint32 Preferences::GetPathwaySecureSequenceTimeWindow() const
+bool Preferences::GetPathwaySecureRxDataOnly() const
 {
-    return m_pathwaySecureSequenceTimeWindow;
+    return m_pathwaySecureRxDataOnly;
+}
+
+void Preferences::SetPathwaySecureTxSequenceType(quint8 type)
+{
+    m_pathwaySecureTxSequenceType = type;
+}
+
+quint8 Preferences::GetPathwaySecureTxSequenceType() const
+{
+    return m_pathwaySecureTxSequenceType;
+}
+
+void Preferences::SetPathwaySecureRxSequenceTimeWindow(quint32 value)
+{
+    m_pathwaySecureRxSequenceTimeWindow = value;
+}
+
+quint32 Preferences::GetPathwaySecureRxSequenceTimeWindow() const
+{
+    return m_pathwaySecureRxSequenceTimeWindow;
+}
+
+void Preferences::SetPathwaySecureRxSequenceBootCount(quint32 value)
+{
+    m_pathwaySecureTxSequenceBootCount = value;
+}
+
+quint32 Preferences::GetPathwaySecureRxSequenceBootCount() const
+{
+    return m_pathwaySecureTxSequenceBootCount;
 }
 
 void Preferences::SetPathwaySecureSequenceMap(QByteArray map)
 {
-    QSettings settings;
-    settings.setValue(S_PATHWAYSECURE_SEQUENCE_MAP, map);
-    settings.sync();
+    m_pathwaySecureSequenceMap = qCompress(map, 9);
 }
 
 QByteArray Preferences::GetPathwaySecureSequenceMap() const
 {
-    QSettings settings;
-    return settings.value(S_PATHWAYSECURE_SEQUENCE_MAP, QByteArray()).toByteArray();
+    return qUncompress(m_pathwaySecureSequenceMap);
 }
 
 void Preferences::savePreferences()
@@ -377,10 +404,15 @@ void Preferences::savePreferences()
 
     settings.setValue(S_MULTICASTTTL, m_multicastTtl);
 
-    settings.setValue(S_PATHWAYSECURE, m_pathwaySecure);
-    settings.setValue(S_PATHWAYSECURE_PASSWORD, m_pathwaySecurePassword);
-    settings.setValue(S_PATHWAYSECURE_DATA_ONLY, m_pathwaySecureDataOnly);
-    settings.setValue(S_PATHWAYSECURE_SEQUENCE_TIME_WINDOW, m_pathwaySecureSequenceTimeWindow);
+    settings.setValue(S_PATHWAYSECURE_RX, m_pathwaySecureRx);
+    settings.setValue(S_PATHWAYSECURE_RX_PASSWORD, m_pathwaySecureRxPassword);
+    settings.setValue(S_PATHWAYSECURE_TX_PASSWORD, m_pathwaySecureTxPassword);
+    settings.setValue(S_PATHWAYSECURE_RX_DATA_ONLY, m_pathwaySecureRxDataOnly);
+    settings.setValue(S_PATHWAYSECURE_TX_SEQUENCE_TYPE, m_pathwaySecureTxSequenceType);
+    settings.setValue(S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT, m_pathwaySecureTxSequenceBootCount);
+    settings.setValue(S_PATHWAYSECURE_RX_SEQUENCE_TIME_WINDOW, m_pathwaySecureRxSequenceTimeWindow);
+    settings.setValue(S_PATHWAYSECURE_SEQUENCE_MAP, m_pathwaySecureSequenceMap);
+
     settings.sync();
 }
 
@@ -418,10 +450,14 @@ void Preferences::loadPreferences()
     m_locale = settings.value(S_LOCALE, QLocale::system()).toLocale();
     m_universesListed = settings.value(S_UNIVERSESLISTED, QVariant(20)).toUInt();
     m_multicastTtl = settings.value(S_MULTICASTTTL, QVariant(1)).toUInt();
-    m_pathwaySecure = settings.value(S_PATHWAYSECURE, QVariant(true)).toBool();
-    m_pathwaySecurePassword = settings.value(S_PATHWAYSECURE_PASSWORD, QString()).toString();
-    m_pathwaySecureDataOnly = settings.value(S_PATHWAYSECURE_DATA_ONLY, QVariant(false)).toBool();
-    m_pathwaySecureSequenceTimeWindow = settings.value(S_PATHWAYSECURE_SEQUENCE_TIME_WINDOW, 1000).toUInt();
+    m_pathwaySecureRx = settings.value(S_PATHWAYSECURE_RX, QVariant(true)).toBool();
+    m_pathwaySecureRxPassword = settings.value(S_PATHWAYSECURE_RX_PASSWORD, QString("Correct Horse Battery Staple")).toString();
+    m_pathwaySecureTxPassword = settings.value(S_PATHWAYSECURE_TX_PASSWORD, QString("Correct Horse Battery Staple")).toString();
+    m_pathwaySecureRxDataOnly = settings.value(S_PATHWAYSECURE_RX_DATA_ONLY, QVariant(false)).toBool();
+    m_pathwaySecureTxSequenceType = settings.value(S_PATHWAYSECURE_TX_SEQUENCE_TYPE, QVariant(0)).toUInt();
+    m_pathwaySecureTxSequenceBootCount = settings.value(S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT, QVariant(0)).toUInt();
+    m_pathwaySecureRxSequenceTimeWindow = settings.value(S_PATHWAYSECURE_RX_SEQUENCE_TIME_WINDOW, QVariant(1000)).toUInt();
+    m_pathwaySecureSequenceMap = settings.value(S_PATHWAYSECURE_SEQUENCE_MAP, QByteArray()).toByteArray();
 
     m_windowInfo.clear();
     int size = settings.beginReadArray(S_SUBWINDOWLIST);

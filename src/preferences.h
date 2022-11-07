@@ -24,8 +24,6 @@
 #include "CID.h"
 #include "consts.h"
 
-
-
 // Strings for storing settings
 static const QString S_INTERFACE_ADDRESS("MacAddress");
 static const QString S_INTERFACE_NAME("InterfaceName");
@@ -49,10 +47,13 @@ static const QString S_LOCALE("LOCALE");
 static const QString S_UNIVERSESLISTED("Universe List Count");
 static const QString S_PRIORITYPRESET("PriorityPreset %1");
 static const QString S_MULTICASTTTL("Multicast TTL");
-static const QString S_PATHWAYSECURE("Enable Pathway Secure");
-static const QString S_PATHWAYSECURE_PASSWORD("Pathway Secure Password");
-static const QString S_PATHWAYSECURE_DATA_ONLY("Show Pathway Secure Data Only");
-static const QString S_PATHWAYSECURE_SEQUENCE_TIME_WINDOW("Pathway Secure Data Sequence Time Window");
+static const QString S_PATHWAYSECURE_RX("Enable Pathway Secure Rx");
+static const QString S_PATHWAYSECURE_RX_PASSWORD("Pathway Secure Rx Password");
+static const QString S_PATHWAYSECURE_TX_PASSWORD("Pathway Secure Tx Password");
+static const QString S_PATHWAYSECURE_RX_DATA_ONLY("Show Pathway Secure RX Data Only");
+static const QString S_PATHWAYSECURE_RX_SEQUENCE_TIME_WINDOW("Pathway Secure Data RX Sequence Time Window");
+static const QString S_PATHWAYSECURE_TX_SEQUENCE_TYPE("Pathway Secure Data TX Sequence Type");
+static const QString S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT("Pathway Secure Data TX Sequence Boot Count");
 static const QString S_PATHWAYSECURE_SEQUENCE_MAP("Pathway Secure Data Sequence Map");
 
 struct MDIWindowInfo
@@ -135,10 +136,13 @@ public:
     void SetUniversesListed(quint8 count) { m_universesListed = (std::max)(count, (quint8)1); }
     void SetPriorityPreset(const QByteArray &data, int index);
     void SetMulticastTtl(quint8 ttl) { m_multicastTtl = ttl;}
-    void SetPathwaySecure(bool enable);
-    void SetPathwaySecurePassword(QString password);
-    void SetPathwaySecureDataOnly(bool value);
-    void SetPathwaySecureSequenceTimeWindow(quint32 value);
+    void SetPathwaySecureRx(bool enable);
+    void SetPathwaySecureRxPassword(QString password);
+    void SetPathwaySecureTxPassword(QString password);
+    void SetPathwaySecureRxDataOnly(bool value);
+    void SetPathwaySecureTxSequenceType(quint8 type);
+    void SetPathwaySecureRxSequenceTimeWindow(quint32 value);
+    void SetPathwaySecureRxSequenceBootCount(quint32 value);
     void SetPathwaySecureSequenceMap(QByteArray map);
 
     unsigned int GetDisplayFormat() const;
@@ -159,10 +163,13 @@ public:
     QLocale GetLocale() const;
     quint8 GetUniversesListed() const { return m_universesListed; }
     quint8 GetMulticastTtl() const { return m_multicastTtl; }
-    bool GetPathwaySecure() const;
-    QString GetPathwaySecurePassword() const;
-    bool GetPathwaySecureDataOnly() const;
-    quint32 GetPathwaySecureSequenceTimeWindow() const;
+    bool GetPathwaySecureRx() const;
+    QString GetPathwaySecureRxPassword() const;
+    QString GetPathwaySecureTxPassword() const;
+    bool GetPathwaySecureRxDataOnly() const;
+    quint8 GetPathwaySecureTxSequenceType() const;
+    quint32 GetPathwaySecureRxSequenceTimeWindow() const;
+    quint32 GetPathwaySecureRxSequenceBootCount() const;
     QByteArray GetPathwaySecureSequenceMap() const;
 
     QString GetFormattedValue(unsigned int nLevelInDecimal, bool decorated = false) const;
@@ -197,10 +204,14 @@ private:
     quint8 m_universesListed;
     QByteArray m_priorityPresets[PRIORITYPRESET_COUNT];
     quint8 m_multicastTtl;
-    bool m_pathwaySecure;
-    QString m_pathwaySecurePassword;
-    bool m_pathwaySecureDataOnly;
-    quint32 m_pathwaySecureSequenceTimeWindow;
+    bool m_pathwaySecureRx;
+    QString m_pathwaySecureRxPassword;
+    QString m_pathwaySecureTxPassword;
+    bool m_pathwaySecureRxDataOnly;
+    quint8 m_pathwaySecureTxSequenceType;
+    quint32 m_pathwaySecureTxSequenceBootCount;
+    quint32 m_pathwaySecureRxSequenceTimeWindow;
+    QByteArray m_pathwaySecureSequenceMap;
 
     void loadPreferences();
 };

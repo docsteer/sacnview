@@ -12,84 +12,17 @@
  */
 class PathwaySecure
 {
+    friend class PreferencesDialog;
+
     public:
         PathwaySecure() {}
         ~PathwaySecure() {}
         PathwaySecure(PathwaySecure const&) = delete;
         void operator=(PathwaySecure const&)  = delete;
 
-        typedef struct Password {
-            public:
-                Password(QString password);
-
-                /**
-                 * @brief Get Fingerprint (Hash) of password
-                 * @return Resultant fingerprint
-                 */
-                QByteArray getFingerprint();
-
-                /**
-                 * @brief Returns a pointer to the data stored in the Password
-                 */
-                inline const QChar *constData() const { return password.constData(); }
-
-                /**
-                 * @brief Size of data
-                 */
-                inline qsizetype size() const { return password.size(); }
-
-            private:
-                /**
-                 * @brief Fixed size of password
-                 */
-                static const size_t SIZE = 32;
-
-                QString password;
-        } password_t;
-
         /**
-         * @brief Verify and dissect packet header
-         * @param[in] pbuf Packet to validate and dissect
-         * @param buflen Size of pbuf
-         * @param[out] source_cid Source CID
-         * @param[out] source_name Source Name
-         * @param[out] priority Priority of source
-         * @param[out] start_code DMX Data Start Code
-         * @param[out] synchronization Has the synchronization option been set
-         * @param[out] sequence Sequence number
-         * @param[out] options Source options
-         * @param[out] universe Universe number
-         * @param[out] slot_count Number of DMX Slots
-         * @param[out] pdata DMX Data
-         * @return True if header ok
+         * @brief RootLayer Constants
          */
-        static bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
-                    char* source_name, quint8 &priority,
-                    quint8 &start_code, quint16 &synchronization, quint8 &sequence,
-                    quint8 &options, quint16 &universe,
-                    quint16 &slot_count, quint8* &pdata);
-
-        /**
-         * @brief Verify the security features of packet
-         * @details Sets the appropite flags in the sACNSource, based on the result
-         * @param[in] pbuf Packet to verify
-         * @param buflen Size of pbuf
-         * @param password Password to use to verify packet
-         * @param[in,out] source sACNSource to apply flags to
-         * @return True if packet passes security validation
-         */
-        static bool VerifyStreamSecurity(
-                const quint8* pbuf, uint buflen,
-                password_t password,
-                sACNSource &source);
-
-    private:
-        static PathwaySecure& getInstance()
-        {
-            static PathwaySecure instance;
-            return instance;
-        }
-
         struct RootLayer {
             static const size_t PREAMBLE_SIZE = RLP_PREAMBLE_SIZE;
             static const size_t POSTAMBLE_SIZE = 28;
@@ -108,9 +41,124 @@ class PathwaySecure
 
                 static const quint8 MESSAGE_DIGEST_ADDR = SEQUENCE_ADDR + SEQUENCE_SIZE;
                 static const size_t MESSAGE_DIGEST_SIZE = 16;
+
+                /**
+                 * @brief Get the pointer to the start of the post amble
+                 * @param[in] inbuf Packet buffer
+                 * @param buflen Size of inbuf
+                 * @param[out] outbuf Pointer to post amble buffer within pbuf, nullprt on failure
+                 * @return True on success
+                 */
+                static bool GetBuffer(quint8* inbuf, uint buflen, quint8 **outbuf);
             };
         };
 
+        /**
+         * @brief Password container type
+         */
+        typedef struct Password {
+            public:
+                Password(QString password);
+
+                /**
+                 * @brief Get Fingerprint (Hash) of password
+                 */
+                inline const QByteArray &getFingerprint() const { return fingerprint; }
+
+                /**
+                 * @brief Get the actual password
+                 */
+                inline const QString &getPassword() const { return password; }
+
+            private:
+                /**
+                 * @brief Fixed size of password
+                 */
+                static const size_t SIZE = 32;
+
+                QString password;
+                QByteArray fingerprint;
+        } password_t;
+
+        /**
+         * @brief Verify and dissect packet header
+         * @param[in] pbuf Packet to validate and dissect
+         * @param buflen Size of pbuf
+         * @param[out] source_cid Source CID
+         * @param[out] source_name Source Name
+         * @param[out] priority Priority of source
+         * @param[out] start_code DMX Data Start Code
+         * @param[out] synchronization Has the synchronization option been set
+         * @param[out] sequence Sequence number
+         * @param[out] options Source options
+         * @param[out] universe Universe number
+         * @param[out] slot_count Number of DMX Slots
+         * @param[out] pdata DMX Data
+         * @return True if header ok
+         */
+        static bool VerifyStreamHeader(
+                quint8* pbuf, uint buflen,
+                CID &source_cid, char* source_name,
+                quint8 &priority, quint8 &start_code,
+                quint16 &synchronization, quint8 &sequence,
+                quint8 &options, quint16 &universe,
+                quint16 &slot_count, quint8* &pdata);
+
+        /**
+         * @brief Setup stream header
+         * @param[in, out] pbuf Packet buffer to setup
+         * @param[in] source_cid Source CID
+         * @param[in] source_name Source Name
+         * @param[in] priority Priority of source
+         * @param[in] synchronization Synchronization option bits
+         * @param[in] options Source options
+         * @param[in] start_code DMX Data Start Code
+         * @param[in] universe Universe number
+         * @param[in] slot_count Number of DMX Slots
+         */
+        static void InitStreamHeader(
+                quint8* pbuf, const CID &source_cid,
+                const char* source_name, quint8 priority,
+                quint16 synchronization, quint8 options,
+                quint8 start_code, quint16 universe,
+                quint16 slot_count);
+
+        /**
+         * @brief Verify the security features of packet
+         * @details Sets the appropite flags in the sACNSource, based on the result
+         * @param[in] pbuf Packet to verify
+         * @param buflen Size of pbuf
+         * @param password Password to use to verify packet
+         * @param[in,out] source sACNSource to apply flags to
+         * @return True if packet passes security validation
+         */
+        static bool VerifyStreamSecurity(
+                const quint8* pbuf, uint buflen,
+                password_t password,
+                sACNSource &source);
+
+
+        /**
+         * @brief Apply security features to packet
+         * @param[in,out] pbuf Packet buffer
+         * @param buflen Size of pbuf
+         * @param cid Component IDentifer
+         * @param password Password to for hash
+         * @return True if security features applied
+         */
+        static bool ApplyStreamSecurity(quint8* pbuf, uint buflen,
+                const CID &cid, const password_t &password);
+
+    private:
+        static PathwaySecure& getInstance()
+        {
+            static PathwaySecure instance;
+            return instance;
+        }
+
+        /**
+         * @brief Sequence container and validation type
+         */
         struct Sequence {
             public:
                 Sequence();
@@ -118,7 +166,117 @@ class PathwaySecure
                 Sequence(PathwaySecure const&) = delete;
                 void operator=(Sequence const&)  = delete;
 
-                typedef quint64 value_t;
+                class value_t {
+                private:
+                    typedef quint64 type;
+
+                public:
+                    value_t() : data(0) {}
+                    value_t(type value) : data(value) {
+                        data = std::clamp(data, MINIMUM, MAXIMUM);
+                    }
+
+                    /**
+                     * @brief Get the upper word of the value
+                     * @return Upper range value
+                     */
+                    type getUpper()
+                    {
+                        return (data & UPPER_MASK) >> UPPER_SHIFT;
+                    }
+
+                    /**
+                     * @brief Get the lower word of the value
+                     * @return Lower range value
+                     */
+                    type getLower()
+                    {
+                        return (data & LOWER_MASK) >> LOWER_SHIFT;
+                    }
+
+                    /**
+                     * @brief Set the upper word of the value
+                     * @param upper Upper range to set
+                     */
+                    void setUpper(type upper)
+                    {
+                        upper = upper << UPPER_SHIFT;
+                        data &= ~UPPER_MASK;
+                        data |= upper;
+                        data = std::clamp(data, MINIMUM, MAXIMUM);
+                    }
+
+                    /**
+                     * @brief Set the lower word of the value
+                     * @param upper Upper range to set
+                     */
+                    void setLower(type lower)
+                    {
+                        lower = lower << LOWER_SHIFT;
+                        data &= ~LOWER_MASK;
+                        data |= lower;
+                        data = std::clamp(data, MINIMUM, MAXIMUM);
+                    }
+
+                    operator type() const {
+                        return data;
+                    }
+
+                    friend bool operator==(const value_t& l, const value_t& r)
+                    {
+                        return l.data == r.data;
+                    }
+                    friend bool operator!=(const value_t& l, const value_t& r)
+                    {
+                        return !(l == r);
+                    }
+                    friend QDataStream& operator<<(QDataStream &l, const value_t &r) {
+                        return l << r.data;
+                    }
+                    friend QDataStream& operator>>(QDataStream &l, value_t &r)
+                    {
+                        l >> r.data;
+                        return l;
+                    }
+
+                    /**
+                     * @brief Minimum allowed value
+                     */
+                    static constexpr type MINIMUM = 0x00000000000000; // 7 Bytes
+
+                    /**
+                     * @brief Maximum allowed value
+                     */
+                    static constexpr type MAXIMUM = 0xFFFFFFFFFFFFFF; // 7 Bytes
+
+                private:
+                    type data;
+
+                    /**
+                     * @brief Bit mask for upper range of sequence field
+                     */
+                    static const type UPPER_MASK = 0xFFFFFF00000000;
+
+                    /**
+                     * @brief Bit shift for upper range of sequence field
+                     */
+                    static const quint8 UPPER_SHIFT = 4 * 8;
+
+                    /**
+                     * @brief Bit mask for lower range of sequence field
+                     */
+                    static const type LOWER_MASK = 0x000000FFFFFFFF;
+
+                    /**
+                     * @brief Bit shift for lower range of sequence field
+                     */
+                    static const quint8 LOWER_SHIFT = 0;
+
+                };
+
+                /**
+                 * @brief Sequence Types
+                 */
                 typedef enum : quint8 {
                     type_time = 0, // Time Based Sequence Type
                     type_volatile = 1, // Volatile Sequence Type
@@ -135,38 +293,27 @@ class PathwaySecure
                  */
                 bool validate(const CID &cid, type_t type, value_t value, bool expired = false);
 
-            private:
                 /**
-                 * @brief Minimum value of sequence field
+                 * @brief Get next value in Sequence
+                 * @param cid Component IDentifer of source
+                 * @param type Sequence type
+                 * @return Next value in Sequence
                  */
-                static const value_t MINIMUM = 0x00000000000000; // 7 Bytes
-                /**
-                 * @brief Maximum value of sequence field
-                 */
-                static const value_t MAXIMUM = 0xFFFFFFFFFFFFFF; // 7 Bytes
+                value_t next(const CID &cid, type_t type);
 
+            private:
                 /**
                  * @brief Map of a CIDs last sequence number
                  */
                 typedef QMap<CID, Sequence::value_t> lastMap_t;
-                lastMap_t last;
+                QMap<type_t, lastMap_t> last;
+
+                /**
+                 * @brief bootCount Used for non-volatile sequence upper word
+                 */
+                unsigned int bootCount = 0;
         };
         Sequence sequence;
-
-        typedef enum {
-            security_result_ok, // No problems found
-            security_result_invalid_password, // Invliad password
-            security_result_invalid_sequence, // Out of sequence
-            security_result_invalid_digest, // Message diget incorrect, altered on route?
-            security_result_invalid_packet // General failure of packet, i.e. size
-        } security_result_t;
-        /**
-         * @brief Helper function to set correct sACNSource flags after a security verification
-         * @param source[in,out] sACNSource to apply flags to
-         * @param result Result of security verification
-         * @return
-         */
-        static bool setSourceSecureResult(sACNSource &source, security_result_t result);
 };
 
 #endif // SECURESACN_H

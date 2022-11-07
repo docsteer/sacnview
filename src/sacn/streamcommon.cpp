@@ -376,8 +376,8 @@ bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
   /* Init the parameters */
   source_cid.Unpack(pbuf + CID_ADDR);
   
-  strncpy(source_name, (char*)(pbuf + SOURCE_NAME_ADDR), SOURCE_NAME_SIZE);
-  source_name[SOURCE_NAME_SIZE-1] = '\0';
+  std::fill(source_name, source_name + SOURCE_NAME_SIZE, '\0');
+  std::string_view(reinterpret_cast<char*>(pbuf + SOURCE_NAME_ADDR), SOURCE_NAME_SIZE).copy(source_name, SOURCE_NAME_SIZE - 1);
   priority = UpackBUint8(pbuf + PRIORITY_ADDR);
   start_code = UpackBUint8(pbuf + START_CODE_ADDR);
   synchronization = UpackBUint16(pbuf + SYNC_ADDR);
@@ -386,9 +386,10 @@ bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
   universe = UpackBUint16(pbuf + UNIVERSE_ADDR);
   slot_count = UpackBUint16(pbuf + PROP_COUNT_ADDR) - 1;  //The property value count includes the start code byte
   pdata = pbuf + STREAM_HEADER_SIZE;
+  quint16 post_amble_size = UpackBUint16(pbuf + POSTAMBLE_SIZE_ADDR);
   
   /*Do final length validation*/
-  if((pdata + slot_count) > (pbuf + buflen))
+  if((pdata + slot_count + post_amble_size) > (pbuf + buflen))
     return false;
   
   return true;
@@ -455,9 +456,9 @@ bool VerifyStreamHeaderForDraft(
   /* Init the parameters */
   source_cid.Unpack(pbuf + CID_ADDR);
   
-  strncpy(source_name, (char*)(pbuf + SOURCE_NAME_ADDR),
-	  DRAFT_SOURCE_NAME_SIZE);
-  source_name[DRAFT_SOURCE_NAME_SIZE-1] = '\0';
+  std::fill(source_name, source_name + SOURCE_NAME_SIZE, '\0');
+  std::string_view(reinterpret_cast<char*>(pbuf + DRAFT_SOURCE_NAME_ADDR), DRAFT_SOURCE_NAME_SIZE).copy(source_name, DRAFT_SOURCE_NAME_SIZE - 1);
+
   priority = UpackBUint8(pbuf + DRAFT_PRIORITY_ADDR);
   if(priority == 0)
 	  priority = 100;  //The default priority if the source isn't using priority.
