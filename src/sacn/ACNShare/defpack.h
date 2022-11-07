@@ -45,7 +45,7 @@
  */
 inline void Pack(quint8* ptr, size_t count, const QByteArray &value)
 {
-    assert(static_cast<size_t>(value.size()) >= count);
+    assert(static_cast<decltype(value.size())>(value.size()) >= count);
     std::copy(value.begin(), value.begin() + count, ptr);
 }
 
@@ -58,7 +58,7 @@ inline void Pack(quint8* ptr, size_t count, const QByteArray &value)
 inline QByteArray Upack(const quint8* ptr, size_t count)
 {
     QByteArray value;
-    value.resize(count);
+    value.resize(static_cast<decltype(value.size())>(count));
     std::copy(ptr, ptr + value.size(), std::begin(value));
     return value;
 }
@@ -84,7 +84,7 @@ inline void PackB(quint8* ptr, size_t count, const QByteArray &value)
 inline QByteArray UpackB(const quint8* ptr, size_t count)
 {
     QByteArray value;
-    value.resize(count);
+    value.resize(static_cast<decltype(value.size())>(count));
     _DEFCOPY_BIG(ptr, ptr + value.size(), std::begin(value));
     return value;
 }
@@ -140,7 +140,7 @@ inline void PackL(quint8* ptr, size_t count, const QByteArray &value)
 inline QByteArray UpackL(const quint8* ptr, size_t count)
 {
     QByteArray value;
-    value.resize(count);
+    value.resize(static_cast<int>(count));
     _DEFCOPY_LITTLE(ptr, ptr + value.size(), std::begin(value));
     return value;
 }

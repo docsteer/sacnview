@@ -30,6 +30,7 @@
 
 #include <QtGlobal>
 #include <QMetaType>
+#include <QDataStream>
 
 class CID  
 {

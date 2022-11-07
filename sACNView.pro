@@ -26,9 +26,7 @@ macx {
     ICON = res/icon.icns
 }
 
-!msvc {
-    QMAKE_CXXFLAGS += -std=c++17
-}
+CONFIG += c++17
 
 # Translations
 include(translations.pri)
