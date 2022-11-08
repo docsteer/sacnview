@@ -77,11 +77,9 @@ bool PathwaySecure::Sequence::validate(const CID &cid, type_t type, value_t valu
     const value_t last_value = last[type][cid];
     last[type][cid] = value;
     qint64 diff = last_value - value;
-    static_assert(std::numeric_limits<decltype(diff)>::max() > Sequence::value_t::MAXIMUM);
-    static_assert(std::numeric_limits<decltype(diff)>::min() > Sequence::value_t::MINIMUM);
 
     /* The value didn't increase
-     * but was that becasue we've just send this?
+     * but was that because we've just send this?
      * Check if the sender is local, and if so account for this
      */
     if (diff == 0) {

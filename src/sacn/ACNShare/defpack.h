@@ -45,7 +45,7 @@
  */
 inline void Pack(quint8* ptr, size_t count, const QByteArray &value)
 {
-    assert(static_cast<decltype(value.size())>(value.size()) >= count);
+    assert(static_cast<size_t>(value.size()) >= count);
     std::copy(value.begin(), value.begin() + count, ptr);
 }
 
