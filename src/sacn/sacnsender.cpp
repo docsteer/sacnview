@@ -43,7 +43,9 @@ sACNSentUniverse::sACNSentUniverse(int universe) :
     m_priorityMode(pmPER_SOURCE_PRIORITY),
     m_version(sACNProtocolRelease),
     m_checkTimeoutTimer(Q_NULLPTR),
-    m_synchronization(NOT_SYNCHRONIZED_VALUE)
+    m_synchronization(NOT_SYNCHRONIZED_VALUE),
+    m_minSendFreq(E131_DATA_KEEP_ALIVE_FREQUENCY),
+    m_maxSendFreq(E1_11::MAX_REFRESH_RATE_HZ)
 {}
 
 sACNSentUniverse::~sACNSentUniverse()
@@ -70,8 +72,8 @@ void sACNSentUniverse::startSending(bool preview)
     if (preview)
         options += PREVIEW_DATA_OPTION;
 
-    uint max_tx_rate =
-            Preferences::getInstance()->GetTXRateOverride() ? std::numeric_limits<decltype(max_tx_rate)>::max() : E1_11::MAX_REFRESH_RATE_HZ;
+    m_maxSendFreq =
+            Preferences::getInstance()->GetTXRateOverride() ? std::numeric_limits<decltype(m_maxSendFreq)>::max() : E1_11::MAX_REFRESH_RATE_HZ;
 
     CIPAddr unicastAddress;
     if(!m_unicastAddress.isNull())
@@ -80,7 +82,7 @@ void sACNSentUniverse::startSending(bool preview)
     // DMX Data (0x00) server
     streamServer->CreateUniverse(
                 m_cid, qPrintable(m_name), m_priority, m_synchronization, options, STARTCODE_DMX,
-                m_universe, m_slotCount, m_slotData, m_handle, SEND_INTERVAL_DMX, max_tx_rate,
+                m_universe, m_slotCount, m_slotData, m_handle, m_minSendFreq, m_maxSendFreq,
                 unicastAddress, m_version);
     streamServer->setSecurePassword(m_handle, m_password);
     streamServer->SetUniverseDirty(m_handle);
@@ -91,7 +93,7 @@ void sACNSentUniverse::startSending(bool preview)
         quint8 *pslots;
         streamServer->CreateUniverse(
                     m_cid, qPrintable(m_name), m_priority, NOT_SYNCHRONIZED_VALUE, options, STARTCODE_PRIORITY,
-                    m_universe, m_slotCount, pslots, m_priorityHandle, SEND_INTERVAL_PRIORITY, max_tx_rate,
+                    m_universe, m_slotCount, pslots, m_priorityHandle, E1_11::MIN_REFRESH_RATE_HZ, m_maxSendFreq,
                     unicastAddress, m_version);
         memcpy(pslots,
                m_perChannelPriorities,
@@ -311,6 +313,19 @@ void sACNSentUniverse::setSecurePassword(const QString &password)
     emit passwordChange();
 }
 
+void sACNSentUniverse::setSendFrequency(float minimum, float maximum)
+{
+    if(minimum==m_minSendFreq && maximum==m_maxSendFreq) return;
+    CStreamServer *streamServer = CStreamServer::getInstance();
+    if (!streamServer)
+        return;
+    m_minSendFreq = minimum;
+    m_maxSendFreq = maximum;
+    return streamServer->setSendFrequency(m_handle, m_minSendFreq, m_maxSendFreq);
+
+    emit sendFrequencyChange();
+}
+
 void sACNSentUniverse::doTimeout()
 {
     delete m_checkTimeoutTimer;
@@ -344,6 +359,7 @@ CStreamServer::CStreamServer() :
     m_sendsock->bind();
 
     m_thread = new QThread();
+    m_thread->setPriority(QThread::LowestPriority);
     connect(m_thread, SIGNAL(started()), this, SLOT(TickLoop()));
     connect(m_thread, &QThread::finished, this, &QThread::deleteLater);
     this->moveToThread(m_thread);
@@ -415,9 +431,7 @@ void CStreamServer::TickLoop()
     qDebug() << "sACNSender" << QThread::currentThreadId() << ": Starting";
 
     while (!m_thread_stop) {
-        QThread::yieldCurrentThread();
-        QCoreApplication::processEvents();
-        QThread::msleep(1);
+        QThread::usleep(500);
         QMutexLocker locker(&m_writeMutex);
 
         int valid_count = 0;
@@ -504,8 +518,7 @@ bool CStreamServer::CreateUniverse(
         const CID& source_cid, const char* source_name, quint8 priority,
         quint16 synchronization, quint8 options, quint8 start_code,
         quint16 universe, quint16 slot_count, quint8*& pslots, uint& handle,
-        uint send_intervalms,
-        uint send_max_rate,
+        float minimum_send_rate, float maximum_send_rate ,
         CIPAddr unicastAddress,
         StreamingACNProtocolVersion version)
 {
@@ -519,7 +532,7 @@ bool CStreamServer::CreateUniverse(
     {
         default:
         case sACNProtocolUnknown:
-            qFatal(qPrintable(QString("Attempting to set unknown protocol version (%1)").arg(version)));
+            qFatal("Attempting to set unknown protocol version (0x%x)", version);
             return false;
 
         case sACNProtocolDraft:
@@ -566,8 +579,7 @@ bool CStreamServer::CreateUniverse(
     m_multiverse[handle].start_code = start_code;
     m_multiverse[handle].isdirty = false;
     m_multiverse[handle].num_terminates=0;
-    m_multiverse[handle].send_interval.SetInterval(send_intervalms);
-    m_multiverse[handle].min_interval.SetInterval(1000 / (std::max(send_max_rate, (decltype(send_max_rate))1)));
+    setSendFrequency(handle, minimum_send_rate, maximum_send_rate);
     m_multiverse[handle].version = version;
     m_multiverse[handle].cid = source_cid;
 
@@ -716,5 +728,22 @@ void CStreamServer::setSynchronizationAddress(uint handle, quint16 address)
 void CStreamServer::setSecurePassword(uint handle, const QString &password)
 {
    m_multiverse[handle].password = password;
+}
+
+void CStreamServer::setSendFrequency(uint handle, float minimum, float maximum)
+{
+    if(handle < m_multiverse.size()) {
+        if (maximum <= 0)
+            maximum = E1_11::MAX_REFRESH_RATE_HZ;
+
+        if (minimum <= 0 || minimum > maximum)
+            minimum = E1_11::MIN_REFRESH_RATE_HZ;
+
+        m_multiverse[handle].send_interval.SetInterval(1000 / minimum);
+        m_multiverse[handle].min_interval.SetInterval(1000 / maximum);
+
+        m_multiverse[handle].send_interval.Reset();
+        m_multiverse[handle].min_interval.Reset();
+    }
 }
 
