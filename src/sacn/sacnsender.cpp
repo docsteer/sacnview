@@ -323,12 +323,12 @@ void sACNSentUniverse::setSecurePassword(const QString &password)
 void sACNSentUniverse::setSendFrequency(float minimum, float maximum)
 {
     if(minimum==m_minSendFreq && maximum==m_maxSendFreq) return;
-    CStreamServer *streamServer = CStreamServer::getInstance();
-    if (!streamServer)
-        return;
     m_minSendFreq = minimum;
     m_maxSendFreq = maximum;
-    return streamServer->setSendFrequency(m_handle, m_minSendFreq, m_maxSendFreq);
+    if(isSending())
+    {
+        CStreamServer::getInstance()->setSendFrequency(m_handle, m_minSendFreq, m_maxSendFreq);
+    }
 
     emit sendFrequencyChange();
 }
