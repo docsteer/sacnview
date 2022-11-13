@@ -75,8 +75,12 @@ void sACNSentUniverse::startSending(bool preview)
     if (preview)
         options += PREVIEW_DATA_OPTION;
 
-    m_maxSendFreq =
-            Preferences::getInstance()->GetTXRateOverride() ? std::numeric_limits<decltype(m_maxSendFreq)>::max() : E1_11::MAX_REFRESH_RATE_HZ;
+
+    std::clamp(
+        m_maxSendFreq,
+        m_minSendFreq,
+        Preferences::getInstance()->GetTXRateOverride() ?
+                    std::numeric_limits<decltype(m_maxSendFreq)>::max() : E1_11::MAX_REFRESH_RATE_HZ);
 
     CIPAddr unicastAddress;
     if(!m_unicastAddress.isNull())

@@ -204,9 +204,9 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
         ui->sbMaxFPS->setMinimum(E1_11::MIN_REFRESH_RATE_HZ);
         ui->sbMaxFPS->setMaximum(E1_11::MAX_REFRESH_RATE_HZ);
     } else {
-        ui->sbMinFPS->setMinimum(E1_11::MIN_REFRESH_RATE_HZ / 2);
+        ui->sbMinFPS->setMinimum(static_cast<float>(E1_11::MIN_REFRESH_RATE_HZ) / 2);
         ui->sbMinFPS->setMaximum(std::numeric_limits<decltype(ui->sbMinFPS->value())>::max());
-        ui->sbMaxFPS->setMinimum(E1_11::MIN_REFRESH_RATE_HZ / 2);
+        ui->sbMaxFPS->setMinimum(static_cast<float>(E1_11::MIN_REFRESH_RATE_HZ) / 2);
         ui->sbMaxFPS->setMaximum(std::numeric_limits<decltype(ui->sbMaxFPS->value())>::max());
     }
     ui->sbMinFPS->setValue(E131_DATA_KEEP_ALIVE_FREQUENCY);
