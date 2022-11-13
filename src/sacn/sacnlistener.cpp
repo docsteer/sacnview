@@ -341,14 +341,14 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
             {
                 // This is a source which is coming back online, so we need to repeat the steps
                 // for initial source aquisition
-                ps->active.SetInterval(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL);
+                ps->active.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
                 ps->lastseq = sequence;
                 ps->src_cid = source_cid;
                 ps->src_valid = true;
                 ps->doing_dmx = (start_code == STARTCODE_DMX);
                 ps->doing_per_channel = ps->waited_for_dd = false;
                 newsourcenotify = false;
-                ps->priority_wait.SetInterval(WAIT_PRIORITY);
+                ps->priority_wait.SetInterval(std::chrono::milliseconds(WAIT_PRIORITY));
             }
 
             if(
@@ -365,10 +365,10 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
               //to a value of 1, a receiver shall enter network
               //data loss condition.  Any property values in
               //these packets shall be ignored"
-              (*it)->active.SetInterval(m_ssHLL);  //We factor in the hold last look time here, rather than 0
+              (*it)->active.SetInterval(std::chrono::milliseconds(m_ssHLL));  //We factor in the hold last look time here, rather than 0
 
               if((*it)->doing_per_channel)
-                  (*it)->priority_wait.SetInterval(m_ssHLL); //We factor in the hold last look time here, rather than 0
+                  (*it)->priority_wait.SetInterval(std::chrono::milliseconds(m_ssHLL)); //We factor in the hold last look time here, rather than 0
 
               validpacket = false;
               break;
@@ -379,7 +379,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
             {
                 //No matter how valid, we got something -- but we'll tweak the interval for any hll change
                 (*it)->doing_dmx = true;
-                (*it)->active.SetInterval(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL);
+                (*it)->active.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
             }
             else if(start_code == STARTCODE_PRIORITY && (*it)->waited_for_dd)
             {
@@ -421,14 +421,14 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
                 {
                     (*it)->waited_for_dd = true;
                     (*it)->doing_per_channel = true;
-                    (*it)->priority_wait.SetInterval(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL);
+                    (*it)->priority_wait.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
                     newsourcenotify = true;
                 }
                 else if((*it)->priority_wait.Expired())
                 {
                     (*it)->waited_for_dd = true;
                     (*it)->doing_per_channel = false;
-                    (*it)->priority_wait.SetInterval(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL);  //In case the source later decides to sent 0xdd packets
+                    (*it)->priority_wait.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));  //In case the source later decides to sent 0xdd packets
                     newsourcenotify = true;
                 }
                 else
@@ -455,7 +455,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
         ps->ip = sender;
         ps->universe = universe;
         ps->synchronization = synchronization;
-        ps->active.SetInterval(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL);
+        ps->active.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
         ps->lastseq = sequence;
         ps->src_cid = source_cid;
         ps->src_valid = true;
@@ -467,14 +467,14 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
             ps->waited_for_dd = true;
             ps->doing_per_channel = (start_code == STARTCODE_PRIORITY);
             newsourcenotify = true;
-            ps->priority_wait.SetInterval(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL);
+            ps->priority_wait.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
         }
         else
         {
             //If we aren't sampling, we want the earlier logic to set the state
             ps->doing_per_channel = ps->waited_for_dd = false;
             newsourcenotify = false;
-            ps->priority_wait.SetInterval(WAIT_PRIORITY);
+            ps->priority_wait.SetInterval(std::chrono::milliseconds(WAIT_PRIORITY));
         }
 
         validpacket = newsourcenotify;

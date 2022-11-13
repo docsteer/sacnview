@@ -33,6 +33,9 @@
 
 #include "preferences.h"
 
+using namespace std::chrono_literals;
+constexpr auto tickLoopInterval = 500ms;
+
 sACNSentUniverse::sACNSentUniverse(int universe) :
     m_isSending(false),
     m_handle(0),
@@ -359,12 +362,12 @@ CStreamServer::CStreamServer() :
     m_sendsock->bind();
 
     m_thread = new QThread();
-    m_thread->setPriority(QThread::LowestPriority);
     connect(m_thread, SIGNAL(started()), this, SLOT(TickLoop()));
     connect(m_thread, &QThread::finished, this, &QThread::deleteLater);
     this->moveToThread(m_thread);
     m_thread->setObjectName(QString("Interface %1 TX").arg(m_sendsock->multicastInterface().name()));
     m_thread->start();
+    m_thread->setPriority(QThread::LowestPriority);
 }
 
 CStreamServer::~CStreamServer()
@@ -428,10 +431,12 @@ void CStreamServer::RemovePSeq(const CID &cid, quint16 universe)
 
 void CStreamServer::TickLoop()
 {
-    qDebug() << "sACNSender" << QThread::currentThreadId() << ": Starting";
+    qDebug() << "sACNSender" << QThread::currentThreadId()
+             << ": Starting with tickLoopInterval"
+             << std::chrono::duration_cast<std::chrono::milliseconds>(tickLoopInterval).count() << "ms";
 
     while (!m_thread_stop) {
-        QThread::usleep(500);
+        QThread::usleep(std::chrono::duration_cast<std::chrono::milliseconds>(tickLoopInterval).count());
         QMutexLocker locker(&m_writeMutex);
 
         int valid_count = 0;
@@ -739,8 +744,11 @@ void CStreamServer::setSendFrequency(uint handle, float minimum, float maximum)
         if (minimum <= 0 || minimum > maximum)
             minimum = E1_11::MIN_REFRESH_RATE_HZ;
 
-        m_multiverse[handle].send_interval.SetInterval(1000 / minimum);
-        m_multiverse[handle].min_interval.SetInterval(1000 / maximum);
+        typedef std::chrono::microseconds period_t;
+        m_multiverse[handle].send_interval.SetInterval(
+                    period_t(static_cast<period_t::rep>(period_t::period().den / minimum)));
+        m_multiverse[handle].min_interval.SetInterval(
+                    period_t(static_cast<period_t::rep>(period_t::period().den / maximum)));
 
         m_multiverse[handle].send_interval.Reset();
         m_multiverse[handle].min_interval.Reset();

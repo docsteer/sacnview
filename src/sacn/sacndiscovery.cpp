@@ -280,7 +280,7 @@ void sACNDiscoveryRX::processPacket(quint8* pbuf, uint buflen)
                 qDebug() << "DiscoveryRX : New universe - CID" << CID::CIDIntoQString(cid) << ", universe" << universe;
                 emit newUniverse(CID::CIDIntoQString(cid), universe);
             }
-            m_discoveryList[cid]->Universe[universe].SetInterval(E131_UNIVERSE_DISCOVERY_INTERVAL);
+            m_discoveryList[cid]->Universe[universe].SetInterval(std::chrono::milliseconds(E131_UNIVERSE_DISCOVERY_INTERVAL));
         }
     }
     else
