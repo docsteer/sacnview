@@ -167,17 +167,6 @@ void sACNListener::readPendingDatagrams()
     {
         while(m_socket->hasPendingDatagrams())
         {
-#ifdef TARGET_WINXP
-            // Support for WindowsXP
-            QHostAddress senderAddress, destinationAddress;
-            int size = m_socket->pendingDatagramSize();
-            QByteArray data;
-            data.resize(size);
-            m_socket->readDatagram(data.data(), size, &senderAddress);
-            destinationAddress = m_socket->localAddress();
-
-            processDatagram(data, destinationAddress, senderAddress);
-#else
             QNetworkDatagram datagram = m_socket->receiveDatagram();
 
             if (datagram.data().isEmpty())
@@ -205,7 +194,6 @@ void sACNListener::readPendingDatagrams()
                             m_socket->localAddress(),
                             datagram.senderAddress());
             }
-#endif
         }
     }
 }

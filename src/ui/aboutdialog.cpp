@@ -16,9 +16,7 @@
 #include "aboutdialog.h"
 #include "ui_aboutdialog.h"
 #include "consts.h"
-#ifndef TARGET_WINXP
-    #include <pcap.h>
-#endif
+#include <pcap.h>
 #include "translations/translations.h"
 
 #include <QTimer>
@@ -58,15 +56,12 @@ aboutDialog::aboutDialog(QWidget *parent) :
     );
     ui->lblQtInfo->setText(tr("This application uses the Qt Library, version %1, licensed under the <a href=\"http://www.gnu.org/licenses/lgpl.html\">GNU LGPL</a>")
                            .arg(qVersion()));
-    #ifndef TARGET_WINXP
-        const char *libpcap = pcap_lib_version();
-        ui->lblLibs->setText(ui->lblLibs->text() + tr("This application uses the pcap Library, version %1, licensed under the <a href=\"https://opensource.org/licenses/BSD-3-Clause\">The 3-Clause BSD License</a>")
-                .arg(libpcap));
-        ui->lblLibs->setText(ui->lblLibs->text() + "\n");
-    #else
-        ui->lblLibs->setText(QString());
-    #endif
-
+    
+    const char *libpcap = pcap_lib_version();
+    ui->lblLibs->setText(ui->lblLibs->text() + tr("This application uses the pcap Library, version %1, licensed under the <a href=\"https://opensource.org/licenses/BSD-3-Clause\">The 3-Clause BSD License</a>")
+            .arg(libpcap));
+    ui->lblLibs->setText(ui->lblLibs->text() + "\n");
+    
     ui->lblLibs->setText(ui->lblLibs->text() + tr("This application uses BLAKE2, licensed under the <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\">Creative Commons Zero v1.0 Universal</a>"));
     ui->lblLibs->setText(ui->lblLibs->text() + "\n");
 

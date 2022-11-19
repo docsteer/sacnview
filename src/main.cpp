@@ -67,32 +67,6 @@ int main(int argc, char *argv[])
         }
     }
 
-    // Windows XP Support
-    #ifdef Q_OS_WIN
-        #if (TARGET_WINXP)
-            #pragma message("This binary is intended for Windows XP ONLY")
-            QSysInfo systemInfo;
-            QMessageBox msgBox;
-            msgBox.setStandardButtons(QMessageBox::Ok);
-            if (
-                (systemInfo.kernelVersion().startsWith(QString("5.1"))) // Windows XP 32bit
-                || (systemInfo.kernelVersion().startsWith(QString("5.2")))) // Windows XP 64bit
-            {
-                msgBox.setIcon(QMessageBox::Information);
-                msgBox.setText(QObject::tr("This binary is intended for Windows XP only\r\nThere are major issues mixed IPv4 and IPv6 enviroments\r\n\r\nPlease ensure IPv6 is disabled"));
-                msgBox.exec();
-            } else {
-                msgBox.setIcon(QMessageBox::Critical);
-                msgBox.setText(QObject::tr("This binary is intended for Windows XP only"));
-                msgBox.exec();
-                a.exit();
-                return -1;
-            }
-        #else
-            #pragma message("This binary is intended for Windows >= 7")
-        #endif
-    #endif
-
     // Check web (if avaliable) for new version
     VersionCheck version;
 

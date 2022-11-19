@@ -13,8 +13,7 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 
-QT       += core gui network multimedia
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT       += core gui network multimedia widgets
 
 TARGET = sACNView
 TEMPLATE = app
@@ -57,21 +56,12 @@ unix {
     QMAKE_CXXFLAGS += -g
 }
 
-# Windows XP Special Build?
-win32 {
-    lessThan(QT_MAJOR_VERSION, 6):lessThan(QT_MINOR_VERSION, 7) {
-        QMAKE_LFLAGS_WINDOWS = /SUBSYSTEM:WINDOWS,5.01
-        DEFINES += _ATL_XP_TARGETING
-        DEFINES += VERSION=\\\"$$GIT_TAG-WindowsXP\\\"
-        TARGET_WINXP = 1
-        DEFINES += TARGET_WINXP
-    } else {
-        DEFINES += VERSION=\\\"$$GIT_TAG\\\"
-        TARGET_WINXP = 0
-    }
-} else {
-    DEFINES += VERSION=\\\"$$GIT_TAG\\\"
+# Qt6 is now the minimum supported
+lessThan(QT_MAJOR_VERSION, 6): {
+    error("Qt versions below 6 are unsupported")
 }
+DEFINES += VERSION=\\\"$$GIT_TAG\\\"
+
 
 ## External Libs
 include(libs.pri)
