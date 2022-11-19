@@ -26,7 +26,6 @@
 #include "sacnsynclistmodel.h"
 #include "snapshot.h"
 #include "multiuniverse.h"
-#include "xpwarning.h"
 #include "pcapplayback.h"
 
 #include <QMdiSubWindow>
