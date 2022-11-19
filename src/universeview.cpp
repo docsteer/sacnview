@@ -138,8 +138,10 @@ void UniverseView::sourceChanged(sACNSource *source)
         return;
     }
 
-    // Display sources that only transmit 0xdd?
-    if (!m_displayDDOnlySource && !source->doing_dmx) { return; }
+    if (!m_sourceToTableRow.contains(source)) {
+        sourceOnline(source); // Maybe it's new, maybe it's ignored...
+        return;
+    }
 
     int row = m_sourceToTableRow[source];
     ui->twSources->item(row,COL_NAME)->setText(source->name);
@@ -190,7 +192,8 @@ void UniverseView::sourceOnline(sACNSource *source)
     if(!m_listener) return;
 
     // Display sources that only transmit 0xdd?
-    if (!m_displayDDOnlySource && !source->doing_dmx) { return; }
+    if (!m_displayDDOnlySource && !source->doing_dmx)
+        return;
 
     int row = ui->twSources->rowCount();
     ui->twSources->setRowCount(row+1);
