@@ -63,8 +63,6 @@ win32 {
 
 #PCap/WinPcap
 win32 {
-    # Not for Windows XP Build
-    equals(TARGET_WINXP, 0) {
         PCAP_PATH = $${_PRO_FILE_PWD_}/libs/WinPcap-413-173-b4
         contains(QT_ARCH, i386) {
             LIBS += -L$${PCAP_PATH}/lib
@@ -81,7 +79,6 @@ win32 {
             src/pcap/pcapplaybacksender.h \
             src/pcap/ethernetstrut.h
         FORMS += ui/pcapplayback.ui
-    }
 }
 !win32 {
     LIBS += -lpcap
