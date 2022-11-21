@@ -33,6 +33,12 @@
 
 #include "preferences.h"
 
+using namespace std::chrono_literals;
+#if defined(Q_OS_UNIX)
+constexpr auto tickLoopInterval = 1ms;
+#elif defined(Q_OS_WIN)
+constexpr auto tickLoopInterval = 0ms; // Don't use on Windows
+#endif
 const auto tickLoopPriority = QThread::LowestPriority;
 
 sACNSentUniverse::sACNSentUniverse(int universe) :
@@ -435,11 +441,16 @@ void CStreamServer::TickLoop()
 {
     qDebug() << "sACNSender" << QThread::currentThreadId()
              << ": Starting with priority"
-             << this->thread()->priority();
+             << this->thread()->priority()
+             << " and tickLoopInterval"
+             << std::chrono::duration_cast<std::chrono::milliseconds>(tickLoopInterval).count() << "ms";
 
-    assert(this->thread()->priority() <= QThread::LowestPriority);
+    Q_ASSERT(this->thread()->priority() == tickLoopPriority);
 
     while (!m_thread_stop) {
+        if (tickLoopInterval.count())
+            QThread::usleep(std::chrono::duration_cast<std::chrono::microseconds>(tickLoopInterval).count());
+
         QMutexLocker locker(&m_writeMutex);
 
         int valid_count = 0;
