@@ -119,18 +119,7 @@ static const unsigned char PTOHT[] =
 
 // Fade rates for the fade fx
 static const QList<qreal> FX_FADE_RATES({
-                                         0.5,
-                                         1,
-                                         2,
-                                         5,
-                                         10,
-                                         25,
-                                         50,
-                                         75,
-                                         100,
-                                         500
-                                     });
-
+ 0.5,1,2,5,10,25,44,50,75,100,500});
 
 
 static const QColor flickerHigherColor  = QColor::fromRgb(0x8d, 0x32, 0xfd);
