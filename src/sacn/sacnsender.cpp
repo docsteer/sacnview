@@ -76,7 +76,7 @@ void sACNSentUniverse::startSending(bool preview)
         options += PREVIEW_DATA_OPTION;
 
 
-    std::clamp(
+    m_maxSendFreq = std::clamp(
         m_maxSendFreq,
         m_minSendFreq,
         Preferences::getInstance()->GetTXRateOverride() ?
