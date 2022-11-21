@@ -33,8 +33,7 @@
 
 #include "preferences.h"
 
-using namespace std::chrono_literals;
-constexpr auto tickLoopInterval = 500ms;
+const auto tickLoopPriority = QThread::LowestPriority;
 
 sACNSentUniverse::sACNSentUniverse(int universe) :
     m_isSending(false),
@@ -74,7 +73,6 @@ void sACNSentUniverse::startSending(bool preview)
 
     if (preview)
         options += PREVIEW_DATA_OPTION;
-
 
     m_maxSendFreq = std::clamp(
         m_maxSendFreq,
@@ -371,7 +369,7 @@ CStreamServer::CStreamServer() :
     this->moveToThread(m_thread);
     m_thread->setObjectName(QString("Interface %1 TX").arg(m_sendsock->multicastInterface().name()));
     m_thread->start();
-    m_thread->setPriority(QThread::LowestPriority);
+    m_thread->setPriority(tickLoopPriority);
 }
 
 CStreamServer::~CStreamServer()
@@ -436,11 +434,12 @@ void CStreamServer::RemovePSeq(const CID &cid, quint16 universe)
 void CStreamServer::TickLoop()
 {
     qDebug() << "sACNSender" << QThread::currentThreadId()
-             << ": Starting with tickLoopInterval"
-             << std::chrono::duration_cast<std::chrono::milliseconds>(tickLoopInterval).count() << "ms";
+             << ": Starting with priority"
+             << this->thread()->priority();
+
+    assert(this->thread()->priority() <= QThread::LowestPriority);
 
     while (!m_thread_stop) {
-        QThread::usleep(std::chrono::duration_cast<std::chrono::milliseconds>(tickLoopInterval).count());
         QMutexLocker locker(&m_writeMutex);
 
         int valid_count = 0;
