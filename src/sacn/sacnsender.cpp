@@ -460,38 +460,30 @@ void CStreamServer::TickLoop()
                 DoDestruction(it->handle);
             }
 
-            //If valid, either a dirty, or send_interval will cause a send
-            if(it->psend && (it->isdirty || it->send_interval.Expired()))
+            //If valid, either a dirty, still about to supress rate, or send_interval will cause a send
+            if(it->psend && (it->isdirty || it->num_suppress_remaining || it->send_interval.Expired()))
             {
                 // E1.31:2016 6.6.2 (clause 1) logic
-                quint8 sendCount = 1;
-                if(!it->isdirty && it->send_interval.Expired() && !it->suppresed && it->start_code == STARTCODE_DMX)
-                {
-                    it->suppresed = true;
-                    sendCount = 3;
-                }
-                else if (it->isdirty)
-                {
-                    it->suppresed = false;
-                }
+                if(it->isdirty && it->start_code == STARTCODE_DMX)
+                    it->num_suppress_remaining = 3;
+                else if(it->num_suppress_remaining)
+                    --it->num_suppress_remaining;
 
-                for (decltype(sendCount) n = 0; n < sendCount; n++ )
+                //Add the sequence number and send
+                quint8 *pseq = GetPSeq(it->cid, it->number);
+                SetStreamHeaderSequence(it->psend, *pseq, it->version == sACNProtocolDraft);
+                (*pseq)++;
+
+                // Pathway Connectivity Secure DMX Protocol
+                if (it->version == sACNProtocolPathwaySecure)
+                    PathwaySecure::ApplyStreamSecurity(it->psend, it->sendsize, it->cid, it->password);
+
+                // Write to the wire
+                quint64 result = m_sendsock->writeDatagram( (char*)it->psend, it->sendsize, it->sendaddr, STREAM_IP_PORT);
+
+                if(result!=it->sendsize)
                 {
-                    //Add the sequence number and send
-                    quint8 *pseq = GetPSeq(it->cid, it->number);
-                    SetStreamHeaderSequence(it->psend, *pseq, it->version == sACNProtocolDraft);
-                    (*pseq)++;
-
-                    // Pathway Connectivity Secure DMX Protocol
-                    if (it->version == sACNProtocolPathwaySecure)
-                        PathwaySecure::ApplyStreamSecurity(it->psend, it->sendsize, it->cid, it->password);
-
-                    // Write to the wire
-                    quint64 result = m_sendsock->writeDatagram( (char*)it->psend, it->sendsize, it->sendaddr, STREAM_IP_PORT);
-                    if(result!=it->sendsize)
-                    {
-                        qDebug() << "Error sending datagram : " << m_sendsock->errorString();
-                    }
+                    qDebug() << "Error sending datagram : " << m_sendsock->errorString();
                 }
 
                 if(GetStreamTerminated(it->psend))

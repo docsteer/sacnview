@@ -362,7 +362,7 @@ private:
                                 //If NULL, this is not an active universe (just a hole in the vector)
         uint sendsize;
         bool isdirty;
-        bool suppresed;             //Transmission rate suppresed?
+        quint8 num_suppress_remaining;  //Packets left before we enter Transmission rate supression (E1.31:2016 6.6.2 (clause 1) logic)
         ttimer send_interval;       //Whether or not it's time to send a non-dirty packet
         ttimer min_interval;        //Whether it's too soon to send a packet
         QHostAddress sendaddr;      //The multicast address we're sending to
@@ -372,7 +372,7 @@ private:
 
         //and the constructor
       universe():number(0),handle(0), num_terminates(0), psend(NULL),isdirty(false),
-          suppresed(false),version(sACNProtocolRelease), cid(), password("") {}
+          num_suppress_remaining(0),version(sACNProtocolRelease), cid(), password("") {}
     };
 
     //The handle is the vector index
