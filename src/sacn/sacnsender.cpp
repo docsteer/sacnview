@@ -453,12 +453,8 @@ void CStreamServer::TickLoop()
 
         QMutexLocker locker(&m_writeMutex);
 
-        int valid_count = 0;
         for(auto it = m_multiverse.begin(); it != m_multiverse.end(); ++it)
         {
-            if(it->psend)
-                ++valid_count;
-
             //Too soon to send?
             //E1.31:2016 6.6.1
             if (!it->min_interval.Expired())
