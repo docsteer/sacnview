@@ -56,10 +56,16 @@ unix {
     QMAKE_CXXFLAGS += -g
 }
 
-# Qt6 is now the minimum supported
-lessThan(QT_MAJOR_VERSION, 6): {
-    error("Qt versions below 6 are unsupported")
+# Qt5.15 is now the minimum supported
+lessThan(QT_MAJOR_VERSION, 5):{
+    error("Qt versions below 5 are unsupported")
 }
+equals(QT_MAJOR_VERSION, 5): {
+    lessThan(QT_MINOR_VERSION, 15): {
+        error("Qt versions below 5.15 are unsupported")
+    }
+}
+
 DEFINES += VERSION=\\\"$$GIT_TAG\\\"
 
 
