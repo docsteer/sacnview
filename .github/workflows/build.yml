@@ -21,14 +21,16 @@ jobs:
       fail-fast: false
       matrix:
         # https://github.com/actions/virtual-environments#available-environments
-        os: [ubuntu-20.04, windows-latest, macos-latest]
+        os: [ubuntu-18.04, windows-latest, macos-latest]
         include:
-          - os: ubuntu-20.04
-            qt: '6.2.4' 
+          - os: ubuntu-18.04 # Oldest LTS for appimage support
+            qt: '5.15.2' # Oldest LTS for appimage support 
             qt_modules: ''
             dependencies: |
               sudo apt-get install mesa-common-dev libgl1-mesa-dev libpcap-dev libgstreamer-gl1.0-0 libgstreamer-plugins-base1.0-0 -y
+            # public_suffix v4.0.7 only requied for legacy ubuntu-18.04
             installer_setup: |
+              sudo gem install public_suffix -v 4.0.7
               sudo gem install --no-document fpm
             make_cmd: make
             artifact: |
