@@ -8,7 +8,6 @@
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QMessageBox>
-#include "qt56.h"
 
 LogWindow::LogWindow(int universe, QWidget *parent) :
     QWidget(parent),

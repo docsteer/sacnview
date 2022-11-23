@@ -87,7 +87,6 @@ SOURCES += src/main.cpp\
     src/widgets/monitorspinbox.cpp \
     src/widgets/qpushbutton_rightclick.cpp \
     src/widgets/qspinbox_resizetocontent.cpp \
-    src/qt56.cpp \
     src/ui/newversiondialog.cpp \
     src/ui/mdimainwindow.cpp \
     src/ui/scopewindow.cpp \
@@ -174,7 +173,6 @@ HEADERS += src/ui/mdimainwindow.h \
     src/theme/darkstyle.h \
     src/sacn/e1_11.h \
     src/ipc.h \
-    src/qt56.h \
     src/sacn/sacndiscovery.h \
     src/models/sacndiscoveredsourcelistmodel.h \
     src/widgets/clssnapshot.h \

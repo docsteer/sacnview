@@ -1,5 +1,4 @@
 #include <QApplication>
-#include "qt56.h"
 #include "commandline.h"
 #include "consts.h"
 #include "preferences.h"
