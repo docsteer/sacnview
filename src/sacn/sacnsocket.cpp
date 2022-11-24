@@ -39,10 +39,6 @@ sACNRxSocket::sBindStatus sACNRxSocket::bind(quint16 universe)
     GetUniverseAddress(universe, multicastAddr);
 
     QHostAddress listenAddr = QHostAddress::AnyIPv4;
-#ifdef TARGET_WINXP
-    #pragma message("Unicast listener unavailable for this platform")
-    listenAddr = multicastAddr.ToQHostAddress();
-#endif
     ok = QUdpSocket::bind(listenAddr,
               STREAM_IP_PORT,
               QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
@@ -64,11 +60,7 @@ sACNRxSocket::sBindStatus sACNRxSocket::bind(quint16 universe)
     }
 
     if(ok) {
-#ifdef TARGET_WINXP
-        qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Bound to IP:" << listenAddr.toString();
-#else
         qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Bound to interface:" << multicastInterface().name();
-#endif
         qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Joining Multicast Group:" << QHostAddress(multicastAddr.GetV4Address()).toString();
     } else {
         close();

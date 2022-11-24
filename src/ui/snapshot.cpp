@@ -1,6 +1,5 @@
 #include "snapshot.h"
 #include "ui_snapshot.h"
-#include "qt56.h"
 #include "consts.h"
 #include "preferences.h"
 #include <QTimer>

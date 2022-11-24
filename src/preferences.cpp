@@ -20,9 +20,7 @@
 #include <QApplication>
 #include "preferences.h"
 #include "consts.h"
-#ifndef TARGET_WINXP
-    #include <QRandomGenerator>
-#endif
+#include <QRandomGenerator>
 
 // The base color to generate pastel shades for sources
 static const QColor mixColor = QColor("coral");
@@ -84,12 +82,8 @@ void Preferences::SetNetworkListenAll(const bool &value)
 
 bool Preferences::GetNetworkListenAll() const
 {
-#ifdef TARGET_WINXP
-    return false;
-#else
     if (networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) return false;
     return m_interfaceListenAll;
-#endif
 }
 
 QColor Preferences::colorForCID(const CID &cid)
@@ -97,15 +91,9 @@ QColor Preferences::colorForCID(const CID &cid)
     if(m_cidToColor.contains(cid))
         return m_cidToColor[cid];
 
-#ifdef TARGET_WINXP
-    int red = qrand() % 255;
-    int green = qrand() % 255;
-    int blue = qrand() % 255;
-#else
     int red = QRandomGenerator::global()->bounded(255);
     int green = QRandomGenerator::global()->bounded(255);
     int blue = QRandomGenerator::global()->bounded(255);
-#endif
 
     red = (red + mixColor.red()) / 2;
     green = (green + mixColor.green()) / 2;

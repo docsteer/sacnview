@@ -21,7 +21,6 @@
 #include <QComboBox>
 #include <QLabel>
 #include <QMutableListIterator>
-#include "qt56.h"
 #include "sacneffectengine.h"
 #include "preferences.h"
 #include "consts.h"

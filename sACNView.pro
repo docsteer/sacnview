@@ -13,8 +13,7 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 
-QT       += core gui network multimedia
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT       += core gui network multimedia widgets
 
 TARGET = sACNView
 TEMPLATE = app
@@ -57,21 +56,18 @@ unix {
     QMAKE_CXXFLAGS += -g
 }
 
-# Windows XP Special Build?
-win32 {
-    lessThan(QT_MAJOR_VERSION, 6):lessThan(QT_MINOR_VERSION, 7) {
-        QMAKE_LFLAGS_WINDOWS = /SUBSYSTEM:WINDOWS,5.01
-        DEFINES += _ATL_XP_TARGETING
-        DEFINES += VERSION=\\\"$$GIT_TAG-WindowsXP\\\"
-        TARGET_WINXP = 1
-        DEFINES += TARGET_WINXP
-    } else {
-        DEFINES += VERSION=\\\"$$GIT_TAG\\\"
-        TARGET_WINXP = 0
-    }
-} else {
-    DEFINES += VERSION=\\\"$$GIT_TAG\\\"
+# Qt5.15 is now the minimum supported
+lessThan(QT_MAJOR_VERSION, 5):{
+    error("Qt versions below 5 are unsupported")
 }
+equals(QT_MAJOR_VERSION, 5): {
+    lessThan(QT_MINOR_VERSION, 15): {
+        error("Qt versions below 5.15 are unsupported")
+    }
+}
+
+DEFINES += VERSION=\\\"$$GIT_TAG\\\"
+
 
 ## External Libs
 include(libs.pri)
@@ -91,7 +87,6 @@ SOURCES += src/main.cpp\
     src/widgets/monitorspinbox.cpp \
     src/widgets/qpushbutton_rightclick.cpp \
     src/widgets/qspinbox_resizetocontent.cpp \
-    src/qt56.cpp \
     src/ui/newversiondialog.cpp \
     src/ui/mdimainwindow.cpp \
     src/ui/scopewindow.cpp \
@@ -176,10 +171,8 @@ HEADERS += src/ui/mdimainwindow.h \
     src/ui/bigdisplay.h \
     src/ui/addmultidialog.h \
     src/theme/darkstyle.h \
-    src/xpwarning.h \
     src/sacn/e1_11.h \
     src/ipc.h \
-    src/qt56.h \
     src/sacn/sacndiscovery.h \
     src/models/sacndiscoveredsourcelistmodel.h \
     src/widgets/clssnapshot.h \

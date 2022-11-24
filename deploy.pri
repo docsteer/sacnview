@@ -14,11 +14,7 @@ isEmpty(TARGET_EXT) {
 win32 {
     CONFIG += file_copies
 
-    equals($${TARGET_WINXP}, "1") {
-        PRODUCT_VERSION = "$$GIT_VERSION-WindowsXP"
-    } else {
-        PRODUCT_VERSION = "$$GIT_VERSION"
-    }
+    PRODUCT_VERSION = "$$GIT_VERSION"
 
     DEPLOY_DIR = $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/deploy))
     DEPLOY_TARGET = $$shell_quote($$system_path($${DESTDIR}/$${TARGET}$${TARGET_CUSTOM_EXT}))
@@ -33,22 +29,20 @@ win32 {
     COPIES += LocalDeployOpenSSL
 
     # PCap
-    equals(TARGET_WINXP, 0) {
-        contains(QT_ARCH, i386) {
-            PCAP_BINARY_DIR = $${PCAP_PATH}/Bin
-        } else {
-            PCAP_BINARY_DIR = $${PCAP_PATH}/Bin/x64
-        }
-        PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$shell_quote($$system_path($${PCAP_BINARY_DIR}/*)) $${DEPLOY_DIR} $$escape_expand(\\n\\t)
-        LocalDeployPCap.files += $$files($${PCAP_BINARY_DIR}/*.dll)
-        LocalDeployPCap.path = $$DESTDIR
-        COPIES += LocalDeployPCap
+    contains(QT_ARCH, i386) {
+        PCAP_BINARY_DIR = $${PCAP_PATH}/Bin
+    } else {
+        PCAP_BINARY_DIR = $${PCAP_PATH}/Bin/x64
     }
+    PRE_DEPLOY_COMMAND += $$QMAKE_COPY $$shell_quote($$system_path($${PCAP_BINARY_DIR}/*)) $${DEPLOY_DIR} $$escape_expand(\\n\\t)
+    LocalDeployPCap.files += $$files($${PCAP_BINARY_DIR}/*.dll)
+    LocalDeployPCap.path = $$DESTDIR
+    COPIES += LocalDeployPCap
 
     DEPLOY_COMMAND = $$shell_quote($$system_path($$(QTDIR)/bin/windeployqt))
     DEPLOY_OPT = --release --no-compiler-runtime --dir $${DEPLOY_DIR}
 
-    DEPLOY_INSTALLER = makensis /DPRODUCT_VERSION="$${PRODUCT_VERSION}" /DTARGET_WINXP="$${TARGET_WINXP}" $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/win/install.nsi))
+    DEPLOY_INSTALLER = makensis /DPRODUCT_VERSION="$${PRODUCT_VERSION}" $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/win/install.nsi))
 }
 macx {
     VERSION = $$system(echo $$GIT_VERSION | sed 's/[a-zA-Z]//')
