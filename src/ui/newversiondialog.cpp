@@ -2,20 +2,22 @@
 #include "ui_newversiondialog.h"
 #include <QStandardPaths>
 #include <QProcess>
+#include <QStringLiteral>
+#include "preferences.h"
 
 #ifdef Q_OS_WIN
-static const QString OS_FILE_IDENTIFIER = ".exe";
-static const QString OS_EXE_HANDLER = "";
+const QString OS_FILE_IDENTIFIER = QStringLiteral(".exe");
+const QString OS_EXE_HANDLER = QStringLiteral("");
 #endif
 
 #ifdef Q_OS_MACOS
-static const QString OS_FILE_IDENTIFIER = ".dmg";
-static const QString OS_EXE_HANDLER = "open";
+const QString OS_FILE_IDENTIFIER = QStringLiteral(".dmg");
+const QString OS_EXE_HANDLER = QStringLiteral("open");
 #endif
 
 #ifdef Q_OS_LINUX
-static const QString OS_FILE_IDENTIFIER = ".deb";
-static const QString OS_EXE_HANDLER = "xdg-open";
+const QString OS_FILE_IDENTIFIER = QStringLiteral(".deb");
+const QString OS_EXE_HANDLER = QStringLiteral("xdg-open");
 #endif
 
 
@@ -31,13 +33,14 @@ NewVersionDialog::NewVersionDialog(QWidget *parent) : QDialog(parent), ui(new Ui
     #endif
     connect(ui->btnLater, SIGNAL(pressed()), this, SLOT(reject()));
     m_manager = new QNetworkAccessManager(this);
+
+    ui->btnInstall->setDefault(true);
 }
 
 void NewVersionDialog::setNewVersionNumber(const QString &version)
 {
     ui->lblVersion->setText(tr("sACNView %1 is available (you have %2). Would you like to download it now?")
-                            .arg(version)
-                            .arg(VERSION));
+                            .arg(version, VERSION));
     m_newVersion = version;
 }
 
@@ -49,8 +52,7 @@ void NewVersionDialog::setDownloadUrl(const QString &url)
 void NewVersionDialog::on_btnInstall_pressed()
 {
     ui->lblDownloadInfo->setText(tr("Downloading %1 from %2")
-                                 .arg(m_newVersion)
-                                 .arg(m_dlUrl));
+                                 .arg(m_newVersion, m_dlUrl));
     ui->stackedWidget->setCurrentIndex(1);
     this->adjustSize();
     ui->btnExitInstall->setEnabled(false);
@@ -97,8 +99,10 @@ void NewVersionDialog::progress(qint64 bytes, qint64 total)
         auto strProgress = tr("%1 of %2 bytes").arg(bytes).arg(total);
     #else
         auto strProgress = tr("%1 of %2")
-                .arg(this->locale().formattedDataSize(bytes))
-                .arg(this->locale().formattedDataSize(total));
+                .arg(
+                    this->locale().formattedDataSize(bytes),
+                    this->locale().formattedDataSize(total)
+                    );
     #endif
 
     ui->progressBar->setTextVisible(true);
@@ -169,6 +173,13 @@ void NewVersionDialog::on_btnCancelDl_pressed()
     reject();
 }
 
+void NewVersionDialog::on_btnIgnore_pressed()
+{
+    reject();
+    qDebug() << "[Version check] Requested to ignore" << m_newVersion;
+    Preferences::getInstance()->SetUpdateIgnore(m_newVersion);
+}
+
 VersionCheck::VersionCheck(QObject *parent):
     QObject(parent)
 {
@@ -211,7 +222,7 @@ void VersionCheck::replyFinished (QNetworkReply *reply)
             QLocale locale("US");
 
             QDate myDate = locale.toDate(
-                        QString("%1 %2 %3").arg(GIT_DATE_DATE).arg(GIT_DATE_MONTH).arg(GIT_DATE_YEAR),
+                        QString("%1 %2 %3").arg(GIT_DATE_DATE, GIT_DATE_MONTH, GIT_DATE_YEAR),
                         QString("dd MMM yyyy")
                         );
             qDebug() << "[Version check] My version:" << VERSION << myDate.toString() <<  "Pre Release - " << PRERELEASE;
@@ -256,14 +267,20 @@ void VersionCheck::replyFinished (QNetworkReply *reply)
                         if (objectDate > myDate) {
                             if (PRERELEASE || !remote_is_prerelease) { // If prerelease, always upgrade; if not, only upgrade to non-prerelease
                                 // Newer!
-                                qDebug() << "[Version check] Remote version" << jObj["tag_name"].toString() << "is newer!";
+                                qDebug() << "[Version check] Remote version" << remote_version << "is newer!";
 
-                                // Tell the user
-                                NewVersionDialog dlg;
-                                dlg.setNewVersionNumber(jObj["tag_name"].toString());
-                                dlg.setNewVersionInfo(jObj["body"].toString());
-                                dlg.setDownloadUrl(downloadUrl);
-                                dlg.exec();
+                                // Has the user asked us to ingore this version?
+                                if (Preferences::getInstance()->GetUpdateIgnore() == remote_version)
+                                {
+                                    qDebug() << "[Version check] Requested to ignore version" << remote_version;
+                                } else {
+                                    // Tell the user
+                                    NewVersionDialog dlg;
+                                    dlg.setNewVersionNumber(remote_version);
+                                    dlg.setNewVersionInfo(jObj["body"].toString());
+                                    dlg.setDownloadUrl(downloadUrl);
+                                    dlg.exec();
+                                }
                                 return;
                             }
                         }
