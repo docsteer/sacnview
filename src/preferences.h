@@ -55,6 +55,7 @@ static const QString S_PATHWAYSECURE_RX_SEQUENCE_TIME_WINDOW("Pathway Secure Dat
 static const QString S_PATHWAYSECURE_TX_SEQUENCE_TYPE("Pathway Secure Data TX Sequence Type");
 static const QString S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT("Pathway Secure Data TX Sequence Boot Count");
 static const QString S_PATHWAYSECURE_SEQUENCE_MAP("Pathway Secure Data Sequence Map");
+static const QString S_UPDATE_IGNORE("Ignore Update Version");
 
 struct MDIWindowInfo
 {
@@ -144,6 +145,7 @@ public:
     void SetPathwaySecureRxSequenceTimeWindow(quint32 value);
     void SetPathwaySecureRxSequenceBootCount(quint32 value);
     void SetPathwaySecureSequenceMap(QByteArray map);
+    void SetUpdateIgnore(QString version);
 
     unsigned int GetDisplayFormat() const;
     unsigned int GetMaxLevel() const;
@@ -171,6 +173,7 @@ public:
     quint32 GetPathwaySecureRxSequenceTimeWindow() const;
     quint32 GetPathwaySecureRxSequenceBootCount() const;
     QByteArray GetPathwaySecureSequenceMap() const;
+    QString GetUpdateIgnore() const;
 
     QString GetFormattedValue(unsigned int nLevelInDecimal, bool decorated = false) const;
     QByteArray GetPriorityPreset(int index) const;

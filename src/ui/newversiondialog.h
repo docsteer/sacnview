@@ -35,6 +35,7 @@ private slots:
     void on_btnInstall_pressed();
     void on_btnExitInstall_pressed();
     void on_btnCancelDl_pressed();
+    void on_btnIgnore_pressed();
     void progress(qint64 bytes, qint64 total);
     void finished();
     void dataReadyRead();

@@ -272,6 +272,12 @@ void Preferences::SetPathwaySecureRx(bool enable)
     m_pathwaySecureRx = enable;
 }
 
+void Preferences::SetUpdateIgnore(QString version)
+{
+    QSettings settings;
+    settings.setValue(S_UPDATE_IGNORE, version);
+}
+
 bool Preferences::GetPathwaySecureRx() const
 {
     return m_pathwaySecureRx;
@@ -345,6 +351,12 @@ void Preferences::SetPathwaySecureSequenceMap(QByteArray map)
 QByteArray Preferences::GetPathwaySecureSequenceMap() const
 {
     return qUncompress(m_pathwaySecureSequenceMap);
+}
+
+QString Preferences::GetUpdateIgnore() const
+{
+    QSettings settings;
+    return settings.value(S_UPDATE_IGNORE, QString()).toString();
 }
 
 void Preferences::savePreferences()
