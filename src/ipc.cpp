@@ -106,7 +106,7 @@ void IPC_Client::readyRead()
 
         int universe = l_data[1].toInt();
         if (m_listener) m_listener->disconnect(this);
-        m_listener = sACNManager::getInstance()->getListener(universe);
+        m_listener = sACNManager::Instance().getListener(universe);
         connect(m_listener.data(), SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
         levelsChanged();
 

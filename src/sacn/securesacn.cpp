@@ -83,7 +83,7 @@ bool PathwaySecure::Sequence::validate(const CID &cid, type_t type, value_t valu
      * Check if the sender is local, and if so account for this
      */
     if (diff == 0) {
-        const auto localSenders = sACNManager::getInstance()->getSenderList();
+        const auto localSenders = sACNManager::Instance().getSenderList();
         if (localSenders.count(cid))
             --diff;
     }

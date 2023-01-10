@@ -70,7 +70,7 @@ aboutDialog::aboutDialog(QWidget *parent) :
     ui->twDiag->header()->hide();
 
     // Get listener list
-    const auto listenerList = sACNManager::getInstance()->getListenerList();
+    const auto listenerList = sACNManager::Instance().getListenerList();
 
     // Sort list
     struct {

@@ -39,7 +39,7 @@ void UniverseDisplay::setUniverse(int universe)
     // Don't search if we have already found, eg pause-continue
     if (!(m_listener && m_listener->universe() == universe))
     {
-        m_listener = sACNManager::getInstance()->getListener(universe);
+        m_listener = sACNManager::Instance().getListener(universe);
     }
 
     connect(m_listener.data(), &sACNListener::levelsChanged, this, &UniverseDisplay::levelsChanged);

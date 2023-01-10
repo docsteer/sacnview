@@ -27,7 +27,7 @@ monitorspinbox::monitorspinbox(QWidget* parent) : QAbstractSpinBox(parent),
 void monitorspinbox::setupListener(int universe) {
     // New universe?
     if (m_listener == Q_NULLPTR || m_listener->universe() != universe) {
-        m_listener = sACNManager::getInstance()->getListener(universe);
+        m_listener = sACNManager::Instance().getListener(universe);
 
         disconnect(m_listener.data(), Q_NULLPTR, this, Q_NULLPTR);
 

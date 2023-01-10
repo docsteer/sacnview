@@ -233,7 +233,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
 
     if(!m_sender)
     {
-        m_sender = sACNManager::getInstance()->getSender(ui->sbUniverse->value());
+        m_sender = sACNManager::Instance().getSender(ui->sbUniverse->value());
         connect(m_sender.data(), SIGNAL(sendingTimeout()), this, SLOT(sourceTimeout()));
     }
     if(!m_fxEngine)

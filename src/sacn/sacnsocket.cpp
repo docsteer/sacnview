@@ -127,7 +127,7 @@ qint64 sACNTxSocket::writeDatagram(const char *data, qint64 len, const QHostAddr
     // Copy to correct internal listener(s) for local display, if required by platform
     if (writeDatagramLoopbackTest(host, localAddress())) {
         CIPAddr addr;
-        for (auto &weakListener : sACNManager::getInstance()->getListenerList()) {
+        for (auto &weakListener : sACNManager::Instance().getListenerList()) {
             sACNManager::tListener listener(weakListener);
             if (listener) {
                 GetUniverseAddress(listener->universe(), addr);

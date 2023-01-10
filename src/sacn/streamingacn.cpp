@@ -67,13 +67,10 @@ sACNSource::sACNSource() :
     std::fill(priority_array, priority_array + sizeof(priority_array), 0);
 }
 
-sACNManager *sACNManager::m_instance = NULL;
-
-sACNManager *sACNManager::getInstance()
+sACNManager &sACNManager::Instance()
 {
-    if(!m_instance)
-        m_instance = new sACNManager();
-    return m_instance;
+    static sACNManager s_instance;
+    return s_instance;
 }
 
 sACNManager::sACNManager() : QObject()
@@ -86,13 +83,13 @@ sACNManager::sACNManager() : QObject()
 static void strongPointerDeleteListener(sACNListener *obj)
 {
     obj->deleteLater();
-    sACNManager::getInstance()->listenerDelete(obj);
+    sACNManager::Instance().listenerDelete(obj);
 }
 
 static void strongPointerDeleteSender(sACNSentUniverse *obj)
 {
     obj->deleteLater();
-    sACNManager::getInstance()->senderDelete(obj);
+    sACNManager::Instance().senderDelete(obj);
 }
 
 sACNManager::tListener sACNManager::getListener(quint16 universe)
@@ -248,7 +245,7 @@ sACNManager::tSender sACNManager::getSender(quint16 universe, CID cid)
 
 void sACNManager::senderDelete(QObject *obj)
 {
-    if (!m_objToUniverse.contains(obj) & !m_objToCid.contains(obj))
+    if (!m_objToUniverse.contains(obj) && !m_objToCid.contains(obj))
         return;
 
     QMutexLocker locker(&sACNManager_mutex);
@@ -266,7 +263,7 @@ void sACNManager::senderDelete(QObject *obj)
 
 void sACNManager::senderUniverseChanged()
 {
-    if (!m_objToUniverse.contains(sender()) & !m_objToCid.contains(sender()))
+    if (!m_objToUniverse.contains(sender()) && !m_objToCid.contains(sender()))
         return;
 
     sACNSentUniverse *sACNSender = (sACNSentUniverse*)sender();
@@ -285,7 +282,7 @@ void sACNManager::senderUniverseChanged()
 
 void sACNManager::senderCIDChanged()
 {
-    if (!m_objToUniverse.contains(sender()) & !m_objToCid.contains(sender()))
+    if (!m_objToUniverse.contains(sender()) && !m_objToCid.contains(sender()))
         return;
 
     sACNSentUniverse *sACNSender = (sACNSentUniverse*)sender();

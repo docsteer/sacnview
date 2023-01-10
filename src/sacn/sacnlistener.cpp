@@ -282,8 +282,8 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
         if (!destination.isMulticast())
         {
             // Unicast, send to correct listener!
-            decltype(sACNManager::getInstance()->getListenerList()) listenerList
-                    = sACNManager::getInstance()->getListenerList();
+            decltype(sACNManager::Instance().getListenerList()) listenerList
+                    = sACNManager::Instance().getListenerList();
             if (listenerList.contains(universe))
                 listenerList[universe].toStrongRef()->processDatagram(data, destination, sender);
             return;
@@ -608,7 +608,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
         // Listen to synchronization source
         if (ps->synchronization &&
                 (!ps->sync_listener || ps->sync_listener->universe() != ps->synchronization)) {
-            ps->sync_listener = sACNManager::getInstance()->getListener(ps->synchronization);
+            ps->sync_listener = sACNManager::Instance().getListener(ps->synchronization);
         }
 
         // Merge

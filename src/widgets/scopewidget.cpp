@@ -347,7 +347,7 @@ void ScopeWidget::start()
     foreach(ScopeChannel *ch, m_channels)
     {
         ch->clear();
-        auto listener = sACNManager::getInstance()->getListener(ch->universe());
+        auto listener = sACNManager::Instance().getListener(ch->universe());
         connect(listener.data(), SIGNAL(dataReady(int, QPointF)), this, SLOT(dataReady(int, QPointF)));
     }
     update();

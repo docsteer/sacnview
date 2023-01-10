@@ -81,7 +81,7 @@ void UniverseView::startListening(int universe)
     ui->btnGo->setEnabled(false);
     ui->btnPause->setEnabled(true);
     ui->sbUniverse->setEnabled(false);
-    m_listener = sACNManager::getInstance()->getListener(universe);
+    m_listener = sACNManager::Instance().getListener(universe);
     connect(m_listener.data(), SIGNAL(listenerStarted(int)), this, SLOT(listenerStarted(int)));
     checkBind();
     ui->universeDisplay->setUniverse(universe);

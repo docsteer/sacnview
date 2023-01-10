@@ -60,7 +60,7 @@ void MultiUniverse::addSource(int universe, int min_address, int max_address,
     ui->tableWidget->setRowCount(row+1);
 
     CID newCid = CID::CreateCid();
-    m_senders.append(sACNManager::getInstance()->getSender(universe, newCid));
+    m_senders.append(sACNManager::Instance().getSender(universe, newCid));
     connect(m_senders.last().data(), &sACNSentUniverse::destroyed, [this](QObject *obj)
         { QMutableListIterator<sACNManager::tSender>i(m_senders);
 

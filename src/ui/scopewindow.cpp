@@ -211,7 +211,7 @@ void ScopeWindow::on_tableWidget_itemChanged(QTableWidgetItem * item)
             sACNManager::tListener listener;
             if(!m_universes.contains(ch->universe()))
             {
-                m_universes[ch->universe()] = sACNManager::getInstance()->getListener(ch->universe());
+                m_universes[ch->universe()] = sACNManager::Instance().getListener(ch->universe());
             }
 
             listener = m_universes[ch->universe()];
@@ -237,7 +237,7 @@ void ScopeWindow::on_tableWidget_itemChanged(QTableWidgetItem * item)
             sACNManager::tListener listener;
             if(!m_universes.contains(universe))
             {
-                m_universes[ch->universe()] = sACNManager::getInstance()->getListener(universe);
+                m_universes[ch->universe()] = sACNManager::Instance().getListener(universe);
             }
 
             listener = m_universes[ch->universe()];

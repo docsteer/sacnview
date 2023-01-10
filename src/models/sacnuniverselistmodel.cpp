@@ -73,7 +73,7 @@ void sACNUniverseListModel::setStartUniverse(int start)
     m_start = start;
     for(int universe=m_start; universe<m_start+Preferences::Instance().GetUniversesListed(); universe++)
     {
-        m_listeners.push_back(sACNManager::getInstance()->getListener(universe));
+        m_listeners.push_back(sACNManager::Instance().getListener(universe));
 
         m_universes << new sACNUniverseInfo(universe);
 
@@ -133,7 +133,7 @@ QVariant sACNUniverseListModel::data(const QModelIndex &index, int role) const
         {
             auto universeIdx = index.row();
             int universe = universeIdx + m_start;
-            auto listener = sACNManager::getInstance()->getListener(universe);
+            auto listener = sACNManager::Instance().getListener(universe);
 
             QString displayString = tr("Universe %1").arg(universe);
 

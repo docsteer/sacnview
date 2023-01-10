@@ -221,7 +221,7 @@ void PreferencesDialog::on_buttonBox_accepted()
         qApp->quit();
     } else {
         // Force all universes to perform a full remerge
-        const auto listenerList = sACNManager::getInstance()->getListenerList();
+        const auto listenerList = sACNManager::Instance().getListenerList();
         for (const auto &weakListener : listenerList) {
 
             sACNManager::tListener listener(weakListener);

@@ -15,7 +15,7 @@ sACNSyncListModel::sACNSyncListModel(QObject *parent) :
     for (auto syncAddress : sACNSynchronizationRX::getInstance()->getSynchronizationAddresses())
         addSyncAddress(syncAddress);
     // -- Source with no known Synchroniser
-    for (auto weakListener : sACNManager::getInstance()->getListenerList()) {
+    for (auto weakListener : sACNManager::Instance().getListenerList()) {
         auto listener = weakListener.toStrongRef();
         for (auto source : listener->getSourceList())
             if (!source->active.Expired() &&
@@ -27,7 +27,7 @@ sACNSyncListModel::sACNSyncListModel(QObject *parent) :
     connect (sACNSynchronizationRX::getInstance(), &sACNSynchronizationRX::newSyncAddress,
              this, &sACNSyncListModel::addSyncAddress);
     // -- Source with no known Synchroniser
-    connect (sACNManager::getInstance(), &sACNManager::sourceFound,
+    connect (&sACNManager::Instance(), &sACNManager::sourceFound,
              this, [=](quint16 universe, sACNSource *source)
     {
         Q_UNUSED(universe);
@@ -35,7 +35,7 @@ sACNSyncListModel::sACNSyncListModel(QObject *parent) :
             addSyncAddress(source->synchronization);
         }
     });
-    connect (sACNManager::getInstance(), &sACNManager::sourceResumed,
+    connect (&sACNManager::Instance(), &sACNManager::sourceResumed,
              this, [=](quint16 universe, sACNSource *source)
     {
         Q_UNUSED(universe);
@@ -52,7 +52,7 @@ sACNSyncListModel::sACNSyncListModel(QObject *parent) :
             removeSyncAddress(syncAddress);
     }, Qt::DirectConnection);
     // -- Source
-    connect (sACNManager::getInstance(), &sACNManager::sourceLost,
+    connect (&sACNManager::Instance(), &sACNManager::sourceLost,
              this, [=](quint16 universe, sACNSource *source)
     {
         Q_UNUSED(universe);
@@ -307,7 +307,7 @@ sACNSyncListModel::itemPair_SyncAddress sACNSyncListModel::getSyncAddress(tsyncA
 
 bool sACNSyncListModel::isSyncAddressEmpty(tsyncAddress syncAddress) {
     // Check Synced universes
-    for (auto weakListener : sACNManager::getInstance()->getListenerList()) {
+    for (auto weakListener : sACNManager::Instance().getListenerList()) {
         auto listener = weakListener.toStrongRef();
         for (auto source : listener->getSourceList())
             if (!source->active.Expired() &&
@@ -335,7 +335,7 @@ void sACNSyncListModel::addSyncAddress(tsyncAddress syncAddress) {
     }
 
     // Existing Synced universes
-    for (auto weakListener : sACNManager::getInstance()->getListenerList()) {
+    for (auto weakListener : sACNManager::Instance().getListenerList()) {
         auto listener = weakListener.toStrongRef();
         for (auto source : listener->getSourceList())
             if (!source->active.Expired() &&
@@ -346,7 +346,7 @@ void sACNSyncListModel::addSyncAddress(tsyncAddress syncAddress) {
     }
 
     // Future Synced universes
-    connect (sACNManager::getInstance(), &sACNManager::sourceFound,
+    connect (&sACNManager::Instance(), &sACNManager::sourceFound,
              this, [=](quint16 universe, sACNSource *source)
     {
         if (source->synchronization == syncAddress) {
@@ -354,7 +354,7 @@ void sACNSyncListModel::addSyncAddress(tsyncAddress syncAddress) {
             addSyncedUniverseSource(source);
         }
     });
-    connect (sACNManager::getInstance(), &sACNManager::sourceChanged,
+    connect (&sACNManager::Instance(), &sACNManager::sourceChanged,
              this, [=](quint16 universe, sACNSource *source)
     {
         if (source->synchronization == syncAddress) {
@@ -362,7 +362,7 @@ void sACNSyncListModel::addSyncAddress(tsyncAddress syncAddress) {
             addSyncedUniverseSource(source);
         }
     });
-    connect (sACNManager::getInstance(), &sACNManager::sourceResumed,
+    connect (&sACNManager::Instance(), &sACNManager::sourceResumed,
              this, [=](quint16 universe, sACNSource *source)
     {
         if (source->synchronization == syncAddress) {
@@ -373,7 +373,7 @@ void sACNSyncListModel::addSyncAddress(tsyncAddress syncAddress) {
 
 
     // Expired Synced universes
-    connect (sACNManager::getInstance(), &sACNManager::sourceLost,
+    connect (&sACNManager::Instance(), &sACNManager::sourceLost,
              this, [=](quint16 universe, sACNSource *source)
     {
         if (source->synchronization == syncAddress) {
