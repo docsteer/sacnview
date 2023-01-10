@@ -63,19 +63,19 @@ void sACNListener::startReception()
     // Clear the levels array
     std::fill(std::begin(m_last_levels), std::end(m_last_levels), -1);
 
-    if (Preferences::getInstance()->GetNetworkListenAll() && !Preferences::getInstance()->networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) {
+    if (Preferences::Instance().GetNetworkListenAll() && !Preferences::Instance().networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) {
         // Listen on ALL interfaces and not working offline
         for (const auto &interface : QNetworkInterface::allInterfaces())
         {
             // If the interface is ok for use...
-            if(Preferences::getInstance()->interfaceSuitable(interface))
+            if(Preferences::Instance().interfaceSuitable(interface))
             {
                 startInterface(interface);
             }
         }
     } else {
         // Listen only to selected interface
-        startInterface(Preferences::getInstance()->networkInterface());
+        startInterface(Preferences::Instance().networkInterface());
         if (!m_sockets.empty()) {
             m_bindStatus.multicast = (m_sockets.back()->multicastInterface().isValid()) ? sACNRxSocket::BIND_OK : sACNRxSocket::BIND_FAILED;
             m_bindStatus.unicast = (m_sockets.back()->state() == QAbstractSocket::BoundState) ? sACNRxSocket::BIND_OK : sACNRxSocket::BIND_FAILED;
@@ -265,7 +265,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
         return;
 
         case e_ValidateStreamHeader::StreamHeader_Pathway_Secure:
-            if (!Preferences::getInstance()->GetPathwaySecureRx())
+            if (!Preferences::Instance().GetPathwaySecureRx())
             {
                 qDebug() << "sACNListener" << QThread::currentThreadId() << ": Ignore Pathway secure";
                 return;
@@ -295,7 +295,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
 
     // Listen to preview?
     preview = (PREVIEW_DATA_OPTION == (options & PREVIEW_DATA_OPTION));
-    if ((preview) && !Preferences::getInstance()->GetBlindVisualizer())
+    if ((preview) && !Preferences::Instance().GetBlindVisualizer())
     {
         qDebug() << "sACNListener" << QThread::currentThreadId() << ": Ignore preview";
         return;
@@ -317,7 +317,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
             if (root_vector == VECTOR_ROOT_E131_DATA_PATHWAY_SECURE) {
                 PathwaySecure::VerifyStreamSecurity(
                             (quint8*)data.data(), data.size(),
-                            Preferences::getInstance()->GetPathwaySecureRxPassword(),
+                            Preferences::Instance().GetPathwaySecureRxPassword(),
                             *ps);
             } else {
                 ps->pathway_secure.passwordOk = false;
@@ -582,7 +582,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
             memcpy(ps->last_priority_array, ps->priority_array, DMX_SLOT_MAX);
             // Fill in the new array
             memset(ps->priority_array, 0, DMX_SLOT_MAX);
-            if (!Preferences::getInstance()->GetETCDD())
+            if (!Preferences::Instance().GetETCDD())
             { // DD is disabled, fill with universe priority
                 std::fill(std::begin(ps->priority_array), std::end(ps->priority_array), ps->priority);
             } else {
@@ -719,8 +719,8 @@ void sACNListener::performMerge()
 
 	// Find the highest priority for the address
     bool secureDataOnly = false;
-    if (Preferences::getInstance()->GetPathwaySecureRx())
-        secureDataOnly = Preferences::getInstance()->GetPathwaySecureRxDataOnly();
+    if (Preferences::Instance().GetPathwaySecureRx())
+        secureDataOnly = Preferences::Instance().GetPathwaySecureRxDataOnly();
     for(std::vector<sACNSource *>::iterator it = m_sources.begin(); it != m_sources.end(); ++it)
     {
         sACNSource *ps = *it;

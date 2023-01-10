@@ -25,8 +25,6 @@
 // The base color to generate pastel shades for sources
 static const QColor mixColor = QColor("coral");
 
-Preferences *Preferences::m_instance = Q_NULLPTR;
-
 Preferences::Preferences()
 {
     RESTART_APP = false;
@@ -42,14 +40,10 @@ Preferences::~Preferences()
     savePreferences();
 }
 
-Preferences *Preferences::getInstance()
+Preferences &Preferences::Instance()
 {
-    if(!m_instance)
-    {
-        m_instance = new Preferences();
-    }
-
-    return m_instance;
+    static Preferences s_instance;
+    return s_instance;
 }
 
 QNetworkInterface Preferences::networkInterface() const

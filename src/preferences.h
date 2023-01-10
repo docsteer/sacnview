@@ -87,12 +87,14 @@ public:
         return ret;
     }
 
+public:
+    ~Preferences();
 
     /**
      * @brief getInstance - returns the instance of the Preferences class
      * @return the instance
      */
-    static Preferences *getInstance();
+    static Preferences &Instance();
 
     /**
      * @brief networkInterface returns the user preferred network interface for multicast
@@ -184,8 +186,6 @@ public slots:
     void setNetworkInterface(const QNetworkInterface &value);
 private:
     Preferences();
-    ~Preferences();
-    static Preferences *m_instance;
     QNetworkInterface m_interface;
     bool m_interfaceListenAll;
     QHash<CID, QColor> m_cidToColor;

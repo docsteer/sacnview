@@ -30,14 +30,14 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui->setupUi(this);
 
     // Populate lang
-    m_translation = new TranslationDialog(Preferences::getInstance()->GetLocale(), ui->vlLanguage, this);
+    m_translation = new TranslationDialog(Preferences::Instance().GetLocale(), ui->vlLanguage, this);
 
     // Network interfaces
     QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
     for(const QNetworkInterface &interface : interfaces)
     {
         // If the interface is ok for use...
-        if(Preferences::getInstance()->interfaceSuitable(interface))
+        if(Preferences::Instance().interfaceSuitable(interface))
         {
             // List IPv4 Addresses
             const QString ipString = Preferences::GetIPv4AddressString(interface);
@@ -48,46 +48,46 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
                            .arg(ipString));
 
             radio->setChecked(
-                        Preferences::getInstance()->networkInterface().hardwareAddress() == interface.hardwareAddress() &&
-                        Preferences::getInstance()->networkInterface().name() == interface.name());
+                        Preferences::Instance().networkInterface().hardwareAddress() == interface.hardwareAddress() &&
+                        Preferences::Instance().networkInterface().name() == interface.name());
 
             ui->verticalLayout_NetworkInterfaces->addWidget(radio);
             m_interfaceList << interface;
             m_interfaceButtons << radio;
         }
     }
-    ui->cbListenAll->setChecked(Preferences::getInstance()->GetNetworkListenAll());
-    if (Preferences::getInstance()->networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack))
+    ui->cbListenAll->setChecked(Preferences::Instance().GetNetworkListenAll());
+    if (Preferences::Instance().networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack))
         ui->cbListenAll->setEnabled(false);
 
-    switch (Preferences::getInstance()->GetDisplayFormat())
+    switch (Preferences::Instance().GetDisplayFormat())
     {
         case Preferences::DECIMAL:       ui->DecimalDisplayFormat->setChecked (true); break;
         case Preferences::PERCENT:       ui->PercentDisplayFormat->setChecked(true); break;
         case Preferences::HEXADECIMAL:   ui->HexDisplayFormat->setChecked(true); break;
     }
 
-    ui->cbDisplayBlind->setChecked(Preferences::getInstance()->GetBlindVisualizer());
-    ui->cbETCDisplayDDOnlys->setChecked(Preferences::getInstance()->GetETCDisplayDDOnly());
-    ui->gbETCDD->setChecked(Preferences::getInstance()->GetETCDD());
+    ui->cbDisplayBlind->setChecked(Preferences::Instance().GetBlindVisualizer());
+    ui->cbETCDisplayDDOnlys->setChecked(Preferences::Instance().GetETCDisplayDDOnly());
+    ui->gbETCDD->setChecked(Preferences::Instance().GetETCDD());
 
-    ui->gbPathwaySecureRx->setChecked(Preferences::getInstance()->GetPathwaySecureRx());
-    ui->lePathwaySecureRxPassword->setText(Preferences::getInstance()->GetPathwaySecureRxPassword());
-    ui->lePathwaySecureTxPassword->setText(Preferences::getInstance()->GetPathwaySecureTxPassword());
-    ui->cbPathwaySecureRxDataOnly->setChecked(Preferences::getInstance()->GetPathwaySecureRxDataOnly());
-    ui->sbPathwaySecureRxSequenceTimeWindow->setValue(Preferences::getInstance()->GetPathwaySecureRxSequenceTimeWindow());
+    ui->gbPathwaySecureRx->setChecked(Preferences::Instance().GetPathwaySecureRx());
+    ui->lePathwaySecureRxPassword->setText(Preferences::Instance().GetPathwaySecureRxPassword());
+    ui->lePathwaySecureTxPassword->setText(Preferences::Instance().GetPathwaySecureTxPassword());
+    ui->cbPathwaySecureRxDataOnly->setChecked(Preferences::Instance().GetPathwaySecureRxDataOnly());
+    ui->sbPathwaySecureRxSequenceTimeWindow->setValue(Preferences::Instance().GetPathwaySecureRxSequenceTimeWindow());
     ui->rbPathwayTxSequenceTypeTime->setChecked(
-                Preferences::getInstance()->GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_time);
+                Preferences::Instance().GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_time);
     ui->rbPathwayTxSequenceTypeVolatile->setChecked(
-                Preferences::getInstance()->GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_volatile);
+                Preferences::Instance().GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_volatile);
     ui->rbPathwayTxSequenceTypeNonVolatile->setChecked(
-                Preferences::getInstance()->GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_nonvolatile);
+                Preferences::Instance().GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_nonvolatile);
 
-    ui->cbRestoreWindows->setChecked(Preferences::getInstance()->GetSaveWindowLayout());
+    ui->cbRestoreWindows->setChecked(Preferences::Instance().GetSaveWindowLayout());
 
-    ui->leDefaultSourceName->setText(Preferences::getInstance()->GetDefaultTransmitName());
+    ui->leDefaultSourceName->setText(Preferences::Instance().GetDefaultTransmitName());
 
-    int timeout = Preferences::getInstance()->GetNumSecondsOfSacn();
+    int timeout = Preferences::Instance().GetNumSecondsOfSacn();
     if(timeout>0)
     {
         ui->gbTransmitTimeout->setChecked(true);
@@ -103,13 +103,13 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         ui->gbTransmitTimeout->setChecked(false);
     }
 
-    ui->cbTxRateOverride->setChecked(Preferences::getInstance()->GetTXRateOverride());
+    ui->cbTxRateOverride->setChecked(Preferences::Instance().GetTXRateOverride());
 
     ui->cbTheme->clear();
     ui->cbTheme->addItems(Preferences::ThemeDescriptions());
-    ui->cbTheme->setCurrentIndex(static_cast<int>(Preferences::getInstance()->GetTheme()));
+    ui->cbTheme->setCurrentIndex(static_cast<int>(Preferences::Instance().GetTheme()));
 
-    ui->sbMulticastTtl->setValue(Preferences::getInstance()->GetMulticastTtl());
+    ui->sbMulticastTtl->setValue(Preferences::Instance().GetMulticastTtl());
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -122,54 +122,54 @@ void PreferencesDialog::on_buttonBox_accepted()
 {
     bool requiresRestart = false;
 
-    Preferences *p = Preferences::getInstance();
+    Preferences &p = Preferences::Instance();
 
     // Display Format
     if(ui->DecimalDisplayFormat->isChecked())
-        p->SetDisplayFormat(Preferences::DECIMAL);
+        p.SetDisplayFormat(Preferences::DECIMAL);
     if(ui->HexDisplayFormat->isChecked())
-        p->SetDisplayFormat(Preferences::HEXADECIMAL);
+        p.SetDisplayFormat(Preferences::HEXADECIMAL);
     if(ui->PercentDisplayFormat->isChecked())
-        p->SetDisplayFormat(Preferences::PERCENT);
+        p.SetDisplayFormat(Preferences::PERCENT);
 
     // Display Blind
-    p->SetBlindVisualizer(ui->cbDisplayBlind->isChecked());
+    p.SetBlindVisualizer(ui->cbDisplayBlind->isChecked());
 
     // Enable ETC DD?
-    p->SetETCDD(ui->gbETCDD->isChecked());
+    p.SetETCDD(ui->gbETCDD->isChecked());
 
     // Display sources with only ETC DD?
-    if (ui->cbETCDisplayDDOnlys->isChecked() != p->GetETCDisplayDDOnly() ) {requiresRestart = true;}
-    p->SetETCDisplayDDOnly(ui->cbETCDisplayDDOnlys->isChecked());
+    if (ui->cbETCDisplayDDOnlys->isChecked() != p.GetETCDisplayDDOnly() ) {requiresRestart = true;}
+    p.SetETCDisplayDDOnly(ui->cbETCDisplayDDOnlys->isChecked());
 
     // Pathway Secure
-    p->SetPathwaySecureRx(ui->gbPathwaySecureRx->isChecked());
-    p->SetPathwaySecureRxPassword(ui->lePathwaySecureRxPassword->text());
-    p->SetPathwaySecureTxPassword(ui->lePathwaySecureTxPassword->text());
-    p->SetPathwaySecureRxDataOnly(ui->cbPathwaySecureRxDataOnly->isChecked());
-    p->SetPathwaySecureRxSequenceTimeWindow(ui->sbPathwaySecureRxSequenceTimeWindow->value());
+    p.SetPathwaySecureRx(ui->gbPathwaySecureRx->isChecked());
+    p.SetPathwaySecureRxPassword(ui->lePathwaySecureRxPassword->text());
+    p.SetPathwaySecureTxPassword(ui->lePathwaySecureTxPassword->text());
+    p.SetPathwaySecureRxDataOnly(ui->cbPathwaySecureRxDataOnly->isChecked());
+    p.SetPathwaySecureRxSequenceTimeWindow(ui->sbPathwaySecureRxSequenceTimeWindow->value());
     if (ui->rbPathwayTxSequenceTypeTime->isChecked())
-        p->SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_time);
+        p.SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_time);
     else if (ui->rbPathwayTxSequenceTypeVolatile->isChecked())
-        p->SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_volatile);
+        p.SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_volatile);
     else
-        p->SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_nonvolatile);
+        p.SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_nonvolatile);
 
     // Save layout
-    p->SetSaveWindowLayout(ui->cbRestoreWindows->isChecked());
+    p.SetSaveWindowLayout(ui->cbRestoreWindows->isChecked());
 
     // Transmit timeout
     int seconds = ui->NumOfHoursOfSacn->value()*60*60 + ui->NumOfMinOfSacn->value()*60 + ui->NumOfSecOfSacn->value();
     if(!ui->gbTransmitTimeout->isChecked())
         seconds = 0;
-    p->SetNumSecondsOfSacn(seconds);
+    p.SetNumSecondsOfSacn(seconds);
 
     // Default source name
-    p->SetDefaultTransmitName(ui->leDefaultSourceName->text());
+    p.SetDefaultTransmitName(ui->leDefaultSourceName->text());
 
-    if (ui->cbTxRateOverride->isChecked() != p->GetTXRateOverride())
+    if (ui->cbTxRateOverride->isChecked() != p.GetTXRateOverride())
         requiresRestart = true;
-    p->SetTXRateOverride(ui->cbTxRateOverride->isChecked());
+    p.SetTXRateOverride(ui->cbTxRateOverride->isChecked());
 
     // Interfaces
     for(int i=0; i<m_interfaceButtons.count(); i++)
@@ -177,9 +177,9 @@ void PreferencesDialog::on_buttonBox_accepted()
         if(m_interfaceButtons[i]->isChecked())
         {
             QNetworkInterface interface = m_interfaceList[i];
-            if(interface.index() != p->networkInterface().index())
+            if(interface.index() != p.networkInterface().index())
             {
-                p->setNetworkInterface(m_interfaceList[i]);
+                p.setNetworkInterface(m_interfaceList[i]);
 
                 requiresRestart = true;
 
@@ -187,28 +187,28 @@ void PreferencesDialog::on_buttonBox_accepted()
             }
         }
     }
-    requiresRestart |= ui->cbListenAll->isChecked() != p->GetNetworkListenAll();
-    p->SetNetworkListenAll(ui->cbListenAll->isChecked());
+    requiresRestart |= ui->cbListenAll->isChecked() != p.GetNetworkListenAll();
+    p.SetNetworkListenAll(ui->cbListenAll->isChecked());
 
     // Theme
     Preferences::Theme theme = static_cast<Preferences::Theme>(ui->cbTheme->currentIndex());
-    if(p->GetTheme()!=theme)
+    if(p.GetTheme()!=theme)
     {
-        p->SetTheme(theme);
+        p.SetTheme(theme);
         requiresRestart = true;
     }
 
     // Language
-    if (m_translation->GetSelectedLocale() != p->GetLocale())
+    if (m_translation->GetSelectedLocale() != p.GetLocale())
     {
-        p->SetLocale(m_translation->GetSelectedLocale());
+        p.SetLocale(m_translation->GetSelectedLocale());
         requiresRestart = true;
     }
 
     // Multicast TTL
-    if(p->GetMulticastTtl() != ui->sbMulticastTtl->value())
+    if(p.GetMulticastTtl() != ui->sbMulticastTtl->value())
     {
-        p->SetMulticastTtl(ui->sbMulticastTtl->value());
+        p.SetMulticastTtl(ui->sbMulticastTtl->value());
         requiresRestart = true;
     }
 
@@ -217,7 +217,7 @@ void PreferencesDialog::on_buttonBox_accepted()
         QMessageBox::information(this, tr("Restart requied"),
                                  tr("To apply these preferences, you will need to restart the application. \nsACNView will now close and restart"),
                                  QMessageBox::Ok);
-        p->RESTART_APP = true;
+        p.RESTART_APP = true;
         qApp->quit();
     } else {
         // Force all universes to perform a full remerge

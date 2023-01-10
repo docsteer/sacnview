@@ -33,7 +33,7 @@ sACNSourceInfo::sACNSourceInfo(QString sourceName, QObject *parent): QObject(par
 
 sACNDiscoveredSourceListModel::sACNDiscoveredSourceListModel(QObject *parent) : QAbstractItemModel(parent),
     m_discoveryInstance(sACNDiscoveryRX::getInstance()),
-    m_displayDDOnlySource(Preferences::getInstance()->GetETCDisplayDDOnly())
+    m_displayDDOnlySource(Preferences::Instance().GetETCDisplayDDOnly())
 {
     connect(m_discoveryInstance, SIGNAL(newSource(QString)), this, SLOT(newSource(QString)));
     connect(m_discoveryInstance, SIGNAL(expiredSource(QString)), this, SLOT(expiredSource(QString)));

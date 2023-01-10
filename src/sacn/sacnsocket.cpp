@@ -91,7 +91,7 @@ bool sACNTxSocket::bind()
                 setSocketOption(QAbstractSocket::MulticastLoopbackOption, QVariant(0));
 #endif
 
-                setSocketOption(QAbstractSocket::MulticastTtlOption, QVariant(Preferences::getInstance()->GetMulticastTtl()));
+                setSocketOption(QAbstractSocket::MulticastTtlOption, QVariant(Preferences::Instance().GetMulticastTtl()));
 
                 setMulticastInterface(m_interface);
                 qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Bound to interface:" << multicastInterface().name();

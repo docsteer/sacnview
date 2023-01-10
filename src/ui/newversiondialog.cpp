@@ -177,7 +177,7 @@ void NewVersionDialog::on_btnIgnore_pressed()
 {
     reject();
     qDebug() << "[Version check] Requested to ignore" << m_newVersion;
-    Preferences::getInstance()->SetUpdateIgnore(m_newVersion);
+    Preferences::Instance().SetUpdateIgnore(m_newVersion);
 }
 
 VersionCheck::VersionCheck(QObject *parent):
@@ -270,7 +270,7 @@ void VersionCheck::replyFinished (QNetworkReply *reply)
                                 qDebug() << "[Version check] Remote version" << remote_version << "is newer!";
 
                                 // Has the user asked us to ingore this version?
-                                if (Preferences::getInstance()->GetUpdateIgnore() == remote_version)
+                                if (Preferences::Instance().GetUpdateIgnore() == remote_version)
                                 {
                                     qDebug() << "[Version check] Requested to ignore version" << remote_version;
                                 } else {

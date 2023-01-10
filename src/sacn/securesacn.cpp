@@ -45,13 +45,13 @@ bool PathwaySecure::RootLayer::PostAmble::GetBuffer(quint8 *inbuf, uint buflen, 
 PathwaySecure::Sequence::Sequence()
 {
     // Restore non volatile sequence numbers
-    QByteArray ba = Preferences::getInstance()->GetPathwaySecureSequenceMap();
+    QByteArray ba = Preferences::Instance().GetPathwaySecureSequenceMap();
     QDataStream ds(&ba, QIODevice::ReadOnly);
     ds >> last[type_nonvolatile];
     qDebug() << "PathwaySecure" << QThread::currentThreadId() << ": Loaded" << last[type_nonvolatile].size() << "Non-volatile sequence value(s)";
 
     // Load boot count, and increase
-    bootCount = Preferences::getInstance()->GetPathwaySecureRxSequenceBootCount() + 1;
+    bootCount = Preferences::Instance().GetPathwaySecureRxSequenceBootCount() + 1;
     qDebug() << "PathwaySecure" << QThread::currentThreadId() << ": Using boot count" << bootCount;
 }
 
@@ -61,15 +61,15 @@ PathwaySecure::Sequence::~Sequence()
     QByteArray ba;
     QDataStream ds(&ba, QIODevice::WriteOnly);
     ds << last[type_nonvolatile];
-    Preferences::getInstance()->SetPathwaySecureSequenceMap(ba);
+    Preferences::Instance().SetPathwaySecureSequenceMap(ba);
     qDebug() << "PathwaySecure" << QThread::currentThreadId() << ": Saved" << last[type_nonvolatile].size() << "Non-volatile sequence value(s)";
 
     // Save boot count
-    Preferences::getInstance()->SetPathwaySecureRxSequenceBootCount(bootCount);
+    Preferences::Instance().SetPathwaySecureRxSequenceBootCount(bootCount);
     qDebug() << "PathwaySecure" << QThread::currentThreadId() << ": Saved boot count" << bootCount;
 
     // Save to disk now
-    Preferences::getInstance()->savePreferences();
+    Preferences::Instance().savePreferences();
 }
 
 bool PathwaySecure::Sequence::validate(const CID &cid, type_t type, value_t value, bool expired)
@@ -98,7 +98,7 @@ bool PathwaySecure::Sequence::validate(const CID &cid, type_t type, value_t valu
              * from going “backward” as this may cause receivers to reject their packets.
              */
             {
-                const auto window = Preferences::getInstance()->GetPathwaySecureRxSequenceTimeWindow();
+                const auto window = Preferences::Instance().GetPathwaySecureRxSequenceTimeWindow();
                 const decltype(diff) time_diff = QDateTime::currentMSecsSinceEpoch() - value;
                 if (abs(time_diff) > window)
                     return false;
@@ -308,7 +308,7 @@ bool PathwaySecure::ApplyStreamSecurity(quint8* pbuf, uint buflen, const CID &ci
     Pack(post_amble_buf + RootLayer::PostAmble::FINGERPRINT_ADDR, RootLayer::PostAmble::FINGERPRINT_SIZE, key_fingerprint);
 
     // Sequence Type
-    const Sequence::type_t sequence_type = static_cast<Sequence::type_t>(Preferences::getInstance()->GetPathwaySecureTxSequenceType());
+    const Sequence::type_t sequence_type = static_cast<Sequence::type_t>(Preferences::Instance().GetPathwaySecureTxSequenceType());
     PackBUint8(post_amble_buf + RootLayer::PostAmble::SEQUENCE_TYPE_ADDR, sequence_type);
 
     // Sequence Value

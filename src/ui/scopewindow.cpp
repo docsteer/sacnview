@@ -72,7 +72,7 @@ ScopeWindow::ScopeWindow(int universe, QWidget *parent) :
     ui->dlTimebase->setValue(2);
 
     // Setup trigger spinbox
-    if(Preferences::getInstance()->GetDisplayFormat() == Preferences::PERCENT)
+    if(Preferences::Instance().GetDisplayFormat() == Preferences::PERCENT)
     {
         ui->sbTriggerLevel->setMinimum(0);
         ui->sbTriggerLevel->setMaximum(100);

@@ -45,7 +45,7 @@ void pcapplaybacksender::run()
         char errbuf[PCAP_ERRBUF_SIZE];
 
         // Get required interface
-        QNetworkInterface iface = Preferences::getInstance()->networkInterface();
+        QNetworkInterface iface = Preferences::Instance().networkInterface();
 
         // Find all usable interfaces
         pcap_if_t *alldevs;

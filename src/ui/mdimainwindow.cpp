@@ -59,7 +59,7 @@ void MDIMainWindow::showEvent(QShowEvent *ev)
     connect(m_model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)), this, SLOT(rowsAboutToBeRemoved(QModelIndex,int,int)));
 
     ui->sbUniverseList->setMinimum(MIN_SACN_UNIVERSE);
-    ui->sbUniverseList->setMaximum(MAX_SACN_UNIVERSE - Preferences::getInstance()->GetUniversesListed() + 1);
+    ui->sbUniverseList->setMaximum(MAX_SACN_UNIVERSE - Preferences::Instance().GetUniversesListed() + 1);
     ui->sbUniverseList->setWrapping(true);
     ui->sbUniverseList->setValue(MIN_SACN_UNIVERSE);
 
@@ -127,13 +127,13 @@ void MDIMainWindow::on_actionAbout_triggered(bool checked)
 
 void MDIMainWindow::on_btnUnivListBack_pressed()
 {
-    ui->sbUniverseList->setValue(ui->sbUniverseList->value() - Preferences::getInstance()->GetUniversesListed());
+    ui->sbUniverseList->setValue(ui->sbUniverseList->value() - Preferences::Instance().GetUniversesListed());
 }
 
 void MDIMainWindow::on_btnUnivListForward_pressed()
 {
 
-    ui->sbUniverseList->setValue(ui->sbUniverseList->value() + Preferences::getInstance()->GetUniversesListed());
+    ui->sbUniverseList->setValue(ui->sbUniverseList->value() + Preferences::Instance().GetUniversesListed());
 }
 
 void MDIMainWindow::on_sbUniverseList_valueChanged(int value)
@@ -195,10 +195,10 @@ void MDIMainWindow::showWidgetAsMdiWindow(QWidget *w)
 
 void MDIMainWindow::saveMdiWindows()
 {
-    Preferences *p = Preferences::getInstance();
-    if(p->GetSaveWindowLayout())
+    Preferences &p = Preferences::Instance();
+    if(p.GetSaveWindowLayout())
     {
-        p->SetMainWindowGeometry(saveGeometry());
+        p.SetMainWindowGeometry(saveGeometry());
 
         QList<MDIWindowInfo> result;
         QList<QMdiSubWindow *> windows = ui->mdiArea->subWindowList();
@@ -241,19 +241,19 @@ void MDIMainWindow::saveMdiWindows()
             }
         }
 
-        p->SetSavedWindows(result);
+        p.SetSavedWindows(result);
     }
 }
 
 
 void MDIMainWindow::restoreMdiWindows()
 {
-    Preferences *p = Preferences::getInstance();
-    if(p->GetSaveWindowLayout())
+    const Preferences &p = Preferences::Instance();
+    if(p.GetSaveWindowLayout())
     {
-        restoreGeometry(p->GetMainWindowGeometry());
+        restoreGeometry(p.GetMainWindowGeometry());
 
-        QList<MDIWindowInfo> windows = p->GetSavedWindows();
+        QList<MDIWindowInfo> windows = p.GetSavedWindows();
         foreach(MDIWindowInfo window, windows)
         {
             if(window.name=="Scope")
@@ -314,12 +314,12 @@ int MDIMainWindow::getSelectedUniverse()
 
 void MDIMainWindow::on_pbFewer_clicked()
 {
-    Preferences::getInstance()->SetUniversesListed(Preferences::getInstance()->GetUniversesListed() - 1);
+    Preferences::Instance().SetUniversesListed(Preferences::Instance().GetUniversesListed() - 1);
     on_sbUniverseList_valueChanged(ui->sbUniverseList->value());
 }
 
 void MDIMainWindow::on_pbMore_clicked()
 {
-   Preferences::getInstance()->SetUniversesListed(Preferences::getInstance()->GetUniversesListed() + 1);
+   Preferences::Instance().SetUniversesListed(Preferences::Instance().GetUniversesListed() + 1);
    on_sbUniverseList_valueChanged(ui->sbUniverseList->value());
 }

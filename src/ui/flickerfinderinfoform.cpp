@@ -36,7 +36,7 @@ FlickerFinderInfoForm::~FlickerFinderInfoForm()
 {
     if(ui->cbDontShowAgain->isChecked())
     {
-        Preferences::getInstance()->setFlickerFinderShowInfo(false);
+        Preferences::Instance().setFlickerFinderShowInfo(false);
     }
     delete ui;
 }

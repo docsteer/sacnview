@@ -69,7 +69,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     ui->sbFadeRangeStart->setValue(MIN_DMX_ADDRESS);
     ui->sbFadeRangeStart->setWrapping(true);
 
-    ui->leSourceName->setText(Preferences::getInstance()->GetDefaultTransmitName());
+    ui->leSourceName->setText(Preferences::Instance().GetDefaultTransmitName());
 
 
     ui->dlFadeRate->setMinimum(0);
@@ -126,7 +126,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
             label->setMinimumWidth(25);
             label->setText(QString(FADERLABELFORMAT)
                 .arg(sliderAddress + 1)
-                .arg(Preferences::getInstance()->GetFormattedValue(m_levels.at(sliderAddress))));
+                .arg(Preferences::Instance().GetFormattedValue(m_levels.at(sliderAddress))));
             QHBoxLayout *sliderLayout = new QHBoxLayout(); // This keeps the sliders horizontally centered
             sliderLayout->addWidget(slider);
             faderVb->addLayout(sliderLayout);
@@ -195,7 +195,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
 
     // Pathway secure options
     ui->gbPathwaySecurePassword->setVisible(ui->rbPathwaySecure->isChecked());
-    ui->lePathwaySecurePassword->setText(Preferences::getInstance()->GetPathwaySecureTxPassword());
+    ui->lePathwaySecurePassword->setText(Preferences::Instance().GetPathwaySecureTxPassword());
 
     setUniverseOptsEnabled(true);
 
@@ -223,7 +223,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     connect(ui->teCommandline, SIGNAL(setLevels(QSet<int>,int)), this, SLOT(setLevels(QSet<int>,int)));
 
     ui->gridControl->setMinimum(0);
-    if(Preferences::getInstance()->GetDisplayFormat()==Preferences::PERCENT)
+    if(Preferences::Instance().GetDisplayFormat()==Preferences::PERCENT)
         ui->gridControl->setMaximum(100);
     else
         ui->gridControl->setMaximum(255);
@@ -295,7 +295,7 @@ void transmitwindow::on_sliderMoved(int value)
     if (label) {
         label->setText(QString(FADERLABELFORMAT)
             .arg(address+1)
-            .arg(Preferences::getInstance()->GetFormattedValue(value)));
+            .arg(Preferences::Instance().GetFormattedValue(value)));
     }
 
     setLevel(address, value);
@@ -320,7 +320,7 @@ void transmitwindow::on_sbFadersStart_valueChanged(int address)
         if (label) {
             label->setText(QString(FADERLABELFORMAT)
                 .arg(address)
-                .arg(Preferences::getInstance()->GetFormattedValue(level)));
+                .arg(Preferences::Instance().GetFormattedValue(level)));
         }
 
         if (static_cast<size_t>(address) < m_levels.size())
@@ -421,7 +421,7 @@ void transmitwindow::on_btnStart_pressed()
 
 void transmitwindow::on_slFadeLevel_valueChanged(int value)
 {
-    ui->lblFadeLevel->setText(Preferences::getInstance()->GetFormattedValue(value));
+    ui->lblFadeLevel->setText(Preferences::Instance().GetFormattedValue(value));
 
     if(m_fxEngine)
     {
@@ -735,7 +735,7 @@ void transmitwindow::presetButtonPressed()
     if(m_recordMode)
     {
         // Record a preset
-        Preferences::getInstance()->SetPreset(QByteArray(reinterpret_cast<const char*>(m_levels.data()), static_cast<int>(m_levels.size())), index);
+        Preferences::Instance().SetPreset(QByteArray(reinterpret_cast<const char*>(m_levels.data()), static_cast<int>(m_levels.size())), index);
         m_recordMode = false;
 
         foreach(QToolButton *btn, m_presetButtons)
@@ -747,7 +747,7 @@ void transmitwindow::presetButtonPressed()
     else
     {
         // Play back a preset
-        QByteArray baPreset = Preferences::getInstance()->GetPreset(index);
+        QByteArray baPreset = Preferences::Instance().GetPreset(index);
         uint16_t address = 0;
         for (uint8_t level : qAsConst(baPreset))
             setLevel(address++, level);
@@ -838,7 +838,7 @@ void transmitwindow::setLevel(int address, int value)
 {
     m_levels[address] = value;
 
-    ui->gridControl->setCellValue(address, Preferences::getInstance()->GetFormattedValue(value));
+    ui->gridControl->setCellValue(address, Preferences::Instance().GetFormattedValue(value));
 
     if(m_sender)
         m_sender->setLevel(address, value);
@@ -859,7 +859,7 @@ void transmitwindow::setLevelList(QList<QPair<int, int>> levelList)
     // Levels are in localized format, need to convert
     for(auto i: levelList)
     {
-        if(Preferences::getInstance()->GetDisplayFormat()==Preferences::PERCENT)
+        if(Preferences::Instance().GetDisplayFormat()==Preferences::PERCENT)
             setLevel(i.first, PTOHT[i.second]);
         else
             setLevel(i.first, i.second);

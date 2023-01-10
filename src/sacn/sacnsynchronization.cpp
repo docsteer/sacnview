@@ -13,7 +13,7 @@ sACNSynchronizationTX::sACNSynchronizationTX(CID cid, tsyncAddress syncAddress) 
     createSynchronizationPacket();
 
     // Socket
-    m_sendSock = new sACNTxSocket(Preferences::getInstance()->networkInterface(), this);
+    m_sendSock = new sACNTxSocket(Preferences::Instance().networkInterface(), this);
     m_sendSock->bind();
 }
 
