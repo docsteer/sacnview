@@ -22,8 +22,15 @@
 #include "consts.h"
 #include <QRandomGenerator>
 
-// The base color to generate pastel shades for sources
-static const QColor mixColor = QColor("coral");
+#if (defined(_WIN32) || defined(WIN32))
+// On Windows, use the Qt zlib
+#include <QtZlib/zlib.h>
+#else
+// Otherwise use the system zlib
+#include <zlib.h>
+#endif
+
+#include <cmath>
 
 Preferences *Preferences::m_instance = Q_NULLPTR;
 
@@ -88,18 +95,26 @@ bool Preferences::GetNetworkListenAll() const
 
 QColor Preferences::colorForCID(const CID &cid)
 {
-    if(m_cidToColor.contains(cid))
-        return m_cidToColor[cid];
+    const auto existing = m_cidToColor.find(cid);
+    if (existing != m_cidToColor.end())
+        return existing.value();
 
-    int red = QRandomGenerator::global()->bounded(255);
-    int green = QRandomGenerator::global()->bounded(255);
-    int blue = QRandomGenerator::global()->bounded(255);
+    // Use the zlib crc32 implementation to get a consistent checksum for a given CID
+    quint8 cid_buf[CID::CIDBYTES] = {};
+    cid.Pack(cid_buf);
+    quint32 id = crc32( crc32(0L, Z_NULL, 0), (const Bytef*)cid_buf, CID::CIDBYTES);
 
-    red = (red + mixColor.red()) / 2;
-    green = (green + mixColor.green()) / 2;
-    blue = (blue + mixColor.blue()) / 2;
+    // Create a reasonable spread of different colors
+    constexpr double golden_ratio = 0.618033988749895;
+    double hue = golden_ratio * id;
+    hue = std::fmod(hue, 1.0);
+    double saturation = golden_ratio * id * 2;
+    saturation = std::fmod(saturation, 0.25);
+    saturation += 0.75; // High saturation
 
-    QColor newColor = QColor::fromRgb(red, green, blue);
+    // Choose lightness based on theme
+    const double lightness = GetTheme() == THEME_DARK ? 0.25 : 0.5;
+    QColor newColor = QColor::fromHslF(hue, saturation, lightness);
     m_cidToColor[cid] = newColor;
     return newColor;
 }
