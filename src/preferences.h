@@ -23,6 +23,7 @@
 #include <QLocale>
 #include "CID.h"
 #include "consts.h"
+#include <array>
 
 // Strings for storing settings
 static const QString S_INTERFACE_ADDRESS("MacAddress");
@@ -187,34 +188,44 @@ public slots:
 private:
     Preferences();
     QNetworkInterface m_interface;
-    bool m_interfaceListenAll;
     QHash<CID, QColor> m_cidToColor;
 
-    unsigned int m_nDisplayFormat;
-    bool m_bBlindVisualizer;
-    bool m_bETCDisplayDDOnly;
-    bool m_bETCDD;
     QString m_sDefaultTransmitName;
-    unsigned int m_nNumSecondsOfSacn;
-    bool m_flickerFinderShowInfo;
-    QByteArray m_presets[PRESET_COUNT];
-    bool m_saveWindowLayout;
     QByteArray m_mainWindowGeometry;
     QList<MDIWindowInfo> m_windowInfo;
+
+    unsigned int m_nDisplayFormat;
+    unsigned int m_nNumSecondsOfSacn;
+
+    std::array<QByteArray, PRESET_COUNT> m_presets;
+    std::array<QByteArray, PRIORITYPRESET_COUNT> m_priorityPresets;
+
     Theme m_theme;
-    bool m_txrateoverride;
+
     QLocale m_locale;
     quint8 m_universesListed;
-    QByteArray m_priorityPresets[PRIORITYPRESET_COUNT];
+
     quint8 m_multicastTtl;
-    bool m_pathwaySecureRx;
+
     QString m_pathwaySecureRxPassword;
     QString m_pathwaySecureTxPassword;
-    bool m_pathwaySecureRxDataOnly;
+
+    QByteArray m_pathwaySecureSequenceMap;
     quint8 m_pathwaySecureTxSequenceType;
     quint32 m_pathwaySecureTxSequenceBootCount;
     quint32 m_pathwaySecureRxSequenceTimeWindow;
-    QByteArray m_pathwaySecureSequenceMap;
+
+    bool m_interfaceListenAll;
+    bool m_flickerFinderShowInfo;
+    bool m_bBlindVisualizer;
+    bool m_bETCDisplayDDOnly;
+    bool m_bETCDD;
+    bool m_txrateoverride;
+
+    bool m_pathwaySecureRx;
+    bool m_pathwaySecureRxDataOnly;
+
+    bool m_saveWindowLayout;
 
     void loadPreferences();
 };
