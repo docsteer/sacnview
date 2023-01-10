@@ -22,6 +22,39 @@
 #include "consts.h"
 #include <QRandomGenerator>
 
+// Strings for storing settings
+static const QString S_INTERFACE_ADDRESS = QStringLiteral("MacAddress");
+static const QString S_INTERFACE_NAME = QStringLiteral("InterfaceName");
+static const QString S_DISPLAY_FORMAT = QStringLiteral("Display Format");
+static const QString S_BLIND_VISUALIZER = QStringLiteral("Show Blind");
+static const QString S_ETC_DDONLY = QStringLiteral("Show ETC DD Only");
+static const QString S_ETC_DD = QStringLiteral("Enable ETC DD");
+static const QString S_DEFAULT_SOURCENAME = QStringLiteral("Default Transmit Source Name");
+static const QString S_TIMEOUT = QStringLiteral("Timeout");
+static const QString S_FLICKERFINDERSHOWINFO = QStringLiteral("Flicker Finder Info");
+static const QString S_SAVEWINDOWLAYOUT = QStringLiteral("Save Window Layout");
+static const QString S_PRESETS = QStringLiteral("Preset %1");
+static const QString S_MAINWINDOWGEOM = QStringLiteral("Main Window Geometry");
+static const QString S_SUBWINDOWLIST = QStringLiteral("Sub Window");
+static const QString S_SUBWINDOWNAME = QStringLiteral("SubWindow Name");
+static const QString S_SUBWINDOWGEOM = QStringLiteral("SubWindow Geometry");
+static const QString S_LISTEN_ALL = QStringLiteral("Listen All");
+static const QString S_THEME = QStringLiteral("Theme");
+static const QString S_TX_RATE_OVERRIDE = QStringLiteral("TX Rate Override");
+static const QString S_LOCALE = QStringLiteral("LOCALE");
+static const QString S_UNIVERSESLISTED = QStringLiteral("Universe List Count");
+static const QString S_PRIORITYPRESET = QStringLiteral("PriorityPreset %1");
+static const QString S_MULTICASTTTL = QStringLiteral("Multicast TTL");
+static const QString S_PATHWAYSECURE_RX = QStringLiteral("Enable Pathway Secure Rx");
+static const QString S_PATHWAYSECURE_RX_PASSWORD = QStringLiteral("Pathway Secure Rx Password");
+static const QString S_PATHWAYSECURE_TX_PASSWORD = QStringLiteral("Pathway Secure Tx Password");
+static const QString S_PATHWAYSECURE_RX_DATA_ONLY = QStringLiteral("Show Pathway Secure RX Data Only");
+static const QString S_PATHWAYSECURE_RX_SEQUENCE_TIME_WINDOW = QStringLiteral("Pathway Secure Data RX Sequence Time Window");
+static const QString S_PATHWAYSECURE_TX_SEQUENCE_TYPE = QStringLiteral("Pathway Secure Data TX Sequence Type");
+static const QString S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT = QStringLiteral("Pathway Secure Data TX Sequence Boot Count");
+static const QString S_PATHWAYSECURE_SEQUENCE_MAP = QStringLiteral("Pathway Secure Data Sequence Map");
+static const QString S_UPDATE_IGNORE = QStringLiteral("Ignore Update Version");
+
 // The base color to generate pastel shades for sources
 static const QColor mixColor = QColor("coral");
 
