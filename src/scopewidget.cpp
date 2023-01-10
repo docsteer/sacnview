@@ -1,4 +1,4 @@
-// Copyright 2016 Tom Barthel-Steer
+// Copyright 2016 Tom Steer
 // http://www.tomsteer.net
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@
 #include <QPainter>
 #include <QPointF>
 #include <QDebug>
+#include <QPainterPath>
 #include "sacn/sacnlistener.h"
 
 #define AXIS_WIDTH 50

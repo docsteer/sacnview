@@ -1,4 +1,4 @@
-## Copyright 2016 Tom Barthel-Steer
+## Copyright 2016 Tom Steer
 ## http://www.tomsteer.net
 ##
 ## Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,11 +80,14 @@ include(libs.pri)
 
 ## Project includes
 
-INCLUDEPATH += src src/sacn src/sacn/ACNShare
+INCLUDEPATH += src \
+    src/sacn src/sacn/ACNShare \
+    src/widgets
 
 ## Sources
 
 SOURCES += src/main.cpp\
+    src/widgets/monitorspinbox.cpp \
     src/mdimainwindow.cpp \
     src/scopewindow.cpp \
     src/universeview.cpp \
@@ -126,6 +129,7 @@ SOURCES += src/main.cpp\
     src/grideditwidget.cpp
 
 HEADERS += src/mdimainwindow.h \
+    src/widgets/monitorspinbox.h \
     src/scopewindow.h \
     src/universeview.h \
     src/sacn/ACNShare/CID.h \

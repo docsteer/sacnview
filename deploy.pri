@@ -33,8 +33,8 @@ win32 {
         }
     }
 
-    DEPLOY_COMMAND = windeployqt
-    DEPLOY_OPT = --dir $${DEPLOY_DIR}
+    DEPLOY_COMMAND = $$shell_quote($$system_path($$(Qt5_DIR)/bin/windeployqt))
+    DEPLOY_OPT = --no-angle --no-opengl-sw --dir $${DEPLOY_DIR}
 
     DEPLOY_INSTALLER = makensis /DPRODUCT_VERSION="$${PRODUCT_VERSION}" /DTARGET_WINXP="$${TARGET_WINXP}" $$shell_quote($$system_path($${_PRO_FILE_PWD_}/install/win/install.nsi))
 }
@@ -46,11 +46,13 @@ macx {
 
     DEPLOY_COMMAND = macdeployqt
 
-    DEPLOY_CLEANUP = codesign --force --deep --verify --verbose --sign \"Thomas Steer\" $${DEPLOY_TARGET} $$escape_expand(\\n\\t)
+    # Skip while working on github runner
+    # DEPLOY_CLEANUP = codesign --force --deep --verify --verbose --sign \"Thomas Steer\" $${DEPLOY_TARGET} $$escape_expand(\\n\\t)
     DEPLOY_CLEANUP += $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/sACNView*.dmg
 
-    DEPLOY_INSTALLER = $${_PRO_FILE_PWD_}/install/mac/create-dmg --volname "sACNView_Installer" --volicon "$${_PRO_FILE_PWD_}/res/icon.icns"
-    DEPLOY_INSTALLER += --background "$${_PRO_FILE_PWD_}/res/mac_install_bg.png" --window-pos 200 120 --window-size 800 400 --icon-size 100 --icon $${TARGET}$${TARGET_CUSTOM_EXT} 200 190 --hide-extension $${TARGET}$${TARGET_CUSTOM_EXT} --app-drop-link 600 185
+    DEPLOY_INSTALLER = create-dmg --volname "sACNView_Installer" --volicon "$${_PRO_FILE_PWD_}/res/icon.icns"
+    DEPLOY_INSTALLER += --background "$${_PRO_FILE_PWD_}/res/mac_install_bg.png" --window-pos 200 120 --window-size 800 400 --icon-size 100
+    DEPLOY_INSTALLER += --icon $${TARGET}$${TARGET_CUSTOM_EXT} 200 190 --hide-extension $${TARGET}$${TARGET_CUSTOM_EXT} --app-drop-link 600 185 --skip-jenkins
     DEPLOY_INSTALLER += $${DEPLOY_DIR}/sACNView_$${VERSION}.dmg $${OUT_PWD}/$${TARGET}$${TARGET_CUSTOM_EXT}
 }
 linux {

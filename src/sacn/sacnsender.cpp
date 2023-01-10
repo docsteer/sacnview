@@ -1,4 +1,4 @@
- // Copyright 2016 Tom Barthel-Steer
+ // Copyright 2016 Tom Steer
 // http://www.tomsteer.net
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -142,7 +142,9 @@ void sACNSentUniverse::setLevelRange(quint16 start, quint16 end, quint8 value)
 {
     Q_ASSERT(start<DMX_SLOT_MAX);
     Q_ASSERT(end<DMX_SLOT_MAX);
-    Q_ASSERT(start<=end);
+
+    if (start > end)
+        std::swap(start, end);
     if (start>=m_slotCount || end>=m_slotCount)
         return;
     if(isSending())

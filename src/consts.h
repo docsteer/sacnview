@@ -1,4 +1,4 @@
-// Copyright 2016 Tom Barthel-Steer
+// Copyright 2016 Tom Steer
 // http://www.tomsteer.net
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@
 #include <QColor>
 
 #define APP_NAME        "sACNView"
-#define AUTHOR          "Tom Barthel-Steer\r\nMarcus Birkin\r\nHans Hinrichsen\r\nMatt Kerr"
+#define AUTHOR          "Tom Steer\r\nMarcus Birkin\r\nHans Hinrichsen\r\nMatt Kerr"
 
 // If this is a full release, only show the newer version message for other full releases
 // If this is prerelease, show all newer versions

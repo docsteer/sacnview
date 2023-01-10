@@ -1,4 +1,4 @@
-﻿// Copyright 2016 Tom Barthel-Steer
+// Copyright 2016 Tom Steer
 // http://www.tomsteer.net
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -109,8 +109,27 @@ void sACNEffectEngine::clear()
                 Q_ARG(quint8, 0));
 }
 
+void sACNEffectEngine::clearUnused()
+{
+    quint16 start = std::max(std::min(m_start, m_end), static_cast<quint16>(MIN_DMX_ADDRESS - 1));
+    quint16 end = std::min(std::max(m_start, m_end), static_cast<quint16>(MAX_DMX_ADDRESS - 1));
+
+    if (start > static_cast<quint16>(MIN_DMX_ADDRESS - 1))
+        QMetaObject::invokeMethod(m_sender, "setLevelRange",
+                                  Q_ARG(quint16, MIN_DMX_ADDRESS - 1),
+                                  Q_ARG(quint16, start - 1),
+                                  Q_ARG(quint8, 0));
+
+    if (end < static_cast<quint16>(MAX_DMX_ADDRESS - 1))
+        QMetaObject::invokeMethod(m_sender, "setLevelRange",
+                                  Q_ARG(quint16, end + 1),
+                                  Q_ARG(quint16, MAX_DMX_ADDRESS - 1),
+                                  Q_ARG(quint8, 0));
+}
+
 void sACNEffectEngine::setStartAddress(quint16 start)
 {
+
     // Make this method thread-safe
     if(QThread::currentThread()!=this->thread())
         QMetaObject::invokeMethod(
@@ -118,19 +137,10 @@ void sACNEffectEngine::setStartAddress(quint16 start)
     else
     {
         // Limit to sender slot count
-        start = std::min(start, m_sender->slotCount());
+        m_start = std::min(start, m_sender->slotCount());
 
         // Set unused values to 0
-        if(start > m_start)
-        {
-            QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, 0),
-                                      Q_ARG(quint16, start),
-                                      Q_ARG(quint8, 0));
-        }
-        m_start = start;
-        if(m_start > m_end)
-            std::swap(m_start, m_end);
-        qDebug() << "Start " << m_start << " End " << m_end;
+        clearUnused();
     }
 }
 
@@ -143,19 +153,10 @@ void sACNEffectEngine::setEndAddress(quint16 end)
     else
     {
         // Limit to sender slot count
-        end = std::min(end, m_sender->slotCount());
+        m_end = std::min(end, m_sender->slotCount());
 
         // Set unused values to 0
-        if(end < m_end)
-        {
-            QMetaObject::invokeMethod(m_sender, "setLevelRange", Q_ARG(quint16, end),
-                                      Q_ARG(quint16, m_sender->slotCount()-1),
-                                      Q_ARG(quint8, 0));
-        }
-        m_end = end;
-        if(m_end < m_start)
-            std::swap(m_start, m_end);
-        qDebug() << "Start " << m_start << " End " << m_end;
+        clearUnused();
     }
 }
 
@@ -360,7 +361,7 @@ void sACNEffectEngine::timerTick()
         break;
 
     case FxChaseSine:
-        if(m_index > sizeof(sinetable))
+        if(m_index >= sizeof(sinetable))
         {
             m_index = 0;
             if (++m_index_chase > m_end )

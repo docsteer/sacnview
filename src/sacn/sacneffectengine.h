@@ -1,4 +1,4 @@
-// Copyright 2016 Tom Barthel-Steer
+// Copyright 2016 Tom Steer
 // http://www.tomsteer.net
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,6 +77,7 @@ public slots:
     void run();
     void pause();
     void clear();
+    void clearUnused();
 
     void setStartAddress(quint16 start);
     void setEndAddress(quint16 end);

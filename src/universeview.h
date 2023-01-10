@@ -1,4 +1,4 @@
-// Copyright 2016 Tom Barthel-Steer
+// Copyright 2016 Tom Steer
 // http://www.tomsteer.net
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,7 +78,8 @@ private:
 
     Ui::UniverseView *ui;
     QHash<sACNSource *, int> m_sourceToTableRow;
-    int m_selectedAddress;
+    static const int NO_SELECTED_ADDRESS = -1;
+    int m_selectedAddress = NO_SELECTED_ADDRESS;
     sACNManager::tListener m_listener;
     QWidget *m_parentWindow;
     bool m_displayDDOnlySource;
