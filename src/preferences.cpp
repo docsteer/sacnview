@@ -28,10 +28,10 @@ static const QColor mixColor = QColor("coral");
 Preferences::Preferences()
 {
     RESTART_APP = false;
-    for(int i=0; i<PRESET_COUNT; i++)
-        m_presets[i] = QByteArray(MAX_DMX_ADDRESS, char(0));
-    for(int i=0; i<PRIORITYPRESET_COUNT; i++)
-        m_priorityPresets[i] = QByteArray(MAX_DMX_ADDRESS, char(100+i));
+    for (QByteArray &preset : m_presets)
+        preset = QByteArray(MAX_DMX_ADDRESS, char(0));
+    for (size_t i = 0; i < m_priorityPresets.size(); ++i)
+        m_priorityPresets[i] = QByteArray(MAX_DMX_ADDRESS, char(100 + i));
     loadPreferences();
 }
 
@@ -50,7 +50,8 @@ QNetworkInterface Preferences::networkInterface() const
 {
     if (!m_interface.isValid())
     {
-        for (QNetworkInterface interface : QNetworkInterface::allInterfaces())
+        const auto allInts = QNetworkInterface::allInterfaces();
+        for (const QNetworkInterface &interface : allInts)
         {
             if (interface.flags().testFlag(QNetworkInterface::IsLoopBack))
                 return interface;
@@ -465,20 +466,17 @@ void Preferences::loadPreferences()
     }
     settings.endArray();
 
-    for(int i=0; i<PRESET_COUNT; i++)
-    {
-        if(settings.contains(S_PRESETS.arg(i)))
-        {
-            m_presets[i] = settings.value(S_PRESETS.arg(i)).toByteArray();
+    for (int i = 0; i < PRESET_COUNT; i++) {
+        if (settings.contains(S_PRESETS.arg(i))) {
+            // Never change the size
+            m_presets[i].replace(0, MAX_DMX_ADDRESS, settings.value(S_PRESETS.arg(i)).toByteArray());
         }
     }
 
-
-    for(int i=0; i<PRIORITYPRESET_COUNT; i++)
-    {
-        if(settings.contains(S_PRIORITYPRESET.arg(i)))
-        {
-            m_priorityPresets[i] = settings.value(S_PRIORITYPRESET.arg(i)).toByteArray();
+    for (int i = 0; i < PRIORITYPRESET_COUNT; i++) {
+        if (settings.contains(S_PRIORITYPRESET.arg(i))) {
+            // Never change the size
+            m_priorityPresets[i].replace(0,MAX_DMX_ADDRESS, settings.value(S_PRIORITYPRESET.arg(i)).toByteArray());
         }
     }
 }
