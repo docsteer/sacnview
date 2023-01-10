@@ -176,7 +176,7 @@ background-color:grey;
                </sizepolicy>
               </property>
               <property name="text">
-               <string>...</string>
+               <string notr="true">...</string>
               </property>
               <property name="icon">
                <iconset resource="../res/resources.qrc">
@@ -212,7 +212,7 @@ background-color:grey;
                </sizepolicy>
               </property>
               <property name="text">
-               <string>...</string>
+               <string notr="true">...</string>
               </property>
               <property name="icon">
                <iconset resource="../res/resources.qrc">

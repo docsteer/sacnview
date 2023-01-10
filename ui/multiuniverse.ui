@@ -82,7 +82,7 @@
      <item>
       <widget class="QToolButton" name="btnAddRow">
        <property name="text">
-        <string>...</string>
+        <string notr="true">...</string>
        </property>
        <property name="icon">
         <iconset resource="../res/resources.qrc">
@@ -93,7 +93,7 @@
      <item>
       <widget class="QToolButton" name="btnRemoveRow">
        <property name="text">
-        <string>...</string>
+        <string notr="true">...</string>
        </property>
        <property name="icon">
         <iconset resource="../res/resources.qrc">
@@ -104,7 +104,7 @@
      <item>
       <widget class="QToolButton" name="btnAddMulti">
        <property name="text">
-        <string/>
+        <string notr="true"/>
        </property>
        <property name="icon">
         <iconset resource="../res/resources.qrc">

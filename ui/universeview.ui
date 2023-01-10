@@ -91,7 +91,7 @@
               <string>Start reception of sACN</string>
              </property>
              <property name="text">
-              <string>...</string>
+              <string notr="true">...</string>
              </property>
              <property name="icon">
               <iconset resource="../res/resources.qrc">
@@ -105,7 +105,7 @@
               <string>Pause reception of sACN</string>
              </property>
              <property name="text">
-              <string>...</string>
+              <string notr="true">...</string>
              </property>
              <property name="icon">
               <iconset resource="../res/resources.qrc">
