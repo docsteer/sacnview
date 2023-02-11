@@ -214,7 +214,7 @@ void PreferencesDialog::on_buttonBox_accepted()
 
     // Restart to apply?
     if (requiresRestart) {
-        QMessageBox::information(this, tr("Restart requied"),
+        QMessageBox::information(this, tr("Restart required"),
                                  tr("To apply these preferences, you will need to restart the application. \nsACNView will now close and restart"),
                                  QMessageBox::Ok);
         p->RESTART_APP = true;

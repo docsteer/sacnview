@@ -979,7 +979,7 @@ pcap_setfilter falló</translation>
     </message>
     <message>
         <location filename="../src/ui/preferencesdialog.cpp" line="217"/>
-        <source>Restart requied</source>
+        <source>Restart required</source>
         <translation>Reinicio requerido</translation>
     </message>
     <message>
