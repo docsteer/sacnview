@@ -975,7 +975,7 @@ pcap_setfilter failed</source>
     </message>
     <message>
         <location filename="../src/ui/preferencesdialog.cpp" line="217"/>
-        <source>Restart requied</source>
+        <source>Restart required</source>
         <translation>Neustart erforderlich</translation>
     </message>
     <message>
