@@ -23,6 +23,7 @@
 #include <QLocale>
 #include "CID.h"
 #include "consts.h"
+#include "themes.h"
 
 // Strings for storing settings
 static const QString S_INTERFACE_ADDRESS("MacAddress");
@@ -75,18 +76,6 @@ public:
             TOTAL_NUM_OF_FORMATS = 3
         };
 
-    enum Theme {
-        THEME_LIGHT,
-        THEME_DARK,
-        TOTAL_NUM_OF_THEMES
-    };
-    static const QStringList ThemeDescriptions() {
-        QStringList ret;
-        ret << QObject::tr("Light Theme");
-        ret << QObject::tr("Dark Theme");
-        return ret;
-    }
-
 
     /**
      * @brief getInstance - returns the instance of the Preferences class
@@ -131,7 +120,7 @@ public:
     void SetMainWindowGeometry(const QByteArray &value);
     void SetSavedWindows(const QList<MDIWindowInfo> &values);
     void SetNetworkListenAll(const bool &value);
-    void SetTheme(const Theme &theme);
+    void SetTheme(Themes::theme_e theme);
     void SetTXRateOverride(bool override) { m_txrateoverride = override; }
     void SetLocale(const QLocale &locale);
     void SetUniversesListed(quint8 count) { m_universesListed = (std::max)(count, (quint8)1); }
@@ -160,7 +149,7 @@ public:
     QByteArray GetMainWindowGeometry() const;
     QList<MDIWindowInfo> GetSavedWindows() const;
     bool GetNetworkListenAll() const;
-    Theme GetTheme() const;
+    Themes::theme_e GetTheme() const;
     bool GetTXRateOverride() const { return m_txrateoverride; }
     QLocale GetLocale() const;
     quint8 GetUniversesListed() const { return m_universesListed; }
@@ -201,7 +190,7 @@ private:
     bool m_saveWindowLayout;
     QByteArray m_mainWindowGeometry;
     QList<MDIWindowInfo> m_windowInfo;
-    Theme m_theme;
+    Themes::theme_e m_theme;
     bool m_txrateoverride;
     QLocale m_locale;
     quint8 m_universesListed;

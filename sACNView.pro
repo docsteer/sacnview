@@ -121,7 +121,6 @@ SOURCES += src/main.cpp\
     src/firewallcheck.cpp \
     src/ui/bigdisplay.cpp \
     src/ui/addmultidialog.cpp \
-    src/theme/darkstyle.cpp \
     src/ipc.cpp \
     src/sacn/sacndiscovery.cpp \
     src/models/sacndiscoveredsourcelistmodel.cpp \
@@ -170,7 +169,6 @@ HEADERS += src/ui/mdimainwindow.h \
     src/firewallcheck.h \
     src/ui/bigdisplay.h \
     src/ui/addmultidialog.h \
-    src/theme/darkstyle.h \
     src/sacn/e1_11.h \
     src/ipc.h \
     src/sacn/sacndiscovery.h \
@@ -195,11 +193,12 @@ FORMS += ui/mdimainwindow.ui \
     ui/newversiondialog.ui \
     ui/addmultidialog.ui
 
-RESOURCES += \
-    res/resources.qrc \
-    src/theme/darkstyle.qrc
+RESOURCES += res/resources.qrc
 
 RC_FILE = res/sacnview.rc
+
+## Themes
+include(themes.pri)
 
 ## Deploy
 include(deploy.pri)
