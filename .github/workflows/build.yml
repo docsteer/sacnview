@@ -21,9 +21,9 @@ jobs:
       fail-fast: false
       matrix:
         # https://github.com/actions/virtual-environments#available-environments
-        os: [ubuntu-18.04, windows-latest, macos-latest]
+        os: [ubuntu-20.04, windows-latest, macos-latest]
         include:
-          - os: ubuntu-18.04 # Oldest LTS for appimage support
+          - os: ubuntu-20.04 # Oldest LTS for appimage support
             qt: '5.15.2' # Oldest LTS for appimage support 
             qt_modules: ''
             dependencies: |
