@@ -26,11 +26,11 @@
 #include <QStatusBar>
 #include <QStyleFactory>
 #include <QStandardPaths>
+#include "themes.h"
 #include "sacnsender.h"
 #include "newversiondialog.h"
 #include "firewallcheck.h"
 #include "ipc.h"
-#include "theme/darkstyle.h"
 #include "translations/translationdialog.h"
 #ifdef USE_BREAKPAD
     #include "crash_handler.h"
@@ -56,6 +56,9 @@ int main(int argc, char *argv[])
         crashwindow->show();
     }
 #endif
+
+    // Setup theme
+    Themes::apply(Preferences::getInstance()->GetTheme());
 
     // Setup Language
     {
@@ -95,20 +98,6 @@ int main(int argc, char *argv[])
 
         newInterface = true;
     }
-
-    // Setup theme
-    switch (Preferences::getInstance()->GetTheme()) {
-        case Preferences::THEME_DARK:
-            QApplication::setStyle(new DarkStyle);
-            break;
-
-        case Preferences::THEME_LIGHT:
-        default:
-            QApplication::setStyle(QStyleFactory::create("Fusion"));
-            break;
-    }
-    QApplication::setPalette(QApplication::style()->standardPalette());
-
 
     // Changed to heap rather than stack,
     // so that we can destroy before cleaning up the singletons

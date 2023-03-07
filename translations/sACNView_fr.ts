@@ -993,22 +993,22 @@ sACN va se fermer et redémarrer maintenant</translation>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../src/main.cpp" line="135"/>
+        <location filename="../src/main.cpp" line="124"/>
         <source>WORKING OFFLINE</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="140"/>
+        <location filename="../src/main.cpp" line="129"/>
         <source>Selected interface: %1 (%2)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="156"/>
+        <location filename="../src/main.cpp" line="145"/>
         <source>Incoming connections to this application are blocked by the firewall</source>
         <translation>Connexions entrantes à cette application sont bloquées par le pare-feu</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="160"/>
+        <location filename="../src/main.cpp" line="149"/>
         <source>Incoming connections to this application are restricted by the firewall</source>
         <translation>Connexions entrantes à cette application sont limitées par le pare-feu</translation>
     </message>
@@ -1118,12 +1118,12 @@ sACN va se fermer et redémarrer maintenant</translation>
         <translation>Date</translation>
     </message>
     <message>
-        <location filename="../src/preferences.h" line="85"/>
+        <location filename="../themes/themes.h" line="18"/>
         <source>Light Theme</source>
         <translation>Thème lumière</translation>
     </message>
     <message>
-        <location filename="../src/preferences.h" line="86"/>
+        <location filename="../themes/themes.h" line="19"/>
         <source>Dark Theme</source>
         <translation>Thème sombre</translation>
     </message>

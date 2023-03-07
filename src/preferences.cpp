@@ -113,7 +113,7 @@ QColor Preferences::colorForCID(const CID &cid)
     saturation += 0.75; // High saturation
 
     // Choose lightness based on theme
-    const double lightness = GetTheme() == THEME_DARK ? 0.25 : 0.5;
+    const double lightness = GetTheme() == Themes::DARK ? 0.25 : 0.5;
     QColor newColor = QColor::fromHslF(hue, saturation, lightness);
     m_cidToColor[cid] = newColor;
     return newColor;
@@ -272,12 +272,12 @@ bool Preferences::interfaceSuitable(const QNetworkInterface &iface) const
     return false;
 }
 
-void Preferences::SetTheme(const Theme &theme)
+void Preferences::SetTheme(Themes::theme_e theme)
 {
     m_theme = theme;
 }
 
-Preferences::Theme Preferences::GetTheme() const
+Themes::theme_e Preferences::GetTheme() const
 {
     return m_theme;
 }
@@ -460,7 +460,7 @@ void Preferences::loadPreferences()
     m_flickerFinderShowInfo = settings.value(S_FLICKERFINDERSHOWINFO, QVariant(true)).toBool();
     m_saveWindowLayout = settings.value(S_SAVEWINDOWLAYOUT, QVariant(false)).toBool();
     m_mainWindowGeometry = settings.value(S_MAINWINDOWGEOM, QVariant(QByteArray())).toByteArray();
-    m_theme = (Theme) settings.value(S_THEME, QVariant((int)THEME_LIGHT)).toInt();
+    m_theme = static_cast<Themes::theme_e>(settings.value(S_THEME, QVariant(static_cast<int>(Themes::LIGHT))).toInt());
     m_txrateoverride = settings.value(S_TX_RATE_OVERRIDE, QVariant(false)).toBool();
     m_locale = settings.value(S_LOCALE, QLocale::system()).toLocale();
     m_universesListed = settings.value(S_UNIVERSESLISTED, QVariant(20)).toUInt();

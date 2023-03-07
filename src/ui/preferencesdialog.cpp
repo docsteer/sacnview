@@ -106,7 +106,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui->cbTxRateOverride->setChecked(Preferences::getInstance()->GetTXRateOverride());
 
     ui->cbTheme->clear();
-    ui->cbTheme->addItems(Preferences::ThemeDescriptions());
+    ui->cbTheme->addItems(Themes::getDescriptions());
     ui->cbTheme->setCurrentIndex(static_cast<int>(Preferences::getInstance()->GetTheme()));
 
     ui->sbMulticastTtl->setValue(Preferences::getInstance()->GetMulticastTtl());
@@ -191,7 +191,7 @@ void PreferencesDialog::on_buttonBox_accepted()
     p->SetNetworkListenAll(ui->cbListenAll->isChecked());
 
     // Theme
-    Preferences::Theme theme = static_cast<Preferences::Theme>(ui->cbTheme->currentIndex());
+    Themes::theme_e theme = static_cast<Themes::theme_e>(ui->cbTheme->currentIndex());
     if(p->GetTheme()!=theme)
     {
         p->SetTheme(theme);
