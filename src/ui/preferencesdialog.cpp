@@ -106,7 +106,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui->cbTxRateOverride->setChecked(Preferences::Instance().GetTXRateOverride());
 
     ui->cbTheme->clear();
-    ui->cbTheme->addItems(Preferences::ThemeDescriptions());
+    ui->cbTheme->addItems(Themes::getDescriptions());
     ui->cbTheme->setCurrentIndex(static_cast<int>(Preferences::Instance().GetTheme()));
 
     ui->sbMulticastTtl->setValue(Preferences::Instance().GetMulticastTtl());
@@ -191,7 +191,7 @@ void PreferencesDialog::on_buttonBox_accepted()
     p.SetNetworkListenAll(ui->cbListenAll->isChecked());
 
     // Theme
-    Preferences::Theme theme = static_cast<Preferences::Theme>(ui->cbTheme->currentIndex());
+    Preferences::Theme theme = static_cast<Themes::theme_e>(ui->cbTheme->currentIndex());
     if(p.GetTheme()!=theme)
     {
         p.SetTheme(theme);
@@ -214,7 +214,7 @@ void PreferencesDialog::on_buttonBox_accepted()
 
     // Restart to apply?
     if (requiresRestart) {
-        QMessageBox::information(this, tr("Restart requied"),
+        QMessageBox::information(this, tr("Restart required"),
                                  tr("To apply these preferences, you will need to restart the application. \nsACNView will now close and restart"),
                                  QMessageBox::Ok);
         p.RESTART_APP = true;

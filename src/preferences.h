@@ -23,6 +23,7 @@
 #include <QLocale>
 #include "CID.h"
 #include "consts.h"
+#include "themes.h"
 #include <array>
 
 struct MDIWindowInfo
@@ -42,19 +43,7 @@ public:
             HEXADECIMAL = 2,
             TOTAL_NUM_OF_FORMATS = 3
         };
-
-    enum Theme {
-        THEME_LIGHT,
-        THEME_DARK,
-        TOTAL_NUM_OF_THEMES
-    };
-    static const QStringList ThemeDescriptions() {
-        QStringList ret;
-        ret << QObject::tr("Light Theme");
-        ret << QObject::tr("Dark Theme");
-        return ret;
-    }
-
+        
 public:
     ~Preferences();
 
@@ -101,7 +90,7 @@ public:
     void SetMainWindowGeometry(const QByteArray &value);
     void SetSavedWindows(const QList<MDIWindowInfo> &values);
     void SetNetworkListenAll(const bool &value);
-    void SetTheme(const Theme &theme);
+    void SetTheme(Themes::theme_e theme);
     void SetTXRateOverride(bool override) { m_txrateoverride = override; }
     void SetLocale(const QLocale &locale);
     void SetUniversesListed(quint8 count) { m_universesListed = (std::max)(count, (quint8)1); }
@@ -130,7 +119,7 @@ public:
     QByteArray GetMainWindowGeometry() const;
     QList<MDIWindowInfo> GetSavedWindows() const;
     bool GetNetworkListenAll() const;
-    Theme GetTheme() const;
+    Themes::theme_e GetTheme() const;
     bool GetTXRateOverride() const { return m_txrateoverride; }
     QLocale GetLocale() const;
     quint8 GetUniversesListed() const { return m_universesListed; }
@@ -167,7 +156,7 @@ private:
     std::array<QByteArray, PRESET_COUNT> m_presets;
     std::array<QByteArray, PRIORITYPRESET_COUNT> m_priorityPresets;
 
-    Theme m_theme;
+    Themes::theme_e m_theme;
 
     QLocale m_locale;
     quint8 m_universesListed;

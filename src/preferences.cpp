@@ -21,6 +21,15 @@
 #include "preferences.h"
 #include "consts.h"
 #include <QRandomGenerator>
+#include <cmath>
+
+#if (defined(_WIN32) || defined(WIN32))
+// On Windows, use the Qt zlib
+#include <QtZlib/zlib.h>
+#else
+// Otherwise use the system zlib
+#include <zlib.h>
+#endif
 
 // Strings for storing settings
 static const QString S_INTERFACE_ADDRESS = QStringLiteral("MacAddress");
@@ -116,18 +125,26 @@ bool Preferences::GetNetworkListenAll() const
 
 QColor Preferences::colorForCID(const CID &cid)
 {
-    if(m_cidToColor.contains(cid))
-        return m_cidToColor[cid];
+    const auto existing = m_cidToColor.find(cid);
+    if (existing != m_cidToColor.end())
+        return existing.value();
 
-    int red = QRandomGenerator::global()->bounded(255);
-    int green = QRandomGenerator::global()->bounded(255);
-    int blue = QRandomGenerator::global()->bounded(255);
+    // Use the zlib crc32 implementation to get a consistent checksum for a given CID
+    quint8 cid_buf[CID::CIDBYTES] = {};
+    cid.Pack(cid_buf);
+    quint32 id = crc32( crc32(0L, Z_NULL, 0), (const Bytef*)cid_buf, CID::CIDBYTES);
 
-    red = (red + mixColor.red()) / 2;
-    green = (green + mixColor.green()) / 2;
-    blue = (blue + mixColor.blue()) / 2;
+    // Create a reasonable spread of different colors
+    constexpr double golden_ratio = 0.618033988749895;
+    double hue = golden_ratio * id;
+    hue = std::fmod(hue, 1.0);
+    double saturation = golden_ratio * id * 2;
+    saturation = std::fmod(saturation, 0.25);
+    saturation += 0.75; // High saturation
 
-    QColor newColor = QColor::fromRgb(red, green, blue);
+    // Choose lightness based on theme
+    const double lightness = GetTheme() == Themes::DARK ? 0.25 : 0.5;
+    QColor newColor = QColor::fromHslF(hue, saturation, lightness);
     m_cidToColor[cid] = newColor;
     return newColor;
 }
@@ -285,12 +302,12 @@ bool Preferences::interfaceSuitable(const QNetworkInterface &iface) const
     return false;
 }
 
-void Preferences::SetTheme(const Theme &theme)
+void Preferences::SetTheme(Themes::theme_e theme)
 {
     m_theme = theme;
 }
 
-Preferences::Theme Preferences::GetTheme() const
+Themes::theme_e Preferences::GetTheme() const
 {
     return m_theme;
 }
@@ -473,7 +490,7 @@ void Preferences::loadPreferences()
     m_flickerFinderShowInfo = settings.value(S_FLICKERFINDERSHOWINFO, QVariant(true)).toBool();
     m_saveWindowLayout = settings.value(S_SAVEWINDOWLAYOUT, QVariant(false)).toBool();
     m_mainWindowGeometry = settings.value(S_MAINWINDOWGEOM, QVariant(QByteArray())).toByteArray();
-    m_theme = (Theme) settings.value(S_THEME, QVariant((int)THEME_LIGHT)).toInt();
+    m_theme = static_cast<Themes::theme_e>(settings.value(S_THEME, QVariant(static_cast<int>(Themes::LIGHT))).toInt());
     m_txrateoverride = settings.value(S_TX_RATE_OVERRIDE, QVariant(false)).toBool();
     m_locale = settings.value(S_LOCALE, QLocale::system()).toLocale();
     m_universesListed = settings.value(S_UNIVERSESLISTED, QVariant(20)).toUInt();

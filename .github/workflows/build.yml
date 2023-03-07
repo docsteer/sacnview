@@ -21,16 +21,14 @@ jobs:
       fail-fast: false
       matrix:
         # https://github.com/actions/virtual-environments#available-environments
-        os: [ubuntu-18.04, windows-latest, macos-latest]
+        os: [ubuntu-20.04, windows-latest, macos-latest]
         include:
-          - os: ubuntu-18.04 # Oldest LTS for appimage support
-            qt: '5.15.2' # Oldest LTS for appimage support 
-            qt_modules: ''
+          - os: ubuntu-20.04 # Oldest LTS for appimage support
+            qt: '6.2.4' # Qt6 LTS
+            qt_modules: 'qtmultimedia'
             dependencies: |
               sudo apt-get install mesa-common-dev libgl1-mesa-dev libpcap-dev libgstreamer-gl1.0-0 libgstreamer-plugins-base1.0-0 -y
-            # public_suffix v4.0.7 only requied for legacy ubuntu-18.04
             installer_setup: |
-              sudo gem install public_suffix -v 4.0.7
               sudo gem install --no-document fpm
             make_cmd: make
             artifact: |
@@ -38,7 +36,7 @@ jobs:
               install/linux/*.deb
 
           - os: windows-latest
-            qt: '6.2.4'
+            qt: '6.2.4' # Qt6 LTS
             qt_modules: 'qtmultimedia'
             installer_setup: |
               Invoke-WebRequest -Uri "https://nsis.sourceforge.io/mediawiki/images/e/e0/NSIS_Simple_Firewall_Plugin_Unicode_1.21.zip" -OutFile "NSIS_Simple_Firewall_Plugin_Unicode.zip"
@@ -50,7 +48,7 @@ jobs:
               release/*.pdb 
 
           - os: macos-latest
-            qt: '6.2.4'
+            qt: '6.2.4' # Qt6 LTS
             qt_modules: 'qtmultimedia'
             installer_setup: |
               brew install create-dmg
@@ -60,13 +58,13 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         submodules: recursive
         fetch-depth: 0
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v2.14.0
+      uses: jurplel/install-qt-action@v3.1.0
       with:
         version: ${{ matrix.qt }}
         modules: ${{ matrix.qt_modules }}

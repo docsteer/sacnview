@@ -975,7 +975,7 @@ pcap_setfilter failed</source>
     </message>
     <message>
         <location filename="../src/ui/preferencesdialog.cpp" line="217"/>
-        <source>Restart requied</source>
+        <source>Restart required</source>
         <translation></translation>
     </message>
     <message>
@@ -1038,22 +1038,22 @@ sACNView will now close and restart</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="135"/>
+        <location filename="../src/main.cpp" line="124"/>
         <source>WORKING OFFLINE</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="140"/>
+        <location filename="../src/main.cpp" line="129"/>
         <source>Selected interface: %1 (%2)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="156"/>
+        <location filename="../src/main.cpp" line="145"/>
         <source>Incoming connections to this application are blocked by the firewall</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="160"/>
+        <location filename="../src/main.cpp" line="149"/>
         <source>Incoming connections to this application are restricted by the firewall</source>
         <translation></translation>
     </message>
@@ -1113,12 +1113,12 @@ sACNView will now close and restart</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/preferences.h" line="85"/>
+        <location filename="../themes/themes.h" line="18"/>
         <source>Light Theme</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/preferences.h" line="86"/>
+        <location filename="../themes/themes.h" line="19"/>
         <source>Dark Theme</source>
         <translation></translation>
     </message>

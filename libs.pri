@@ -15,6 +15,8 @@ linux {
     system(cd $$shell_quote($${BREAKPAD_PATH}/src) && ./configure && make)
 
     LIBS += -L$${BREAKPAD_PATH}/src/src/client/linux -lbreakpad_client
+    # zlib
+    LIBS += -lz
 
     HEADERS += src/crash_handler.h \
         src/ui/crash_test.h
@@ -54,6 +56,8 @@ macx {
     # Breakpad is disabled for MacOS as it has been superceded by Crashpad
     # see https://groups.google.com/a/chromium.org/forum/#!topic/chromium-dev/6eouc7q2j_g
     DEFINES -= USE_BREAKPAD
+    # zlib
+    LIBS += -lz
 }
 
 # Firewall Checker
