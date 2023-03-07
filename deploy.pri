@@ -69,6 +69,7 @@ linux {
 
     DEPLOY_COMMAND = $${OUT_PWD}/linuxdeployqt
     DEPLOY_OPT = -appimage -verbose=2
+    DEPLOY_OPT += -unsupported-allow-new-glibc
 
     PRE_DEPLOY_COMMAND += $${QMAKE_DEL_FILE} $${DEPLOY_DIR}/*.AppImage $$escape_expand(\\n\\t)
     PRE_DEPLOY_COMMAND += $${QMAKE_DEL_FILE} $${DEPLOY_TARGET} $$escape_expand(\\n\\t)
