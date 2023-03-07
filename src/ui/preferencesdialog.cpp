@@ -191,7 +191,7 @@ void PreferencesDialog::on_buttonBox_accepted()
     p.SetNetworkListenAll(ui->cbListenAll->isChecked());
 
     // Theme
-    Preferences::Theme theme = static_cast<Themes::theme_e>(ui->cbTheme->currentIndex());
+    auto theme = static_cast<Themes::theme_e>(ui->cbTheme->currentIndex());
     if(p.GetTheme()!=theme)
     {
         p.SetTheme(theme);
