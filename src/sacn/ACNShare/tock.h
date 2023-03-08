@@ -22,13 +22,13 @@
 
   Provides a standard definition of a tock and a ttimer.
 
-  A tock is the number of milliseconds since a platform-specific date.
+  A tock is the number of nanoseconds since a platform-specific date.
   Tocks are never used directly, rather the difference between two tocks 
   (latest - previous) are used to determine the passage of time.  It is
   assumed that tocks always move forward, and that the base date is not
   different for any instance of the compiled tock, nor does the base date change.  
   
-  Tocks are guaranteed to have a millisecond granularity.
+  Tocks are guaranteed to have a nanosecond granularity.
   Tock comparisons correctly handle clock rollover.
 
   A ttimer is a simple abstraction for typical timer usage, which is
@@ -40,6 +40,7 @@
 #define _TOCK_H_
 
 #include <QtGlobal>
+#include <chrono>
 
 class tock;
 class ttimer;
@@ -57,20 +58,26 @@ void Tock_StopLib();   //Shuts down the tock layer.
 class tock
 {
 public:
+    typedef std::chrono::nanoseconds resolution_t;
+
 	//construction and copying
 	tock();
-    tock(quint32 ms);
-	tock(const tock& t);
-	tock& operator=(const tock& t);
+    tock(const tock&) = default;
+    tock(tock&&) = default;
+    tock& operator=(const tock&) = default;
+    tock& operator=(tock&&) = default;
 
-	//Returns the number of milliseconds that this tock represents
-    quint32 Getms();
+    template <typename Rep, typename Period>
+    tock(std::chrono::duration<Rep, Period> duration);
 
-	//Used sparingly, but sets the number of milliseconds that this tock represents
-    void Setms(quint32 ms);
+    //Returns the number of nanoseconds that this tock represents
+    resolution_t Get() const;
+
+    //Used sparingly, but sets the number of nanoseconds that this tock represents
+    void Set(resolution_t time);
 
 protected:
-    qint32 v;  //Signed, so the wraparound calculations will work
+    resolution_t v;
 
     friend bool operator>(const tock& t1, const tock& t2);
     friend bool operator>=(const tock& t1, const tock& t2);
@@ -87,52 +94,28 @@ class ttimer
 public:
 	//construction/setup
 	ttimer();				//Will immediately time out if timeout isn't set
-    ttimer(qint32 ms);	//The number of milliseconds before the timer will time out
-    void SetInterval(qint32 ms);	//Sets a new timeout interval (in ms) and resets the timer
-    qint32 GetInterval();			//Returns the current timeout interval (in ms)
+    ttimer(const ttimer&) = default;
+    ttimer(ttimer&&) = default;
+    ttimer& operator=(const ttimer&) = default;
+    ttimer& operator=(ttimer&&) = default;
+    template <typename Rep, typename Period>
+    ttimer(std::chrono::duration<Rep, Period> interval);	//The duration before the timer will time out
+
+    void SetInterval(tock::resolution_t interval);	//Sets a new timeout interval and resets the timer
+
+    tock::resolution_t GetInterval() const;			//Returns the current timeout interval
 
 	void Reset();	//Resets the timer, using the current timeout interval
-    bool Expired() const;  //Returns true if the timer has expired.
-					 //Call Reset() to use this timer again for a new interval.
+
+    //Returns true if the timer has expired
+    //Call Reset() to use this timer again for a new interval.
+    bool Expired() const;
 
     friend bool operator==(const ttimer& t1, const ttimer& t2);
     friend bool operator!=(const ttimer& t1, const ttimer& t2);
 
 protected:
-    qint32 interval;
+    tock::resolution_t interval;
 	tock tockout;
 };
-
-
-//---------------------------------------------------------------------------------
-//	Implementation
-
-/*ttimer implementation*/
-inline ttimer::ttimer():interval(0) {Reset();}
-inline ttimer::ttimer(qint32 ms):interval(ms) {Reset();}
-inline void ttimer::SetInterval(qint32 ms) {interval = ms; Reset();}
-inline qint32 ttimer::GetInterval() {return interval;}
-inline void ttimer::Reset() {tockout.Setms(Tock_GetTock().Getms() + interval);}
-inline bool ttimer::Expired() const {return Tock_GetTock() > tockout;}
-inline bool operator==(const ttimer& t1, const ttimer& t2) { return ((t1.tockout == t2.tockout) && (t1.interval == t2.interval)); }
-inline bool operator!=(const ttimer& t1, const ttimer& t2) { return !(t1 == t2); }
-
-/*tock implementation*/
-inline tock::tock():v(0) {}
-inline tock::tock(quint32 ms):v(ms) {}
-inline tock::tock(const tock& t) {v = t.v;}
-inline tock& tock::operator=(const tock& t) {v = t.v; return *this;}
-
-inline quint32 tock::Getms() {return v;}
-inline void tock::Setms(quint32 ms) {v = ms;}
-	
-inline bool operator>(const tock& t1, const tock& t2)  {return t1.v - t2.v > 0;}
-inline bool operator>=(const tock& t1, const tock& t2) {return t1.v - t2.v >= 0;}
-inline bool operator==(const tock& t1, const tock& t2) {return t1.v - t2.v == 0;}
-inline bool operator!=(const tock& t1, const tock& t2) {return t1.v - t2.v != 0;}
-inline bool operator<(const tock& t1, const tock& t2)  {return t2.v - t1.v > 0;}
-inline bool operator<=(const tock& t1, const tock& t2) {return t2.v - t1.v >= 0;}
-inline quint32 operator-(const tock& t1, const tock& t2) {return t1.v - t2.v;}
-
-
 #endif /*_TOCK_H*/

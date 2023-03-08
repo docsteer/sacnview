@@ -156,7 +156,7 @@ void sACNSynchronizationRX::processPacket(quint8* pbuf, uint buflen, QHostAddres
     }
 
     m_synchronizationSources[syncAddress][cid].sender = sender;
-    m_synchronizationSources[syncAddress][cid].dataLoss.SetInterval(E131_NETWORK_DATA_LOSS_TIMEOUT);
+    m_synchronizationSources[syncAddress][cid].dataLoss.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT));
     m_synchronizationSources[syncAddress][cid].fps->newFrame();
 
     emit synchronize(syncAddress);

@@ -128,7 +128,7 @@ border-radius: 4px;
       </property>
       <property name="minimumSize">
        <size>
-        <width>270</width>
+        <width>300</width>
         <height>0</height>
        </size>
       </property>
@@ -427,6 +427,37 @@ border-radius: 4px;
                <set>Qt::AlignCenter</set>
               </property>
              </widget>
+            </item>
+            <item row="6" column="0">
+             <widget class="QLabel" name="label_9">
+              <property name="text">
+               <string>Min/Max FPS</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1">
+             <layout class="QHBoxLayout" name="horizontalLayout_11">
+              <item>
+               <widget class="QDoubleSpinBox" name="sbMinFPS">
+                <property name="suffix">
+                 <string> Hz</string>
+                </property>
+                <property name="value">
+                 <double>99.989999999999995</double>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="sbMaxFPS">
+                <property name="suffix">
+                 <string> Hz</string>
+                </property>
+                <property name="value">
+                 <double>99.989999999999995</double>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </item>
