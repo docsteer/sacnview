@@ -37,6 +37,7 @@ sACNRxSocket::sBindStatus sACNRxSocket::bind(quint16 universe)
 
     CIPAddr multicastAddr;
     GetUniverseAddress(universe, multicastAddr);
+    m_multicastAddr = QHostAddress(multicastAddr.GetV4Address());
 
     QHostAddress listenAddr = QHostAddress::AnyIPv4;
     ok = QUdpSocket::bind(listenAddr,
@@ -55,7 +56,7 @@ sACNRxSocket::sBindStatus sACNRxSocket::bind(quint16 universe)
             #endif
         #endif
         setMulticastInterface(m_interface);
-        ok |= joinMulticastGroup(QHostAddress(multicastAddr.GetV4Address()), m_interface);
+        ok |= joinMulticastGroup(m_multicastAddr, m_interface);
         status.multicast = ok ? BIND_OK : BIND_FAILED;
     }
 
