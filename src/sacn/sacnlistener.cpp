@@ -177,28 +177,31 @@ void sACNListener::readPendingDatagrams()
              * Unicast for this interface - Allowed (Universe checked later)
              * Broadcast - Rejected
              */
+            if (datagram.destinationAddress().isBroadcast())
+                break;
+
             QList<QHostAddress> interfaceAddress;
             for (const auto &address : m_socket->getBoundInterface().addressEntries())
                 interfaceAddress << address.ip();
 
-            CIPAddr addr;
-            GetUniverseAddress(m_universe, addr);
-
             if (
-                (datagram.destinationAddress().isMulticast() && datagram.destinationAddress() == addr.ToQHostAddress()) ||
+                // Relevant Multicast
+                (datagram.destinationAddress().isMulticast() && datagram.destinationAddress() == m_socket->getMulticastAddr())
+                    ||
+                // Unicast for this interface
                 interfaceAddress.contains(QHostAddress(datagram.destinationAddress()))
                 )
             {
                 processDatagram(
                             datagram.data(),
-                            m_socket->localAddress(),
+                            datagram.destinationAddress(),
                             datagram.senderAddress());
             }
         }
     }
 }
 
-void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QHostAddress sender)
+void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &destination, const QHostAddress &sender)
 {
     if(QThread::currentThread()!=this->thread())
     {
@@ -279,7 +282,7 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
     if(m_universe != universe)
     {
         // Was it unicast? Send to correct listener (if listening)
-        if (!destination.isMulticast())
+        if (!destination.isMulticast() && !destination.isBroadcast())
         {
             // Unicast, send to correct listener!
             decltype(sACNManager::getInstance()->getListenerList()) listenerList
@@ -289,7 +292,9 @@ void sACNListener::processDatagram(QByteArray data, QHostAddress destination, QH
             return;
         } else {
             // Log and discard
-            qDebug() << "sACNListener" << QThread::currentThreadId() << ": Wrong Universe and is multicast";
+            qDebug() << "sACNListener" << QThread::currentThreadId()
+                     << ": Rejecting universe" << universe << "sent to" << destination;
+            return;
         }
     }
 
