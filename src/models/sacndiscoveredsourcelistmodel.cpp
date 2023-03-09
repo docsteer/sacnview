@@ -35,10 +35,10 @@ sACNDiscoveredSourceListModel::sACNDiscoveredSourceListModel(QObject *parent) : 
     m_discoveryInstance(sACNDiscoveryRX::getInstance()),
     m_displayDDOnlySource(Preferences::getInstance()->GetETCDisplayDDOnly())
 {
-    connect(m_discoveryInstance, SIGNAL(newSource(QString)), this, SLOT(newSource(QString)));
-    connect(m_discoveryInstance, SIGNAL(expiredSource(QString)), this, SLOT(expiredSource(QString)));
-    connect(m_discoveryInstance, SIGNAL(newUniverse(QString,quint16)), this, SLOT(newUniverse(QString,quint16)));
-    connect(m_discoveryInstance, SIGNAL(expiredUniverse(QString,quint16)), this, SLOT(expiredUniverse(QString,quint16)));
+    connect(m_discoveryInstance, SIGNAL(newSource(CID)), this, SLOT(newSource(CID)));
+    connect(m_discoveryInstance, SIGNAL(expiredSource(CID)), this, SLOT(expiredSource(CID)));
+    connect(m_discoveryInstance, SIGNAL(newUniverse(CID,quint16)), this, SLOT(newUniverse(CID,quint16)));
+    connect(m_discoveryInstance, SIGNAL(expiredUniverse(CID,quint16)), this, SLOT(expiredUniverse(CID,quint16)));
 }
 
 sACNDiscoveredSourceListModel::~sACNDiscoveredSourceListModel()
@@ -47,66 +47,56 @@ sACNDiscoveredSourceListModel::~sACNDiscoveredSourceListModel()
     m_sources.clear();
 }
 
-void sACNDiscoveredSourceListModel::newSource(QString cid)
+void sACNDiscoveredSourceListModel::newSource(CID cid)
 {
     sACNDiscoveryRX::tDiscoveryList discoveryList = m_discoveryInstance->getDiscoveryList();
     CID cidObj = CID::StringToCID(cid.toLatin1().data());
 
-    if (discoveryList.contains(cidObj) && !m_sources.contains(cidObj))
+    if (!m_sources.contains(cid))
     {
         sACNSourceInfo *newSource = new sACNSourceInfo(discoveryList[cidObj]->Name);
-        m_sources[cidObj] = newSource;
+        m_sources[cid] = newSource;
         beginInsertRows(
                     QModelIndex(),
-                    m_sources.keys().indexOf(cidObj),
-                    m_sources.keys().indexOf(cidObj));
+                    m_sources.keys().indexOf(cid),
+                    m_sources.keys().indexOf(cid));
         endInsertRows();
     }
 }
 
-void sACNDiscoveredSourceListModel::expiredSource(QString cid)
+void sACNDiscoveredSourceListModel::expiredSource(CID cid)
 {
-    sACNDiscoveryRX::tDiscoveryList discoveryList = m_discoveryInstance->getDiscoveryList();
-    CID cidObj = CID::StringToCID(cid.toLatin1().data());
-    qDebug() << "******************* Expired source" << cid;
+    qDebug() << "******************* Expired source" << CID::CIDIntoQString(cid);
 
-    if(m_sources.contains(cidObj))
+    if(m_sources.contains(cid))
     {
-        int childRow = m_sources.keys().indexOf(cidObj);
-        beginRemoveRows(QModelIndex(),
-                    childRow,
-                    childRow);
-        m_sources.remove(cidObj);
+        const auto childRow = std::distance(m_sources.begin(), m_sources.find(cid));
+        beginRemoveRows(QModelIndex(), childRow, childRow);
+        m_sources.remove(cid);
         endRemoveRows();
     }
 }
 
-void sACNDiscoveredSourceListModel::newUniverse(QString cid, quint16 universe)
+void sACNDiscoveredSourceListModel::newUniverse(CID cid, quint16 universe)
 {
-    sACNDiscoveryRX::tDiscoveryList discoveryList = m_discoveryInstance->getDiscoveryList();
-    CID cidObj = CID::StringToCID(cid.toLatin1().data());
-
-    if (discoveryList.contains(cidObj) && m_sources.contains(cidObj))
+    if (m_sources.contains(cid))
     {
         int parentRow = m_sources.keys().indexOf(cidObj);
         auto parent = index(parentRow,0, QModelIndex());
 
         beginInsertRows(parent,
-                        m_sources.value(cidObj)->universes.count(),
-                        m_sources.value(cidObj)->universes.count());
-        m_sources.value(cidObj)->universes.append(universe);
+                        m_sources.value(cid)->universes.count(),
+                        m_sources.value(cid)->universes.count());
+        m_sources.value(cid)->universes.append(universe);
         endInsertRows();
     }
 }
 
-void sACNDiscoveredSourceListModel::expiredUniverse(QString cid, quint16 universe)
+void sACNDiscoveredSourceListModel::expiredUniverse(CID cid, quint16 universe)
 {
+    qDebug() << " Expired universe" << CID::CIDIntoQString(cid) << universe;
 
-    qDebug() << " Expired universe" << cid << universe;
-    sACNDiscoveryRX::tDiscoveryList discoveryList = m_discoveryInstance->getDiscoveryList();
-    CID cidObj = CID::StringToCID(cid.toLatin1().data());
-
-    if (discoveryList.contains(cidObj) && m_sources.contains(cidObj))
+    if (m_sources.contains(cid))
     {
         int childRow = m_sources.value(cidObj)->universes.indexOf(universe);
         int parentRow = m_sources.keys().indexOf(cidObj);
@@ -114,7 +104,7 @@ void sACNDiscoveredSourceListModel::expiredUniverse(QString cid, quint16 univers
                     index(parentRow, 0, QModelIndex()),
                     childRow,
                     childRow);
-        m_sources.value(cidObj)->universes.removeAll(universe);
+        m_sources.value(cid)->universes.removeAll(universe);
         endRemoveRows();
     }
 }

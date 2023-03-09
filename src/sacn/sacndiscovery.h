@@ -72,11 +72,11 @@ public:
     tDiscoveryList getDiscoveryList() { return m_discoveryList; }
 
 signals:
-    void newSource(QString cid);
-    void newUniverse(QString cid, quint16 universe);
+    void newSource(CID cid);
+    void newUniverse(CID cid, quint16 universe);
 
-    void expiredSource(QString cid);
-    void expiredUniverse(QString cid, quint16 universe);
+    void expiredSource(CID cid);
+    void expiredUniverse(CID cid, quint16 universe);
 public slots:
 
 private slots:

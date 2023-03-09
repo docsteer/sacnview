@@ -46,10 +46,10 @@ protected:
 public slots:
 
 private slots:
-    void newSource(QString cid);
-    void expiredSource(QString cid);
-    void newUniverse(QString cid, quint16 universe);
-    void expiredUniverse(QString cid, quint16 universe);
+    void newSource(CID cid);
+    void expiredSource(CID cid);
+    void newUniverse(CID cid, quint16 universe);
+    void expiredUniverse(CID cid, quint16 universe);
 
 private:
     mutable QReadWriteLock rwlock_ModelIndex;
