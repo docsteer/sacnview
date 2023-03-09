@@ -69,7 +69,7 @@ public:
     typedef QHash<CID, sACNSourceDetail*> tDiscoveryList;
 
     void processPacket(quint8* pbuf, uint buflen);
-    tDiscoveryList getDiscoveryList() { return m_discoveryList; }
+    const tDiscoveryList &getDiscoveryList() const { return m_discoveryList; }
 
 signals:
     void newSource(CID cid);
