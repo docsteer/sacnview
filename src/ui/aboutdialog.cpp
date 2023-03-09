@@ -33,16 +33,18 @@ aboutDialog::aboutDialog(QWidget *parent) :
     if (QString(VERSION) == QString(GIT_CURRENT_SHA1)) {
         ui->DisplayVer->setText(QString("%1").arg(VERSION));
     } else {
-        ui->DisplayVer->setText(QString("%1\n%2").arg(VERSION).arg(GIT_CURRENT_SHA1));
+        ui->DisplayVer->setText(QString("%1\n%2")
+            .arg(VERSION, GIT_CURRENT_SHA1));
     }
-    ui->displayDate->setText(QString("%1, %2 %3 %4").arg(GIT_DATE_DAY).arg(GIT_DATE_DATE).arg(GIT_DATE_MONTH).arg(GIT_DATE_YEAR));
+    ui->displayDate->setText(QString("%1, %2 %3 %4")
+        .arg(GIT_DATE_DAY, GIT_DATE_DATE, GIT_DATE_MONTH, GIT_DATE_YEAR));
     ui->DisplayName->setText(AUTHORS.join("\n"));
 
     // Translators
     QStringList translators;
-    for (auto translations : Translations::lTranslations)
+    for (const auto &translations : Translations::lTranslations)
     {
-        for (auto translatorName : translations.Translators)
+        for (const auto &translatorName : translations.Translators)
         {
             if (!translators.contains(translatorName))
                 translators << translatorName;
@@ -52,18 +54,23 @@ aboutDialog::aboutDialog(QWidget *parent) :
 
     // Libs
     ui->lblLicense->setText(
-                tr("This application is provided under the <a href=\"http://www.apache.org/licenses/LICENSE-2.0\">Apache License, version 2.0</a>")
+        tr("<p>This application is provided under the <a href=\"http://www.apache.org/licenses/LICENSE-2.0\">Apache License, version 2.0</a></p>")
     );
-    ui->lblQtInfo->setText(tr("This application uses the Qt Library, version %1, licensed under the <a href=\"http://www.gnu.org/licenses/lgpl.html\">GNU LGPL</a>")
-                           .arg(qVersion()));
+    ui->lblQtInfo->setText(
+        tr("<p>This application uses the Qt Library<br>"
+           "Version %1<br>"
+           "Licensed under the <a href=\"http://www.gnu.org/licenses/lgpl.html\">GNU LGPL</a></p>")
+            .arg(qVersion()));
     
     const char *libpcap = pcap_lib_version();
-    ui->lblLibs->setText(ui->lblLibs->text() + tr("This application uses the pcap Library, version %1, licensed under the <a href=\"https://opensource.org/licenses/BSD-3-Clause\">The 3-Clause BSD License</a>")
-            .arg(libpcap));
-    ui->lblLibs->setText(ui->lblLibs->text() + "\n");
-    
-    ui->lblLibs->setText(ui->lblLibs->text() + tr("This application uses BLAKE2, licensed under the <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\">Creative Commons Zero v1.0 Universal</a>"));
-    ui->lblLibs->setText(ui->lblLibs->text() + "\n");
+    ui->lblLibs->setText(
+        tr("<p>This application uses <a href=\"https://www.tcpdump.org/\">libpcap</a><br>"
+           "%1<br>"
+           "Licensed under the <a href=\"https://opensource.org/licenses/BSD-3-Clause\">The 3-Clause BSD License</a></p>")
+        .arg(qPrintable(libpcap)));
+    ui->lblLibs->setText(ui->lblLibs->text() +
+        tr("<p>This application uses <a href=\"https://www.blake2.net/\">BLAKE2</a><br>"
+           "Licensed under the <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\">Creative Commons Zero v1.0 Universal</a></p>"));
 
     // Setup diagnostics tree
     ui->twDiag->setColumnCount(2);
@@ -90,7 +97,7 @@ aboutDialog::aboutDialog(QWidget *parent) :
     std::sort(listenerListSorted.begin(), listenerListSorted.end(), listenerSortbyUni);
 
     // Display Sorted!
-    for (auto weakListener : listenerListSorted) {
+    for (const auto &weakListener : listenerListSorted) {
 
         sACNManager::tListener listener(weakListener);
         if (listener) {
