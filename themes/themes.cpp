@@ -7,6 +7,19 @@
 class DarkMode : public DarkStyle
 {
     public:
+        void polish(QPalette &palette) override
+        {
+            DarkStyle::polish(palette);
+
+            // Missing palettes
+            palette.setColor(QPalette::Active, QPalette::Highlight,
+                QColor(0x9a, 0x99, 0x96));
+
+            palette.setColor(QPalette::All, QPalette::Light,
+                palette.color(QPalette::Base));
+        }
+
+
         void polish(QApplication *app) override
         {
             const auto pointSize = QApplication::font().pointSize();
