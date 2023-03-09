@@ -20,14 +20,12 @@
   <property name="styleSheet">
    <string notr="true">QSlider::groove:horizontal {
 border: 1px solid #bbb;
-background: white;
 height: 10px;
 border-radius: 4px;
 }
 
 QSlider::groove:vertical {
 border: 1px solid #bbb;
-background: white;
 width: 10px;
 border-radius: 4px;
 }
@@ -54,14 +52,12 @@ border-radius: 4px;
 }
 
 QSlider::add-page:horizontal {
-background: #fff;
 border: 1px solid #777;
 height: 10px;
 border-radius: 4px;
 }
 
 QSlider::sub-page:vertical {
-background: #fff;
 border: 1px solid #777;
 width: 10px;
 border-radius: 4px;
