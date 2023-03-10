@@ -1,4 +1,35 @@
 #include "darktheme.h"
+#include <QDialog>
+#include <QMainWindow>
+#include <QDebug>
+
+#ifdef Q_OS_WIN
+#include <QThread>
+#include <Windows.h>
+HMODULE hUser32 = GetModuleHandleW(L"user32.dll");
+
+enum WINDOWCOMPOSITIONATTRIB {
+    WCA_USEDARKMODECOLORS = 26,
+};
+
+struct WINDOWCOMPOSITIONATTRIBDATA {
+    WINDOWCOMPOSITIONATTRIB Attrib;
+    PVOID pvData;
+    SIZE_T cbData;
+};
+
+BOOL enable = TRUE;
+WINDOWCOMPOSITIONATTRIBDATA WCA_darkColoursEnable = {
+    WCA_USEDARKMODECOLORS,
+    &enable,
+    sizeof(enable)
+};
+
+using fnSetWindowCompositionAttribute = BOOL (WINAPI *)(HWND hwnd, const WINDOWCOMPOSITIONATTRIBDATA *);
+fnSetWindowCompositionAttribute SetWindowCompositionAttribute
+    = reinterpret_cast<fnSetWindowCompositionAttribute>(GetProcAddress(hUser32, "SetWindowCompositionAttribute"));
+
+#endif // Q_OS_WIN
 
 static void qt_fusion_draw_mdibutton(QPainter *painter, const QStyleOptionTitleBar *option, const QRect &tmp, bool hover, bool sunken)
 {
@@ -61,6 +92,36 @@ static void qt_fusion_draw_mdibutton(QPainter *painter, const QStyleOptionTitleB
     painter->drawPoint(tmp.right() , tmp.bottom() - 1);
 }
 
+
+DarkTheme::DarkTheme() : darkFilter(this)
+{
+    #ifdef Q_OS_WIN
+    // Hook on new widget creation to apply dark colours
+    QCoreApplication::instance()->installEventFilter(&darkFilter);
+    #endif
+}
+
+DarkTheme::~DarkTheme()
+{
+    #ifdef Q_OS_WIN
+    QCoreApplication::instance()->removeEventFilter(&darkFilter);
+    #endif
+}
+
+bool DarkTheme::applyDarkFilter::eventFilter(QObject *obj, QEvent *event)
+{
+  // Apply dark colours to newly shown dialogs and main windows
+  if (event->type() == QEvent::Show) {
+      if (qobject_cast<QDialog *>(obj) || qobject_cast<QMainWindow *>(obj))
+      {
+          HWND hwnd = reinterpret_cast<HWND>(static_cast<QWidget*>(obj)->winId());
+          SetWindowCompositionAttribute(hwnd, &WCA_darkColoursEnable);
+      }
+  }
+
+  return QObject::eventFilter(obj, event);
+}
+
 void DarkTheme::polish(QPalette &palette)
 {
     DarkStyle::polish(palette);
@@ -72,7 +133,6 @@ void DarkTheme::polish(QPalette &palette)
     palette.setColor(QPalette::All, QPalette::Light,
         palette.color(QPalette::Base));
 }
-
 
 void DarkTheme::polish(QApplication *app)
 {
