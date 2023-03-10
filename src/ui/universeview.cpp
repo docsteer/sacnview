@@ -248,7 +248,7 @@ void UniverseView::sourceChanged(sACNSource *source)
             ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(colourBad);
         } else {
             ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("N/A"));
-            ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::white);
+            ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::transparent);
         }
     }
 
