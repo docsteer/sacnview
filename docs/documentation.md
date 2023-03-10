@@ -138,7 +138,7 @@ Individual universes are seperated by ',' and ranged by '-'.
  - Example 1: `1,2,3,4-10` will capture univeses 1 thru 10
  - Example 2: `1,5,2,8-11` will capture univeses 1,2,5, and 8 thru 11
 
-When capturing more than 100 universes in one shot, you will be presented with this warning:
+When capturing more than 100 universes in one shot, you will be presented with this warning:   
 ![](./assets/images/snapshot_adv_input_warning.png)
 
 *Adding a large range of universes at can have an adverse effect on your machines and networks performance.   
