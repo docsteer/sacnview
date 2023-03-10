@@ -110,14 +110,16 @@ DarkTheme::~DarkTheme()
 
 bool DarkTheme::applyDarkFilter::eventFilter(QObject *obj, QEvent *event)
 {
-  // Apply dark colours to newly shown dialogs and main windows
-  if (event->type() == QEvent::Show) {
-      if (qobject_cast<QDialog *>(obj) || qobject_cast<QMainWindow *>(obj))
-      {
-          HWND hwnd = reinterpret_cast<HWND>(static_cast<QWidget*>(obj)->winId());
-          SetWindowCompositionAttribute(hwnd, &WCA_darkColoursEnable);
-      }
-  }
+    #ifdef Q_OS_WIN
+    // Apply dark colours to newly shown dialogs and main windows
+    if (event->type() == QEvent::Show) {
+        if (qobject_cast<QDialog *>(obj) || qobject_cast<QMainWindow *>(obj))
+        {
+            HWND hwnd = reinterpret_cast<HWND>(static_cast<QWidget*>(obj)->winId());
+            SetWindowCompositionAttribute(hwnd, &WCA_darkColoursEnable);
+        }
+    }
+    #endif
 
   return QObject::eventFilter(obj, event);
 }
