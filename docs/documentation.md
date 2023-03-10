@@ -130,6 +130,21 @@ Then, when you are ready to transmit, press the Playback button (which again can
 
 Once playing, the snapshots show an indictor to tell you if the state matches what it was when the snapshots were set up, so you can be certain that when you release the snapshot the lighting levels will not change. If the indicator is red, the levels are *different* to what was being sent. If the indicator is green, the levels are *the same* as what was being sent when the snapshot was set up.
 
+### Advanced snapshot
+By right clicking on the green plus, a complex list of universes can be captured.  
+![](./assets/images/snapshot_adv_input.png)
+
+Individual universes are seperated by ',' and ranged by '-'.
+ - Example 1: `1,2,3,4-10` will capture univeses 1 thru 10
+ - Example 2: `1,5,2,8-11` will capture univeses 1,2,5, and 8 thru 11
+
+When capturing more than 100 universes in one shot, you will be presented with this warning:
+![](./assets/images/snapshot_adv_input_warning.png)
+
+*Adding a large range of universes at can have an adverse effect on your machines and networks performance.   
+With great power comes great responsibility*
+
+
 # PCAP Playback
 
 ![](./assets/images/pcap_dialog.png)
