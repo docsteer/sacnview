@@ -27,7 +27,7 @@ jobs:
             qt: '6.2.4' # Qt6 LTS
             qt_modules: 'qtmultimedia'
             dependencies: |
-              sudo apt-get install mesa-common-dev libgl1-mesa-dev libpcap-dev libgstreamer-gl1.0-0 libgstreamer-plugins-base1.0-0 -y
+              sudo apt-get install mesa-common-dev libgl1-mesa-dev libpcap-dev libgstreamer-gl1.0-0 libgstreamer-plugins-base1.0-0 libxkbcommon-x11-0 -y
             installer_setup: |
               sudo gem install --no-document fpm
             make_cmd: make
