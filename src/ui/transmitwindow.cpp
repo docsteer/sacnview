@@ -197,6 +197,21 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     ui->gbPathwaySecurePassword->setVisible(ui->rbPathwaySecure->isChecked());
     ui->lePathwaySecurePassword->setText(Preferences::Instance().GetPathwaySecureTxPassword());
 
+    // Minimum FPS
+    if (!Preferences::getInstance()->GetTXRateOverride()) {
+        ui->sbMinFPS->setMinimum(E1_11::MIN_REFRESH_RATE_HZ);
+        ui->sbMinFPS->setMaximum(E1_11::MAX_REFRESH_RATE_HZ);
+        ui->sbMaxFPS->setMinimum(E1_11::MIN_REFRESH_RATE_HZ);
+        ui->sbMaxFPS->setMaximum(E1_11::MAX_REFRESH_RATE_HZ);
+    } else {
+        ui->sbMinFPS->setMinimum(static_cast<float>(E1_11::MIN_REFRESH_RATE_HZ) / 2);
+        ui->sbMinFPS->setMaximum(std::numeric_limits<decltype(ui->sbMinFPS->value())>::max());
+        ui->sbMaxFPS->setMinimum(static_cast<float>(E1_11::MIN_REFRESH_RATE_HZ) / 2);
+        ui->sbMaxFPS->setMaximum(std::numeric_limits<decltype(ui->sbMaxFPS->value())>::max());
+    }
+    ui->sbMinFPS->setValue(E131_DATA_KEEP_ALIVE_FREQUENCY);
+    ui->sbMaxFPS->setValue(E1_11::MAX_REFRESH_RATE_HZ);
+
     setUniverseOptsEnabled(true);
 
     // Set up keypad
@@ -407,6 +422,8 @@ void transmitwindow::on_btnStart_pressed()
             m_sender->setPriorityMode(pmPER_SOURCE_PRIORITY);
             m_sender->setPerSourcePriority(ui->sbPriority->value());
         }
+        using namespace std::chrono_literals;
+        m_sender->setSendFrequency(ui->sbMinFPS->value(), ui->sbMaxFPS->value());
 
         m_sender->startSending(ui->cbBlind->isChecked());
 
@@ -870,5 +887,19 @@ void transmitwindow::setLevelList(QList<QPair<int, int>> levelList)
 void transmitwindow::on_rbPathwaySecure_toggled(bool checked)
 {
     ui->gbPathwaySecurePassword->setVisible(checked);
+}
+
+void transmitwindow::on_sbMinFPS_editingFinished()
+{
+    // Don't go greater than MaxFPS
+    if (ui->sbMinFPS->value() > ui->sbMaxFPS->value())
+        ui->sbMinFPS->setValue(ui->sbMaxFPS->value());
+}
+
+void transmitwindow::on_sbMaxFPS_editingFinished()
+{
+    // Don't go less than MinFPS
+    if (ui->sbMaxFPS->value() < ui->sbMinFPS->value())
+        ui->sbMaxFPS->setValue(ui->sbMinFPS->value());
 }
 

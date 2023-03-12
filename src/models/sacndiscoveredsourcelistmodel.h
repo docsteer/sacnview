@@ -7,18 +7,8 @@
 #include <QList>
 #include <QSortFilterProxyModel>
 
+#include "qcollator.h"
 #include "sacndiscovery.h"
-
-
-class sACNSourceInfo : public QObject
-{
-    Q_OBJECT
-public:
-    sACNSourceInfo(QString sourceName, QObject *parent = Q_NULLPTR);
-
-    QString name;
-    QList<quint16> universes;
-};
 
 /**
  * @brief The sACNDiscoveredSourceListModel class provides a
@@ -31,7 +21,6 @@ class sACNDiscoveredSourceListModel : public QAbstractItemModel
 
 public:
     sACNDiscoveredSourceListModel(QObject *parent = Q_NULLPTR);
-     ~sACNDiscoveredSourceListModel() override;
 
     int indexToUniverse(const QModelIndex &index);
 
@@ -46,24 +35,62 @@ protected:
 public slots:
 
 private slots:
-    void newSource(QString cid);
-    void expiredSource(QString cid);
-    void newUniverse(QString cid, quint16 universe);
-    void expiredUniverse(QString cid, quint16 universe);
+    void newSource(CID cid);
+    void expiredSource(CID cid);
+    void newUniverse(CID cid, quint16 universe);
+    void expiredUniverse(CID cid, quint16 universe);
 
 private:
     mutable QReadWriteLock rwlock_ModelIndex;
     sACNDiscoveryRX *m_discoveryInstance;
     bool m_displayDDOnlySource;
 
-    QHash<CID, sACNSourceInfo*> m_sources;
+    class modelContainer
+    {
+    public:
+        typedef quint16 universe_t;
+
+        void addSource(const CID &cid);
+        void removeSource(const CID &cid);
+
+        void addUniverse(const CID &cid, universe_t universe);
+        void removeUniverse(const CID &cid, universe_t universe);
+
+        CID getCID(unsigned int row) const;
+        universe_t getUniverse(const CID &cid, unsigned int row) const;
+
+        int getRow(const CID &cid) const;
+        int getRow(const CID &cid, universe_t universe) const;
+
+        /**
+         * @brief Count
+         * @return Number of sources
+         */
+        size_t count() const;
+
+        /**
+         * @brief Count
+         * @param cid Source
+         * @return Number of universes for source
+         */
+        size_t count(const CID &cid) const;
+
+
+    private:
+         mutable QMutex listMutex;
+
+        QList<CID> sources; // List of sources CIDs
+        typedef QList<universe_t> universeList_t;
+        QList<universeList_t> universes; // List of universes for source, key is m_sources row
+    };
+
+    modelContainer m_sources;
 };
 
 /**
  * @brief The sACNDiscoveredSourceListProxy class provides a
  * model which sorts and filters the raw sACNDiscoveredSourceListModel.
- * Currently it just sorts items with parents by universe number; in future
- * it could be extended to add additional sorting and searching options
+ * Currently it just sorts items
  */
 class sACNDiscoveredSourceListProxy : public QSortFilterProxyModel
 {
@@ -71,8 +98,14 @@ class sACNDiscoveredSourceListProxy : public QSortFilterProxyModel
 
 public:
     sACNDiscoveredSourceListProxy(QObject *parent = Q_NULLPTR);
+
+    void setSortCaseSensitivity(Qt::CaseSensitivity cs);
+
 protected:
     virtual bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
+
+private:
+    QCollator collator;
 };
 
 #endif // sACNDiscoveredSourceListModel_H

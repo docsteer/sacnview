@@ -33,6 +33,14 @@
 
 #include "preferences.h"
 
+using namespace std::chrono_literals;
+#if defined(Q_OS_UNIX)
+constexpr auto tickLoopInterval = 1ms;
+#elif defined(Q_OS_WIN)
+constexpr auto tickLoopInterval = 0ms; // Don't use on Windows
+#endif
+const auto tickLoopPriority = QThread::LowestPriority;
+
 sACNSentUniverse::sACNSentUniverse(int universe) :
     m_isSending(false),
     m_handle(0),
@@ -43,7 +51,9 @@ sACNSentUniverse::sACNSentUniverse(int universe) :
     m_priorityMode(pmPER_SOURCE_PRIORITY),
     m_version(sACNProtocolRelease),
     m_checkTimeoutTimer(Q_NULLPTR),
-    m_synchronization(NOT_SYNCHRONIZED_VALUE)
+    m_synchronization(NOT_SYNCHRONIZED_VALUE),
+    m_minSendFreq(E131_DATA_KEEP_ALIVE_FREQUENCY),
+    m_maxSendFreq(E1_11::MAX_REFRESH_RATE_HZ)
 {}
 
 sACNSentUniverse::~sACNSentUniverse()
@@ -70,8 +80,11 @@ void sACNSentUniverse::startSending(bool preview)
     if (preview)
         options += PREVIEW_DATA_OPTION;
 
-    uint max_tx_rate =
-            Preferences::Instance().GetTXRateOverride() ? std::numeric_limits<decltype(max_tx_rate)>::max() : E1_11::MAX_REFRESH_RATE_HZ;
+    m_maxSendFreq = std::clamp(
+        m_maxSendFreq,
+        m_minSendFreq,
+        Preferences::Instance().GetTXRateOverride() ?
+                    std::numeric_limits<decltype(m_maxSendFreq)>::max() : E1_11::MAX_REFRESH_RATE_HZ);
 
     CIPAddr unicastAddress;
     if(!m_unicastAddress.isNull())
@@ -80,7 +93,7 @@ void sACNSentUniverse::startSending(bool preview)
     // DMX Data (0x00) server
     streamServer->CreateUniverse(
                 m_cid, qPrintable(m_name), m_priority, m_synchronization, options, STARTCODE_DMX,
-                m_universe, m_slotCount, m_slotData, m_handle, SEND_INTERVAL_DMX, max_tx_rate,
+                m_universe, m_slotCount, m_slotData, m_handle, m_minSendFreq, m_maxSendFreq,
                 unicastAddress, m_version);
     streamServer->setSecurePassword(m_handle, m_password);
     streamServer->SetUniverseDirty(m_handle);
@@ -91,7 +104,7 @@ void sACNSentUniverse::startSending(bool preview)
         quint8 *pslots;
         streamServer->CreateUniverse(
                     m_cid, qPrintable(m_name), m_priority, NOT_SYNCHRONIZED_VALUE, options, STARTCODE_PRIORITY,
-                    m_universe, m_slotCount, pslots, m_priorityHandle, SEND_INTERVAL_PRIORITY, max_tx_rate,
+                    m_universe, m_slotCount, pslots, m_priorityHandle, E1_11::MIN_REFRESH_RATE_HZ, m_maxSendFreq,
                     unicastAddress, m_version);
         memcpy(pslots,
                m_perChannelPriorities,
@@ -311,6 +324,19 @@ void sACNSentUniverse::setSecurePassword(const QString &password)
     emit passwordChange();
 }
 
+void sACNSentUniverse::setSendFrequency(float minimum, float maximum)
+{
+    if(minimum==m_minSendFreq && maximum==m_maxSendFreq) return;
+    m_minSendFreq = minimum;
+    m_maxSendFreq = maximum;
+    if(isSending())
+    {
+        CStreamServer::getInstance()->setSendFrequency(m_handle, m_minSendFreq, m_maxSendFreq);
+    }
+
+    emit sendFrequencyChange();
+}
+
 void sACNSentUniverse::doTimeout()
 {
     delete m_checkTimeoutTimer;
@@ -349,6 +375,7 @@ CStreamServer::CStreamServer() :
     this->moveToThread(m_thread);
     m_thread->setObjectName(QString("Interface %1 TX").arg(m_sendsock->multicastInterface().name()));
     m_thread->start();
+    m_thread->setPriority(tickLoopPriority);
 }
 
 CStreamServer::~CStreamServer()
@@ -412,20 +439,22 @@ void CStreamServer::RemovePSeq(const CID &cid, quint16 universe)
 
 void CStreamServer::TickLoop()
 {
-    qDebug() << "sACNSender" << QThread::currentThreadId() << ": Starting";
+    qDebug() << "sACNSender" << QThread::currentThreadId()
+             << ": Starting with priority"
+             << this->thread()->priority()
+             << " and tickLoopInterval"
+             << std::chrono::duration_cast<std::chrono::milliseconds>(tickLoopInterval).count() << "ms";
+
+    Q_ASSERT(this->thread()->priority() == tickLoopPriority);
 
     while (!m_thread_stop) {
-        QThread::yieldCurrentThread();
-        QCoreApplication::processEvents();
-        QThread::msleep(1);
+        if (tickLoopInterval.count())
+            QThread::usleep(std::chrono::duration_cast<std::chrono::microseconds>(tickLoopInterval).count());
+
         QMutexLocker locker(&m_writeMutex);
 
-        int valid_count = 0;
         for(auto it = m_multiverse.begin(); it != m_multiverse.end(); ++it)
         {
-            if(it->psend)
-                ++valid_count;
-
             //Too soon to send?
             //E1.31:2016 6.6.1
             if (!it->min_interval.Expired())
@@ -438,38 +467,30 @@ void CStreamServer::TickLoop()
                 DoDestruction(it->handle);
             }
 
-            //If valid, either a dirty, or send_interval will cause a send
-            if(it->psend && (it->isdirty || it->send_interval.Expired()))
+            //If valid, either a dirty, still about to supress rate, or send_interval will cause a send
+            if(it->psend && (it->isdirty || it->num_suppress_remaining || it->send_interval.Expired()))
             {
                 // E1.31:2016 6.6.2 (clause 1) logic
-                quint8 sendCount = 1;
-                if(!it->isdirty && it->send_interval.Expired() && !it->suppresed && it->start_code == STARTCODE_DMX)
-                {
-                    it->suppresed = true;
-                    sendCount = 3;
-                }
-                else if (it->isdirty)
-                {
-                    it->suppresed = false;
-                }
+                if(it->isdirty && it->start_code == STARTCODE_DMX)
+                    it->num_suppress_remaining = 3;
+                else if(it->num_suppress_remaining)
+                    --it->num_suppress_remaining;
 
-                for (decltype(sendCount) n = 0; n < sendCount; n++ )
+                //Add the sequence number and send
+                quint8 *pseq = GetPSeq(it->cid, it->number);
+                SetStreamHeaderSequence(it->psend, *pseq, it->version == sACNProtocolDraft);
+                (*pseq)++;
+
+                // Pathway Connectivity Secure DMX Protocol
+                if (it->version == sACNProtocolPathwaySecure)
+                    PathwaySecure::ApplyStreamSecurity(it->psend, it->sendsize, it->cid, it->password);
+
+                // Write to the wire
+                quint64 result = m_sendsock->writeDatagram( (char*)it->psend, it->sendsize, it->sendaddr, STREAM_IP_PORT);
+
+                if(result!=it->sendsize)
                 {
-                    //Add the sequence number and send
-                    quint8 *pseq = GetPSeq(it->cid, it->number);
-                    SetStreamHeaderSequence(it->psend, *pseq, it->version == sACNProtocolDraft);
-                    (*pseq)++;
-
-                    // Pathway Connectivity Secure DMX Protocol
-                    if (it->version == sACNProtocolPathwaySecure)
-                        PathwaySecure::ApplyStreamSecurity(it->psend, it->sendsize, it->cid, it->password);
-
-                    // Write to the wire
-                    quint64 result = m_sendsock->writeDatagram( (char*)it->psend, it->sendsize, it->sendaddr, STREAM_IP_PORT);
-                    if(result!=it->sendsize)
-                    {
-                        qDebug() << "Error sending datagram : " << m_sendsock->errorString();
-                    }
+                    qDebug() << "Error sending datagram : " << m_sendsock->errorString();
                 }
 
                 if(GetStreamTerminated(it->psend))
@@ -504,8 +525,7 @@ bool CStreamServer::CreateUniverse(
         const CID& source_cid, const char* source_name, quint8 priority,
         quint16 synchronization, quint8 options, quint8 start_code,
         quint16 universe, quint16 slot_count, quint8*& pslots, uint& handle,
-        uint send_intervalms,
-        uint send_max_rate,
+        float minimum_send_rate, float maximum_send_rate ,
         CIPAddr unicastAddress,
         StreamingACNProtocolVersion version)
 {
@@ -519,7 +539,7 @@ bool CStreamServer::CreateUniverse(
     {
         default:
         case sACNProtocolUnknown:
-            qFatal(qPrintable(QString("Attempting to set unknown protocol version (%1)").arg(version)));
+            qFatal("Attempting to set unknown protocol version (0x%x)", version);
             return false;
 
         case sACNProtocolDraft:
@@ -566,8 +586,7 @@ bool CStreamServer::CreateUniverse(
     m_multiverse[handle].start_code = start_code;
     m_multiverse[handle].isdirty = false;
     m_multiverse[handle].num_terminates=0;
-    m_multiverse[handle].send_interval.SetInterval(send_intervalms);
-    m_multiverse[handle].min_interval.SetInterval(1000 / (std::max(send_max_rate, (decltype(send_max_rate))1)));
+    setSendFrequency(handle, minimum_send_rate, maximum_send_rate);
     m_multiverse[handle].version = version;
     m_multiverse[handle].cid = source_cid;
 
@@ -716,5 +735,25 @@ void CStreamServer::setSynchronizationAddress(uint handle, quint16 address)
 void CStreamServer::setSecurePassword(uint handle, const QString &password)
 {
    m_multiverse[handle].password = password;
+}
+
+void CStreamServer::setSendFrequency(uint handle, float minimum, float maximum)
+{
+    if(handle < m_multiverse.size()) {
+        if (maximum <= 0)
+            maximum = E1_11::MAX_REFRESH_RATE_HZ;
+
+        if (minimum <= 0 || minimum > maximum)
+            minimum = E1_11::MIN_REFRESH_RATE_HZ;
+
+        typedef std::chrono::microseconds period_t;
+        m_multiverse[handle].send_interval.SetInterval(
+                    period_t(static_cast<period_t::rep>(period_t::period().den / minimum)));
+        m_multiverse[handle].min_interval.SetInterval(
+                    period_t(static_cast<period_t::rep>(period_t::period().den / maximum)));
+
+        m_multiverse[handle].send_interval.Reset();
+        m_multiverse[handle].min_interval.Reset();
+    }
 }
 

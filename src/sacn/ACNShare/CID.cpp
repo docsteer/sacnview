@@ -32,7 +32,8 @@
 // Non-static functions
 CID::CID()
 {
-	memset(m_cid, 0, CIDBYTES);
+    qRegisterMetaType<CID>("CID");
+    memset(m_cid, 0, CIDBYTES);
 }
 
 CID::~CID()
@@ -42,13 +43,15 @@ CID::~CID()
 
 CID::CID(const quint8* pCID)
 {
-	memcpy(m_cid, pCID, CIDBYTES);
+    CID();
+    memcpy(m_cid, pCID, CIDBYTES);
 }
 
 
 CID::CID(const CID& cid)
 {
-	memcpy(m_cid, cid.m_cid, CIDBYTES);
+    CID();
+    memcpy(m_cid, cid.m_cid, CIDBYTES);
 }
 
 CID& CID::operator=(const CID& cid)

@@ -14,108 +14,210 @@
 // limitations under the License.
 
 #include "sacndiscoveredsourcelistmodel.h"
+#include "qcollator.h"
 #include "sacndiscovery.h"
-#include "streamingacn.h"
-#include "streamcommon.h"
-#include "ipaddr.h"
 #include "preferences.h"
-#include "sacnsocket.h"
-#include "consts.h"
-#include "preferences.h"
-
+#include <QMutexLocker>
 #include <QtDebug>
-#include <QNetworkInterface>
 
-sACNSourceInfo::sACNSourceInfo(QString sourceName, QObject *parent): QObject(parent),
-    name(sourceName)
-{}
 
+void sACNDiscoveredSourceListModel::modelContainer::addSource(const CID &cid)
+{
+    QMutexLocker locker(&listMutex);
+    if (!sources.contains(cid))
+    {
+        sources.append(cid);
+        universes.append(universeList_t());
+        assert(sources.size() == universes.size());
+    }
+}
+
+void sACNDiscoveredSourceListModel::modelContainer::removeSource(const CID &cid)
+{
+    QMutexLocker locker(&listMutex);
+
+    const auto sourceRow = sources.indexOf(cid);
+    if (sourceRow == -1)
+        return;
+
+    sources.removeAt(sourceRow);
+    universes.removeAt(sourceRow);
+    assert(sources.size() == universes.size());
+}
+
+void sACNDiscoveredSourceListModel::modelContainer::addUniverse(const CID &cid, quint16 universe)
+{
+    QMutexLocker locker(&listMutex);
+
+    const auto sourceRow = sources.indexOf(cid);
+    if (sourceRow == -1)
+        return;
+
+    if (!universes.at(sourceRow).contains(universe))
+        universes[sourceRow].append(universe);
+}
+
+void sACNDiscoveredSourceListModel::modelContainer::removeUniverse(const CID &cid, quint16 universe)
+{
+    QMutexLocker locker(&listMutex);
+
+    const auto sourceRow = sources.indexOf(cid);
+    if (sourceRow == -1)
+        return;
+
+    const auto universeRow = universes.at(sourceRow).indexOf(universe);
+    if (universeRow == -1)
+        return;
+
+    universes[sourceRow].removeAt(universeRow);
+}
+
+CID sACNDiscoveredSourceListModel::modelContainer::getCID(unsigned int row) const
+{
+    QMutexLocker locker(&listMutex);
+
+    if (row >= static_cast<unsigned int>(sources.size()))
+        return CID();
+
+    return sources.at(row);
+}
+
+sACNDiscoveredSourceListModel::modelContainer::universe_t
+    sACNDiscoveredSourceListModel::modelContainer::getUniverse(const CID &cid, unsigned int row) const
+{
+    QMutexLocker locker(&listMutex);
+
+    if (!sources.contains(cid))
+        return 0;
+
+    const auto sourceRow = sources.indexOf(cid);
+
+    if (row >= static_cast<unsigned int>(universes.size()))
+        return 0;
+
+    return universes.at(sourceRow).at(row);
+}
+
+int sACNDiscoveredSourceListModel::modelContainer::getRow(const CID &cid) const
+{
+    QMutexLocker locker(&listMutex);
+    return sources.indexOf(cid);
+}
+
+int sACNDiscoveredSourceListModel::modelContainer::getRow(const CID &cid, universe_t universe) const
+{
+    QMutexLocker locker(&listMutex);
+    const auto sourceRow = sources.indexOf(cid);
+    if (sourceRow == -1)
+        return -1;
+
+    return universes.at(sourceRow).indexOf(universe);
+}
+
+size_t sACNDiscoveredSourceListModel::modelContainer::count() const
+{
+    QMutexLocker locker(&listMutex);
+    return sources.count();
+}
+
+size_t sACNDiscoveredSourceListModel::modelContainer::count(const CID &cid) const
+{
+    QMutexLocker locker(&listMutex);
+
+    const auto sourceRow = sources.indexOf(cid);
+    if (sourceRow == -1)
+        return 0;
+    return universes.at(sourceRow).count();
+}
 
 sACNDiscoveredSourceListModel::sACNDiscoveredSourceListModel(QObject *parent) : QAbstractItemModel(parent),
     m_discoveryInstance(sACNDiscoveryRX::getInstance()),
     m_displayDDOnlySource(Preferences::Instance().GetETCDisplayDDOnly())
 {
-    connect(m_discoveryInstance, SIGNAL(newSource(QString)), this, SLOT(newSource(QString)));
-    connect(m_discoveryInstance, SIGNAL(expiredSource(QString)), this, SLOT(expiredSource(QString)));
-    connect(m_discoveryInstance, SIGNAL(newUniverse(QString,quint16)), this, SLOT(newUniverse(QString,quint16)));
-    connect(m_discoveryInstance, SIGNAL(expiredUniverse(QString,quint16)), this, SLOT(expiredUniverse(QString,quint16)));
+    // Add existing
+    auto it = m_discoveryInstance->getDiscoveryList().constBegin();
+    while (it != m_discoveryInstance->getDiscoveryList().constEnd())
+        newSource(it.key());
+
+    connect(m_discoveryInstance, SIGNAL(newSource(CID)), this, SLOT(newSource(CID)));
+    connect(m_discoveryInstance, SIGNAL(expiredSource(CID)), this, SLOT(expiredSource(CID)));
+    connect(m_discoveryInstance, SIGNAL(newUniverse(CID,quint16)), this, SLOT(newUniverse(CID,quint16)));
+    connect(m_discoveryInstance, SIGNAL(expiredUniverse(CID,quint16)), this, SLOT(expiredUniverse(CID,quint16)));
 }
 
-sACNDiscoveredSourceListModel::~sACNDiscoveredSourceListModel()
+void sACNDiscoveredSourceListModel::newSource(CID cid)
 {
-    qDeleteAll(m_sources);
-    m_sources.clear();
-}
-
-void sACNDiscoveredSourceListModel::newSource(QString cid)
-{
-    sACNDiscoveryRX::tDiscoveryList discoveryList = m_discoveryInstance->getDiscoveryList();
-    CID cidObj = CID::StringToCID(cid.toLatin1().data());
-
-    if (discoveryList.contains(cidObj) && !m_sources.contains(cidObj))
+    if (m_sources.getRow(cid) == -1)
     {
-        sACNSourceInfo *newSource = new sACNSourceInfo(discoveryList[cidObj]->Name);
-        m_sources[cidObj] = newSource;
-        beginInsertRows(
-                    QModelIndex(),
-                    m_sources.keys().indexOf(cidObj),
-                    m_sources.keys().indexOf(cidObj));
-        endInsertRows();
+        const auto childRow  = m_sources.count();
+        const bool resetModel = (childRow == 0);
+        if (resetModel)
+            beginResetModel(); // Reset dummy help row
+        else
+            beginInsertRows(QModelIndex(), childRow, childRow);
+
+        m_sources.addSource(cid);
+
+        if (resetModel)
+            endResetModel();
+        else
+            endInsertRows();
     }
 }
 
-void sACNDiscoveredSourceListModel::expiredSource(QString cid)
+void sACNDiscoveredSourceListModel::expiredSource(CID cid)
 {
-    sACNDiscoveryRX::tDiscoveryList discoveryList = m_discoveryInstance->getDiscoveryList();
-    CID cidObj = CID::StringToCID(cid.toLatin1().data());
-    qDebug() << "******************* Expired source" << cid;
+    qDebug() << "******************* Expired source" << CID::CIDIntoQString(cid);
 
-    if(m_sources.contains(cidObj))
+    if(m_sources.getRow(cid) != -1)
     {
-        int childRow = m_sources.keys().indexOf(cidObj);
-        beginRemoveRows(QModelIndex(),
-                    childRow,
-                    childRow);
-        m_sources.remove(cidObj);
+        const auto childRow = m_sources.getRow(cid);
+        beginRemoveRows(QModelIndex(), childRow, childRow);
+        m_sources.removeSource(cid);
         endRemoveRows();
+
+        if (m_sources.count() == 0)
+        {
+            // Restore dummy help row
+            beginResetModel();
+            endResetModel();
+        }
     }
 }
 
-void sACNDiscoveredSourceListModel::newUniverse(QString cid, quint16 universe)
+void sACNDiscoveredSourceListModel::newUniverse(CID cid, quint16 universe)
 {
-    sACNDiscoveryRX::tDiscoveryList discoveryList = m_discoveryInstance->getDiscoveryList();
-    CID cidObj = CID::StringToCID(cid.toLatin1().data());
-
-    if (discoveryList.contains(cidObj) && m_sources.contains(cidObj))
+    if (m_sources.getRow(cid) != -1)
     {
-        int parentRow = m_sources.keys().indexOf(cidObj);
+        const auto parentRow = m_sources.getRow(cid);
         auto parent = index(parentRow,0, QModelIndex());
 
-        beginInsertRows(parent,
-                        m_sources.value(cidObj)->universes.count(),
-                        m_sources.value(cidObj)->universes.count());
-        m_sources.value(cidObj)->universes.append(universe);
-        endInsertRows();
+        if (m_sources.getRow(cid, universe) == -1)
+        {
+            const auto childRow = m_sources.count(cid);
+            beginInsertRows(parent, childRow, childRow);
+            m_sources.addUniverse(cid, universe);
+            endInsertRows();
+        }
     }
 }
 
-void sACNDiscoveredSourceListModel::expiredUniverse(QString cid, quint16 universe)
+void sACNDiscoveredSourceListModel::expiredUniverse(CID cid, quint16 universe)
 {
+    qDebug() << " Expired universe" << CID::CIDIntoQString(cid) << universe;
 
-    qDebug() << " Expired universe" << cid << universe;
-    sACNDiscoveryRX::tDiscoveryList discoveryList = m_discoveryInstance->getDiscoveryList();
-    CID cidObj = CID::StringToCID(cid.toLatin1().data());
-
-    if (discoveryList.contains(cidObj) && m_sources.contains(cidObj))
+    if (m_sources.getRow(cid) != -1)
     {
-        int childRow = m_sources.value(cidObj)->universes.indexOf(universe);
-        int parentRow = m_sources.keys().indexOf(cidObj);
-        beginRemoveRows(
-                    index(parentRow, 0, QModelIndex()),
-                    childRow,
-                    childRow);
-        m_sources.value(cidObj)->universes.removeAll(universe);
-        endRemoveRows();
+        const auto parentRow = m_sources.getRow(cid);
+        auto parent = index(parentRow,0, QModelIndex());
+        const auto childRow = m_sources.getRow(cid, universe);
+
+        if (childRow != -1)
+        {
+            beginRemoveRows(parent, childRow, childRow);
+            m_sources.removeUniverse(cid, universe);
+            endRemoveRows();
+        }
     }
 }
 
@@ -130,10 +232,11 @@ int sACNDiscoveredSourceListModel::indexToUniverse(const QModelIndex &index)
 
     if (index.parent().isValid())
     {
-        auto sourceIdx = index.parent().row();
-        auto universeIdx = index.row();
-        auto cid = m_sources.keys().at(sourceIdx);
-        return m_sources.value(cid)->universes.value(universeIdx);
+        const auto cid = m_sources.getCID(index.parent().row());
+        if (cid == CID())
+            return 0;
+
+        return m_sources.getUniverse(cid, index.row());
     }
 
     return 0;
@@ -171,7 +274,8 @@ QVariant sACNDiscoveredSourceListModel::data(const QModelIndex &index, int role)
         else
         {
             // Show CID as a tooltip
-            return QVariant(CID::CIDIntoQString(m_sources.keys()[index.row()]));
+            const auto cid = m_sources.getCID(index.row());
+            return QVariant(CID::CIDIntoQString(cid));
         }
     }
     if(role==Qt::DisplayRole)
@@ -179,21 +283,24 @@ QVariant sACNDiscoveredSourceListModel::data(const QModelIndex &index, int role)
         if(index.parent().isValid())
         {
             // Display universes
-            QString universeString = QString("Universe %1")
-                    .arg(m_sources.values()[index.parent().row()]->universes.at(index.row()));
-            return QVariant(universeString);
+            const auto cid = m_sources.getCID(index.parent().row());
+            return QVariant(
+                        QString("Universe %1")
+                        .arg(m_sources.getUniverse(cid, index.row())));
         }
         else
         {
             // Source Name
-            return QVariant(m_sources.values()[index.row()]->name);
+            const auto cid = m_sources.getCID(index.row());
+            return QVariant(m_discoveryInstance->getDiscoveryList().find(cid).value()->Name);
         }
     }
 
     if(role==Qt::UserRole && index.parent().isValid())
     {
         // Universe number
-        return QVariant(m_sources.values()[index.parent().row()]->universes.at(index.row()));
+        const auto cid = m_sources.getCID(index.parent().row());
+        return QVariant(m_sources.getUniverse(cid, index.row()));
     }
     return QVariant();
 }
@@ -206,9 +313,11 @@ QModelIndex sACNDiscoveredSourceListModel::index(int row, int column, const QMod
         return createIndex(row, column);
     if(parent.isValid() && !parent.parent().isValid())
     {
-        if (parent.row() >= m_sources.count() || parent.row() < 0)
+        const auto cid = m_sources.getCID(parent.row());
+        if (cid == CID())
             return QModelIndex();
-        if(m_sources.values()[parent.row()]->universes.count() > row)
+
+        if (m_sources.count(cid) > row)
         {
             return createIndex(row, column, parent.row() + 1);
         }
@@ -221,7 +330,6 @@ QModelIndex sACNDiscoveredSourceListModel::parent(const QModelIndex &index) cons
 {
     if(!index.isValid())
         return QModelIndex();
-
 
     if(index.internalId())
     {
@@ -244,9 +352,10 @@ int sACNDiscoveredSourceListModel::rowCount(const QModelIndex &parent) const
     // Universe count of source
     if(parent.isValid() && parent.internalPointer()==Q_NULLPTR)
     {
-        if (parent.row() >= m_sources.count() || parent.row() < 0)
+        const auto cid = m_sources.getCID(parent.row());
+        if (cid == CID())
             return 0;
-        return m_sources.values()[parent.row()]->universes.count();
+        return m_sources.count(cid);
     }
 
     return 0;
@@ -255,28 +364,41 @@ int sACNDiscoveredSourceListModel::rowCount(const QModelIndex &parent) const
 
 /******************************************* sACNDiscoveredSourceListProxy *********************************************/
 
-sACNDiscoveredSourceListProxy::sACNDiscoveredSourceListProxy(QObject *parent) : QSortFilterProxyModel (parent)
+sACNDiscoveredSourceListProxy::sACNDiscoveredSourceListProxy(QObject *parent) :
+    QSortFilterProxyModel (parent),
+    collator()
 {
+    // Used for sorting of the list
+    collator.setNumericMode(true);
+    collator.setCaseSensitivity(sortCaseSensitivity());
 }
 
+void sACNDiscoveredSourceListProxy::setSortCaseSensitivity(Qt::CaseSensitivity cs)
+{
+    collator.setCaseSensitivity(cs);
+    QSortFilterProxyModel::setSortCaseSensitivity(cs);
+}
 
 bool sACNDiscoveredSourceListProxy::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
-    QVariant leftData = sourceModel()->data(left);
-    QVariant rightData = sourceModel()->data(right);
-
-    if(left.parent().isValid() && right.parent().isValid())
+    switch (sortColumn())
     {
-        // Both have valid parents so we are looking at universes - sort by universe number
-        int leftUniverse = sourceModel()->data(left, Qt::UserRole).toInt();
-        int rightUniverse = sourceModel()->data(right, Qt::UserRole).toInt();
-        return leftUniverse<rightUniverse;
+        case 0: // Source Names
+        {
+            QString leftString = sourceModel()->data(left).toString();
+            QString rightString = sourceModel()->data(right).toString();
 
-    }
-    else {
-        // No parent - we are dealing with source names, sort alpahbetically
-        QString leftString = leftData.toString();
-        QString rightString = rightData.toString();
-        return QString::localeAwareCompare(leftString, rightString) < 0;
+            return collator.compare(leftString, rightString) < 0;
+        }
+
+        case 1: // Universe number
+        {
+            int leftUniverse = sourceModel()->data(left, Qt::UserRole).toInt();
+            int rightUniverse = sourceModel()->data(right, Qt::UserRole).toInt();
+            return leftUniverse < rightUniverse;
+        }
+
+        default:
+            return false;
     }
 }

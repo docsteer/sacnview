@@ -57,7 +57,7 @@ void sACNDiscoveryTX::sendDiscoveryPacket()
 
     // Loop through all CIDs in senders list
     auto cidList = senderList.keys();
-    for (auto cid : cidList)
+    for (const auto &cid : cidList)
     {
         // Obtain list of universes for CID
         auto universeList = senderList[cid].keys();
@@ -125,7 +125,7 @@ void sACNDiscoveryTX::sendDiscoveryPacket()
             // Universe list
             quint16 idx = 0;
 
-            for (auto universe : pageUniverseList)
+            for (auto universe : qAsConst(pageUniverseList))
             {
                PackBUint16((quint8*)pbuf.data() + DISCO_LIST_UNIVERSE_ADDR + idx, universe);
                idx += sizeof(universe);
@@ -203,23 +203,20 @@ void sACNDiscoveryRX::timeoutUniverses()
             if (universeTimer.Expired())
             {
                 auto universe = source->Universe.key(universeTimer);
-                auto cidString = CID::CIDIntoQString(m_discoveryList.key(source));
+                const auto &cid = m_discoveryList.key(source);
                 if (source->Universe.remove(universe))
                 {
-                    qDebug() << "DiscoveryRX : Expired universe - CID" << cidString << ", universe" << universe;
-                    emit expiredUniverse(
-                                cidString,
-                                universe);
+                    qDebug() << "DiscoveryRX : Expired universe - CID" << CID::CIDIntoQString(cid) << ", universe" << universe;
+                    emit expiredUniverse(cid, universe);
                 }
             }
         }
         if (!source->Universe.count())
         {
-            auto cidString = CID::CIDIntoQString(m_discoveryList.key(source));
-            m_discoveryList.remove(
-                        m_discoveryList.key(source));
-            qDebug() << "DiscoveryRX : Expired Source - CID" << cidString;
-            emit expiredSource(cidString);
+            const auto &cid = m_discoveryList.key(source);
+            m_discoveryList.remove(cid);
+            qDebug() << "DiscoveryRX : Expired Source - CID" << CID::CIDIntoQString(cid);
+            emit expiredSource(cid);
         }
     }
 }
@@ -257,7 +254,7 @@ void sACNDiscoveryRX::processPacket(quint8* pbuf, uint buflen)
     {
         m_discoveryList[cid] = new sACNSourceDetail;
         qDebug() << "DiscoveryRX : New source - CID" << CID::CIDIntoQString(cid);
-        emit newSource(CID::CIDIntoQString(cid));
+        emit newSource(cid);
     }
     m_discoveryList[cid]->Name = QString((char*)pbuf + SOURCE_NAME_ADDR);
 
@@ -277,10 +274,10 @@ void sACNDiscoveryRX::processPacket(quint8* pbuf, uint buflen)
             quint16 universe = UpackBUint16(pbuf + DISCO_LIST_UNIVERSE_ADDR + n);
             if (!m_discoveryList[cid]->Universe.contains(universe))
             {
-                qDebug() << "DiscoveryRX : New universe - CID" << CID::CIDIntoQString(cid) << ", universe" << universe;
-                emit newUniverse(CID::CIDIntoQString(cid), universe);
+                qDebug() << "DiscoveryRX : New universe - CID" << CID::CIDIntoQString(cid) << "universe" << universe;
+                emit newUniverse(cid, universe);
             }
-            m_discoveryList[cid]->Universe[universe].SetInterval(E131_UNIVERSE_DISCOVERY_INTERVAL);
+            m_discoveryList[cid]->Universe[universe].SetInterval(std::chrono::milliseconds(E131_UNIVERSE_DISCOVERY_INTERVAL));
         }
     }
     else

@@ -155,6 +155,18 @@ void UniverseView::sourceChanged(sACNSource *source)
         return;
     }
 
+    // Colours
+    QColor colourGood = Qt::green;
+    QColor colourWarning = Qt::yellow;
+    QColor colourBad = Qt::red;
+    if (Preferences::getInstance()->GetTheme() == Themes::DARK)
+    {
+        colourGood = Qt::darkGreen;
+        colourWarning = Qt::darkYellow;
+        colourBad = Qt::darkRed;
+    }
+
+
     int row = m_sourceToTableRow[source];
     ui->twSources->item(row,COL_NAME)->setText(source->name);
     ui->twSources->item(row,COL_NAME)->setBackground(Preferences::Instance().colorForCID(source->src_cid));
@@ -191,18 +203,18 @@ void UniverseView::sourceChanged(sACNSource *source)
     if (source->src_valid) {
         if (source->doing_dmx) {
             if (source->src_stable) {
-                ui->twSources->item(row,COL_ONLINE)->setBackground(Qt::green);
+                ui->twSources->item(row,COL_ONLINE)->setBackground(colourGood);
                 ui->twSources->item(row,COL_ONLINE)->setText(tr("Online"));
             } else {
-                ui->twSources->item(row,COL_ONLINE)->setBackground(Qt::yellow);
+                ui->twSources->item(row,COL_ONLINE)->setBackground(colourWarning);
                 ui->twSources->item(row,COL_ONLINE)->setText(tr("Online (Unstable)"));
             }
         } else {
-            ui->twSources->item(row,COL_ONLINE)->setBackground(Qt::yellow);
+            ui->twSources->item(row,COL_ONLINE)->setBackground(colourWarning);
             ui->twSources->item(row,COL_ONLINE)->setText(tr("No DMX"));
         }
     } else {
-        ui->twSources->item(row,COL_ONLINE)->setBackground(Qt::red);
+        ui->twSources->item(row,COL_ONLINE)->setBackground(colourBad);
         ui->twSources->item(row,COL_ONLINE)->setText(tr("Offline"));
     }
 
@@ -217,26 +229,26 @@ void UniverseView::sourceChanged(sACNSource *source)
     if (source->protocol_version == sACNProtocolPathwaySecure) {
         if (source->pathway_secure.isSecure()) {
             ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("Yes"));
-            ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::green);
+            ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(colourGood);
         } else {
             if (!source->pathway_secure.passwordOk) {
                 ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("Bad Password"));
-                ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::yellow);
+                ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(colourWarning);
             } else if (!source->pathway_secure.sequenceOk) {
                 ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("Bad Sequence"));
-                ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::yellow);
+                ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(colourWarning);
             } else if (!source->pathway_secure.digetOk) {
                 ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("Bad Message Digest"));
-                ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::red);
+                ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(colourBad);
             }
         }
     } else {
         if (Preferences::Instance().GetPathwaySecureRxDataOnly()) {
             ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("No"));
-            ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::red);
+            ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(colourBad);
         } else {
             ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("N/A"));
-            ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::white);
+            ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::transparent);
         }
     }
 

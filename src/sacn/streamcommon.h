@@ -167,6 +167,13 @@
 // Timings
 #define E131_UNIVERSE_DISCOVERY_INTERVAL 10000 //10 Seconds
 #define E131_NETWORK_DATA_LOSS_TIMEOUT 2500 // 2.5 Seconds
+#define E131_DATA_KEEP_ALIVE_INTERVAL_MIN 800 // 800 mS
+#define E131_DATA_KEEP_ALIVE_INTERVAL_MAX 1000 // 1000 mS
+// We'll go with min +25% of the difference between max and min
+static constexpr float E131_DATA_KEEP_ALIVE_FREQUENCY = 1000 /
+        (static_cast<float>(E131_DATA_KEEP_ALIVE_INTERVAL_MIN) +
+         (static_cast<float>(E131_DATA_KEEP_ALIVE_INTERVAL_MAX) - static_cast<float>(E131_DATA_KEEP_ALIVE_INTERVAL_MIN)) / 4);
+
 
 /*** Functions ***/
 

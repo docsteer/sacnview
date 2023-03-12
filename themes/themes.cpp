@@ -1,30 +1,13 @@
 #include "themes.h"
+#include "darktheme.h"
 #include "Qt-Frameless-Window-DarkStyle/DarkStyle.h"
 
-/*
- * DarkStyle theme with non-modified font point sizing
- */
-class DarkMode : public DarkStyle
-{
-    public:
-        void polish(QApplication *app) override
-        {
-            const auto pointSize = QApplication::font().pointSize();
-
-            DarkStyle::polish(app);
-
-            // Restore original point size
-            auto font = app->font();
-            font.setPointSize(pointSize);
-            app->setFont(font);
-        }
-};
 
 void Themes::apply(theme_e theme)
 {
     switch (theme) {
         case DARK:
-            QApplication::setStyle(new DarkMode);
+            QApplication::setStyle(new DarkTheme);
             break;
 
         case LIGHT:

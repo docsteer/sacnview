@@ -153,6 +153,14 @@ public slots:
     void setSecurePassword(const QString &password);
     const QString &getSecurePassword() { return m_password; }
 
+    /**
+     * @brief setSendFrequency - set minimum and maximum data send frequency
+     * @param minimum - minimum FPS
+     * @param maximum - maximum FPS
+     */
+    void setSendFrequency(float minimum, float maximum);
+    std::pair<float, float> getBackgrounRefreshFrequency() const { return std::pair(m_minSendFreq, m_maxSendFreq); }
+
 signals:
     /**
      * @brief sendingTimeout is emitted when the source stops sending
@@ -184,6 +192,11 @@ signals:
      * @brief passwordChange is emitted when the source changes password
      */
     void passwordChange();
+
+    /**
+     * @brief sendFrequencyChange is emitted when the source changes minimum or maximum data send frequency
+     */
+    void sendFrequencyChange();
 
 private slots:
     void doTimeout();
@@ -221,11 +234,10 @@ private:
     quint16 m_synchronization;
     // Secure password
     QString m_password;
+    // Minimum and maximum send frequencies
+    float m_minSendFreq;
+    float m_maxSendFreq;
 };
-
-//These definitions are to be used with the send_intervalms parameter of CreateUniverse
-#define SEND_INTERVAL_DMX	850	/*If no data has been sent in 850ms, send another DMX packet*/
-#define SEND_INTERVAL_PRIORITY 1000	/*By default, per-channel priority packets are sent once per second*/
 
 class CStreamServer : public QObject
 {
@@ -258,8 +270,8 @@ public:
           const CID& source_cid, const char* source_name, quint8 priority,
           quint16 synchronization, quint8 options, quint8 start_code,
           quint16 universe, quint16 slot_count, quint8*& pslots, uint& handle,
-          uint send_intervalms = SEND_INTERVAL_DMX,
-          uint send_max_rate = E1_11::MAX_REFRESH_RATE_HZ,
+          float minimum_send_rate = E1_11::MIN_REFRESH_RATE_HZ,
+          float maximum_send_rate = E1_11::MAX_REFRESH_RATE_HZ,
           CIPAddr unicastAddress = CIPAddr(),
           StreamingACNProtocolVersion version = StreamingACNProtocolVersion::sACNProtocolRelease);
 
@@ -294,6 +306,9 @@ public:
   void setUniversePriority(uint handle, quint8 priority);
   void setSynchronizationAddress(uint handle, quint16 address);
   void setSecurePassword(uint handle, const QString &password);
+
+  // Set the minimum and maximum send frequency (FPS)
+  void setSendFrequency(uint handle, float minimum = E1_11::MIN_REFRESH_RATE_HZ, float maximum = E1_11::MAX_REFRESH_RATE_HZ);
 
   //Use this to destroy a priority universe.
   void DEBUG_DESTROY_PRIORITY_UNIVERSE(uint handle);
@@ -347,7 +362,7 @@ private:
                                 //If NULL, this is not an active universe (just a hole in the vector)
         uint sendsize;
         bool isdirty;
-        bool suppresed;             //Transmission rate suppresed?
+        quint8 num_suppress_remaining;  //Packets left before we enter Transmission rate supression (E1.31:2016 6.6.2 (clause 1) logic)
         ttimer send_interval;       //Whether or not it's time to send a non-dirty packet
         ttimer min_interval;        //Whether it's too soon to send a packet
         QHostAddress sendaddr;      //The multicast address we're sending to
@@ -357,7 +372,7 @@ private:
 
         //and the constructor
       universe():number(0),handle(0), num_terminates(0), psend(NULL),isdirty(false),
-          suppresed(false),version(sACNProtocolRelease), cid(), password("") {}
+          num_suppress_remaining(0),version(sACNProtocolRelease), cid(), password("") {}
     };
 
     //The handle is the vector index

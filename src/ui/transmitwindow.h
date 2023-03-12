@@ -80,6 +80,9 @@ private slots:
 
     void on_rbPathwaySecure_toggled(bool checked);
 
+    void on_sbMinFPS_editingFinished();
+    void on_sbMaxFPS_editingFinished();
+
 private:
     enum TABS
     {
