@@ -97,7 +97,7 @@ jobs:
       run: ${{ matrix.make_cmd }}
 
     - name: Upload Artifact(s)
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ runner.os }}
         path: ${{ matrix.artifact }} 
