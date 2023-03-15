@@ -127,7 +127,7 @@ QVariant sACNUniverseListModel::data(const QModelIndex &index, int role) const
         if(index.parent().isValid())
         {
             sACNBasicSourceInfo *info = (sACNBasicSourceInfo *) index.internalPointer();
-            return tr("%1 (%2)").arg(info->name).arg(info->address.toString());
+            return QString("%1 (%2)").arg(info->name).arg(info->address.toString());
         }
         else
         {
@@ -214,7 +214,7 @@ void sACNUniverseListModel::sourceOnline(sACNSource *source)
     info = new sACNBasicSourceInfo(m_universes[univIndex]);
     info->cid = source->src_cid;
     info->address = source->ip;
-    info->name = source->name == Q_NULLPTR ? tr("????") : source->name;
+    info->name = source->name == Q_NULLPTR ? QString("????") : source->name;
 
     // Prevent duplicates
     if (m_universes[univIndex]->sourcesByCid.value(source->src_cid))

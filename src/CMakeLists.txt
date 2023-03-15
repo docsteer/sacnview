@@ -58,7 +58,7 @@ install(TARGETS ${PROJECT_NAME} COMPONENT ${PROJECT_NAME})
 # Create PDB files for Release
 include(mscv_pdb)
 
-# Dependencies
+# Dependencies and 3rd party libs
 include(dependencies)
 
 # Themes
@@ -67,7 +67,8 @@ include(darkstyle)
 # Translations
 find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
 FILE(GLOB TS_FILES "${PROJECT_SOURCE_DIR}/translations/*.ts")
-qt_add_translation(${PROJECT_NAME} ${TS_FILES})
+qt_add_translations(${PROJECT_NAME}
+    TS_FILES ${TS_FILES})
 
 # Version numbering
 string(TIMESTAMP YEAR "%Y")

@@ -171,7 +171,7 @@ void MultiUniverse::on_btnAddRow_pressed()
         nextUniverse = m_senders.last()->universe() + 1;
 
     QString name = Preferences::getInstance()->GetDefaultTransmitName();
-    QString postfix = tr("_%1").arg(nextUniverse);
+    QString postfix = QString("_%1").arg(nextUniverse);
     name = name + postfix;
     name.truncate(MAX_SOURCE_NAME_LEN - postfix.length());
 
@@ -426,7 +426,7 @@ void MultiUniverse::on_btnAddMulti_clicked()
     for(int i=0; i<d.universeCount(); i++)
     {
         QString name = Preferences::getInstance()->GetDefaultTransmitName();
-        QString postfix = tr("_%1").arg(d.startUniverse() + i);
+        QString postfix = QString("_%1").arg(d.startUniverse() + i);
         name = name + postfix;
         name.truncate(MAX_SOURCE_NAME_LEN - postfix.length());
         addSource(d.startUniverse() + i, d.startAddress(), d.endAddress(),

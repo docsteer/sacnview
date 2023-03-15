@@ -321,7 +321,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>TextLabel</string>
+             <string notr="true">{Level}</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -362,7 +362,7 @@
           <item>
            <widget class="QLabel" name="lblRate">
             <property name="text">
-             <string>TextLabel</string>
+             <string notr="true">{frequency}</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
