@@ -25,3 +25,11 @@ include(libpcap)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PCAP_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE pcap)
 
+# Zlib
+if (NOT WIN32)
+    find_package(ZLIB REQUIRED)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${ZLIB_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB)
+endif()
+
+

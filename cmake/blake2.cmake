@@ -13,14 +13,15 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(blake2)
 
 # Check if SSE2 is supported by target
+include(CheckCCompilerFlag)
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    if(MSVC_C_ARCHITECTURE_ID MATCHES 64 OR MSVC_CXX_ARCHITECTURE_ID MATCHES 64)
+    if(MSVC_CXX_ARCHITECTURE_ID MATCHES 64)
         set(SSE2_SUPPORTED 1)
     elseif()
-        check_c_compiler_flag("/arch:SSE2" SSE2_SUPPORTED)
+        check_cxx_compiler_flag("/arch:SSE2" SSE2_SUPPORTED)
     endif()
 else()
-    check_c_compiler_flag("-msse2" SSE2_SUPPORTED)
+    check_cxx_compiler_flag("-msse2" SSE2_SUPPORTED)
 endif()
 if(SSE2_SUPPORTED)
     set(BLAKE2_INCLUDE_DIR ${blake2_SOURCE_DIR}/sse)

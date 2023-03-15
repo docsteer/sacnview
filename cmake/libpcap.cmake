@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.18)
 include(FetchContent)
 
 set(FETCHCONTENT_QUIET OFF)
 
-# Use Npcap on Windows
 if (WIN32)
+    # Use Npcap on Windows
     FetchContent_Declare(
         npcap
         URL         https://npcap.com/dist/npcap-sdk-1.13.zip
@@ -24,4 +24,15 @@ if (WIN32)
     target_link_libraries(pcap ${npcap_LIB_FILES})
 
     set(PCAP_INCLUDE_DIR ${npcap_SOURCE_DIR}/include)
+else()
+    # Use the FindPCAP scripts from Wireshark to locate libpcap
+    file(DOWNLOAD
+        https://raw.githubusercontent.com/boundary/wireshark/master/cmake/modules/FindWSWinLibs.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/cmake/FindWSWinLibs.cmake)
+    file(DOWNLOAD
+        https://raw.githubusercontent.com/boundary/wireshark/master/cmake/modules/FindPCAP.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/cmake/FindPCAP.cmake)
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_BINARY_DIR}/cmake")
+
+    find_package(PCAP REQUIRED)
 endif()
