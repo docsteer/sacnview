@@ -14,7 +14,7 @@
 // limitations under the License.
 
 #include "preferencesdialog.h"
-#include "src/sacn/sacnlistener.h"
+#include "sacn/sacnlistener.h"
 #include "ui_preferencesdialog.h"
 #include "preferences.h"
 #include "consts.h"

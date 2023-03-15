@@ -17,7 +17,7 @@
 #include "ui_aboutdialog.h"
 #include "consts.h"
 #include <pcap.h>
-#include "translations/translations.h"
+#include "translations.h"
 
 #include <QTimer>
 #include <QDesktopServices>
@@ -30,14 +30,13 @@ aboutDialog::aboutDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    if (QString(VERSION) == QString(GIT_CURRENT_SHA1)) {
-        ui->DisplayVer->setText(QString("%1").arg(VERSION));
+    if (QString(QApplication::applicationVersion()) == QStringLiteral(VER_PRODUCTVERSION_GITTAG_STR)) {
+        ui->DisplayVer->setText(QString("%1").arg(QApplication::applicationVersion()));
     } else {
         ui->DisplayVer->setText(QString("%1\n%2")
-            .arg(VERSION, GIT_CURRENT_SHA1));
+            .arg(QApplication::applicationVersion(), VER_PRODUCTVERSION_GITTAG_STR));
     }
-    ui->displayDate->setText(QString("%1, %2 %3 %4")
-        .arg(GIT_DATE_DAY, GIT_DATE_DATE, GIT_DATE_MONTH, GIT_DATE_YEAR));
+    ui->displayDate->setText(QStringLiteral(VER_PRODUCTVERSION_DATETIME));
     ui->DisplayName->setText(AUTHORS.join("\n"));
 
     // Translators

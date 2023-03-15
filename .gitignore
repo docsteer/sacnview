@@ -26,7 +26,7 @@ Makefile*
 *-build-*
 
 # QtCreator
-
+CMakeLists.txt.user
 *.autosave
 
 #QtCtreator Qml
@@ -62,9 +62,3 @@ install/linux/usr/share/icons/hicolor/48x48/apps/sacnview\.png
 install/linux/usr/share/icons/hicolor/scalable/apps/sacnview\.png
 install/linux/build/
 install/linux/fpm-checkout/
-
-#Translations
-translations/sACNView\.ts
-
-#Breakpad
-libs/breakpad/

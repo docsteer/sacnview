@@ -16,7 +16,7 @@
 #ifndef PREFERENCESDIALOG_H
 #define PREFERENCESDIALOG_H
 
-#include "translations/translationdialog.h"
+#include "translationdialog.h"
 #include <QDialog>
 #include <QNetworkInterface>
 

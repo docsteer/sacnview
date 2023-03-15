@@ -40,7 +40,7 @@ NewVersionDialog::NewVersionDialog(QWidget *parent) : QDialog(parent), ui(new Ui
 void NewVersionDialog::setNewVersionNumber(const QString &version)
 {
     ui->lblVersion->setText(tr("sACNView %1 is available (you have %2). Would you like to download it now?")
-                            .arg(version, VERSION));
+                            .arg(version, QApplication::applicationVersion()));
     m_newVersion = version;
 }
 
@@ -189,7 +189,7 @@ VersionCheck::VersionCheck(QObject *parent):
     connect(manager, SIGNAL(finished(QNetworkReply*)),
             this, SLOT(replyFinished(QNetworkReply*)));
 
-    request.setRawHeader("User-Agent", QString("%1 %2").arg(APP_NAME, VERSION).toUtf8());
+    request.setRawHeader("User-Agent", QString("%1 %2").arg(QApplication::applicationName(), QApplication::applicationVersion()).toUtf8());
     request.setRawHeader("Accept", "application/vnd.github.v3.raw+json");
     request.setUrl(QUrl("https://api.github.com/repos/docsteer/sacnview/releases"));
 
@@ -221,11 +221,8 @@ void VersionCheck::replyFinished (QNetworkReply *reply)
         } else {
             QLocale locale("US");
 
-            QDate myDate = locale.toDate(
-                        QString("%1 %2 %3").arg(GIT_DATE_DATE, GIT_DATE_MONTH, GIT_DATE_YEAR),
-                        QString("dd MMM yyyy")
-                        );
-            qDebug() << "[Version check] My version:" << VERSION << myDate.toString() <<  "Pre Release - " << PRERELEASE;
+            QDate myDate = QDateTime::fromString(VER_PRODUCTVERSION_DATETIME, Qt::ISODate).date();
+            qDebug() << "[Version check] My version:" << QApplication::applicationVersion() << myDate.toString() <<  "Pre Release - " << PRERELEASE;
 
             QJsonArray jArray = jDoc.array();
             for (const QJsonValue &jValue : jArray) {
@@ -263,7 +260,7 @@ void VersionCheck::replyFinished (QNetworkReply *reply)
                 }
 
                 if (myDate.isValid() && objectDate.isValid()) {
-                    if (VERSION != remote_version) {
+                    if (QApplication::applicationVersion() != remote_version) {
                         if (objectDate > myDate) {
                             if (PRERELEASE || !remote_is_prerelease) { // If prerelease, always upgrade; if not, only upgrade to non-prerelease
                                 // Newer!

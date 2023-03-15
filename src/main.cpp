@@ -31,7 +31,7 @@
 #include "newversiondialog.h"
 #include "firewallcheck.h"
 #include "ipc.h"
-#include "translations/translationdialog.h"
+#include "translationdialog.h"
 #ifdef USE_BREAKPAD
     #include "crash_handler.h"
     #include "crash_test.h"
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     a.setApplicationName(APP_NAME);
-    a.setApplicationVersion(VERSION);
+    a.setApplicationVersion(VER_PRODUCTVERSION_STR);
     a.setOrganizationName("sACNView");
     a.setOrganizationDomain("tomsteer.net");
 

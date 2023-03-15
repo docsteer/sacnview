@@ -38,6 +38,8 @@ jobs:
           - os: windows-latest
             qt: '6.2.4' # Qt6 LTS
             qt_modules: 'qtmultimedia'
+            dependencies : |
+              choco install -y winflexbison3
             installer_setup: |
               Invoke-WebRequest -Uri "https://nsis.sourceforge.io/mediawiki/images/e/e0/NSIS_Simple_Firewall_Plugin_Unicode_1.21.zip" -OutFile "NSIS_Simple_Firewall_Plugin_Unicode.zip"
               7z e NSIS_Simple_Firewall_Plugin_Unicode.zip -o"C:\Program Files (x86)\NSIS\Plugins\x86-unicode"

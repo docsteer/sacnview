@@ -23,13 +23,5 @@ The application uses a couple of external libraries:
 
 * Google Breakpad for crash reporting
 * LibPCAP for captured packet playback
-
-You need to acquire the Breakpad library by using the git `submodule` command
-
-1. Clone the repository (`git clone https://github.com/docsteer/sacnview.git`)
-2. Switch to the directory (`cd sacnview`)
-3. Initialize the submodules (`git submodule init`)
-4. Download the submodule (`git submodule update`)
-
-After that, to build, open the .PRO file in the root directory and build with Qt Creator
+* Blake2 for Pathway Secure Protocol
 

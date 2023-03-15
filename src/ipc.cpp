@@ -1,6 +1,7 @@
 #include "ipc.h"
 #include "consts.h"
 #include <QString>
+#include <QApplication>
 
 #define TIME_OUT (500)    // 500ms
 
@@ -58,7 +59,7 @@ IPC_Client::IPC_Client(QLocalSocket *client, QObject *parent):
     connect(m_client, SIGNAL(disconnected()), this, SLOT(deleteLater()));
     connect(m_client, SIGNAL(readyRead()), this, SLOT(readyRead()));
 
-    QString sVersion = QString("VERSION,%1 %2").arg(APP_NAME).arg(VERSION);
+    QString sVersion = QString("VERSION,%1 %2").arg(QApplication::applicationName()).arg(QApplication::applicationVersion());
     m_client->write(sVersion.toUtf8());
     m_client->flush();
 
