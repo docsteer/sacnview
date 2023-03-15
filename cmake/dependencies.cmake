@@ -22,5 +22,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE Blake2)
 
 # libpcap
 include(libpcap)
-target_link_libraries(${PROJECT_NAME} PRIVATE pcap_static)
+target_include_directories(${PROJECT_NAME} PRIVATE ${PCAP_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} PRIVATE pcap)
 

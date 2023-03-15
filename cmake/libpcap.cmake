@@ -5,13 +5,23 @@ set(FETCHCONTENT_QUIET OFF)
 
 # Use Npcap on Windows
 if (WIN32)
-    set(DISABLE_DPDK ON CACHE INTERNAL "Disable Npcap DPDK support")
     FetchContent_Declare(
         npcap
-        GIT_REPOSITORY https://github.com/nmap/npcap.git
-        GIT_TAG        v1.72
+        URL         https://npcap.com/dist/npcap-sdk-1.13.zip
+        URL_HASH    MD5=2067B3975763DDF61D4114D28D9D6C9B
     )
     FetchContent_MakeAvailable(npcap)
-    add_subdirectory(${npcap_SOURCE_DIR}/wpcap/libpcap ${npcap_BINARY_DIR})
-    include_directories(${npcap_SOURCE_DIR}/wpcap/libpcap)
+
+    if(CMAKE_CXX_COMPILER_ARCHITECTURE_ID MATCHES "x64")
+        set(npcap_LIB_DIR ${npcap_SOURCE_DIR}/Lib/x64)
+    else()
+        set(npcap_LIB_DIR ${npcap_SOURCE_DIR}/Lib/)
+    endif()
+    set(npcap_LIB_FILES
+        ${npcap_LIB_DIR}/Packet.lib
+        ${npcap_LIB_DIR}/wpcap.lib)
+    add_library(pcap ${npcap_LIB_FILES})
+    target_link_libraries(pcap ${npcap_LIB_FILES})
+
+    set(PCAP_INCLUDE_DIR ${npcap_SOURCE_DIR}/include)
 endif()
