@@ -32,10 +32,8 @@
 #include "firewallcheck.h"
 #include "ipc.h"
 #include "translationdialog.h"
-#ifdef USE_BREAKPAD
-    #include "crash_handler.h"
-    #include "crash_test.h"
-#endif
+#include "crash_handler.h"
+#include "crash_test.h"
 
 int main(int argc, char *argv[])
 {
@@ -46,7 +44,6 @@ int main(int argc, char *argv[])
     a.setOrganizationName("sACNView");
     a.setOrganizationDomain("tomsteer.net");
 
-#ifdef USE_BREAKPAD
     // Breakpad Crash Handler
     Breakpad::CrashHandler::instance()->Init(QStandardPaths::writableLocation(QStandardPaths::TempLocation));
 
@@ -55,7 +52,6 @@ int main(int argc, char *argv[])
         CrashTest *crashwindow = new CrashTest;
         crashwindow->show();
     }
-#endif
 
     // Setup theme
     Themes::apply(Preferences::getInstance()->GetTheme());

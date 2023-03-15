@@ -8,7 +8,9 @@
     #include "Windows.h"
 #endif
  
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_MAC)
+#include "client/mac/handler/exception_handler.h"
+#elif defined(Q_OS_LINUX)
 #include "client/linux/handler/exception_handler.h"
 #elif defined(Q_OS_WIN32)
 #include "client/windows/handler/exception_handler.h"
