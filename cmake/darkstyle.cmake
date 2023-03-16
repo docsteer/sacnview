@@ -6,8 +6,10 @@ set(FETCHCONTENT_QUIET OFF)
 # DarkStyle is used for the dark theme
 FetchContent_Declare(
     DarkStyle
-    GIT_REPOSITORY    https://github.com/Jorgen-VikingGod/Qt-Frameless-Window-DarkStyle.git
-    GIT_TAG           origin/master
+    GIT_REPOSITORY  https://github.com/Jorgen-VikingGod/Qt-Frameless-Window-DarkStyle.git
+    GIT_TAG         origin/master
+    GIT_SHALLOW     TRUE
+    GIT_PROGRESS    TRUE
 )
 FetchContent_MakeAvailable(DarkStyle)
 

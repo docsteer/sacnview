@@ -7,6 +7,8 @@ FetchContent_Declare(
     breakpad
     GIT_REPOSITORY  https://chromium.googlesource.com/breakpad/breakpad
     GIT_TAG         origin/main
+    GIT_SHALLOW     TRUE
+    GIT_PROGRESS    TRUE
 )
 FetchContent_MakeAvailable(breakpad)
 set(BREAKPAD_INCLUDE_DIR ${breakpad_SOURCE_DIR}/src)
@@ -15,6 +17,8 @@ FetchContent_Declare(
     lss
     GIT_REPOSITORY  https://chromium.googlesource.com/linux-syscall-support
     GIT_TAG         origin/main
+    GIT_SHALLOW     TRUE
+    GIT_PROGRESS    TRUE
     SOURCE_DIR      ${breakpad_SOURCE_DIR}/src/third_party/lss
 )
 FetchContent_MakeAvailable(lss)
