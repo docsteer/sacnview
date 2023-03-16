@@ -7,8 +7,8 @@ FetchContent_Declare(
     blake2
     GIT_REPOSITORY  https://github.com/BLAKE2/BLAKE2.git
     GIT_TAG         ed1974ea83433eba7b2d95c5dcd9ac33cb847913
-    PATCH_COMMAND   git apply --ignore-space-change --ignore-whitespace ${PROJECT_SOURCE_DIR}/patch/blake2.patch
-    UPDATE_COMMAND ""
+    PATCH_COMMAND   git reset --hard && git apply --ignore-space-change --ignore-whitespace ${PROJECT_SOURCE_DIR}/patch/blake2.patch
+    UPDATE_COMMAND  ""
 )
 FetchContent_MakeAvailable(blake2)
 
