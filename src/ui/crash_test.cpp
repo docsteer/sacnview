@@ -20,7 +20,7 @@ CrashTest::CrashTest(QWidget *parent) :
         ui->verticalLayout->addWidget(b);
     }
 
-    connect(m_signalMapper, SIGNAL(mapped(int)),
+    connect(m_signalMapper, SIGNAL(mappedInt(int)),
                 this, SLOT(crashMethod(int)));
 }
 
