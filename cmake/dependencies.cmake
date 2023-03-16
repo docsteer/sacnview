@@ -32,4 +32,6 @@ if (NOT WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB)
 endif()
 
-
+# OpenSSL
+include(openssl)
+target_link_libraries(${PROJECT_NAME} PRIVATE OpenSSL::SSL OpenSSL::Crypto)
