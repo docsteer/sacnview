@@ -48,6 +48,8 @@ namespace Breakpad {
     bool DumpCallback(const wchar_t* _dump_dir,const wchar_t* _minidump_id,void* context,EXCEPTION_POINTERS* exinfo,MDRawAssertionInfo* assertion,bool success)
 #elif defined(Q_OS_LINUX)
     bool DumpCallback(const google_breakpad::MinidumpDescriptor &md,void *context, bool success)
+#elif defined(Q_OS_MACOS)
+    bool DumpCallback(const char *dump_dir, const char *minidump_id, void *context, bool succeeded)
 #endif
     {
         Q_UNUSED(context);
@@ -71,7 +73,7 @@ namespace Breakpad {
                MB_ICONERROR | MB_OK | MB_DEFBUTTON1
            );
 
-#elif defined(Q_OS_LINUX)
+#elif defined(Q_OS_LINUX) || defined(Q_OS_MACOS)
         // Output to stderr
         fprintf(stderr,
                 "%s\r\n%s %s\r\n",
@@ -93,26 +95,30 @@ namespace Breakpad {
             return;
  
 #if defined(Q_OS_WIN32)
-        std::wstring pathAsStr = (const wchar_t*)dumpPath.utf16();
         pHandler = new google_breakpad::ExceptionHandler(
-            pathAsStr,
-            /*FilterCallback*/ 0,
+            dumpPath.toStdWString(),
+            0, // FilterCallback
             DumpCallback,
-            /*context*/
-            0,
-            true
-            );
+            0, // callback_context
+            google_breakpad::ExceptionHandler::HANDLER_ALL);
 #elif defined(Q_OS_LINUX)
         std::string pathAsStr = dumpPath.toStdString();
         google_breakpad::MinidumpDescriptor md(pathAsStr);
         pHandler = new google_breakpad::ExceptionHandler(
             md,
-            /*FilterCallback*/ 0,
+            /**/ 0, //
             DumpCallback,
-            /*context*/ 0,
-            true,
-            -1
-            );
+            0, // callback_context
+            true, // install_handler
+            -1); // server_fd If it is -1, in-process generation will always be used.
+#elif defined(Q_OS_MACOS)
+        pHandler = new google_breakpad::ExceptionHandler(
+            dumpPath.toStdString(),
+            0, // FilterCallback
+            DumpCallback,
+            0, // callback_context
+            true,  // install_handler
+            NULL); // If port_name is NULL, in-process dump generation will be used
 #endif
     }
  
