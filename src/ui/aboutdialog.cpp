@@ -17,6 +17,7 @@
 #include "ui_aboutdialog.h"
 #include "consts.h"
 #include <pcap.h>
+#include <openssl/opensslv.h>
 #include "translations.h"
 
 #include <QTimer>
@@ -70,6 +71,11 @@ aboutDialog::aboutDialog(QWidget *parent) :
     ui->lblLibs->setText(ui->lblLibs->text() +
         tr("<p>This application uses <a href=\"https://www.blake2.net/\">BLAKE2</a><br>"
            "Licensed under the <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\">Creative Commons Zero v1.0 Universal</a></p>"));
+    ui->lblLibs->setText(ui->lblLibs->text() +
+        tr("<p>This application uses <a href=\"https://www.openssl.org/\">OpenSSL</a><br>"
+           "%1<br>"
+           "Licensed under the <a href=\"https://www.openssl.org/source/license.html\">Licensed under the OpenSSL license</a></p>")
+        .arg(OPENSSL_VERSION_TEXT));
 
     // Setup diagnostics tree
     ui->twDiag->setColumnCount(2);
