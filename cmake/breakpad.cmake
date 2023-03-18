@@ -42,10 +42,15 @@ if(APPLE)
         ${BREAKPAD_INCLUDE_DIR}/client/mac/handler/dynamic_images.cc
         ${BREAKPAD_INCLUDE_DIR}/client/mac/handler/exception_handler.cc
         ${BREAKPAD_INCLUDE_DIR}/client/mac/handler/minidump_generator.cc
+        ${BREAKPAD_INCLUDE_DIR}/client/mac/handler/protected_memory_allocator.cc
         ${BREAKPAD_INCLUDE_DIR}/common/mac/MachIPC.mm
+        ${BREAKPAD_INCLUDE_DIR}/common/mac/arch_utilities.cc
         ${BREAKPAD_INCLUDE_DIR}/common/mac/bootstrap_compat.cc
+        ${BREAKPAD_INCLUDE_DIR}/common/mac/dump_syms.cc
         ${BREAKPAD_INCLUDE_DIR}/common/mac/file_id.cc
+        ${BREAKPAD_INCLUDE_DIR}/common/mac/launch_reporter.cc
         ${BREAKPAD_INCLUDE_DIR}/common/mac/macho_id.cc
+        ${BREAKPAD_INCLUDE_DIR}/common/mac/macho_reader.cc
         ${BREAKPAD_INCLUDE_DIR}/common/mac/macho_utilities.cc
         ${BREAKPAD_INCLUDE_DIR}/common/mac/macho_walker.cc
         ${BREAKPAD_INCLUDE_DIR}/common/mac/string_utilities.cc
