@@ -6,6 +6,8 @@
 #include <QDebug>
 #ifdef Q_OS_WIN
     #include "Windows.h"
+#else
+    #include <iostream>
 #endif
  
 #if defined(Q_OS_MAC)
@@ -45,41 +47,53 @@ namespace Breakpad {
     /* DumpCallback                                                         */
     /************************************************************************/
 #if defined(Q_OS_WIN32)
-    bool DumpCallback(const wchar_t* _dump_dir,const wchar_t* _minidump_id,void* context,EXCEPTION_POINTERS* exinfo,MDRawAssertionInfo* assertion,bool success)
+    bool DumpCallback(const wchar_t* _dump_dir, const wchar_t* _minidump_id,
+                      void* context,
+                      EXCEPTION_POINTERS* exinfo,
+                      MDRawAssertionInfo* assertion,
+                      bool success)
 #elif defined(Q_OS_LINUX)
-    bool DumpCallback(const google_breakpad::MinidumpDescriptor &md,void *context, bool success)
+    bool DumpCallback(const google_breakpad::MinidumpDescriptor &md,
+                      void *context,
+                      bool success)
 #elif defined(Q_OS_MACOS)
-    bool DumpCallback(const char *dump_dir, const char *minidump_id, void *context, bool succeeded)
+    bool DumpCallback(const char *dump_dir, const char *minidump_id,
+                      void *context,
+                      bool success)
 #endif
     {
         Q_UNUSED(context);
 #if defined(Q_OS_WIN32)
-        Q_UNUSED(_dump_dir);
-        Q_UNUSED(_minidump_id);
         Q_UNUSED(assertion);
         Q_UNUSED(exinfo);
 #endif
 
+#if defined(Q_OS_WIN32)
+        std::wstring dumpMessage(L
+#else
+        std::string dumpMessage(
+#endif
+                    "Unfortunately sACNView encountered an error and needs to close.\r\n"
+                    "Please sumbit a crash report with the dump file located at: ");
+
+#if defined(Q_OS_WIN32)
+        dumpMessage.append(_dump_dir).append(L"\\").append(+_minidump_id);
+#elif defined(Q_OS_LINUX)
+        dumpMessage += md.path();
+#elif defined(Q_OS_MACOS)
+        dumpMessage.append(dump_dir).append("/").append(minidump_id);
+#endif
+
 #ifdef Q_OS_WIN
         // Show a dialog - use WinAPI
-        wchar_t message[512];
-        swprintf_s(message, 512, L"Unfortunately sACNView encountered an error and needs to close.\r\nPlease sumbit a crash report with the dump file located at %ls/%ls.dmp",
-                   _dump_dir,
-                   _minidump_id);
         MessageBox(
-               NULL,
-               message,
-               (LPCWSTR)L"sACNView Fatal Error",
-               MB_ICONERROR | MB_OK | MB_DEFBUTTON1
-           );
-
+            NULL,
+            dumpMessage,
+            (LPCWSTR)L"sACNView Fatal Error",
+            MB_ICONERROR | MB_OK | MB_DEFBUTTON1);
 #elif defined(Q_OS_LINUX) || defined(Q_OS_MACOS)
         // Output to stderr
-        fprintf(stderr,
-                "%s\r\n%s %s\r\n",
-                "Unfortunately sACNView encountered an error and needs to close.",
-                "Please sumbit a crash report with the dump file located at",
-                md.path());
+        std::cerr << dumpMessage.c_str();
 #endif
  
         /*
