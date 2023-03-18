@@ -30,10 +30,8 @@ jobs:
               sudo apt-get install mesa-common-dev libgl1-mesa-dev libpcap-dev libgstreamer-gl1.0-0 libgstreamer-plugins-base1.0-0 libxkbcommon-x11-0 -y
             installer_setup: |
               sudo gem install --no-document fpm
-            make_cmd: make
             artifact: |
-              install/linux/sACNView*.AppImage
-              install/linux/*.deb
+              build/src/sACNView
 
           - os: windows-latest
             qt: '6.2.4' # Qt6 LTS
@@ -44,10 +42,9 @@ jobs:
               Invoke-WebRequest -Uri "https://nsis.sourceforge.io/mediawiki/images/e/e0/NSIS_Simple_Firewall_Plugin_Unicode_1.21.zip" -OutFile "NSIS_Simple_Firewall_Plugin_Unicode.zip"
               7z e NSIS_Simple_Firewall_Plugin_Unicode.zip -o"C:\Program Files (x86)\NSIS\Plugins\x86-unicode"
             arch: win32_msvc2019
-            make_cmd: nmake
             artifact: |
-              install/win/sACNView*.exe
-              release/*.pdb 
+              build/src/sACNView.exe
+              build/src/sACNView.pdb 
 
           - os: macos-latest
             qt: '6.2.4' # Qt6 LTS
@@ -55,8 +52,8 @@ jobs:
             installer_setup: |
               brew install create-dmg
             xcode: latest-stable
-            make_cmd: make
-            artifact: install/mac/sACNView*.dmg 
+            artifact: 
+              build/src/sACNView
 
     steps:
     - name: Checkout
@@ -88,15 +85,15 @@ jobs:
       with:
         xcode-version: ${{ matrix.xcode }}
 
-    - name: Run qmake
+    - name: Configure Build
       shell: bash
       run: |
-        if [[ -n "${Qt5_DIR}" ]]; then export QTDIR=${Qt5_DIR}; fi
-        if [[ -n "${Qt6_DIR}" ]]; then export QTDIR=${Qt6_DIR}; fi
-        qmake sACNView.pro
+        if [[ -n "${Qt5_DIR}" ]]; then export CMAKE_PREFIX_PATH=${Qt5_DIR}; fi
+        if [[ -n "${Qt6_DIR}" ]]; then export CMAKE_PREFIX_PATH=${Qt6_DIR}; fi
+        cmake -S . -B build -DCMAKE_BUILD_TYPE=Release 
 
-    - name: Run make
-      run: ${{ matrix.make_cmd }}
+    - name: Build
+      run: cmake --build build --config Release
 
     - name: Upload Artifact(s)
       uses: actions/upload-artifact@v3
