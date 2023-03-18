@@ -48,7 +48,7 @@ if(NOT ${OPENSSL_FOUND})
         BUILD_COMMAND
             ${OpenSSL_MAKE_COMMAND}
         INSTALL_COMMAND
-            ${OpenSSL_MAKE_COMMAND} install
+            ${OpenSSL_MAKE_COMMAND} install_sw
         UPDATE_COMMAND          ""
         BUILD_BYPRODUCTS
             <INSTALL_DIR>/install/lib/libssl${CMAKE_STATIC_LIBRARY_SUFFIX}
