@@ -8,26 +8,82 @@ find_package(OpenSSL ${OPENSSL_TARGET_VERSION} EXACT)
 if(NOT ${OPENSSL_FOUND})
     # Not found, pull and compile
 
+    # Parse version
+    string(REGEX REPLACE "^([0-9]+)\\.[0-9]+\\.[0-9]+" "\\1" OPENSSL_TARGET_VERSION_MAJOR "${OPENSSL_TARGET_VERSION}")
+    string(REGEX REPLACE "^[0-9]+\\.([0-9])+\\.[0-9]+" "\\1" OPENSSL_TARGET_VERSION_MINOR  "${OPENSSL_TARGET_VERSION}")
+    string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+)" "\\1" OPENSSL_TARGET_VERSION_PATCH  "${OPENSSL_TARGET_VERSION}")
+
+    # Pull and compile
     if(WIN32)
         set(OpenSSL_MAKE_COMMAND nmake)
 
         # Perl is needed to configure
-        find_package(Perl)
-        if (NOT Perl_FOUND)
-            message(FATAL_ERROR "Perl is required for OpenSSL, install from https://strawberryperl.com/")
+        # OpenSSL can be picky about the brand, lets download a portable version of Strawberry
+        set(STRAWBERRY_PERL_VERSION 5.32.1.1)
+        if(CMAKE_CXX_COMPILER_ARCHITECTURE_ID MATCHES "x64")
+            set(STRAWBERRY_PERL_URL "https://strawberryperl.com/download/${STRAWBERRY_PERL_VERSION}/strawberry-perl-${STRAWBERRY_PERL_VERSION}-64bit-portable.zip")
+        else()
+            set(STRAWBERRY_PERL_URL "https://strawberryperl.com/download/${STRAWBERRY_PERL_VERSION}/strawberry-perl-${STRAWBERRY_PERL_VERSION}-32bit-portable.zip")
         endif()
+        FetchContent_Declare(
+            strawberry_perl
+            URL                 ${STRAWBERRY_PERL_URL}
+            BUILD_COMMAND       ""
+            CONFIGURE_COMMAND   ""
+            INSTALL_COMMAND     ""
+            UPDATE_COMMAND      ""
+        )
+        FetchContent_MakeAvailable(strawberry_perl)
+        find_file(
+            STRAWBERRY_PERL_EXECUTABLE
+            NAMES portableshell.bat
+            PATHS ${strawberry_perl_SOURCE_DIR}
+            REQUIRED
+            )
 
+        # OpenSSL config command using Strawberry
         if(CMAKE_CXX_COMPILER_ARCHITECTURE_ID MATCHES "x64")
             set(OpenSSL_CONFIG_COMMAND
-                ${PERL_EXECUTABLE} <SOURCE_DIR>/Configure VC-WIN64A-masm)
+                ${STRAWBERRY_PERL_EXECUTABLE} <SOURCE_DIR>/Configure VC-WIN64A-masm)
         elseif()
             set(OpenSSL_CONFIG_COMMAND
-                ${PERL_EXECUTABLE} <SOURCE_DIR>/Configure VC-WIN32)
+                ${STRAWBERRY_PERL_EXECUTABLE} <SOURCE_DIR>/Configure VC-WIN32)
         endif()
 
     else()
         set(OpenSSL_MAKE_COMMAND make)
         set(OpenSSL_CONFIG_COMMAND <SOURCE_DIR>/config)   
+    endif()
+
+    # Debug build?
+    if (CMAKE_BUILD_TYPE MATCHES "Debug")
+        set(OpenSSL_CONFIG_BUILD_TYPE "--debug")
+    else()
+        set(OpenSSL_CONFIG_BUILD_TYPE "--release")
+    endif()
+
+    # Target files
+    include(GNUInstallDirs)
+    set(OpenSSL_SSL_IMPORTED_IMPLIB ${CMAKE_INSTALL_LIBDIR}/libssl${CMAKE_STATIC_LIBRARY_SUFFIX})
+    set(OpenSSL_CRYPTO_IMPORTED_IMPLIB ${CMAKE_INSTALL_LIBDIR}/libcrypto${CMAKE_STATIC_LIBRARY_SUFFIX})
+    if(WIN32)
+        set(OpenSSL_SSL_IMPORTED_LOCATION
+            ${CMAKE_INSTALL_BINDIR}/libssl-${OPENSSL_TARGET_VERSION_MAJOR}_${OPENSSL_TARGET_VERSION_MINOR}${CMAKE_STATIC_LIBRARY_SUFFIX})
+        set(OpenSSL_SSL_IMPORTED_SONAME
+            libssl-${OPENSSL_TARGET_VERSION_MAJOR}_${OPENSSL_TARGET_VERSION_MINOR}${CMAKE_STATIC_LIBRARY_SUFFIX})
+        set(OpenSSL_CRYPTO_IMPORTED_LOCATION
+            ${CMAKE_INSTALL_BINDIR}/libcrypto-${OPENSSL_TARGET_VERSION_MAJOR}_${OPENSSL_TARGET_VERSION_MINOR}${CMAKE_STATIC_LIBRARY_SUFFIX})
+        set(OpenSSL_CRYPTO_IMPORTED_SONAME
+            libcrypto-${OPENSSL_TARGET_VERSION_MAJOR}_${OPENSSL_TARGET_VERSION_MINOR}${CMAKE_STATIC_LIBRARY_SUFFIX})
+    else()
+        set(OpenSSL_SSL_IMPORTED_LOCATION
+            ${CMAKE_INSTALL_LIBDIR}/libssl${CMAKE_SHARED_LIBRARY_SUFFIX})
+        set(OpenSSL_SSL_IMPORTED_SONAME
+            libssl${CMAKE_SHARED_LIBRARY_SUFFIX})
+        set(OpenSSL_CRYPTO_IMPORTED_LOCATION
+            ${CMAKE_INSTALL_LIBDIR}/libcrypto${CMAKE_SHARED_LIBRARY_SUFFIX}.${OPENSSL_TARGET_VERSION_MAJOR}.${OPENSSL_TARGET_VERSION_MINOR})
+        set(OpenSSL_CRYPTO_IMPORTED_SONAME
+            libcrypto${CMAKE_SHARED_LIBRARY_SUFFIX})
     endif()
 
     ExternalProject_Add(
@@ -45,35 +101,67 @@ if(NOT ${OPENSSL_FOUND})
             --prefix=<INSTALL_DIR>/install
             --openssldir=<INSTALL_DIR>/install
             no-tests
+            ${OpenSSL_CONFIG_BUILD_TYPE}
         BUILD_COMMAND
             ${OpenSSL_MAKE_COMMAND}
         INSTALL_COMMAND
             ${OpenSSL_MAKE_COMMAND} install_sw
         UPDATE_COMMAND          ""
         BUILD_BYPRODUCTS
-            <INSTALL_DIR>/install/lib/libssl${CMAKE_STATIC_LIBRARY_SUFFIX}
-            <INSTALL_DIR>/install/lib/libcrypto${CMAKE_STATIC_LIBRARY_SUFFIX}
+            <INSTALL_DIR>/install/${OpenSSL_SSL_IMPORTED_LOCATION}
+            <INSTALL_DIR>/install/${OpenSSL_SSL_IMPORTED_IMPLIB}
+            <INSTALL_DIR>/install/${OpenSSL_CRYPTO_IMPORTED_LOCATION}
+            <INSTALL_DIR>/install/${OpenSSL_CRYPTO_IMPORTED_IMPLIB}
     )
     ExternalProject_Get_Property(OpenSSL SOURCE_DIR BINARY_DIR INSTALL_DIR)
     set(OpenSSL_INSTALL_DIR ${INSTALL_DIR}/install)
-    set(OpenSSL_BINARY_DIR ${OpenSSL_INSTALL_DIR}/lib)
     set(OpenSSL_INCLUDE_DIR ${OpenSSL_INSTALL_DIR}/include)
 
     # Create the dir now, else INTERFACE_INCLUDE_DIRECTORIES fails
     file(MAKE_DIRECTORY ${OpenSSL_INCLUDE_DIR})
 
-    add_library(OpenSSL::SSL STATIC IMPORTED GLOBAL)
+    add_library(OpenSSL::SSL SHARED IMPORTED GLOBAL)
     set_target_properties(OpenSSL::SSL PROPERTIES
-        IMPORTED_LOCATION ${OpenSSL_BINARY_DIR}/libssl${CMAKE_STATIC_LIBRARY_SUFFIX}
-        INTERFACE_INCLUDE_DIRECTORIES ${OpenSSL_INCLUDE_DIR}
+        VERSION
+            ${OPENSSL_TARGET_VERSION}
+        SOVERSION
+            ${OPENSSL_TARGET_VERSION_MAJOR}.${OPENSSL_TARGET_VERSION_MINOR}
+        IMPORTED_LOCATION
+            ${OpenSSL_INSTALL_DIR}/${OpenSSL_SSL_IMPORTED_LOCATION}
+        IMPORTED_SONAME
+            ${OpenSSL_INSTALL_DIR}/${OpenSSL_SSL_IMPORTED_SONAME}
+        IMPORTED_IMPLIB
+            ${OpenSSL_INSTALL_DIR}/${OpenSSL_SSL_IMPORTED_IMPLIB}
+        INTERFACE_INCLUDE_DIRECTORIES
+            ${OpenSSL_INCLUDE_DIR}
     )
     add_dependencies(OpenSSL::SSL OpenSSL)
 
-    add_library(OpenSSL::Crypto STATIC IMPORTED GLOBAL)
+    add_library(OpenSSL::Crypto SHARED IMPORTED GLOBAL)
     set_target_properties(OpenSSL::Crypto PROPERTIES
-        IMPORTED_LOCATION ${OpenSSL_BINARY_DIR}/libcrypto${CMAKE_STATIC_LIBRARY_SUFFIX}
-        INTERFACE_INCLUDE_DIRECTORIES ${OpenSSL_INCLUDE_DIR}
+        VERSION
+            ${OPENSSL_TARGET_VERSION}
+        SOVERSION
+            ${OPENSSL_TARGET_VERSION_MAJOR}.${OPENSSL_TARGET_VERSION_MINOR}
+        IMPORTED_LOCATION
+            ${OpenSSL_INSTALL_DIR}/${OpenSSL_CRYPTO_IMPORTED_LOCATION}
+        IMPORTED_SONAME
+            ${OpenSSL_INSTALL_DIR}/${OpenSSL_CRYPTO_IMPORTED_SONAME}
+        IMPORTED_IMPLIB
+            ${OpenSSL_INSTALL_DIR}/${OpenSSL_CRYPTO_IMPORTED_IMPLIB}
+        INTERFACE_INCLUDE_DIRECTORIES
+            ${OpenSSL_INCLUDE_DIR}
     )
     add_dependencies(OpenSSL::Crypto OpenSSL)
+
+    # Install imported libraries
+    cmake_minimum_required(VERSION 3.21)
+    include(GNUInstallDirs)
+    install(
+        IMPORTED_RUNTIME_ARTIFACTS OpenSSL::SSL OpenSSL::Crypto
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT OpenSSL
+    )
 
 endif(NOT ${OPENSSL_FOUND})
