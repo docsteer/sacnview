@@ -68,13 +68,14 @@ namespace Breakpad {
         Q_UNUSED(exinfo);
 #endif
 
+
 #if defined(Q_OS_WIN32)
-        std::wstring dumpMessage(L
+        std::wstring dumpMessage(L"Unfortunately sACNView encountered an error and needs to close.\r\n"
+                                 "Please sumbit a crash report with the dump file located at: ");
 #else
-        std::string dumpMessage(
+        std::string dumpMessage("Unfortunately sACNView encountered an error and needs to close.\r\n"
+                                "Please sumbit a crash report with the dump file located at: ");
 #endif
-                    "Unfortunately sACNView encountered an error and needs to close.\r\n"
-                    "Please sumbit a crash report with the dump file located at: ");
 
 #if defined(Q_OS_WIN32)
         dumpMessage.append(_dump_dir).append(L"\\").append(+_minidump_id);
@@ -88,7 +89,7 @@ namespace Breakpad {
         // Show a dialog - use WinAPI
         MessageBox(
             NULL,
-            dumpMessage,
+            dumpMessage.c_str(),
             (LPCWSTR)L"sACNView Fatal Error",
             MB_ICONERROR | MB_OK | MB_DEFBUTTON1);
 #elif defined(Q_OS_LINUX) || defined(Q_OS_MACOS)
