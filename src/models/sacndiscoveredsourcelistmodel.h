@@ -66,14 +66,14 @@ private:
          * @brief Count
          * @return Number of sources
          */
-        size_t count() const;
+        qsizetype count() const;
 
         /**
          * @brief Count
          * @param cid Source
          * @return Number of universes for source
          */
-        size_t count(const CID &cid) const;
+        qsizetype count(const CID &cid) const;
 
 
     private:

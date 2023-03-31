@@ -114,13 +114,13 @@ int sACNDiscoveredSourceListModel::modelContainer::getRow(const CID &cid, univer
     return universes.at(sourceRow).indexOf(universe);
 }
 
-size_t sACNDiscoveredSourceListModel::modelContainer::count() const
+qsizetype sACNDiscoveredSourceListModel::modelContainer::count() const
 {
     QMutexLocker locker(&listMutex);
     return sources.count();
 }
 
-size_t sACNDiscoveredSourceListModel::modelContainer::count(const CID &cid) const
+qsizetype sACNDiscoveredSourceListModel::modelContainer::count(const CID &cid) const
 {
     QMutexLocker locker(&listMutex);
 
