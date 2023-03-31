@@ -198,7 +198,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     ui->lePathwaySecurePassword->setText(Preferences::Instance().GetPathwaySecureTxPassword());
 
     // Minimum FPS
-    if (!Preferences::getInstance()->GetTXRateOverride()) {
+    if (!Preferences::Instance().GetTXRateOverride()) {
         ui->sbMinFPS->setMinimum(E1_11::MIN_REFRESH_RATE_HZ);
         ui->sbMinFPS->setMaximum(E1_11::MAX_REFRESH_RATE_HZ);
         ui->sbMaxFPS->setMinimum(E1_11::MIN_REFRESH_RATE_HZ);

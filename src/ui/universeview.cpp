@@ -159,7 +159,7 @@ void UniverseView::sourceChanged(sACNSource *source)
     QColor colourGood = Qt::green;
     QColor colourWarning = Qt::yellow;
     QColor colourBad = Qt::red;
-    if (Preferences::getInstance()->GetTheme() == Themes::DARK)
+    if (Preferences::Instance().GetTheme() == Themes::DARK)
     {
         colourGood = Qt::darkGreen;
         colourWarning = Qt::darkYellow;

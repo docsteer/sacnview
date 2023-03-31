@@ -48,7 +48,7 @@ public:
     ~Preferences();
 
     /**
-     * @brief getInstance - returns the instance of the Preferences class
+     * @brief Instance - returns the instance of the Preferences class
      * @return the instance
      */
     static Preferences &Instance();
