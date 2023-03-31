@@ -92,7 +92,7 @@ bool sACNTxSocket::bind()
                 setSocketOption(QAbstractSocket::MulticastLoopbackOption, QVariant(0));
 #endif
 
-                setSocketOption(QAbstractSocket::MulticastTtlOption, QVariant(Preferences::getInstance()->GetMulticastTtl()));
+                setSocketOption(QAbstractSocket::MulticastTtlOption, QVariant(Preferences::Instance().GetMulticastTtl()));
 
                 setMulticastInterface(m_interface);
                 qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Bound to interface:" << multicastInterface().name();
@@ -128,7 +128,7 @@ qint64 sACNTxSocket::writeDatagram(const char *data, qint64 len, const QHostAddr
     // Copy to correct internal listener(s) for local display, if required by platform
     if (writeDatagramLoopbackTest(host, localAddress())) {
         CIPAddr addr;
-        for (auto &weakListener : sACNManager::getInstance()->getListenerList()) {
+        for (auto &weakListener : sACNManager::Instance().getListenerList()) {
             sACNManager::tListener listener(weakListener);
             if (listener) {
                 GetUniverseAddress(listener->universe(), addr);

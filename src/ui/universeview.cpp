@@ -45,7 +45,7 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::UniverseView),
     m_parentWindow(parent), // needed as parent() in qobject world isn't..
-    m_displayDDOnlySource(Preferences::getInstance()->GetETCDisplayDDOnly())
+    m_displayDDOnlySource(Preferences::Instance().GetETCDisplayDDOnly())
 {
     ui->setupUi(this);
     UniverseDisplay *univDisplay = ui->universeDisplay;
@@ -81,7 +81,7 @@ void UniverseView::startListening(int universe)
     ui->btnGo->setEnabled(false);
     ui->btnPause->setEnabled(true);
     ui->sbUniverse->setEnabled(false);
-    m_listener = sACNManager::getInstance()->getListener(universe);
+    m_listener = sACNManager::Instance().getListener(universe);
     connect(m_listener.data(), SIGNAL(listenerStarted(int)), this, SLOT(listenerStarted(int)));
     checkBind();
     ui->universeDisplay->setUniverse(universe);
@@ -159,7 +159,7 @@ void UniverseView::sourceChanged(sACNSource *source)
     QColor colourGood = Qt::green;
     QColor colourWarning = Qt::yellow;
     QColor colourBad = Qt::red;
-    if (Preferences::getInstance()->GetTheme() == Themes::DARK)
+    if (Preferences::Instance().GetTheme() == Themes::DARK)
     {
         colourGood = Qt::darkGreen;
         colourWarning = Qt::darkYellow;
@@ -169,7 +169,7 @@ void UniverseView::sourceChanged(sACNSource *source)
 
     int row = m_sourceToTableRow[source];
     ui->twSources->item(row,COL_NAME)->setText(source->name);
-    ui->twSources->item(row,COL_NAME)->setBackground(Preferences::getInstance()->colorForCID(source->src_cid));
+    ui->twSources->item(row,COL_NAME)->setBackground(Preferences::Instance().colorForCID(source->src_cid));
     ui->twSources->item(row,COL_CID)->setText(source->src_cid);
     ui->twSources->item(row,COL_PRIO)->setText(QString::number(source->priority));
 
@@ -221,7 +221,7 @@ void UniverseView::sourceChanged(sACNSource *source)
     ui->twSources->item(row,COL_VER)->setText(protocolVerToString(source->protocol_version));
     ui->twSources->item(row,COL_DD)->setText(
                 source->doing_per_channel ?
-                    (Preferences::getInstance()->GetETCDD() ?  tr("Yes") : tr("Ignored"))
+                    (Preferences::Instance().GetETCDD() ?  tr("Yes") : tr("Ignored"))
                     : tr("No"));
     ui->twSources->item(row,COL_SLOTS)->setText(QString::number(source->slot_count));
 
@@ -243,7 +243,7 @@ void UniverseView::sourceChanged(sACNSource *source)
             }
         }
     } else {
-        if (Preferences::getInstance()->GetPathwaySecureRxDataOnly()) {
+        if (Preferences::Instance().GetPathwaySecureRxDataOnly()) {
             ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("No"));
             ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(colourBad);
         } else {
@@ -425,7 +425,7 @@ void UniverseView::selectedAddressChanged(int address)
     {
         info.append(tr("Winning Source : %1 @ %2 (Priority %3)").arg(
                     list[address].winningSource->name,
-                    Preferences::getInstance()->GetFormattedValue(list[address].level),
+                    Preferences::Instance().GetFormattedValue(list[address].level),
                     prioText(list[address].winningSource, address)));
 
         if(list[address].otherSources.count()>0)
@@ -434,7 +434,7 @@ void UniverseView::selectedAddressChanged(int address)
             {
                 info.append(tr("\nOther Source : %1 @ %2 (Priority %3)").arg(
                             source->name,
-                            Preferences::getInstance()->GetFormattedValue(source->level_array[address]),
+                            Preferences::Instance().GetFormattedValue(source->level_array[address]),
                             prioText(source, address)));
             }
         }
@@ -479,7 +479,7 @@ void UniverseView::on_btnStartFlickerFinder_clicked()
     }
     else
     {
-        if(Preferences::getInstance()->getFlickerFinderShowInfo())
+        if(Preferences::Instance().getFlickerFinderShowInfo())
         {
             FlickerFinderInfoForm form;
             int result = form.exec();

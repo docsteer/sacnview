@@ -24,39 +24,7 @@
 #include "CID.h"
 #include "consts.h"
 #include "themes.h"
-
-// Strings for storing settings
-static const QString S_INTERFACE_ADDRESS("MacAddress");
-static const QString S_INTERFACE_NAME("InterfaceName");
-static const QString S_DISPLAY_FORMAT("Display Format");
-static const QString S_BLIND_VISUALIZER("Show Blind");
-static const QString S_ETC_DDONLY("Show ETC DD Only");
-static const QString S_ETC_DD("Enable ETC DD");
-static const QString S_DEFAULT_SOURCENAME("Default Transmit Source Name");
-static const QString S_TIMEOUT("Timeout");
-static const QString S_FLICKERFINDERSHOWINFO("Flicker Finder Info");
-static const QString S_SAVEWINDOWLAYOUT("Save Window Layout");
-static const QString S_PRESETS("Preset %1");
-static const QString S_MAINWINDOWGEOM("Main Window Geometry");
-static const QString S_SUBWINDOWLIST("Sub Window");
-static const QString S_SUBWINDOWNAME("SubWindow Name");
-static const QString S_SUBWINDOWGEOM("SubWindow Geometry");
-static const QString S_LISTEN_ALL("Listen All");
-static const QString S_THEME("Theme");
-static const QString S_TX_RATE_OVERRIDE("TX Rate Override");
-static const QString S_LOCALE("LOCALE");
-static const QString S_UNIVERSESLISTED("Universe List Count");
-static const QString S_PRIORITYPRESET("PriorityPreset %1");
-static const QString S_MULTICASTTTL("Multicast TTL");
-static const QString S_PATHWAYSECURE_RX("Enable Pathway Secure Rx");
-static const QString S_PATHWAYSECURE_RX_PASSWORD("Pathway Secure Rx Password");
-static const QString S_PATHWAYSECURE_TX_PASSWORD("Pathway Secure Tx Password");
-static const QString S_PATHWAYSECURE_RX_DATA_ONLY("Show Pathway Secure RX Data Only");
-static const QString S_PATHWAYSECURE_RX_SEQUENCE_TIME_WINDOW("Pathway Secure Data RX Sequence Time Window");
-static const QString S_PATHWAYSECURE_TX_SEQUENCE_TYPE("Pathway Secure Data TX Sequence Type");
-static const QString S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT("Pathway Secure Data TX Sequence Boot Count");
-static const QString S_PATHWAYSECURE_SEQUENCE_MAP("Pathway Secure Data Sequence Map");
-static const QString S_UPDATE_IGNORE("Ignore Update Version");
+#include <array>
 
 struct MDIWindowInfo
 {
@@ -75,13 +43,15 @@ public:
             HEXADECIMAL = 2,
             TOTAL_NUM_OF_FORMATS = 3
         };
-
+        
+public:
+    ~Preferences();
 
     /**
-     * @brief getInstance - returns the instance of the Preferences class
+     * @brief Instance - returns the instance of the Preferences class
      * @return the instance
      */
-    static Preferences *getInstance();
+    static Preferences &Instance();
 
     /**
      * @brief networkInterface returns the user preferred network interface for multicast
@@ -173,37 +143,45 @@ public slots:
     void setNetworkInterface(const QNetworkInterface &value);
 private:
     Preferences();
-    ~Preferences();
-    static Preferences *m_instance;
     QNetworkInterface m_interface;
-    bool m_interfaceListenAll;
     QHash<CID, QColor> m_cidToColor;
 
-    unsigned int m_nDisplayFormat;
-    bool m_bBlindVisualizer;
-    bool m_bETCDisplayDDOnly;
-    bool m_bETCDD;
     QString m_sDefaultTransmitName;
-    unsigned int m_nNumSecondsOfSacn;
-    bool m_flickerFinderShowInfo;
-    QByteArray m_presets[PRESET_COUNT];
-    bool m_saveWindowLayout;
     QByteArray m_mainWindowGeometry;
     QList<MDIWindowInfo> m_windowInfo;
+
+    unsigned int m_nDisplayFormat;
+    unsigned int m_nNumSecondsOfSacn;
+
+    std::array<QByteArray, PRESET_COUNT> m_presets;
+    std::array<QByteArray, PRIORITYPRESET_COUNT> m_priorityPresets;
+
     Themes::theme_e m_theme;
-    bool m_txrateoverride;
+
     QLocale m_locale;
     quint8 m_universesListed;
-    QByteArray m_priorityPresets[PRIORITYPRESET_COUNT];
+
     quint8 m_multicastTtl;
-    bool m_pathwaySecureRx;
+
     QString m_pathwaySecureRxPassword;
     QString m_pathwaySecureTxPassword;
-    bool m_pathwaySecureRxDataOnly;
+
+    QByteArray m_pathwaySecureSequenceMap;
     quint8 m_pathwaySecureTxSequenceType;
     quint32 m_pathwaySecureTxSequenceBootCount;
     quint32 m_pathwaySecureRxSequenceTimeWindow;
-    QByteArray m_pathwaySecureSequenceMap;
+
+    bool m_interfaceListenAll;
+    bool m_flickerFinderShowInfo;
+    bool m_bBlindVisualizer;
+    bool m_bETCDisplayDDOnly;
+    bool m_bETCDD;
+    bool m_txrateoverride;
+
+    bool m_pathwaySecureRx;
+    bool m_pathwaySecureRxDataOnly;
+
+    bool m_saveWindowLayout;
 
     void loadPreferences();
 };

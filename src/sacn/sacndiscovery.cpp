@@ -29,7 +29,7 @@ sACNDiscoveryTX::sACNDiscoveryTX() : QObject(),
     m_sendTimer(new QTimer(this))
 {
     // Socket
-    m_sendSock = new sACNTxSocket(Preferences::getInstance()->networkInterface(), this);
+    m_sendSock = new sACNTxSocket(Preferences::Instance().networkInterface(), this);
     m_sendSock->bind();
 
     // Setup packet send timer
@@ -53,7 +53,7 @@ void sACNDiscoveryTX::sendDiscoveryPacket()
     m_sendTimer->setInterval(E131_UNIVERSE_DISCOVERY_INTERVAL);
 
     // Get list of all senders
-    auto senderList = sACNManager::getInstance()->getSenderList();
+    auto senderList = sACNManager::Instance().getSenderList();
 
     // Loop through all CIDs in senders list
     auto cidList = senderList.keys();
@@ -67,7 +67,7 @@ void sACNDiscoveryTX::sendDiscoveryPacket()
         while (i.hasNext())
         {
             i.next();
-            if (!sACNManager::getInstance()->getSender(i.value(), cid)->isSending())
+            if (!sACNManager::Instance().getSender(i.value(), cid)->isSending())
                 i.remove();
         }
         if (universeList.isEmpty())
@@ -79,7 +79,7 @@ void sACNDiscoveryTX::sendDiscoveryPacket()
         // Get sender name associated with CID and first universe in list
         QString senderName;
         if (universeList.count() > 0)
-            senderName = sACNManager::getInstance()->getSender(universeList.front(), cid)->name();
+            senderName = sACNManager::Instance().getSender(universeList.front(), cid)->name();
 
         // Get page count
         uint8_t page_count = ceil((double)universeList.count() / UniversesPerPage);

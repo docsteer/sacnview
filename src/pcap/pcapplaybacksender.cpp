@@ -45,7 +45,7 @@ void pcapplaybacksender::run()
         char errbuf[PCAP_ERRBUF_SIZE];
 
         // Get required interface
-        QNetworkInterface iface = Preferences::getInstance()->networkInterface();
+        QNetworkInterface iface = Preferences::Instance().networkInterface();
 
         // Find all usable interfaces
         pcap_if_t *alldevs;
@@ -147,7 +147,7 @@ void pcapplaybacksender::run()
                 if (pcap_sendpacket(m_pcap_out, pkt_data, pkt_header->caplen) == 0) {
                     emit packetSent();
                 } else {
-                    error(QString("%1").arg(pcap_geterr(m_pcap_out)));
+                    emit error(QString("%1").arg(pcap_geterr(m_pcap_out)));
                     m_running = false;
                     emit sendingFinished();
                     return;
@@ -161,7 +161,7 @@ void pcapplaybacksender::run()
                 {
 
                     CIPAddr addr;
-                    for (auto weakListener : sACNManager::getInstance()->getListenerList()) {
+                    for (auto &weakListener : sACNManager::Instance().getListenerList()) {
                         sACNManager::tListener listener(weakListener);
                         if (listener) {
                             GetUniverseAddress(listener->universe(), addr);

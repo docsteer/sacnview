@@ -105,14 +105,14 @@ void ConfigurePerChanPrioDlg::presetButtonPressed()
         QByteArray preset;
         for(int i=0; i<MAX_DMX_ADDRESS; i++)
             preset.append(ui->widget->cellValue(i).toInt() & 0xFF);
-        Preferences::getInstance()->SetPriorityPreset(preset, index);
+        Preferences::Instance().SetPriorityPreset(preset, index);
 
         ui->btnPresetRec->setChecked(false);
     }
     else
     {
         // Playback preset
-        QByteArray data = Preferences::getInstance()->GetPriorityPreset(index);
+        QByteArray data = Preferences::Instance().GetPriorityPreset(index);
         setData(reinterpret_cast<quint8 *>(data.data()));
     }
 }

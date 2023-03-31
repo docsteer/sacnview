@@ -48,14 +48,14 @@ void BigDisplay::displayLevel()
     QColor colour(m_level | 0xFF000000);
 
     // Display format
-    if((ui->tabWidget->currentIndex() == tabModes_bit8) |
+    if((ui->tabWidget->currentIndex() == tabModes_bit8) ||
           (ui->tabWidget->currentIndex() == tabModes_bit16)  )
     {
         ui->lcdNumber->setDigitCount(5);
         palette.setColor(QPalette::WindowText, Qt::red);
         ui->lcdNumber->setPalette(palette);
 
-        switch (Preferences::getInstance()->GetDisplayFormat())
+        switch (Preferences::Instance().GetDisplayFormat())
         {
             default:
             case Preferences::DECIMAL:

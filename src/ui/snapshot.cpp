@@ -215,7 +215,7 @@ void Snapshot::addUniverse(quint16 universe)
     int row = ui->tableWidget->rowCount();
     ui->tableWidget->setRowCount(row + 1);
 
-    auto name = Preferences::getInstance()->GetDefaultTransmitName().append(tr(" - Snapshot"));
+    auto name = Preferences::Instance().GetDefaultTransmitName().append(tr(" - Snapshot"));
     clsSnapshot* snap = new clsSnapshot(universe, m_cid, name, this);
 
     connect(snap, SIGNAL(senderStarted()), this, SLOT(senderStarted()));

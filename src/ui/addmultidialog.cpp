@@ -111,7 +111,7 @@ void AddMultiDialog::on_slLevel_sliderMoved(int value)
     switch(mode)
     {
     case sACNEffectEngine::FxManual:
-        ui->lbDialValue->setText(Preferences::getInstance()->GetFormattedValue(value, true));
+        ui->lbDialValue->setText(Preferences::Instance().GetFormattedValue(value, true));
         break;
 
     case sACNEffectEngine::FxChaseSnap:

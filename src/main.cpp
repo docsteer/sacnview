@@ -58,15 +58,15 @@ int main(int argc, char *argv[])
 #endif
 
     // Setup theme
-    Themes::apply(Preferences::getInstance()->GetTheme());
+    Themes::apply(Preferences::Instance().GetTheme());
 
     // Setup Language
     {
-        TranslationDialog td(Preferences::getInstance()->GetLocale());
+        TranslationDialog td(Preferences::Instance().GetLocale());
         if (!td.LoadTranslation())
         {
             td.exec();
-            td.LoadTranslation(Preferences::getInstance()->GetLocale());
+            td.LoadTranslation(Preferences::Instance().GetLocale());
         }
     }
 
@@ -76,8 +76,8 @@ int main(int argc, char *argv[])
     // Setup interface
     bool newInterface = false;
     // Interface not avaliable, or last selection was offline/localhost
-    if (!Preferences::getInstance()->defaultInterfaceAvailable()
-            || Preferences::getInstance()->getInstance()->networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)
+    if (!Preferences::Instance().defaultInterfaceAvailable()
+            || Preferences::Instance().networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)
         )
     {
         NICSelectDialog d;
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
         switch (result) {
             case QDialog::Accepted:
             {
-                Preferences::getInstance()->setNetworkInterface(d.getSelectedInterface());
+                Preferences::Instance().setNetworkInterface(d.getSelectedInterface());
                 break;
             }
             case QDialog::Rejected:
@@ -114,17 +114,17 @@ int main(int argc, char *argv[])
     }
 
     // Show window
-    if(Preferences::getInstance()->GetSaveWindowLayout())
+    if(Preferences::Instance().GetSaveWindowLayout())
         w->show();
     else
         w->showMaximized();
 
     // Show interface name on statusbar
-    if (Preferences::getInstance()->networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack))
+    if (Preferences::Instance().networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack))
         w->statusBar()->showMessage(QObject::tr("WORKING OFFLINE"));
     else
     {
-        const QNetworkInterface iface = Preferences::getInstance()->networkInterface();
+        const QNetworkInterface iface = Preferences::Instance().networkInterface();
 
         w->statusBar()->showMessage(QObject::tr("Selected interface: %1 (%2)")
                                         .arg(iface.humanReadableName())
@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
 
     // Check firewall if not newly selected
     if (!newInterface) {
-        foreach (QNetworkAddressEntry ifaceAddr, Preferences::getInstance()->networkInterface().addressEntries())
+        foreach (QNetworkAddressEntry ifaceAddr, Preferences::Instance().networkInterface().addressEntries())
         {
             if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol)
             {
@@ -159,11 +159,11 @@ int main(int argc, char *argv[])
     w->saveMdiWindows();
     delete w;
 
-    Preferences::getInstance()->savePreferences();
+    Preferences::Instance().savePreferences();
 
     CStreamServer::shutdown();
 
-    if(Preferences::getInstance()->RESTART_APP)
+    if(Preferences::Instance().RESTART_APP)
         QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
     return result;
 }

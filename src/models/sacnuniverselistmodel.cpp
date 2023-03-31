@@ -47,7 +47,7 @@ sACNUniverseListModel::sACNUniverseListModel(QObject *parent) : QAbstractItemMod
 {
     m_start = MIN_SACN_UNIVERSE;
 
-    m_displayDDOnlySource = Preferences::getInstance()->GetETCDisplayDDOnly();
+    m_displayDDOnlySource = Preferences::Instance().GetETCDisplayDDOnly();
 
     setStartUniverse(m_start);
 }
@@ -58,7 +58,7 @@ void sACNUniverseListModel::setStartUniverse(int start)
     QWriteLocker modelindex_locker(&rwlock_ModelIndex);
 
     // Limit max value
-    const int startMax = (MAX_SACN_UNIVERSE - Preferences::getInstance()->GetUniversesListed() + 1);
+    const int startMax = (MAX_SACN_UNIVERSE - Preferences::Instance().GetUniversesListed() + 1);
     if (start > startMax) start = startMax;
 
     beginResetModel();
@@ -71,9 +71,9 @@ void sACNUniverseListModel::setStartUniverse(int start)
 
     // Create listeners
     m_start = start;
-    for(int universe=m_start; universe<m_start+Preferences::getInstance()->GetUniversesListed(); universe++)
+    for(int universe=m_start; universe<m_start+Preferences::Instance().GetUniversesListed(); universe++)
     {
-        m_listeners.push_back(sACNManager::getInstance()->getListener(universe));
+        m_listeners.push_back(sACNManager::Instance().getListener(universe));
 
         m_universes << new sACNUniverseInfo(universe);
 
@@ -133,7 +133,7 @@ QVariant sACNUniverseListModel::data(const QModelIndex &index, int role) const
         {
             auto universeIdx = index.row();
             int universe = universeIdx + m_start;
-            auto listener = sACNManager::getInstance()->getListener(universe);
+            auto listener = sACNManager::Instance().getListener(universe);
 
             QString displayString = tr("Universe %1").arg(universe);
 

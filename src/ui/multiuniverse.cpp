@@ -60,7 +60,7 @@ void MultiUniverse::addSource(int universe, int min_address, int max_address,
     ui->tableWidget->setRowCount(row+1);
 
     CID newCid = CID::CreateCid();
-    m_senders.append(sACNManager::getInstance()->getSender(universe, newCid));
+    m_senders.append(sACNManager::Instance().getSender(universe, newCid));
     connect(m_senders.last().data(), &sACNSentUniverse::destroyed, [this](QObject *obj)
         { QMutableListIterator<sACNManager::tSender>i(m_senders);
 
@@ -170,7 +170,7 @@ void MultiUniverse::on_btnAddRow_pressed()
     if(m_senders.count()>0)
         nextUniverse = m_senders.last()->universe() + 1;
 
-    QString name = Preferences::getInstance()->GetDefaultTransmitName();
+    QString name = Preferences::Instance().GetDefaultTransmitName();
     QString postfix = tr("_%1").arg(nextUniverse);
     name = name + postfix;
     name.truncate(MAX_SOURCE_NAME_LEN - postfix.length());
@@ -278,7 +278,7 @@ void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode, int val
     case sACNEffectEngine::FxManual:
         {
         QWidget *controlWidget = new QWidget(this);
-        QLabel *controlLabel = new QLabel(Preferences::getInstance()->GetFormattedValue(value), controlWidget);
+        QLabel *controlLabel = new QLabel(Preferences::Instance().GetFormattedValue(value), controlWidget);
         QSlider *slider = new QSlider(Qt::Horizontal, controlWidget);
         slider->setMinimum(MIN_SACN_LEVEL);
         slider->setMaximum(MAX_SACN_LEVEL);
@@ -370,7 +370,7 @@ void MultiUniverse::controlSliderMoved(int value)
         if(e->mode() == sACNEffectEngine::FxManual)
         {
             e->setManualLevel(value);
-            m_widgetToLevelLabel[w]->setText(Preferences::getInstance()->GetFormattedValue(value));
+            m_widgetToLevelLabel[w]->setText(Preferences::Instance().GetFormattedValue(value));
         }
         else
             e->setRate(value);
@@ -425,7 +425,7 @@ void MultiUniverse::on_btnAddMulti_clicked()
 
     for(int i=0; i<d.universeCount(); i++)
     {
-        QString name = Preferences::getInstance()->GetDefaultTransmitName();
+        QString name = Preferences::Instance().GetDefaultTransmitName();
         QString postfix = tr("_%1").arg(d.startUniverse() + i);
         name = name + postfix;
         name.truncate(MAX_SOURCE_NAME_LEN - postfix.length());

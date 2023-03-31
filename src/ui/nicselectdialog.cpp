@@ -27,10 +27,10 @@ NICSelectDialog::NICSelectDialog(QWidget *parent) :
     m_selectedInterface = QNetworkInterface();
 
     QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
-    for(const QNetworkInterface &interface : interfaces)
+    for (const QNetworkInterface &interface : interfaces)
     {
         // We want interfaces which are up, IPv4, and can multicast
-        if(Preferences::getInstance()->interfaceSuitable(interface)) {
+        if (Preferences::Instance().interfaceSuitable(interface)) {
             QString ipString;
             foreach (QNetworkAddressEntry e, interface.addressEntries()) {
                 if(e.ip().protocol() == QAbstractSocket::IPv4Protocol) {

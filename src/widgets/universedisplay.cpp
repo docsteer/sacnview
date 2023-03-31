@@ -39,7 +39,7 @@ void UniverseDisplay::setUniverse(int universe)
     // Don't search if we have already found, eg pause-continue
     if (!(m_listener && m_listener->universe() == universe))
     {
-        m_listener = sACNManager::getInstance()->getListener(universe);
+        m_listener = sACNManager::Instance().getListener(universe);
     }
 
     connect(m_listener.data(), &sACNListener::levelsChanged, this, &UniverseDisplay::levelsChanged);
@@ -57,13 +57,13 @@ void UniverseDisplay::levelsChanged()
     if (!m_listener)
         return;
 
-    const Preferences *p = Preferences::getInstance();
+    const Preferences &pref = Preferences::Instance();
     m_sources = m_listener->mergedLevels();
     for (int i = 0; i < m_sources.count(); ++i)
     {
         if (m_sources[i].winningSource && i < m_sources[i].winningSource->slot_count)
         {
-            QString cellText(p->GetFormattedValue(m_sources[i].level));
+            QString cellText(pref.GetFormattedValue(m_sources[i].level));
             if (m_showChannelPriority)
             {
                 cellText.append('\n');
@@ -94,7 +94,7 @@ void UniverseDisplay::levelsChanged()
             }
             else
             {
-                setCellColor(i, Preferences::getInstance()->colorForCID(m_sources[i].winningSource->src_cid));
+                setCellColor(i, Preferences::Instance().colorForCID(m_sources[i].winningSource->src_cid));
             }
         }
         else

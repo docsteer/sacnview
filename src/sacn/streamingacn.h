@@ -53,7 +53,7 @@ class sACNManager : public QObject
 {
     Q_OBJECT
 public:
-    static sACNManager *getInstance();
+    static sACNManager &Instance();
 
     typedef QSharedPointer<sACNListener> tListener;
     typedef QSharedPointer<sACNSentUniverse> tSender;
@@ -64,7 +64,6 @@ public slots:
     void senderDelete(QObject *obj = Q_NULLPTR);
 private:
     sACNManager();
-    static sACNManager *m_instance;
     QMutex sACNManager_mutex;
 
     QHash<QObject*, quint16> m_objToUniverse;

@@ -114,13 +114,13 @@ int sACNDiscoveredSourceListModel::modelContainer::getRow(const CID &cid, univer
     return universes.at(sourceRow).indexOf(universe);
 }
 
-size_t sACNDiscoveredSourceListModel::modelContainer::count() const
+qsizetype sACNDiscoveredSourceListModel::modelContainer::count() const
 {
     QMutexLocker locker(&listMutex);
     return sources.count();
 }
 
-size_t sACNDiscoveredSourceListModel::modelContainer::count(const CID &cid) const
+qsizetype sACNDiscoveredSourceListModel::modelContainer::count(const CID &cid) const
 {
     QMutexLocker locker(&listMutex);
 
@@ -132,7 +132,7 @@ size_t sACNDiscoveredSourceListModel::modelContainer::count(const CID &cid) cons
 
 sACNDiscoveredSourceListModel::sACNDiscoveredSourceListModel(QObject *parent) : QAbstractItemModel(parent),
     m_discoveryInstance(sACNDiscoveryRX::getInstance()),
-    m_displayDDOnlySource(Preferences::getInstance()->GetETCDisplayDDOnly())
+    m_displayDDOnlySource(Preferences::Instance().GetETCDisplayDDOnly())
 {
     // Add existing
     auto it = m_discoveryInstance->getDiscoveryList().constBegin();

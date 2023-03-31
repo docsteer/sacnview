@@ -99,7 +99,7 @@ QLocale TranslationDialog::GetSelectedLocale()
 void TranslationDialog::on_buttonBox_accepted()
 {
     qDebug() << "[Translate] User selected " << GetSelectedLocale().uiLanguages();
-    Preferences::getInstance()->SetLocale(GetSelectedLocale());
+    Preferences::Instance().SetLocale(GetSelectedLocale());
 
     this->close();
 }

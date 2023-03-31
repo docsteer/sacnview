@@ -83,7 +83,7 @@ void sACNSentUniverse::startSending(bool preview)
     m_maxSendFreq = std::clamp(
         m_maxSendFreq,
         m_minSendFreq,
-        Preferences::getInstance()->GetTXRateOverride() ?
+        Preferences::Instance().GetTXRateOverride() ?
                     std::numeric_limits<decltype(m_maxSendFreq)>::max() : E1_11::MAX_REFRESH_RATE_HZ);
 
     CIPAddr unicastAddress;
@@ -114,7 +114,7 @@ void sACNSentUniverse::startSending(bool preview)
 
     m_isSending = true;
 
-    int seconds = Preferences::getInstance()->GetNumSecondsOfSacn();
+    int seconds = Preferences::Instance().GetNumSecondsOfSacn();
     if(seconds>0)
     {
         m_checkTimeoutTimer = new QTimer(this);
@@ -365,7 +365,7 @@ void CStreamServer::shutdown()
 CStreamServer::CStreamServer() :
     m_thread_stop(false)
 {
-    m_sendsock = new sACNTxSocket(Preferences::getInstance()->networkInterface());
+    m_sendsock = new sACNTxSocket(Preferences::Instance().networkInterface());
 
     m_sendsock->bind();
 

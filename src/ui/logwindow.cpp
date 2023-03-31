@@ -20,7 +20,7 @@ LogWindow::LogWindow(int universe, QWidget *parent) :
 
     /* Set universe */
     setWindowTitle(tr("Log - Universe %1").arg(universe));
-    m_listener = sACNManager::getInstance()->getListener(universe);
+    m_listener = sACNManager::Instance().getListener(universe);
 
     /* Time and Date formats */
     for(const auto &item : lTimeFormat)

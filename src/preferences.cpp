@@ -21,6 +21,7 @@
 #include "preferences.h"
 #include "consts.h"
 #include <QRandomGenerator>
+#include <cmath>
 
 #if (defined(_WIN32) || defined(WIN32))
 // On Windows, use the Qt zlib
@@ -30,17 +31,49 @@
 #include <zlib.h>
 #endif
 
-#include <cmath>
+// Strings for storing settings
+static const QString S_INTERFACE_ADDRESS = QStringLiteral("MacAddress");
+static const QString S_INTERFACE_NAME = QStringLiteral("InterfaceName");
+static const QString S_DISPLAY_FORMAT = QStringLiteral("Display Format");
+static const QString S_BLIND_VISUALIZER = QStringLiteral("Show Blind");
+static const QString S_ETC_DDONLY = QStringLiteral("Show ETC DD Only");
+static const QString S_ETC_DD = QStringLiteral("Enable ETC DD");
+static const QString S_DEFAULT_SOURCENAME = QStringLiteral("Default Transmit Source Name");
+static const QString S_TIMEOUT = QStringLiteral("Timeout");
+static const QString S_FLICKERFINDERSHOWINFO = QStringLiteral("Flicker Finder Info");
+static const QString S_SAVEWINDOWLAYOUT = QStringLiteral("Save Window Layout");
+static const QString S_PRESETS = QStringLiteral("Preset %1");
+static const QString S_MAINWINDOWGEOM = QStringLiteral("Main Window Geometry");
+static const QString S_SUBWINDOWLIST = QStringLiteral("Sub Window");
+static const QString S_SUBWINDOWNAME = QStringLiteral("SubWindow Name");
+static const QString S_SUBWINDOWGEOM = QStringLiteral("SubWindow Geometry");
+static const QString S_LISTEN_ALL = QStringLiteral("Listen All");
+static const QString S_THEME = QStringLiteral("Theme");
+static const QString S_TX_RATE_OVERRIDE = QStringLiteral("TX Rate Override");
+static const QString S_LOCALE = QStringLiteral("LOCALE");
+static const QString S_UNIVERSESLISTED = QStringLiteral("Universe List Count");
+static const QString S_PRIORITYPRESET = QStringLiteral("PriorityPreset %1");
+static const QString S_MULTICASTTTL = QStringLiteral("Multicast TTL");
+static const QString S_PATHWAYSECURE_RX = QStringLiteral("Enable Pathway Secure Rx");
+static const QString S_PATHWAYSECURE_RX_PASSWORD = QStringLiteral("Pathway Secure Rx Password");
+static const QString S_PATHWAYSECURE_TX_PASSWORD = QStringLiteral("Pathway Secure Tx Password");
+static const QString S_PATHWAYSECURE_RX_DATA_ONLY = QStringLiteral("Show Pathway Secure RX Data Only");
+static const QString S_PATHWAYSECURE_RX_SEQUENCE_TIME_WINDOW = QStringLiteral("Pathway Secure Data RX Sequence Time Window");
+static const QString S_PATHWAYSECURE_TX_SEQUENCE_TYPE = QStringLiteral("Pathway Secure Data TX Sequence Type");
+static const QString S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT = QStringLiteral("Pathway Secure Data TX Sequence Boot Count");
+static const QString S_PATHWAYSECURE_SEQUENCE_MAP = QStringLiteral("Pathway Secure Data Sequence Map");
+static const QString S_UPDATE_IGNORE = QStringLiteral("Ignore Update Version");
 
-Preferences *Preferences::m_instance = Q_NULLPTR;
+// The base color to generate pastel shades for sources
+static const QColor mixColor = QColor("coral");
 
 Preferences::Preferences()
 {
     RESTART_APP = false;
-    for(int i=0; i<PRESET_COUNT; i++)
-        m_presets[i] = QByteArray(MAX_DMX_ADDRESS, char(0));
-    for(int i=0; i<PRIORITYPRESET_COUNT; i++)
-        m_priorityPresets[i] = QByteArray(MAX_DMX_ADDRESS, char(100+i));
+    for (QByteArray &preset : m_presets)
+        preset = QByteArray(MAX_DMX_ADDRESS, char(0));
+    for (size_t i = 0; i < m_priorityPresets.size(); ++i)
+        m_priorityPresets[i] = QByteArray(MAX_DMX_ADDRESS, char(100 + i));
     loadPreferences();
 }
 
@@ -49,21 +82,18 @@ Preferences::~Preferences()
     savePreferences();
 }
 
-Preferences *Preferences::getInstance()
+Preferences &Preferences::Instance()
 {
-    if(!m_instance)
-    {
-        m_instance = new Preferences();
-    }
-
-    return m_instance;
+    static Preferences s_instance;
+    return s_instance;
 }
 
 QNetworkInterface Preferences::networkInterface() const
 {
     if (!m_interface.isValid())
     {
-        for (QNetworkInterface interface : QNetworkInterface::allInterfaces())
+        const auto allInts = QNetworkInterface::allInterfaces();
+        for (const QNetworkInterface &interface : allInts)
         {
             if (interface.flags().testFlag(QNetworkInterface::IsLoopBack))
                 return interface;
@@ -486,20 +516,17 @@ void Preferences::loadPreferences()
     }
     settings.endArray();
 
-    for(int i=0; i<PRESET_COUNT; i++)
-    {
-        if(settings.contains(S_PRESETS.arg(i)))
-        {
-            m_presets[i] = settings.value(S_PRESETS.arg(i)).toByteArray();
+    for (int i = 0; i < PRESET_COUNT; i++) {
+        if (settings.contains(S_PRESETS.arg(i))) {
+            // Never change the size
+            m_presets[i].replace(0, MAX_DMX_ADDRESS, settings.value(S_PRESETS.arg(i)).toByteArray());
         }
     }
 
-
-    for(int i=0; i<PRIORITYPRESET_COUNT; i++)
-    {
-        if(settings.contains(S_PRIORITYPRESET.arg(i)))
-        {
-            m_priorityPresets[i] = settings.value(S_PRIORITYPRESET.arg(i)).toByteArray();
+    for (int i = 0; i < PRIORITYPRESET_COUNT; i++) {
+        if (settings.contains(S_PRIORITYPRESET.arg(i))) {
+            // Never change the size
+            m_priorityPresets[i].replace(0,MAX_DMX_ADDRESS, settings.value(S_PRIORITYPRESET.arg(i)).toByteArray());
         }
     }
 }

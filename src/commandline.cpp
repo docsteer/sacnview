@@ -114,7 +114,7 @@ void CommandLine::processStack()
     int startRange = 0;
     int endRange = 0;
     QSet<int> selection;
-    const int maxLevel = Preferences::getInstance()->GetMaxLevel();
+    const int maxLevel = Preferences::Instance().GetMaxLevel();
 
     for(int pos=0; pos<m_keyStack.count(); pos++)
     {
@@ -324,7 +324,7 @@ void CommandLine::processStack()
                 return;
 
             // m_level is always in absolute (0-255)
-            if(Preferences::getInstance()->GetDisplayFormat()==Preferences::PERCENT)
+            if(Preferences::Instance().GetDisplayFormat()==Preferences::PERCENT)
                 m_level = PTOHT[numberEntry];
             else
                 m_level = numberEntry;

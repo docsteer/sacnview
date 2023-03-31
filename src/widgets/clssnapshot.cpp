@@ -29,7 +29,7 @@ clsSnapshot::clsSnapshot(quint16 universe, CID cid, QString name, QWidget *paren
     connect(m_btnPlayback, SIGNAL(clicked(bool)), this, SLOT(btnEnableClicked(bool)));
     updateIcons();
 
-    m_sender = sACNManager::getInstance()->getSender(m_universe, m_cid);
+    m_sender = sACNManager::Instance().getSender(m_universe, m_cid);
     m_sender->setName(name);
     connect(m_sender.data(), &sACNSentUniverse::sendingTimeout, [this]() { emit senderTimedOut();} );
     setUniverse(m_universe);
@@ -61,7 +61,7 @@ void clsSnapshot::setUniverse(quint16 universe) {
     // Bug #197
     //if (m_listener)
     //    m_listener->deleteLater();
-    m_listener = sACNManager::getInstance()->getListener(m_universe);
+    m_listener = sACNManager::Instance().getListener(m_universe);
     connect(m_listener.data(), SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
     connect(m_listener.data(), SIGNAL(sourceFound(sACNSource*)), this, SLOT(levelsChanged()));
     connect(m_listener.data(), SIGNAL(sourceLost(sACNSource*)), this, SLOT(levelsChanged()));
