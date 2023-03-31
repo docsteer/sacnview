@@ -27,6 +27,11 @@ macx {
 
 CONFIG += c++17
 
+win32 {
+    # Disable nmake inference rules as Qt-Frameless-Window-DarkStyle contains a main.cpp
+    CONFIG += no_batch
+}
+
 # Translations
 include(translations.pri)
 
