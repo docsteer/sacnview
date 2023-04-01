@@ -27,29 +27,22 @@ jobs:
           - os: ubuntu-latest
             qt_modules: 'qtmultimedia qtcharts'
             dependencies: |
-              sudo apt-get install mesa-common-dev libgl1-mesa-dev libpcap-dev libgstreamer-gl1.0-0 libgstreamer-plugins-base1.0-0 libxkbcommon-x11-0 -y
-            installer_setup: |
-              sudo gem install --no-document fpm
+              sudo apt-get install mesa-common-dev libgl1-mesa-dev libpcap-dev libgstreamer-gl1.0-0 libgstreamer-plugins-base1.0-0 libxkbcommon-x11-0 libfuse2 -y
             artifact: |
-              build/src/sacnview*.deb
-              build/src/sACNView*.AppImage
+              build/sacnview*.deb
+              build/sACNView*.AppImage
 
           - os: windows-latest
             qt_modules: 'qtmultimedia qtcharts'
             dependencies : |
               choco install -y winflexbison3
-            installer_setup: |
-              Invoke-WebRequest -Uri "https://nsis.sourceforge.io/mediawiki/images/e/e0/NSIS_Simple_Firewall_Plugin_Unicode_1.21.zip" -OutFile "NSIS_Simple_Firewall_Plugin_Unicode.zip"
-              7z e NSIS_Simple_Firewall_Plugin_Unicode.zip -o"C:\Program Files (x86)\NSIS\Plugins\x86-unicode"
-            arch: win32_msvc2019
+            arch: amd64
             artifact: |
               build/src/sACNView.exe
               build/src/sACNView.pdb 
 
           - os: macos-latest
             qt_modules: 'qtmultimedia qtcharts'
-            installer_setup: |
-              brew install create-dmg
             xcode: latest-stable
             artifact: 
               build/src/sACNView
@@ -71,12 +64,11 @@ jobs:
     - name: Dependencies
       run: ${{ matrix.dependencies }} 
 
-    - name: Setup Installer
-      run: ${{ matrix.installer_setup }}
-
     - name: Environment Setup (MSVC)
       if: runner.os == 'Windows'
       uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.arch }}
 
     - name: Environment Setup (Xcode)
       if: runner.os == 'macOS'
