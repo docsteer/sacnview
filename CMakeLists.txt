@@ -22,3 +22,6 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
 
 # Main App
 add_subdirectory(src)
+
+# Package builder
+include(package)

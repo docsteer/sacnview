@@ -21,20 +21,20 @@ jobs:
       fail-fast: false
       matrix:
         # https://github.com/actions/virtual-environments#available-environments
-        os: [ubuntu-20.04, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        qt: ['6.2.4']
         include:
-          - os: ubuntu-20.04 # Oldest LTS for appimage support
-            qt: '6.2.4' # Qt6 LTS
+          - os: ubuntu-latest
             qt_modules: 'qtmultimedia qtcharts'
             dependencies: |
               sudo apt-get install mesa-common-dev libgl1-mesa-dev libpcap-dev libgstreamer-gl1.0-0 libgstreamer-plugins-base1.0-0 libxkbcommon-x11-0 -y
             installer_setup: |
               sudo gem install --no-document fpm
             artifact: |
-              build/src/sACNView
+              build/src/sacnview*.deb
+              build/src/sACNView*.AppImage
 
           - os: windows-latest
-            qt: '6.2.4' # Qt6 LTS
             qt_modules: 'qtmultimedia qtcharts'
             dependencies : |
               choco install -y winflexbison3
@@ -47,7 +47,6 @@ jobs:
               build/src/sACNView.pdb 
 
           - os: macos-latest
-            qt: '6.2.4' # Qt6 LTS
             qt_modules: 'qtmultimedia qtcharts'
             installer_setup: |
               brew install create-dmg
@@ -94,6 +93,9 @@ jobs:
 
     - name: Build
       run: cmake --build build --config Release
+
+    - name: Pack
+      run: cmake --build build --config Release --target package 
 
     - name: Upload Artifact(s)
       uses: actions/upload-artifact@v3

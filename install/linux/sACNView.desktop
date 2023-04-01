@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
 Name=sACNView 2
-Exec=/opt/sacnview/sACNView2.AppImage
-Icon=sacnview
+Exec=/opt/sacnview/bin/sACNView
+Icon=sACNView
 Comment=Streaming ACN Viewer mark2
 Categories=Network;
 Terminal=false

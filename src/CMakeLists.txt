@@ -106,4 +106,9 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         MACOSX_BUNDLE TRUE
         INSTALL_RPATH "@executable_path/../Frameworks"
     )
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    # Runtime search path
+    include(GNUInstallDirs)
+    set_target_properties(${PROJECT_NAME} PROPERTIES 
+        INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
 endif()
