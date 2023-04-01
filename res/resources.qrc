@@ -25,7 +25,7 @@
         <file>ledred.png</file>
     </qresource>
     <qresource prefix="/">
-        <file>Logo.png</file>
+        <file>logo.png</file>
     </qresource>
     <qresource prefix="/sound">
         <file>camera.wav</file>
