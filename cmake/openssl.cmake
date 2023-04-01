@@ -55,6 +55,14 @@ if(NOT ${OPENSSL_FOUND})
         set(OpenSSL_CONFIG_COMMAND <SOURCE_DIR>/config)   
     endif()
 
+    # Platform specfic config arguments
+    if((UNIX) AND (NOT APPLE))
+        # https://wiki.openssl.org/index.php/Compilation_and_Installation#Using_RPATHs
+        set(OpenSSL_CONFIG_EXTRA_ARGS "-Wl,-rpath='$$ORIGIN' -Wl,--enable-new-dtags")
+    else()
+        set(OpenSSL_CONFIG_EXTRA_ARGS "")
+    endif()
+
     # Debug build?
     if (CMAKE_BUILD_TYPE MATCHES "Debug")
         set(OpenSSL_CONFIG_BUILD_TYPE "--debug")
@@ -115,6 +123,7 @@ if(NOT ${OPENSSL_FOUND})
             --prefix=<INSTALL_DIR>/install
             --openssldir=<INSTALL_DIR>/install
             no-tests
+            ${OpenSSL_CONFIG_EXTRA_ARGS}
             ${OpenSSL_CONFIG_BUILD_TYPE}
         BUILD_COMMAND
             ${OpenSSL_MAKE_COMMAND}
@@ -143,7 +152,7 @@ if(NOT ${OPENSSL_FOUND})
         IMPORTED_LOCATION
             ${OpenSSL_INSTALL_DIR}/${OpenSSL_SSL_IMPORTED_LOCATION}
         IMPORTED_SONAME
-            ${OpenSSL_INSTALL_DIR}/${OpenSSL_SSL_IMPORTED_SONAME}
+            ${OpenSSL_SSL_IMPORTED_SONAME}
         IMPORTED_IMPLIB
             ${OpenSSL_INSTALL_DIR}/${OpenSSL_SSL_IMPORTED_IMPLIB}
         INTERFACE_INCLUDE_DIRECTORIES
@@ -160,7 +169,7 @@ if(NOT ${OPENSSL_FOUND})
         IMPORTED_LOCATION
             ${OpenSSL_INSTALL_DIR}/${OpenSSL_CRYPTO_IMPORTED_LOCATION}
         IMPORTED_SONAME
-            ${OpenSSL_INSTALL_DIR}/${OpenSSL_CRYPTO_IMPORTED_SONAME}
+            ${OpenSSL_CRYPTO_IMPORTED_SONAME}
         IMPORTED_IMPLIB
             ${OpenSSL_INSTALL_DIR}/${OpenSSL_CRYPTO_IMPORTED_IMPLIB}
         INTERFACE_INCLUDE_DIRECTORIES
