@@ -33,6 +33,9 @@ Makefile*
 *.qmlproject.user
 *.qmlproject.user.*
 
+# Visual Studio
+.vs/*
+
 #Linux libs
 *.so.*
 
@@ -40,6 +43,7 @@ Makefile*
 !libs/**
 
 #Binary Output
+out/build/*
 *.exe
 *.zip
 *.dmg
