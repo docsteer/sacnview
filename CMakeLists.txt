@@ -4,6 +4,10 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15 CACHE STRING "Minimum macOS version target
 
 project(sACNView DESCRIPTION "A tool for sending and receiving the ANSI E1.31 Streaming ACN control protocol")
 
+# Workaround for cmake bug
+# Ninja generator will often exceed command line limits, but cmake doesn't use the response file by default
+SET(CMAKE_NINJA_FORCE_RESPONSE_FILE 1 CACHE INTERNAL "")
+
 # Only do these if this is the main project, and not if it is included through add_subdirectory
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   ### Require out-of-source builds
@@ -26,6 +30,11 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
       $<$<CONFIG:RELEASE>:/OPT:REF>
       $<$<CONFIG:RELEASE>:/OPT:ICF>
     )
+  endif()
+
+  if (WIN32)
+    # Qt5 does not automatically set these, but Qt6 does
+    add_compile_definitions(UNICODE _UNICODE)
   endif()
   
   # Docs only available if this is the main app
@@ -181,15 +190,16 @@ include(themes/sources.cmake)
 include(translations/sources.cmake)
 
 # 3rd party libraries
-include(libs/sources.cmake)
+include(libs/libs.cmake)
 
 # Enable automatic Qt handling
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-# Find Qt
-find_package(Qt5 COMPONENTS Core Gui Network Multimedia Widgets REQUIRED)
+# Find Qt 5.15 or Qt 6
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui Network Multimedia Widgets REQUIRED)
 
 add_executable(sACNView WIN32
     ${SACNVIEW_HEADERS}
@@ -284,3 +294,10 @@ target_compile_definitions(sACNView PRIVATE
   "GIT_DATE_YEAR=\"${GIT_DATE_YEAR}\""
   "VERSION=\"${GIT_TAG}\""
 )
+
+# Deploy the build using windeployqt
+option(SACNVIEW_CREATE_INSTALLER "Create the sACNView installer" OFF)
+
+if(SACNVIEW_CREATE_INSTALLER)
+  include(install/install.cmake)
+endif()
