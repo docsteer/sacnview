@@ -21,6 +21,7 @@
 #include <map>
 
 class sACNListener;
+class SACNSourceTableModel;
 
 namespace Ui {
   class MultiView;
@@ -35,6 +36,6 @@ public:
 
 private:
   Ui::MultiView* ui = nullptr;
-
+  SACNSourceTableModel* m_sourceTableModel = nullptr;
   std::map<uint16_t, sACNManager::tListener> m_listeners;
 };
