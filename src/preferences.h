@@ -43,6 +43,13 @@ public:
             HEXADECIMAL = 2,
             TOTAL_NUM_OF_FORMATS = 3
         };
+
+    enum class Status
+    {
+      Good,
+      Warning,
+      Bad
+    };
         
 public:
     ~Preferences();
@@ -76,6 +83,8 @@ public:
     static QString GetIPv4AddressString(const QNetworkInterface &inter);
 
     QColor colorForCID(const CID &cid);
+
+    QColor colorForStatus(Status status);
 
     // Preferences access functions here:
     void SetDisplayFormat(unsigned int nDisplayFormat);

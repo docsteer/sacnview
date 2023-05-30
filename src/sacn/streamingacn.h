@@ -48,6 +48,8 @@ enum StreamingACNProtocolVersion
     sACNProtocolPathwaySecure // Pathway Connectivity Secure DMX Protocol
 };
 
+QString GetProtocolVersionString(StreamingACNProtocolVersion value);
+
 // The sACNManager class is a singleton that manages the lifespan of sACNTransmitters and sACNListeners.
 class sACNManager : public QObject
 {
@@ -147,9 +149,9 @@ public:
     struct {
         bool passwordOk = false;
         bool sequenceOk = false;
-        bool digetOk = false;
-        bool isSecure() {
-            return passwordOk && sequenceOk && digetOk;
+        bool digestOk = false;
+        bool isSecure() const {
+            return passwordOk && sequenceOk && digestOk;
         }
     } pathway_secure;
 

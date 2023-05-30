@@ -149,6 +149,25 @@ QColor Preferences::colorForCID(const CID &cid)
     return newColor;
 }
 
+QColor Preferences::colorForStatus(Status status)
+{
+  switch (GetTheme())
+  {
+  case Themes::LIGHT: switch (status)
+  {
+  case Status::Good: return Qt::green;
+  case Status::Warning: return Qt::yellow;
+  case Status::Bad: return Qt::red;
+  }
+  case Themes::DARK: switch (status)
+  {
+  case Status::Good: return Qt::darkGreen;
+  case Status::Warning: return Qt::darkYellow;
+  case Status::Bad: return Qt::darkRed;
+  }
+  }
+  return QColor();
+}
 
 void Preferences::SetDisplayFormat(unsigned int nDisplayFormat)
 {

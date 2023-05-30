@@ -170,7 +170,7 @@
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
-         <widget class="QTableWidget" name="twSources">
+         <widget class="QTableView" name="tableView">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -192,20 +192,14 @@
           <property name="editTriggers">
            <set>QAbstractItemView::NoEditTriggers</set>
           </property>
-          <property name="tabKeyNavigation">
-           <bool>false</bool>
-          </property>
-          <property name="showDropIndicator" stdset="0">
-           <bool>false</bool>
-          </property>
-          <property name="dragDropOverwriteMode">
-           <bool>false</bool>
-          </property>
           <property name="selectionMode">
            <enum>QAbstractItemView::NoSelection</enum>
           </property>
           <property name="selectionBehavior">
            <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <property name="sortingEnabled">
+           <bool>true</bool>
           </property>
           <attribute name="verticalHeaderVisible">
            <bool>false</bool>
@@ -213,128 +207,6 @@
           <attribute name="verticalHeaderDefaultSectionSize">
            <number>24</number>
           </attribute>
-          <row>
-           <property name="text">
-            <string>New Row</string>
-           </property>
-          </row>
-          <column>
-           <property name="text">
-            <string>Name</string>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The human readable name the source has been given&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Online</string>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Online status of the source&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>CID</string>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The Component IDentifier of the source, a Universally Unique Identifier&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Priority</string>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Source priority, the high the more important&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Sync</string>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Does the source support Universe Synchronization?&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Preview</string>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Indicates that the data in this packet is intended for use in visualization or media server preview applications and shall not be used to generate live output.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>IP Address</string>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The IP address of the source&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>FPS</string>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Frames per Second, aka refresh rate of the DMX source&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>SeqErr</string>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of packets which have received out of order&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Jumps</string>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of packets which have been missed&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Ver</string>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Protocol version&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Per-Address</string>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If the source supports Electronic Theatre Controls Per-Address extension, is the source transmitting per address priorities?&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Slots</string>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of DMX Data slots the source is transmitting&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Secure</string>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If the source supports Pathways Secure DMX extension, is the password correct and the packet secure?&lt;/p&gt;&lt;p&gt;The password is set in the receiver section of the application settings&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </column>
-          <item row="0" column="2">
-           <property name="text">
-            <string/>
-           </property>
-          </item>
          </widget>
          <widget class="QPlainTextEdit" name="teInfo">
           <property name="sizePolicy">
@@ -353,6 +225,7 @@
            <font>
             <family>Courier New</family>
             <pointsize>12</pointsize>
+            <weight>75</weight>
             <bold>true</bold>
            </font>
           </property>

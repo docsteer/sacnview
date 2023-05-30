@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>749</width>
+    <width>760</width>
     <height>528</height>
    </rect>
   </property>
@@ -83,6 +83,7 @@ background-color:grey;
    </attribute>
    <addaction name="actionScopeView"/>
    <addaction name="actionRecieve"/>
+   <addaction name="actionMultiView"/>
    <addaction name="separator"/>
    <addaction name="actionTranmsit"/>
    <addaction name="actionSnapshot"/>
@@ -461,6 +462,14 @@ background-color:grey;
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Playback data captured with Wireshark (or other tools that produce a PCAP file format). sACN Data will be played back with the same timing as when it was captured, allowing precise recreation of fades.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="actionMultiView">
+   <property name="text">
+    <string>MultiView</string>
+   </property>
+   <property name="toolTip">
+    <string>View Multiple Universes of received sACN</string>
    </property>
   </action>
  </widget>
