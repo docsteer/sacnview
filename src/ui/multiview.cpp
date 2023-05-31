@@ -2,6 +2,8 @@
 
 #include "ui_multiview.h"
 
+#include "consts.h"
+
 #include "models/sacnsourcetablemodel.h"
 
 MultiView::MultiView(QWidget* parent)
@@ -13,16 +15,54 @@ MultiView::MultiView(QWidget* parent)
   ui->sourceTableView->setModel(m_sourceTableModel);
   ui->sourceTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
-  // Go crazy and listen to like a hundred universes for giggles
-  for (uint16_t universe = 1; universe < 100; ++universe)
-  {
-    auto listener = sACNManager::Instance().getListener(universe);
-    m_sourceTableModel->addListener(listener);
-    m_listeners.emplace(universe, listener);
-  }
+  ui->spinUniverseMin->setMinimum(MIN_SACN_UNIVERSE);
+  ui->spinUniverseMin->setMaximum(MAX_SACN_UNIVERSE);
+
+  ui->spinUniverseMax->setMinimum(MIN_SACN_UNIVERSE);
+  ui->spinUniverseMax->setMaximum(MAX_SACN_UNIVERSE);
 }
 
 MultiView::~MultiView()
 {
   delete ui;
+}
+
+void MultiView::on_btnStartStop_clicked(bool checked)
+{
+  if (checked)
+  {
+    ui->spinUniverseMin->setEnabled(false);
+    ui->spinUniverseMax->setEnabled(false);
+
+    // Clear and restart listening for the large number of universes
+    m_sourceTableModel->resetCounters();
+    m_sourceTableModel->clear();
+    
+    // Hold onto the old listeners so any overlaps will not be destructed
+    std::map<uint16_t, sACNManager::tListener> old_listeners;
+    old_listeners.swap(m_listeners);
+
+    const uint16_t minUniverse = static_cast<uint16_t>(ui->spinUniverseMin->value());
+    const uint16_t maxUniverse = static_cast<uint16_t>(ui->spinUniverseMax->value());
+    for (uint16_t universe = minUniverse; universe < maxUniverse; ++universe)
+    {
+      auto listener = sACNManager::Instance().getListener(universe);
+      m_sourceTableModel->addListener(listener);
+      m_listeners.emplace(universe, listener);
+    }
+
+    // Unused listeners will now go out of scope and be destroyed "later"
+  }
+  else
+  {
+    ui->spinUniverseMin->setEnabled(true);
+    ui->spinUniverseMax->setEnabled(true);
+
+    // TODO: Actually pause
+  }
+}
+
+void MultiView::on_btnResetCounters_clicked()
+{
+  m_sourceTableModel->resetCounters();
 }

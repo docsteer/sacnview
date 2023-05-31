@@ -270,6 +270,34 @@ void SACNSourceTableModel::clear()
   endResetModel();
 }
 
+void SACNSourceTableModel::resetSequenceCounters()
+{
+  for (auto it = m_sourceToTableRow.begin(); it != m_sourceToTableRow.end(); ++it)
+  {
+    it.key()->resetSeqErr();
+  }
+  emit dataChanged(index(0, COL_SEQ_ERR), index(rowCount() - 1, COL_SEQ_ERR));
+}
+
+void SACNSourceTableModel::resetJumpsCounters()
+{
+  for (auto it = m_sourceToTableRow.begin(); it != m_sourceToTableRow.end(); ++it)
+  {
+    it.key()->resetJumps();
+  }
+  emit dataChanged(index(0, COL_JUMPS), index(rowCount() - 1, COL_JUMPS));
+}
+
+void SACNSourceTableModel::resetCounters()
+{
+  for (auto it = m_sourceToTableRow.begin(); it != m_sourceToTableRow.end(); ++it)
+  {
+    it.key()->resetSeqErr();
+    it.key()->resetJumps();
+  }
+  emit dataChanged(index(0, COL_SEQ_ERR), index(rowCount() - 1, COL_JUMPS));
+}
+
 void SACNSourceTableModel::sourceChanged(sACNSource* source)
 {
   if (!source)

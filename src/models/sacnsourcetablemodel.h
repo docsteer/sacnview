@@ -59,6 +59,11 @@ public:
   // Remove all listeners and sources
   void clear();
 
+  // Convenience
+  void resetSequenceCounters();
+  void resetJumpsCounters();
+  void resetCounters();
+
 private Q_SLOTS:
   void sourceOnline(sACNSource* source);
   void sourceChanged(sACNSource* source);

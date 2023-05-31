@@ -34,6 +34,10 @@ public:
   explicit MultiView(QWidget* parent = 0);
   ~MultiView();
 
+protected slots:
+  void on_btnStartStop_clicked(bool checked);
+  void on_btnResetCounters_clicked();
+
 private:
   Ui::MultiView* ui = nullptr;
   SACNSourceTableModel* m_sourceTableModel = nullptr;

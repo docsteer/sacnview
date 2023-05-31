@@ -104,6 +104,7 @@ int main(int argc, char *argv[])
     MDIMainWindow *w = new MDIMainWindow();
     w->restoreMdiWindows();
 
+#ifdef NDEBUG
     // Setup IPC
     IPC ipc(w);
     if (!ipc.isListening())
@@ -112,6 +113,7 @@ int main(int argc, char *argv[])
         delete w;
         return -1;
     }
+#endif
 
     // Show window
     if(Preferences::Instance().GetSaveWindowLayout())
