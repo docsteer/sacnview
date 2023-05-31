@@ -19,48 +19,47 @@
 #include <QColor>
 
 #define APP_NAME        "sACNView"
-static const QStringList AUTHORS =
-        QStringList({"Tom Steer",
-                     "Marcus Birkin",
-                     "Hans Hinrichsen",
-                     "Matt Kerr",
-                     "Richard Thompson"});
+static const QStringList AUTHORS = {
+  QStringLiteral("Tom Steer"),
+  QStringLiteral("Marcus Birkin"),
+  QStringLiteral("Hans Hinrichsen"),
+  QStringLiteral("Matt Kerr"),
+  QStringLiteral("Richard Thompson")
+};
 
 // If this is a full release, only show the newer version message for other full releases
 // If this is prerelease, show all newer versions
-#define PRERELEASE      false
+constexpr bool PRERELEASE = false;
 
-#define nNumOfSecPerHour 3600
-#define nNumberOfSecPerMin 60
-#define nNumOfMinPerHour 60
+constexpr int nNumOfSecPerHour = 3600;
+constexpr int nNumberOfSecPerMin = 60;
+constexpr int nNumOfMinPerHour = 60;
 
-#define MIN_SACN_UNIVERSE 1
-#define MAX_SACN_UNIVERSE 63999
-#define MIN_DMX_ADDRESS 1
-#define MAX_DMX_ADDRESS 512
-#define PRESET_COUNT 8
-#define PRIORITYPRESET_COUNT 5
+constexpr uint16_t MIN_SACN_UNIVERSE = 1;
+constexpr uint16_t MAX_SACN_UNIVERSE = 63999;
+constexpr uint16_t MIN_DMX_ADDRESS = 1;
+constexpr uint16_t MAX_DMX_ADDRESS = 512;
+constexpr int PRESET_COUNT = 8;
+constexpr int PRIORITYPRESET_COUNT = 5;
 
-#define MIN_SACN_PRIORITY 0
-#define MAX_SACN_PRIORITY 200
-#define DEFAULT_SACN_PRIORITY 100
+constexpr uint8_t MIN_SACN_PRIORITY = 0;
+constexpr uint8_t MAX_SACN_PRIORITY = 200;
+constexpr uint8_t DEFAULT_SACN_PRIORITY = 100;
 
-#define MIN_SACN_LEVEL 0
-#define MAX_SACN_LEVEL 255
+constexpr uint8_t MIN_SACN_LEVEL = 0;
+constexpr uint8_t MAX_SACN_LEVEL = 255;
 
-#define MAX_SACN_TRANSMIT_TIME_SEC  1000000
+constexpr int MAX_SACN_TRANSMIT_TIME_SEC = 1000000;
 
 #define DEFAULT_SOURCE_NAME "sACNView"
-#define MAX_SOURCE_NAME_LEN 63
+constexpr int MAX_SOURCE_NAME_LEN = 63;
 
 
-enum PriorityMode
+enum class PriorityMode
 {
-    pmPER_SOURCE_PRIORITY,
-    pmPER_ADDRESS_PRIORITY
+  PER_SOURCE,
+  PER_ADDRESS
 };
-
-static const QStringList PriorityModeStrings = { "Per-Source", "Per-Address" };
 
 // A table of values to draw a 0-255 sinewave
 static const unsigned char sinetable[] = {
@@ -119,11 +118,11 @@ static const unsigned char PTOHT[] =
 
 // Fade rates for the fade fx
 static const QList<qreal> FX_FADE_RATES({
- 0.5,1,2,5,10,25,44,50,75,100,500});
+ 0.5,1,2,5,10,25,44,50,75,100,500 });
 
 
-static const QColor flickerHigherColor  = QColor::fromRgb(0x8d, 0x32, 0xfd);
-static const QColor flickerLowerColor   = QColor::fromRgb(0x04, 0xfd, 0x44);
+static const QColor flickerHigherColor = QColor::fromRgb(0x8d, 0x32, 0xfd);
+static const QColor flickerLowerColor = QColor::fromRgb(0x04, 0xfd, 0x44);
 static const QColor flickerChangedColor = QColor::fromRgb(0xfb, 0x09, 0x09);
 
 
