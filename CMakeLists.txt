@@ -109,6 +109,7 @@ set(SACNVIEW_HEADERS
     src/widgets/grideditwidget.h
     src/ui/multiview.h
     src/models/sacnsourcetablemodel.h
+    src/models/csvmodelexport.h
 )
 
 set(SACNVIEW_SOURCES
@@ -161,6 +162,7 @@ set(SACNVIEW_SOURCES
     src/widgets/clssnapshot.cpp
     src/widgets/grideditwidget.cpp
     src/models/sacnsourcetablemodel.cpp
+    src/models/csvmodelexport.cpp
 )
 
 set(SACNVIEW_FORMS

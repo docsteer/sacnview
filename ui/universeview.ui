@@ -157,6 +157,13 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QPushButton" name="btnExportSourceList">
+           <property name="text">
+            <string>Export Source List...</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
        <item>

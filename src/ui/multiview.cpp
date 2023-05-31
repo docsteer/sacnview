@@ -3,8 +3,11 @@
 #include "ui_multiview.h"
 
 #include "consts.h"
-
 #include "models/sacnsourcetablemodel.h"
+#include "models/csvmodelexport.h"
+
+#include <QFileDialog>
+#include <QStandardPaths>
 
 MultiView::MultiView(QWidget* parent)
   : QWidget(parent)
@@ -65,4 +68,16 @@ void MultiView::on_btnStartStop_clicked(bool checked)
 void MultiView::on_btnResetCounters_clicked()
 {
   m_sourceTableModel->resetCounters();
+}
+
+void MultiView::on_btnExport_clicked()
+{
+  const QString filename = QFileDialog::getSaveFileName(this, tr("Export Sources Table"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), QStringLiteral("*.csv"));
+
+  if (filename.isEmpty())
+    return;
+
+  // Export as CSV
+  CsvModelExporter csv_export(m_sourceTableModel);
+  csv_export.saveAs(filename);
 }

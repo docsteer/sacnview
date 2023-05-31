@@ -48,6 +48,7 @@ protected slots:
     void openBigDisplay(quint16 address);
     void on_btnStartFlickerFinder_clicked();
     void on_btnLogWindow_clicked();
+    void on_btnExportSourceList_clicked();
     void listenerStarted(int universe);
 
 protected:

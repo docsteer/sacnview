@@ -25,8 +25,11 @@
 #include "bigdisplay.h"
 
 #include "models/sacnsourcetablemodel.h"
+#include "models/csvmodelexport.h"
 
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QStandardPaths>
 
 UniverseView::UniverseView(int universe, QWidget *parent) :
     QWidget(parent),
@@ -378,6 +381,18 @@ void UniverseView::on_btnLogWindow_clicked()
         return;
     LogWindow *w = new LogWindow(ui->sbUniverse->value(),mainWindow);
     mainWindow->showWidgetAsMdiWindow(w);
+}
+
+void UniverseView::on_btnExportSourceList_clicked()
+{
+  const QString filename = QFileDialog::getSaveFileName(this, tr("Export Sources Table"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), QStringLiteral("*.csv"));
+
+  if (filename.isEmpty())
+    return;
+
+  // Export as CSV
+  CsvModelExporter csv_export(m_sourceTableModel);
+  csv_export.saveAs(filename);
 }
 
 

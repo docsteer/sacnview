@@ -37,6 +37,7 @@ public:
 protected slots:
   void on_btnStartStop_clicked(bool checked);
   void on_btnResetCounters_clicked();
+  void on_btnExport_clicked();
 
 private:
   Ui::MultiView* ui = nullptr;
