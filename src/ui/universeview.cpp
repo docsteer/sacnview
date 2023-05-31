@@ -24,22 +24,12 @@
 #include "mdimainwindow.h"
 #include "bigdisplay.h"
 
-#include <QMessageBox>
+#include "models/sacnsourcetablemodel.h"
+#include "models/csvmodelexport.h"
 
-QString protocolVerToString(int value)
-{
-    switch(value)
-    {
-    case sACNProtocolDraft:
-        return QObject::tr("Draft");
-    case sACNProtocolRelease:
-        return QObject::tr("Release");
-    case sACNProtocolPathwaySecure:
-        return QObject::tr("Pathway Secure");
-    default:
-        return QObject::tr("Unknown");
-    }
-}
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QStandardPaths>
 
 UniverseView::UniverseView(int universe, QWidget *parent) :
     QWidget(parent),
@@ -66,7 +56,9 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
     ui->sbUniverse->setEnabled(true);
     ui->sbUniverse->setValue(universe);
 
-    ui->twSources->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    m_sourceTableModel = new SACNSourceTableModel(this);
+    ui->tableView->setModel(m_sourceTableModel);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
 
 UniverseView::~UniverseView()
@@ -76,25 +68,21 @@ UniverseView::~UniverseView()
 
 void UniverseView::startListening(int universe)
 {
-    m_sourceToTableRow.clear();
-    ui->twSources->setRowCount(0);
     ui->btnGo->setEnabled(false);
     ui->btnPause->setEnabled(true);
     ui->sbUniverse->setEnabled(false);
     m_listener = sACNManager::Instance().getListener(universe);
-    connect(m_listener.data(), SIGNAL(listenerStarted(int)), this, SLOT(listenerStarted(int)));
+    connect(m_listener.data(), &sACNListener::listenerStarted, this, &UniverseView::listenerStarted);
     checkBind();
     ui->universeDisplay->setUniverse(universe);
 
-    // Add the existing sources
-    for(int i=0; i<m_listener->sourceCount(); i++)
-    {
-        sourceOnline(m_listener->source(i));
-    }
-    connect(m_listener.data(), SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
-    connect(m_listener.data(), SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
-    connect(m_listener.data(), SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
-    connect(m_listener.data(), SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
+    m_sourceTableModel->clear();
+    m_sourceTableModel->addListener(m_listener);
+
+    connect(m_listener.data(), &sACNListener::sourceFound, this, &UniverseView::sourceChanged);
+    connect(m_listener.data(), &sACNListener::sourceLost, this, &UniverseView::sourceChanged);
+    connect(m_listener.data(), &sACNListener::sourceChanged, this, &UniverseView::sourceChanged);
+    connect(m_listener.data(), &sACNListener::levelsChanged, this, &UniverseView::levelsChanged);
 
     if(ui->sbUniverse->value()!=universe)
         ui->sbUniverse->setValue(universe);
@@ -145,201 +133,96 @@ void UniverseView::listenerStarted(int universe)
     checkBind();
 }
 
-void UniverseView::sourceChanged(sACNSource *source)
+void UniverseView::sourceChanged(sACNSource*/*source*/)
 {
-    if (!m_listener)
-        return;
-
-    if (!m_sourceToTableRow.contains(source)) {
-        sourceOnline(source); // Maybe it's new, maybe it's ignored...
-        return;
-    }
-
-    // Colours
-    QColor colourGood = Qt::green;
-    QColor colourWarning = Qt::yellow;
-    QColor colourBad = Qt::red;
-    if (Preferences::Instance().GetTheme() == Themes::DARK)
-    {
-        colourGood = Qt::darkGreen;
-        colourWarning = Qt::darkYellow;
-        colourBad = Qt::darkRed;
-    }
-
-
-    int row = m_sourceToTableRow[source];
-    ui->twSources->item(row,COL_NAME)->setText(source->name);
-    ui->twSources->item(row,COL_NAME)->setBackground(Preferences::Instance().colorForCID(source->src_cid));
-    ui->twSources->item(row,COL_CID)->setText(source->src_cid);
-    ui->twSources->item(row,COL_PRIO)->setText(QString::number(source->priority));
-
-    if (source->protocol_version == sACNProtocolDraft)
-        ui->twSources->item(row,COL_PREVIEW)->setText(tr("N/A"));
-    else
-        ui->twSources->item(row,COL_PREVIEW)->setText(source->isPreview ? tr("Yes") : tr("No"));
-
-    if (source->protocol_version == sACNProtocolDraft)
-        ui->twSources->item(row,COL_SYNC)->setText(tr("N/A"));
-    else
-        ui->twSources->item(row,COL_SYNC)->setText(source->synchronization
-            ? QString(tr("Yes (%1)")).arg(source->synchronization)
-            : tr("No"));
-
-    ui->twSources->item(row,COL_IP)->setText(source->ip.toString());
-    ui->twSources->item(row,COL_FPS)->setText(QString("%1Hz").arg(QString::number(source->fpscounter.FPS(), 'f', 2)));
-    {
-        // Seq Errors
-        QLabel* lbl_SEQ_ERR = qobject_cast<QLabel *>(
-                    ui->twSources->cellWidget(row,COL_SEQ_ERR)->layout()->itemAt(0)->widget());
-        lbl_SEQ_ERR->setText(QString::number(source->seqErr));
-    }
-    {
-        // Jumps
-        QLabel* lbl_SEQ_ERR = qobject_cast<QLabel *>(
-                    ui->twSources->cellWidget(row,COL_JUMPS)->layout()->itemAt(0)->widget());
-        lbl_SEQ_ERR->setText(QString::number(source->jumps));
-    }
-
-    if (source->src_valid) {
-        if (source->doing_dmx) {
-            if (source->src_stable) {
-                ui->twSources->item(row,COL_ONLINE)->setBackground(colourGood);
-                ui->twSources->item(row,COL_ONLINE)->setText(tr("Online"));
-            } else {
-                ui->twSources->item(row,COL_ONLINE)->setBackground(colourWarning);
-                ui->twSources->item(row,COL_ONLINE)->setText(tr("Online (Unstable)"));
-            }
-        } else {
-            ui->twSources->item(row,COL_ONLINE)->setBackground(colourWarning);
-            ui->twSources->item(row,COL_ONLINE)->setText(tr("No DMX"));
-        }
-    } else {
-        ui->twSources->item(row,COL_ONLINE)->setBackground(colourBad);
-        ui->twSources->item(row,COL_ONLINE)->setText(tr("Offline"));
-    }
-
-    ui->twSources->item(row,COL_VER)->setText(protocolVerToString(source->protocol_version));
-    ui->twSources->item(row,COL_DD)->setText(
-                source->doing_per_channel ?
-                    (Preferences::Instance().GetETCDD() ?  tr("Yes") : tr("Ignored"))
-                    : tr("No"));
-    ui->twSources->item(row,COL_SLOTS)->setText(QString::number(source->slot_count));
-
-    // Pathway secure
-    if (source->protocol_version == sACNProtocolPathwaySecure) {
-        if (source->pathway_secure.isSecure()) {
-            ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("Yes"));
-            ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(colourGood);
-        } else {
-            if (!source->pathway_secure.passwordOk) {
-                ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("Bad Password"));
-                ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(colourWarning);
-            } else if (!source->pathway_secure.sequenceOk) {
-                ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("Bad Sequence"));
-                ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(colourWarning);
-            } else if (!source->pathway_secure.digetOk) {
-                ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("Bad Message Digest"));
-                ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(colourBad);
-            }
-        }
-    } else {
-        if (Preferences::Instance().GetPathwaySecureRxDataOnly()) {
-            ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("No"));
-            ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(colourBad);
-        } else {
-            ui->twSources->item(row,COL_PATHWAY_SECURE)->setText(tr("N/A"));
-            ui->twSources->item(row,COL_PATHWAY_SECURE)->setBackground(Qt::transparent);
-        }
-    }
-
     // Update select address details
     if (m_selectedAddress != NO_SELECTED_ADDRESS)
         selectedAddressChanged(m_selectedAddress);
 }
 
-void UniverseView::sourceOnline(sACNSource *source)
-{
-    if (!m_listener)
-        return;
+//void UniverseView::sourceOnline(sACNSource *source)
+//{
+    //if (!m_listener)
+    //    return;
 
-    // Display sources that only transmit 0xdd?
-    if (!m_displayDDOnlySource && !source->doing_dmx)
-        return;
+    //// Display sources that only transmit 0xdd?
+    //if (!m_displayDDOnlySource && !source->doing_dmx)
+    //    return;
 
-    int row = ui->twSources->rowCount();
-    ui->twSources->setRowCount(row+1);
-    m_sourceToTableRow[source] = row;
+    //int row = ui->twSources->rowCount();
+    //ui->twSources->setRowCount(row+1);
+    //m_sourceToTableRow[source] = row;
 
-    for (auto col = 0; col < COL_END; col++)
-        ui->twSources->setItem(row, col, new QTableWidgetItem() );
+    //for (auto col = 0; col < COL_END; col++)
+    //    ui->twSources->setItem(row, col, new QTableWidgetItem() );
 
-    // Seq errors, with reset
-    {
-        QWidget* pWidget = new QWidget();
-        QHBoxLayout* pLayout = new QHBoxLayout(pWidget);
-        pLayout->setAlignment(Qt::AlignCenter);
-        pLayout->setContentsMargins(3,0,0,0);
+    //// Seq errors, with reset
+    //{
+    //    QWidget* pWidget = new QWidget();
+    //    QHBoxLayout* pLayout = new QHBoxLayout(pWidget);
+    //    pLayout->setAlignment(Qt::AlignCenter);
+    //    pLayout->setContentsMargins(3,0,0,0);
 
-        // Count
-        QLabel* lbl_seq = new QLabel();
-        lbl_seq->setText(QString::number(0));
-        pLayout->addWidget(lbl_seq);
+    //    // Count
+    //    QLabel* lbl_seq = new QLabel();
+    //    lbl_seq->setText(QString::number(0));
+    //    pLayout->addWidget(lbl_seq);
 
-        // Reset Button
-        QPushButton* btn_seq = new QPushButton();
-        btn_seq->setIcon(QIcon(":/icons/clear.png"));
-        btn_seq->setFlat(true);
-        pLayout->addWidget(btn_seq);
+    //    // Reset Button
+    //    QPushButton* btn_seq = new QPushButton();
+    //    btn_seq->setIcon(QIcon(":/icons/clear.png"));
+    //    btn_seq->setFlat(true);
+    //    pLayout->addWidget(btn_seq);
 
-        // Connect button
-        connect(btn_seq, &QPushButton::clicked, this, [=]() {
-            source->resetSeqErr();
-            this->sourceChanged(source);
-        });
+    //    // Connect button
+    //    connect(btn_seq, &QPushButton::clicked, this, [=]() {
+    //        source->resetSeqErr();
+    //        this->sourceChanged(source);
+    //    });
 
-        // Display!
-        pWidget->setLayout(pLayout);
-        ui->twSources->setCellWidget(row,COL_SEQ_ERR, pWidget);
-    }
+    //    // Display!
+    //    pWidget->setLayout(pLayout);
+    //    ui->twSources->setCellWidget(row,COL_SEQ_ERR, pWidget);
+    //}
 
-    // Jump counter, with reset
-    {
-        QWidget* pWidget = new QWidget();
-        QHBoxLayout* pLayout = new QHBoxLayout(pWidget);
-        pLayout->setAlignment(Qt::AlignCenter);
-        pLayout->setContentsMargins(3,0,0,0);
+    //// Jump counter, with reset
+    //{
+    //    QWidget* pWidget = new QWidget();
+    //    QHBoxLayout* pLayout = new QHBoxLayout(pWidget);
+    //    pLayout->setAlignment(Qt::AlignCenter);
+    //    pLayout->setContentsMargins(3,0,0,0);
 
-        // Count
-        QLabel* lbl_jumps = new QLabel();
-        lbl_jumps->setText(QString::number(0));
-        pLayout->addWidget(lbl_jumps);
+    //    // Count
+    //    QLabel* lbl_jumps = new QLabel();
+    //    lbl_jumps->setText(QString::number(0));
+    //    pLayout->addWidget(lbl_jumps);
 
-        // Reset Button
-        QPushButton* btn_jumps = new QPushButton();
-        btn_jumps->setIcon(QIcon(":/icons/clear.png"));
-        btn_jumps->setFlat(true);
-        pLayout->addWidget(btn_jumps);
+    //    // Reset Button
+    //    QPushButton* btn_jumps = new QPushButton();
+    //    btn_jumps->setIcon(QIcon(":/icons/clear.png"));
+    //    btn_jumps->setFlat(true);
+    //    pLayout->addWidget(btn_jumps);
 
-        // Connect button
-        connect(btn_jumps, &QPushButton::clicked, this, [=]() {
-            source->resetJumps();
-            this->sourceChanged(source);
-        });
+    //    // Connect button
+    //    connect(btn_jumps, &QPushButton::clicked, this, [=]() {
+    //        source->resetJumps();
+    //        this->sourceChanged(source);
+    //    });
 
-        pWidget->setLayout(pLayout);
-        ui->twSources->setCellWidget(row,COL_JUMPS, pWidget);
-    }
+    //    pWidget->setLayout(pLayout);
+    //    ui->twSources->setCellWidget(row,COL_JUMPS, pWidget);
+    //}
 
 
-    sourceChanged(source);
-}
+//    sourceChanged(source);
+//}
 
-void UniverseView::sourceOffline(sACNSource *source)
-{
-    if (!m_listener)
-        return;
-    sourceChanged(source);
-}
+//void UniverseView::sourceOffline(sACNSource *source)
+//{
+//    if (!m_listener)
+//        return;
+//    sourceChanged(source);
+//}
 
 void UniverseView::levelsChanged()
 {
@@ -365,37 +248,37 @@ void UniverseView::showEvent(QShowEvent *event)
 void UniverseView::resizeColumns()
 {
     // Attempt to resize so all columns fit
-    int width = ui->twSources->width();
+    int width = ui->tableView->width();
 
     int widthUnit = width/14;
 
     int used = 0;
-    for (int i = COL_NAME; i < COL_END; ++i)
+    for (int i = SACNSourceTableModel::COL_NAME; i < SACNSourceTableModel::COL_END; ++i)
     {
         switch(i)
         {
-        case COL_NAME:
+        case SACNSourceTableModel::COL_NAME:
             break;
-        case COL_CID:
-        case COL_IP:
-        case COL_DD:
-            ui->twSources->setColumnWidth(i, 2*widthUnit);
+        case SACNSourceTableModel::COL_CID:
+        case SACNSourceTableModel::COL_IP:
+        case SACNSourceTableModel::COL_DD:
+            ui->tableView->setColumnWidth(i, 2*widthUnit);
             used += 2*widthUnit;
             break;
         default:
-            ui->twSources->setColumnWidth(i, widthUnit);
+            ui->tableView->setColumnWidth(i, widthUnit);
             used += widthUnit;
             break;
         }
     }
 
-    ui->twSources->setColumnWidth(COL_NAME, width-used-5);
+    ui->tableView->setColumnWidth(SACNSourceTableModel::COL_NAME, width-used-5);
 }
 
-QString UniverseView::prioText(sACNSource *source, quint8 address)
+QString UniverseView::prioText(const sACNSource *source, quint8 address) const
 {
     if (source == nullptr)
-        return "Unknown";
+        return tr("Unknown");
 
     if(source->doing_per_channel)
         if (source->priority_array[address] > 0)
@@ -498,6 +381,18 @@ void UniverseView::on_btnLogWindow_clicked()
         return;
     LogWindow *w = new LogWindow(ui->sbUniverse->value(),mainWindow);
     mainWindow->showWidgetAsMdiWindow(w);
+}
+
+void UniverseView::on_btnExportSourceList_clicked()
+{
+  const QString filename = QFileDialog::getSaveFileName(this, tr("Export Sources Table"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), QStringLiteral("*.csv"));
+
+  if (filename.isEmpty())
+    return;
+
+  // Export as CSV
+  CsvModelExporter csv_export(m_sourceTableModel);
+  csv_export.saveAs(filename);
 }
 
 

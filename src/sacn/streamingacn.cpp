@@ -50,6 +50,22 @@
 #include <QDebug>
 #endif
 
+
+QString GetProtocolVersionString(StreamingACNProtocolVersion value)
+{
+  switch (value)
+  {
+  case sACNProtocolDraft:
+    return QObject::tr("Draft");
+  case sACNProtocolRelease:
+    return QObject::tr("Release");
+  case sACNProtocolPathwaySecure:
+    return QObject::tr("Pathway Secure");
+  default:
+    return QObject::tr("Unknown");
+  }
+}
+
 sACNSource::sACNSource() :
     src_valid(false),
     lastseq(0),
@@ -297,3 +313,4 @@ void sACNManager::senderCIDChanged()
 
     qDebug() << "Sender CID" << CID::CIDIntoQString(oldCID) << "now CID" << CID::CIDIntoQString(newCID);
 }
+

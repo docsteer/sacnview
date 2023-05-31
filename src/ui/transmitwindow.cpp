@@ -412,14 +412,14 @@ void transmitwindow::on_btnStart_pressed()
         m_sender->setSlotCount(ui->sbSlotCount->value());
         m_sender->setName(ui->leSourceName->text());
         m_sender->setUniverse(ui->sbUniverse->value());
-        if(ui->cbPriorityMode->currentIndex() == pmPER_ADDRESS_PRIORITY)
+        if(ui->cbPriorityMode->currentIndex() == static_cast<int>(PriorityMode::PER_ADDRESS))
         {
-            m_sender->setPriorityMode(pmPER_ADDRESS_PRIORITY);
+            m_sender->setPriorityMode(PriorityMode::PER_ADDRESS);
             m_sender->setPerChannelPriorities(m_perAddressPriorities.data());
         }
         else
         {
-            m_sender->setPriorityMode(pmPER_SOURCE_PRIORITY);
+            m_sender->setPriorityMode(PriorityMode::PER_SOURCE);
             m_sender->setPerSourcePriority(ui->sbPriority->value());
         }
         using namespace std::chrono_literals;
@@ -473,7 +473,7 @@ void transmitwindow::on_btnEditPerChan_pressed()
 
 void transmitwindow::on_cbPriorityMode_currentIndexChanged(int index)
 {
-    if(index==pmPER_ADDRESS_PRIORITY)
+    if (index == static_cast<int>(PriorityMode::PER_ADDRESS))
     {
         ui->sbPriority->setEnabled(false);
         ui->btnEditPerChan->setEnabled(true);

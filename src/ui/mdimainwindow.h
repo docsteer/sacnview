@@ -44,12 +44,14 @@ public:
 protected slots:
     void on_actionScopeView_triggered(bool checked);
     void on_actionRecieve_triggered(bool checked);
+    void on_actionMultiView_triggered(bool checked);
     void on_actionTranmsit_triggered(bool checked);
     void on_actionSettings_triggered(bool checked);
     void on_actionSnapshot_triggered(bool checked);
     void on_btnUnivListBack_pressed();
     void on_btnUnivListForward_pressed();
     void on_sbUniverseList_valueChanged(int value);
+
     void universeDoubleClick(const QModelIndex &index);
     void rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end);
 

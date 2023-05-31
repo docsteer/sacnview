@@ -107,6 +107,9 @@ set(SACNVIEW_HEADERS
     src/widgets/clssnapshot.h
     src/sacn/fpscounter.h
     src/widgets/grideditwidget.h
+    src/ui/multiview.h
+    src/models/sacnsourcetablemodel.h
+    src/models/csvmodelexport.h
 )
 
 set(SACNVIEW_SOURCES
@@ -149,6 +152,7 @@ set(SACNVIEW_SOURCES
     src/ui/logwindow.cpp
     src/ui/bigdisplay.cpp
     src/ui/addmultidialog.cpp
+    src/ui/multiview.cpp
     src/widgets/monitorspinbox.cpp
     src/widgets/qpushbutton_rightclick.cpp
     src/widgets/qspinbox_resizetocontent.cpp
@@ -157,6 +161,8 @@ set(SACNVIEW_SOURCES
     src/widgets/scopewidget.cpp
     src/widgets/clssnapshot.cpp
     src/widgets/grideditwidget.cpp
+    src/models/sacnsourcetablemodel.cpp
+    src/models/csvmodelexport.cpp
 )
 
 set(SACNVIEW_FORMS
@@ -176,6 +182,7 @@ set(SACNVIEW_FORMS
     ui/newversiondialog.ui
     ui/addmultidialog.ui
     ui/pcapplayback.ui
+    ui/multiview.ui
 )
 
 set(SACNVIEW_RCC

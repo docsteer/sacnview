@@ -42,10 +42,10 @@
       "cacheVariables": {
         "CMAKE_C_COMPILER": "cl.exe",
         "CMAKE_CXX_COMPILER": "cl.exe",
-        "Qt5_DIR": "$env{QTROOT}/5.15.13/msvc2019_64/lib/cmake/Qt5"
+        "Qt5_DIR": "$env{QTROOT}/5.15.14/msvc2019_64/lib/cmake/Qt5"
       },
       "environment": {
-        "PATH": "$penv{QTROOT}/5.15.13/msvc2019_64/bin/;$penv{PATH}"
+        "PATH": "$penv{QTROOT}/5.15.14/msvc2019_64/bin/;$penv{PATH}"
       },
       "condition": {
         "type": "equals",

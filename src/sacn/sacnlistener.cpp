@@ -327,7 +327,7 @@ void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &d
             } else {
                 ps->pathway_secure.passwordOk = false;
                 ps->pathway_secure.sequenceOk = false;
-                ps->pathway_secure.digetOk = false;
+                ps->pathway_secure.digestOk = false;
             }
 
             if(!ps->src_valid)

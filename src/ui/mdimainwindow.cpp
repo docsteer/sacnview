@@ -26,6 +26,7 @@
 #include "sacnsynclistmodel.h"
 #include "snapshot.h"
 #include "multiuniverse.h"
+#include "multiview.h"
 #include "pcapplayback.h"
 
 #include <QMdiSubWindow>
@@ -92,6 +93,14 @@ void MDIMainWindow::on_actionRecieve_triggered(bool checked)
     UniverseView *uniView = new UniverseView(getSelectedUniverse(), this);
     ui->mdiArea->addSubWindow(uniView);
     uniView->show();
+}
+
+void MDIMainWindow::on_actionMultiView_triggered(bool checked)
+{
+    Q_UNUSED(checked);
+    MultiView* multiView = new MultiView(this);
+    ui->mdiArea->addSubWindow(multiView);
+    multiView->show();
 }
 
 void MDIMainWindow::on_actionTranmsit_triggered(bool checked)

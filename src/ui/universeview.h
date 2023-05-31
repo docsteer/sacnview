@@ -21,6 +21,7 @@
 #include "streamingacn.h"
 
 class sACNListener;
+class SACNSourceTableModel;
 
 namespace Ui {
 class UniverseView;
@@ -40,8 +41,6 @@ protected slots:
     void refreshTitle();
     void on_btnGo_clicked();
     void on_btnPause_clicked();
-    void sourceOnline(sACNSource *source);
-    void sourceOffline(sACNSource *source);
     void sourceChanged(sACNSource *source);
     void levelsChanged();
     void selectedAddressChanged(int address);
@@ -49,41 +48,22 @@ protected slots:
     void openBigDisplay(quint16 address);
     void on_btnStartFlickerFinder_clicked();
     void on_btnLogWindow_clicked();
+    void on_btnExportSourceList_clicked();
     void listenerStarted(int universe);
 
 protected:
     virtual void resizeEvent(QResizeEvent *event);
     virtual void showEvent(QShowEvent *event);
 private:
-    // The column order in the source table
-    enum m_SC_ROWS
-    {
-    COL_NAME,
-    COL_ONLINE,
-    COL_CID,
-    COL_PRIO,
-    COL_SYNC,
-    COL_PREVIEW,
-    COL_IP,
-    COL_FPS,
-    COL_SEQ_ERR,
-    COL_JUMPS,
-    COL_VER,
-    COL_DD,
-    COL_SLOTS,
-    COL_PATHWAY_SECURE,
-    COL_END
-    };
-
     void resizeColumns();
     bool m_bindWarningShown = false;
     void checkBind();
 
-    QString prioText(sACNSource *source, quint8 address);
+    QString prioText(const sACNSource *source, quint8 address) const;
 
     Ui::UniverseView *ui = nullptr;
-    QHash<sACNSource *, int> m_sourceToTableRow;
-    static const int NO_SELECTED_ADDRESS = -1;
+    SACNSourceTableModel* m_sourceTableModel = nullptr;
+    static constexpr int NO_SELECTED_ADDRESS = -1;
     int m_selectedAddress = NO_SELECTED_ADDRESS;
     sACNManager::tListener m_listener;
     QWidget *m_parentWindow = nullptr;
