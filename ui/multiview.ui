@@ -19,7 +19,12 @@
   <property name="windowTitle">
    <string>Multi Universe View</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="windowIcon">
+     <iconset resource="../res/resources.qrc">
+       <normaloff>:/icons/multi_universe_view.png</normaloff>:/icons/multi_universe_view.png
+     </iconset>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="leftMargin">
     <number>0</number>
    </property>

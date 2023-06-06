@@ -54,8 +54,7 @@ background-color:grey;
   <property name="unifiedTitleAndToolBarOnMac">
    <bool>false</bool>
   </property>
-  <widget class="QWidget" name="centralWidget">
-  </widget>
+  <widget class="QWidget" name="centralWidget"/>
   <widget class="QToolBar" name="mainToolBar">
    <property name="iconSize">
     <size>
@@ -453,6 +452,10 @@ background-color:grey;
    </property>
   </action>
   <action name="actionMultiView">
+   <property name="icon">
+    <iconset resource="../res/resources.qrc">
+     <normaloff>:/icons/multi_universe_view.png</normaloff>:/icons/multi_universe_view.png</iconset>
+   </property>
    <property name="text">
     <string>MultiView</string>
    </property>
