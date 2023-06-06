@@ -74,7 +74,7 @@ Snapshot::Snapshot(int firstUniverse, QWidget *parent) :
     m_camera->setSource(QUrl("qrc:/sound/camera.wav"));
     m_beep->setSource(QUrl("qrc:/sound/beep.wav"));
 
-    connect(m_countdown, SIGNAL(timeout()), this, SLOT(counterTick()));
+    connect(m_countdown, &QTimer::timeout, this, &Snapshot::counterTick);
 
     setState(stSetup);
 }
@@ -215,15 +215,15 @@ void Snapshot::addUniverse(quint16 universe)
     int row = ui->tableWidget->rowCount();
     ui->tableWidget->setRowCount(row + 1);
 
-    auto name = Preferences::Instance().GetDefaultTransmitName().append(tr(" - Snapshot"));
+    QString name = Preferences::Instance().GetDefaultTransmitName() + tr(" - Snapshot");
     clsSnapshot* snap = new clsSnapshot(universe, m_cid, name, this);
 
-    connect(snap, SIGNAL(senderStarted()), this, SLOT(senderStarted()));
-    connect(snap, SIGNAL(senderStopped()), this, SLOT(senderStopped()));
-    connect(snap, SIGNAL(senderTimedOut()), this, SLOT(senderTimedOut()));
+    connect(snap, &clsSnapshot::senderStarted, this, &Snapshot::senderStarted);
+    connect(snap, &clsSnapshot::senderStopped, this, &Snapshot::senderStopped);
+    connect(snap, &clsSnapshot::senderTimedOut, this, &Snapshot::senderTimedOut);
     connect(snap, &clsSnapshot::snapshotTaken, this, [this]() { ui->btnPlay->setEnabled(true); });
-    connect(snap, SIGNAL(snapshotMatches()), this, SLOT(updateMatchIcon()));
-    connect(snap, SIGNAL(snapshotDiffers()), this, SLOT(updateMatchIcon()));
+    connect(snap, &clsSnapshot::snapshotMatches, this, &Snapshot::updateMatchIcon);
+    connect(snap, &clsSnapshot::snapshotDiffers, this, &Snapshot::updateMatchIcon);
     ui->tableWidget->setCellWidget(row, COL_BUTTON, snap->getControlWidget());
     ui->tableWidget->setCellWidget(row, COL_UNIVERSE, snap->getSbUniverse());
     ui->tableWidget->setCellWidget(row, COL_PRIORITY, snap->getSbPriority());

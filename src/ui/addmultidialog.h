@@ -42,7 +42,7 @@ public:
     int priority();
 
 private slots:
-    void rangeChanged();
+    void rangeChanged(int);
     void on_cbEffect_currentIndexChanged(int index);
     void on_slLevel_sliderMoved(int value);
     void on_slLevel_valueChanged(int value);

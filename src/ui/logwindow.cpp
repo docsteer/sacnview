@@ -184,9 +184,9 @@ void LogWindow::on_btnClear_pressed()
 void LogWindow::on_cbLevels_clicked(bool checked)
 {
     if (checked) {
-        connect(m_listener.data(), SIGNAL(levelsChanged()), this, SLOT(onLevelsChanged()));
+        connect(m_listener.data(), &sACNListener::levelsChanged, this, &LogWindow::onLevelsChanged);
     } else {
-        disconnect(m_listener.data(), SIGNAL(levelsChanged()), this, SLOT(onLevelsChanged()));
+        disconnect(m_listener.data(), &sACNListener::levelsChanged, this, &LogWindow::onLevelsChanged);
     }
 }
 
@@ -194,13 +194,13 @@ void LogWindow::on_cbSources_clicked(bool checked)
 {
     if (checked)
     {
-        connect(m_listener.data(), SIGNAL(sourceFound(sACNSource*)), this, SLOT(onSourceFound(sACNSource*)));
-        connect(m_listener.data(), SIGNAL(sourceResumed(sACNSource*)), this, SLOT(onSourceResume(sACNSource*)));
-        connect(m_listener.data(), SIGNAL(sourceLost(sACNSource*)), this, SLOT(onSourceLost(sACNSource*)));
+        connect(m_listener.data(), &sACNListener::sourceFound, this, &LogWindow::onSourceFound);
+        connect(m_listener.data(), &sACNListener::sourceResumed, this, &LogWindow::onSourceResume);
+        connect(m_listener.data(), &sACNListener::sourceLost, this, &LogWindow::onSourceLost);
     } else {
-        disconnect(m_listener.data(), SIGNAL(sourceFound(sACNSource*)), this, SLOT(onSourceFound(sACNSource*)));
-        disconnect(m_listener.data(), SIGNAL(sourceResumed(sACNSource*)), this, SLOT(onSourceResume(sACNSource*)));
-        disconnect(m_listener.data(), SIGNAL(sourceLost(sACNSource*)), this, SLOT(onSourceLost(sACNSource*)));
+        disconnect(m_listener.data(), &sACNListener::sourceFound, this, &LogWindow::onSourceFound);
+        disconnect(m_listener.data(), &sACNListener::sourceResumed, this, &LogWindow::onSourceResume);
+        disconnect(m_listener.data(), &sACNListener::sourceLost, this, &LogWindow::onSourceLost);
     }
 }
 

@@ -58,19 +58,19 @@ void BigDisplay::displayLevel()
         switch (Preferences::Instance().GetDisplayFormat())
         {
             default:
-            case Preferences::DECIMAL:
+            case DisplayFormat::DECIMAL:
             {
                 ui->lcdNumber->setMode(QLCDNumber::Dec);
                 ui->lcdNumber->display((int)m_level);
                 break;
             }
-            case Preferences::HEXADECIMAL:
+            case DisplayFormat::HEXADECIMAL:
             {
                 ui->lcdNumber->setMode(QLCDNumber::Hex);
                 ui->lcdNumber->display((int)m_level);
                 break;
             }
-            case Preferences::PERCENT:
+            case DisplayFormat::PERCENT:
             {
                 ui->lcdNumber->setMode(QLCDNumber::Dec);
                 // Display percent with an optional fraction

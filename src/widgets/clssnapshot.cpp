@@ -26,7 +26,7 @@ clsSnapshot::clsSnapshot(quint16 universe, CID cid, QString name, QWidget *paren
     m_sbPriority->setValue(m_priority);
     connect(m_sbPriority, (void(QSpinBox::*)(int))&QSpinBox::valueChanged, [this](int value) { setPriority(value); } );
 
-    connect(m_btnPlayback, SIGNAL(clicked(bool)), this, SLOT(btnEnableClicked(bool)));
+    connect(m_btnPlayback, &QAbstractButton::clicked, this, &clsSnapshot::btnEnableClicked);
     updateIcons();
 
     m_sender = sACNManager::Instance().getSender(m_universe, m_cid);
@@ -62,10 +62,10 @@ void clsSnapshot::setUniverse(quint16 universe) {
     //if (m_listener)
     //    m_listener->deleteLater();
     m_listener = sACNManager::Instance().getListener(m_universe);
-    connect(m_listener.data(), SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
-    connect(m_listener.data(), SIGNAL(sourceFound(sACNSource*)), this, SLOT(levelsChanged()));
-    connect(m_listener.data(), SIGNAL(sourceLost(sACNSource*)), this, SLOT(levelsChanged()));
-    connect(m_listener.data(), SIGNAL(sourceResumed(sACNSource*)), this, SLOT(levelsChanged()));
+    connect(m_listener.data(), &sACNListener::levelsChanged, this, &clsSnapshot::levelsChanged);
+    connect(m_listener.data(), &sACNListener::sourceFound, this, &clsSnapshot::levelsChanged);
+    connect(m_listener.data(), &sACNListener::sourceLost, this, &clsSnapshot::levelsChanged);
+    connect(m_listener.data(), &sACNListener::sourceResumed, this, &clsSnapshot::levelsChanged);
 
     m_sender->setUniverse(m_universe);
 }
