@@ -39,8 +39,8 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
 {
     ui->setupUi(this);
     UniverseDisplay *univDisplay = ui->universeDisplay;
-    connect(univDisplay, SIGNAL(selectedCellsChanged(QList<int>)), this, SLOT(selectedAddressesChanged(QList<int>)));
-    connect(univDisplay, SIGNAL(cellDoubleClick(quint16)), this, SLOT(openBigDisplay(quint16)));
+    connect(univDisplay, &UniverseDisplay::selectedCellsChanged, this, &UniverseView::selectedAddressesChanged);
+    connect(univDisplay, &UniverseDisplay::cellDoubleClick, this, &UniverseView::openBigDisplay);
 
     connect(ui->btnShowPriority, &QPushButton::toggled, univDisplay, &UniverseDisplay::setShowChannelPriority);
     connect(univDisplay, &UniverseDisplay::showChannelPriorityChanged, ui->btnShowPriority, &QPushButton::setChecked);
@@ -338,7 +338,7 @@ void UniverseView::openBigDisplay(quint16 address)
     MDIMainWindow *mainWindow = dynamic_cast<MDIMainWindow *>(m_parentWindow);
     if(!mainWindow) return;
     BigDisplay *w = new BigDisplay(ui->sbUniverse->value(), address, mainWindow);
-    mainWindow->showWidgetAsMdiWindow(w);
+    mainWindow->showWidgetAsSubWindow(w);
 }
 
 void UniverseView::on_btnPause_clicked()
@@ -380,7 +380,7 @@ void UniverseView::on_btnLogWindow_clicked()
     if (!mainWindow)
         return;
     LogWindow *w = new LogWindow(ui->sbUniverse->value(),mainWindow);
-    mainWindow->showWidgetAsMdiWindow(w);
+    mainWindow->showWidgetAsSubWindow(w);
 }
 
 void UniverseView::on_btnExportSourceList_clicked()

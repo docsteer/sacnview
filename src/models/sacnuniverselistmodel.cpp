@@ -85,10 +85,10 @@ void sACNUniverseListModel::setStartUniverse(int start)
             modelindex_locker.relock();
         }
 
-        connect(m_listeners.back().data(), SIGNAL(listenerStarted(int)), this, SLOT(listenerStarted(int)));
-        connect(m_listeners.back().data(), SIGNAL(sourceFound(sACNSource*)), this, SLOT(sourceOnline(sACNSource*)));
-        connect(m_listeners.back().data(), SIGNAL(sourceLost(sACNSource*)), this, SLOT(sourceOffline(sACNSource*)));
-        connect(m_listeners.back().data(), SIGNAL(sourceChanged(sACNSource*)), this, SLOT(sourceChanged(sACNSource*)));
+        connect(m_listeners.back().data(), &sACNListener::listenerStarted, this, &sACNUniverseListModel::listenerStarted);
+        connect(m_listeners.back().data(), &sACNListener::sourceFound, this, &sACNUniverseListModel::sourceOnline);
+        connect(m_listeners.back().data(), &sACNListener::sourceLost, this, &sACNUniverseListModel::sourceOffline);
+        connect(m_listeners.back().data(), &sACNListener::sourceChanged, this, &sACNUniverseListModel::sourceChanged);
     }
 
     // Release old listener sharedpointers
@@ -146,6 +146,10 @@ QVariant sACNUniverseListModel::data(const QModelIndex &index, int role) const
             else
                 return QVariant(displayString.append(QString(tr(" -- Interface Error"))));
         }
+    }
+    else if (role == Qt::EditRole)
+    {
+      return indexToUniverse(index);
     }
     return QVariant();
 }
@@ -295,7 +299,7 @@ void sACNUniverseListModel::sourceOffline(sACNSource *source)
     endRemoveRows();
 }
 
-int sACNUniverseListModel::indexToUniverse(const QModelIndex &index)
+int sACNUniverseListModel::indexToUniverse(const QModelIndex &index) const
 {
     QReadLocker locker(&rwlock_ModelIndex);
     if(!index.isValid())

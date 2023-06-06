@@ -41,19 +41,16 @@ AddMultiDialog::AddMultiDialog(QWidget *parent) :
     ui->sbStartUniverse->setMinimum(MIN_SACN_UNIVERSE);
     ui->sbStartUniverse->setMaximum(MAX_SACN_UNIVERSE);
 
-
     ui->cbEffect->addItems(sACNEffectEngine::FxModeDescriptions());
 
-
-    connect(ui->sbStartUniverse, SIGNAL(valueChanged(int)), this, SLOT(rangeChanged()));
-    connect(ui->sbNumUniverses, SIGNAL(valueChanged(int)), this, SLOT(rangeChanged()));
-
+    connect(ui->sbStartUniverse, QOverload<int>::of(&QSpinBox::valueChanged), this, &AddMultiDialog::rangeChanged);
+    connect(ui->sbNumUniverses, QOverload<int>::of(&QSpinBox::valueChanged), this, &AddMultiDialog::rangeChanged);
 
     ui->dlFadeRate->setMinimum(0);
     ui->dlFadeRate->setMaximum(FX_FADE_RATES.count()-1);
     ui->dlFadeRate->setValue(0);
 
-    rangeChanged();
+    rangeChanged(0);
     on_dlFadeRate_valueChanged(ui->dlFadeRate->value());
 }
 
@@ -62,10 +59,10 @@ AddMultiDialog::~AddMultiDialog()
     delete ui;
 }
 
-void AddMultiDialog::rangeChanged()
+void AddMultiDialog::rangeChanged(int)
 {
-    int startUniverse = ui->sbStartUniverse->value();
-    int endRange = startUniverse + ui->sbNumUniverses->value() - 1;
+    const int startUniverse = ui->sbStartUniverse->value();
+    const int endRange = startUniverse + ui->sbNumUniverses->value() - 1;
     if(endRange>MAX_SACN_UNIVERSE)
     {
         ui->sbStartUniverse->setValue(startUniverse - (endRange - MAX_SACN_UNIVERSE));

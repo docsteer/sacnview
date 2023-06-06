@@ -151,7 +151,7 @@ aboutDialog::aboutDialog(QWidget* parent) :
   resizeDiagColumn();
 
   m_displayTimer = new QTimer(this);
-  connect(m_displayTimer, SIGNAL(timeout()), this, SLOT(updateDisplay()));
+  connect(m_displayTimer, &QTimer::timeout, this, &aboutDialog::updateDisplay);
   m_displayTimer->start(1000);
 
 }
