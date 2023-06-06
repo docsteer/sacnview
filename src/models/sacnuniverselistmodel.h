@@ -49,8 +49,8 @@ class sACNUniverseListModel : public QAbstractItemModel
 
 public:
     sACNUniverseListModel(QObject *parent = NULL);
-    void setStartUniverse(int start);
-    int indexToUniverse(const QModelIndex &index);
+    Q_SLOT void setStartUniverse(int start);
+    int indexToUniverse(const QModelIndex &index) const;
 
     virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
     virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;

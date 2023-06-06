@@ -35,8 +35,7 @@ sACNDiscoveryTX::sACNDiscoveryTX() : QObject(),
     // Setup packet send timer
     m_sendTimer->setObjectName("sACNDiscoveryTX");
     m_sendTimer->setSingleShot(false);
-    connect(m_sendTimer, SIGNAL(timeout()), this, SLOT(sendDiscoveryPacket()));
-    connect(this, SIGNAL(destroyed()), m_sendTimer, SLOT(deleteLater()));
+    connect(m_sendTimer, &QTimer::timeout, this, &sACNDiscoveryTX::sendDiscoveryPacket);
     m_sendTimer->start(0);
 }
 
@@ -44,6 +43,7 @@ sACNDiscoveryTX::~sACNDiscoveryTX()
 {
     // Send empty discovery packet
     sendDiscoveryPacket();
+    m_sendTimer->stop();
 }
 
 void sACNDiscoveryTX::sendDiscoveryPacket()
@@ -168,15 +168,15 @@ sACNDiscoveryRX::sACNDiscoveryRX() : QObject(),
     qDebug() << "DiscoveryRX : Starting listener";
     m_thread->setObjectName("sACNDiscoveryRX");
     m_listener->moveToThread(m_thread);
-    connect(m_thread, SIGNAL(started()), m_listener, SLOT(startReception()));
-    connect(m_thread, SIGNAL(finished()), m_listener, SLOT(deleteLater()));
-    connect(m_thread, SIGNAL(finished()), m_thread, SLOT(deleteLater()));
+    connect(m_thread, &QThread::started, m_listener, &sACNListener::startReception);
+    connect(m_thread, &QThread::finished, m_listener, &QObject::deleteLater);
+    connect(m_thread, &QThread::finished, m_thread, &QObject::deleteLater);
     m_thread->start();
 
     m_expiredTimer->setInterval(E131_UNIVERSE_DISCOVERY_INTERVAL + (E131_UNIVERSE_DISCOVERY_INTERVAL / 4)); // Expire after 125% of time
     m_expiredTimer->setObjectName("sACNDiscoveryRX Expired Timer");
     m_expiredTimer->setSingleShot(false);
-    connect(m_expiredTimer, SIGNAL(timeout()), this, SLOT(timeoutUniverses()));
+    connect(m_expiredTimer, &QTimer::timeout, this, &sACNDiscoveryRX::timeoutUniverses);
     m_expiredTimer->start();
 }
 

@@ -14,14 +14,13 @@ CrashTest::CrashTest(QWidget *parent) :
     for (uint n = 0; n < numOfCrashMethods; n++) {
         QPushButton *b = new QPushButton(this);
         b->setText(QString("Method %1").arg(n));
-        connect(b, SIGNAL(clicked()), m_signalMapper, SLOT(map()));
+        connect(b, &QPushButton::clicked, m_signalMapper, QOverload<>::of(&QSignalMapper::map));
         m_signalMapper->setMapping(b, n);
 
         ui->verticalLayout->addWidget(b);
     }
 
-    connect(m_signalMapper, SIGNAL(mappedInt(int)),
-                this, SLOT(crashMethod(int)));
+    connect(m_signalMapper, &QSignalMapper::mappedInt, this, &CrashTest::crashMethod);
 }
 
 CrashTest::~CrashTest()

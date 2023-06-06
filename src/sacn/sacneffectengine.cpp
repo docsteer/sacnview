@@ -48,7 +48,7 @@ sACNEffectEngine::sACNEffectEngine(sACNManager::tSender sender) : QObject(NULL),
     m_timer = new QTimer(this);
     m_timer->setTimerType(Qt::TimerType::PreciseTimer);
     m_timer->setInterval(1000);
-    connect(m_timer, SIGNAL(timeout()), this, SLOT(timerTick()));
+    connect(m_timer, &QTimer::timeout, this, &sACNEffectEngine::timerTick);
 
     m_thread = new QThread();
     moveToThread(m_thread);
@@ -56,7 +56,7 @@ sACNEffectEngine::sACNEffectEngine(sACNManager::tSender sender) : QObject(NULL),
     m_thread->setObjectName(QString("Effect Engine Universe %1").arg(sender->universe()));
     m_thread->start();
 
-    connect(m_sender, SIGNAL(slotCountChange()), this, SLOT(slotCountChanged()));
+    connect(m_sender, &sACNSentUniverse::slotCountChange, this, &sACNEffectEngine::slotCountChanged);
 }
 
 sACNEffectEngine::~sACNEffectEngine()

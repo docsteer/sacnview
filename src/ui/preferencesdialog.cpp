@@ -23,210 +23,228 @@
 #include "streamingacn.h"
 #include "securesacn.h"
 
-PreferencesDialog::PreferencesDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::PreferencesDialog)
+PreferencesDialog::PreferencesDialog(QWidget* parent) :
+  QDialog(parent),
+  ui(new Ui::PreferencesDialog)
 {
-    ui->setupUi(this);
+  ui->setupUi(this);
 
-    // Populate lang
-    m_translation = new TranslationDialog(Preferences::Instance().GetLocale(), ui->vlLanguage, this);
-
-    // Network interfaces
-    QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
-    for(const QNetworkInterface &interface : interfaces)
-    {
-        // If the interface is ok for use...
-        if(Preferences::Instance().interfaceSuitable(interface))
-        {
-            // List IPv4 Addresses
-            const QString ipString = Preferences::GetIPv4AddressString(interface);
-
-            QRadioButton *radio  = new QRadioButton(ui->gbNetworkInterface);
-            radio->setText(QString("%1 (%2)")
-                           .arg(interface.humanReadableName())
-                           .arg(ipString));
-
-            radio->setChecked(
-                        Preferences::Instance().networkInterface().hardwareAddress() == interface.hardwareAddress() &&
-                        Preferences::Instance().networkInterface().name() == interface.name());
-
-            ui->verticalLayout_NetworkInterfaces->addWidget(radio);
-            m_interfaceList << interface;
-            m_interfaceButtons << radio;
-        }
-    }
-    ui->cbListenAll->setChecked(Preferences::Instance().GetNetworkListenAll());
-    if (Preferences::Instance().networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack))
-        ui->cbListenAll->setEnabled(false);
-
-    switch (Preferences::Instance().GetDisplayFormat())
-    {
-        case Preferences::DECIMAL:       ui->DecimalDisplayFormat->setChecked (true); break;
-        case Preferences::PERCENT:       ui->PercentDisplayFormat->setChecked(true); break;
-        case Preferences::HEXADECIMAL:   ui->HexDisplayFormat->setChecked(true); break;
-    }
-
-    ui->cbDisplayBlind->setChecked(Preferences::Instance().GetBlindVisualizer());
-    ui->cbETCDisplayDDOnlys->setChecked(Preferences::Instance().GetETCDisplayDDOnly());
-    ui->gbETCDD->setChecked(Preferences::Instance().GetETCDD());
-
-    ui->gbPathwaySecureRx->setChecked(Preferences::Instance().GetPathwaySecureRx());
-    ui->lePathwaySecureRxPassword->setText(Preferences::Instance().GetPathwaySecureRxPassword());
-    ui->lePathwaySecureTxPassword->setText(Preferences::Instance().GetPathwaySecureTxPassword());
-    ui->cbPathwaySecureRxDataOnly->setChecked(Preferences::Instance().GetPathwaySecureRxDataOnly());
-    ui->sbPathwaySecureRxSequenceTimeWindow->setValue(Preferences::Instance().GetPathwaySecureRxSequenceTimeWindow());
-    ui->rbPathwayTxSequenceTypeTime->setChecked(
-                Preferences::Instance().GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_time);
-    ui->rbPathwayTxSequenceTypeVolatile->setChecked(
-                Preferences::Instance().GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_volatile);
-    ui->rbPathwayTxSequenceTypeNonVolatile->setChecked(
-                Preferences::Instance().GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_nonvolatile);
-
-    ui->cbRestoreWindows->setChecked(Preferences::Instance().GetSaveWindowLayout());
-
-    ui->leDefaultSourceName->setText(Preferences::Instance().GetDefaultTransmitName());
-
-    int timeout = Preferences::Instance().GetNumSecondsOfSacn();
-    if(timeout>0)
-    {
-        ui->gbTransmitTimeout->setChecked(true);
-        int hour = (timeout/(60*60));
-        int min = ((timeout/60)-(hour*60));
-        int sec = (timeout - (hour*60*60) - (min*60) );
-        ui->NumOfHoursOfSacn->setValue(hour);
-        ui->NumOfMinOfSacn->setValue(min);
-        ui->NumOfSecOfSacn->setValue(sec);
-    }
-    else
-    {
-        ui->gbTransmitTimeout->setChecked(false);
-    }
-
-    ui->cbTxRateOverride->setChecked(Preferences::Instance().GetTXRateOverride());
-
-    ui->cbTheme->clear();
-    ui->cbTheme->addItems(Themes::getDescriptions());
-    ui->cbTheme->setCurrentIndex(static_cast<int>(Preferences::Instance().GetTheme()));
-
-    ui->sbMulticastTtl->setValue(Preferences::Instance().GetMulticastTtl());
+  // Populate lang
+  m_translation = new TranslationDialog(Preferences::Instance().GetLocale(), ui->vlLanguage, this);
 }
 
 PreferencesDialog::~PreferencesDialog()
 {
-    delete ui;
+  delete ui;
 }
 
 
+void PreferencesDialog::showEvent(QShowEvent* e)
+{
+  // Network interfaces
+  m_interfaceList.clear();
+  qDeleteAll(m_interfaceButtons);
+  m_interfaceButtons.clear();
+
+  QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
+  for (const QNetworkInterface& interface : interfaces)
+  {
+    // If the interface is ok for use...
+    if (Preferences::Instance().interfaceSuitable(interface))
+    {
+      // List IPv4 Addresses
+      const QString ipString = Preferences::GetIPv4AddressString(interface);
+
+      QRadioButton* radio = new QRadioButton(ui->gbNetworkInterface);
+      radio->setText(QString("%1 (%2)")
+        .arg(interface.humanReadableName())
+        .arg(ipString));
+
+      radio->setChecked(
+        Preferences::Instance().networkInterface().hardwareAddress() == interface.hardwareAddress() &&
+        Preferences::Instance().networkInterface().name() == interface.name());
+
+      ui->verticalLayout_NetworkInterfaces->addWidget(radio);
+      m_interfaceList << interface;
+      m_interfaceButtons << radio;
+    }
+  }
+  ui->cbListenAll->setChecked(Preferences::Instance().GetNetworkListenAll());
+  if (Preferences::Instance().networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack))
+    ui->cbListenAll->setEnabled(false);
+
+  switch (Preferences::Instance().GetDisplayFormat())
+  {
+  case DisplayFormat::DECIMAL:       ui->DecimalDisplayFormat->setChecked(true); break;
+  case DisplayFormat::PERCENT:       ui->PercentDisplayFormat->setChecked(true); break;
+  case DisplayFormat::HEXADECIMAL:   ui->HexDisplayFormat->setChecked(true); break;
+  }
+
+  ui->cbDisplayBlind->setChecked(Preferences::Instance().GetBlindVisualizer());
+  ui->cbETCDisplayDDOnlys->setChecked(Preferences::Instance().GetETCDisplayDDOnly());
+  ui->gbETCDD->setChecked(Preferences::Instance().GetETCDD());
+
+  ui->gbPathwaySecureRx->setChecked(Preferences::Instance().GetPathwaySecureRx());
+  ui->lePathwaySecureRxPassword->setText(Preferences::Instance().GetPathwaySecureRxPassword());
+  ui->lePathwaySecureTxPassword->setText(Preferences::Instance().GetPathwaySecureTxPassword());
+  ui->cbPathwaySecureRxDataOnly->setChecked(Preferences::Instance().GetPathwaySecureRxDataOnly());
+  ui->sbPathwaySecureRxSequenceTimeWindow->setValue(Preferences::Instance().GetPathwaySecureRxSequenceTimeWindow());
+  ui->rbPathwayTxSequenceTypeTime->setChecked(
+    Preferences::Instance().GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_time);
+  ui->rbPathwayTxSequenceTypeVolatile->setChecked(
+    Preferences::Instance().GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_volatile);
+  ui->rbPathwayTxSequenceTypeNonVolatile->setChecked(
+    Preferences::Instance().GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_nonvolatile);
+
+  ui->cbRestoreWindows->setChecked(Preferences::Instance().GetSaveWindowLayout());
+
+  ui->cbFloatingWindows->setChecked(Preferences::Instance().GetWindowMode() == WindowMode::Floating);
+
+  ui->leDefaultSourceName->setText(Preferences::Instance().GetDefaultTransmitName());
+
+  int timeout = Preferences::Instance().GetNumSecondsOfSacn();
+  if (timeout > 0)
+  {
+    ui->gbTransmitTimeout->setChecked(true);
+    int hour = (timeout / (60 * 60));
+    int min = ((timeout / 60) - (hour * 60));
+    int sec = (timeout - (hour * 60 * 60) - (min * 60));
+    ui->NumOfHoursOfSacn->setValue(hour);
+    ui->NumOfMinOfSacn->setValue(min);
+    ui->NumOfSecOfSacn->setValue(sec);
+  }
+  else
+  {
+    ui->gbTransmitTimeout->setChecked(false);
+  }
+
+  ui->cbTxRateOverride->setChecked(Preferences::Instance().GetTXRateOverride());
+
+  ui->cbTheme->clear();
+  ui->cbTheme->addItems(Themes::getDescriptions());
+  ui->cbTheme->setCurrentIndex(static_cast<int>(Preferences::Instance().GetTheme()));
+
+  ui->sbMulticastTtl->setValue(Preferences::Instance().GetMulticastTtl());
+}
+
 void PreferencesDialog::on_buttonBox_accepted()
 {
-    bool requiresRestart = false;
+  bool requiresRestart = false;
 
-    Preferences &p = Preferences::Instance();
+  Preferences& p = Preferences::Instance();
 
-    // Display Format
-    if(ui->DecimalDisplayFormat->isChecked())
-        p.SetDisplayFormat(Preferences::DECIMAL);
-    if(ui->HexDisplayFormat->isChecked())
-        p.SetDisplayFormat(Preferences::HEXADECIMAL);
-    if(ui->PercentDisplayFormat->isChecked())
-        p.SetDisplayFormat(Preferences::PERCENT);
+  // Display Format
+  if (ui->DecimalDisplayFormat->isChecked())
+    p.SetDisplayFormat(DisplayFormat::DECIMAL);
+  else if (ui->HexDisplayFormat->isChecked())
+    p.SetDisplayFormat(DisplayFormat::HEXADECIMAL);
+  else if (ui->PercentDisplayFormat->isChecked())
+    p.SetDisplayFormat(DisplayFormat::PERCENT);
 
-    // Display Blind
-    p.SetBlindVisualizer(ui->cbDisplayBlind->isChecked());
+  // Display Blind
+  p.SetBlindVisualizer(ui->cbDisplayBlind->isChecked());
 
-    // Enable ETC DD?
-    p.SetETCDD(ui->gbETCDD->isChecked());
+  // Enable ETC DD?
+  p.SetETCDD(ui->gbETCDD->isChecked());
 
-    // Display sources with only ETC DD?
-    if (ui->cbETCDisplayDDOnlys->isChecked() != p.GetETCDisplayDDOnly() ) {requiresRestart = true;}
-    p.SetETCDisplayDDOnly(ui->cbETCDisplayDDOnlys->isChecked());
+  // Display sources with only ETC DD?
+  if (ui->cbETCDisplayDDOnlys->isChecked() != p.GetETCDisplayDDOnly()) { requiresRestart = true; }
+  p.SetETCDisplayDDOnly(ui->cbETCDisplayDDOnlys->isChecked());
 
-    // Pathway Secure
-    p.SetPathwaySecureRx(ui->gbPathwaySecureRx->isChecked());
-    p.SetPathwaySecureRxPassword(ui->lePathwaySecureRxPassword->text());
-    p.SetPathwaySecureTxPassword(ui->lePathwaySecureTxPassword->text());
-    p.SetPathwaySecureRxDataOnly(ui->cbPathwaySecureRxDataOnly->isChecked());
-    p.SetPathwaySecureRxSequenceTimeWindow(ui->sbPathwaySecureRxSequenceTimeWindow->value());
-    if (ui->rbPathwayTxSequenceTypeTime->isChecked())
-        p.SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_time);
-    else if (ui->rbPathwayTxSequenceTypeVolatile->isChecked())
-        p.SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_volatile);
-    else
-        p.SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_nonvolatile);
+  // Pathway Secure
+  p.SetPathwaySecureRx(ui->gbPathwaySecureRx->isChecked());
+  p.SetPathwaySecureRxPassword(ui->lePathwaySecureRxPassword->text());
+  p.SetPathwaySecureTxPassword(ui->lePathwaySecureTxPassword->text());
+  p.SetPathwaySecureRxDataOnly(ui->cbPathwaySecureRxDataOnly->isChecked());
+  p.SetPathwaySecureRxSequenceTimeWindow(ui->sbPathwaySecureRxSequenceTimeWindow->value());
+  if (ui->rbPathwayTxSequenceTypeTime->isChecked())
+    p.SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_time);
+  else if (ui->rbPathwayTxSequenceTypeVolatile->isChecked())
+    p.SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_volatile);
+  else
+    p.SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_nonvolatile);
 
-    // Save layout
-    p.SetSaveWindowLayout(ui->cbRestoreWindows->isChecked());
+  // Windowing mode
+  if (ui->cbFloatingWindows->isChecked())
+    p.SetWindowMode(WindowMode::Floating);
+  else
+    p.SetWindowMode(WindowMode::MDI);
 
-    // Transmit timeout
-    int seconds = ui->NumOfHoursOfSacn->value()*60*60 + ui->NumOfMinOfSacn->value()*60 + ui->NumOfSecOfSacn->value();
-    if(!ui->gbTransmitTimeout->isChecked())
-        seconds = 0;
-    p.SetNumSecondsOfSacn(seconds);
+  // Save layout
+  p.SetSaveWindowLayout(ui->cbRestoreWindows->isChecked());
 
-    // Default source name
-    p.SetDefaultTransmitName(ui->leDefaultSourceName->text());
+  // Transmit timeout
+  int seconds = ui->NumOfHoursOfSacn->value() * 60 * 60 + ui->NumOfMinOfSacn->value() * 60 + ui->NumOfSecOfSacn->value();
+  if (!ui->gbTransmitTimeout->isChecked())
+    seconds = 0;
+  p.SetNumSecondsOfSacn(seconds);
 
-    if (ui->cbTxRateOverride->isChecked() != p.GetTXRateOverride())
-        requiresRestart = true;
-    p.SetTXRateOverride(ui->cbTxRateOverride->isChecked());
+  // Default source name
+  p.SetDefaultTransmitName(ui->leDefaultSourceName->text());
 
-    // Interfaces
-    for(int i=0; i<m_interfaceButtons.count(); i++)
+  if (ui->cbTxRateOverride->isChecked() != p.GetTXRateOverride())
+    requiresRestart = true;
+  p.SetTXRateOverride(ui->cbTxRateOverride->isChecked());
+
+  // Interfaces
+  for (int i = 0; i < m_interfaceButtons.count(); i++)
+  {
+    if (m_interfaceButtons[i]->isChecked())
     {
-        if(m_interfaceButtons[i]->isChecked())
-        {
-            QNetworkInterface interface = m_interfaceList[i];
-            if(interface.index() != p.networkInterface().index())
-            {
-                p.setNetworkInterface(m_interfaceList[i]);
+      QNetworkInterface interface = m_interfaceList[i];
+      if (interface.index() != p.networkInterface().index())
+      {
+        p.setNetworkInterface(m_interfaceList[i]);
 
-                requiresRestart = true;
-
-                break;
-            }
-        }
-    }
-    requiresRestart |= ui->cbListenAll->isChecked() != p.GetNetworkListenAll();
-    p.SetNetworkListenAll(ui->cbListenAll->isChecked());
-
-    // Theme
-    auto theme = static_cast<Themes::theme_e>(ui->cbTheme->currentIndex());
-    if(p.GetTheme()!=theme)
-    {
-        p.SetTheme(theme);
         requiresRestart = true;
-    }
 
-    // Language
-    if (m_translation->GetSelectedLocale() != p.GetLocale())
-    {
-        p.SetLocale(m_translation->GetSelectedLocale());
-        requiresRestart = true;
+        break;
+      }
     }
+  }
+  requiresRestart |= ui->cbListenAll->isChecked() != p.GetNetworkListenAll();
+  p.SetNetworkListenAll(ui->cbListenAll->isChecked());
 
-    // Multicast TTL
-    if(p.GetMulticastTtl() != ui->sbMulticastTtl->value())
-    {
-        p.SetMulticastTtl(ui->sbMulticastTtl->value());
-        requiresRestart = true;
-    }
+  // Theme
+  auto theme = static_cast<Themes::theme_e>(ui->cbTheme->currentIndex());
+  if (p.GetTheme() != theme)
+  {
+    p.SetTheme(theme);
+    requiresRestart = true;
+  }
 
-    // Restart to apply?
-    if (requiresRestart) {
-        QMessageBox::information(this, tr("Restart required"),
-                                 tr("To apply these preferences, you will need to restart the application. \nsACNView will now close and restart"),
-                                 QMessageBox::Ok);
-        p.RESTART_APP = true;
-        qApp->quit();
-    } else {
-        // Force all universes to perform a full remerge
-        const auto listenerList = sACNManager::Instance().getListenerList();
-        for (const auto &weakListener : listenerList) {
+  // Language
+  if (m_translation->GetSelectedLocale() != p.GetLocale())
+  {
+    p.SetLocale(m_translation->GetSelectedLocale());
+    requiresRestart = true;
+  }
 
-            sACNManager::tListener listener(weakListener);
-            if (listener)
-                listener->doFullMerge();
-        }
-    }
+  // Multicast TTL
+  if (p.GetMulticastTtl() != ui->sbMulticastTtl->value())
+  {
+    p.SetMulticastTtl(ui->sbMulticastTtl->value());
+    requiresRestart = true;
+  }
+
+  // Restart to apply?
+  if (requiresRestart) {
+    QMessageBox::information(this, tr("Restart required"),
+      tr("To apply these preferences, you will need to restart the application. \nsACNView will now close and restart"),
+      QMessageBox::Ok);
+    p.SetRestartPending();
+    qApp->quit();
+    return;
+  }
+
+  // Force all universes to perform a full remerge
+  const auto& listenerList = sACNManager::Instance().getListenerList();
+  for (const auto& weakListener : listenerList) {
+
+    sACNManager::tListener listener(weakListener);
+    if (listener)
+      listener->doFullMerge();
+  }
+
+  accept();
 }

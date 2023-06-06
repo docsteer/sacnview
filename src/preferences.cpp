@@ -44,6 +44,7 @@ static const QString S_FLICKERFINDERSHOWINFO = QStringLiteral("Flicker Finder In
 static const QString S_SAVEWINDOWLAYOUT = QStringLiteral("Save Window Layout");
 static const QString S_PRESETS = QStringLiteral("Preset %1");
 static const QString S_MAINWINDOWGEOM = QStringLiteral("Main Window Geometry");
+static const QString S_MAINWINDOWSTATE = QStringLiteral("Main Window State");
 static const QString S_SUBWINDOWLIST = QStringLiteral("Sub Window");
 static const QString S_SUBWINDOWNAME = QStringLiteral("SubWindow Name");
 static const QString S_SUBWINDOWGEOM = QStringLiteral("SubWindow Geometry");
@@ -64,92 +65,126 @@ static const QString S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT = QStringLiteral("Pa
 static const QString S_PATHWAYSECURE_SEQUENCE_MAP = QStringLiteral("Pathway Secure Data Sequence Map");
 static const QString S_UPDATE_IGNORE = QStringLiteral("Ignore Update Version");
 
+// Floating window mode
+static const QString S_WINDOW_MODE = QStringLiteral("WindowMode");  // MDI or floating mode
+static const QString S_GROUP_FLOATING_WINDOW = QStringLiteral("FloatingWindows"); // Group for floating window geometries
+
 // The base color to generate pastel shades for sources
-static const QColor mixColor = QColor("coral");
+static const QColor mixColor(QColorConstants::Svg::coral);
 
 Preferences::Preferences()
 {
-    RESTART_APP = false;
-    for (QByteArray &preset : m_presets)
-        preset = QByteArray(MAX_DMX_ADDRESS, char(0));
-    for (size_t i = 0; i < m_priorityPresets.size(); ++i)
-        m_priorityPresets[i] = QByteArray(MAX_DMX_ADDRESS, char(100 + i));
-    loadPreferences();
+  for (QByteArray& preset : m_presets)
+    preset = QByteArray(MAX_DMX_ADDRESS, char(0));
+  for (size_t i = 0; i < m_priorityPresets.size(); ++i)
+    m_priorityPresets[i] = QByteArray(MAX_DMX_ADDRESS, char(100 + i));
+  loadPreferences();
 }
 
 Preferences::~Preferences()
 {
-    savePreferences();
+  savePreferences();
 }
 
-Preferences &Preferences::Instance()
+Preferences& Preferences::Instance()
 {
-    static Preferences s_instance;
-    return s_instance;
+  static Preferences s_instance;
+  return s_instance;
 }
 
 QNetworkInterface Preferences::networkInterface() const
 {
-    if (!m_interface.isValid())
+  if (!m_interface.isValid())
+  {
+    const auto allInts = QNetworkInterface::allInterfaces();
+    for (const QNetworkInterface& interface : allInts)
     {
-        const auto allInts = QNetworkInterface::allInterfaces();
-        for (const QNetworkInterface &interface : allInts)
-        {
-            if (interface.flags().testFlag(QNetworkInterface::IsLoopBack))
-                return interface;
-        }
+      if (interface.flags().testFlag(QNetworkInterface::IsLoopBack))
+        return interface;
     }
-    return m_interface;
+  }
+  return m_interface;
 }
 
-void Preferences::setNetworkInterface(const QNetworkInterface &value)
+void Preferences::setNetworkInterface(const QNetworkInterface& value)
 {
-    if(m_interface.name()!=value.name())
+  if (m_interface.name() != value.name())
+  {
+    m_interface = value;
+    //emit networkInterfaceChanged();
+  }
+}
+
+bool Preferences::interfaceSuitable(const QNetworkInterface& iface)
+{
+  if (iface.isValid() && (
+    (
+      // Up, can multicast...
+      iface.flags().testFlag(QNetworkInterface::IsRunning)
+      && iface.flags().testFlag(QNetworkInterface::IsUp)
+      && iface.flags().testFlag(QNetworkInterface::CanMulticast)
+      ) || (
+        // Up, is loopback...
+        iface.flags().testFlag(QNetworkInterface::IsRunning)
+        && iface.flags().testFlag(QNetworkInterface::IsUp)
+        && iface.flags().testFlag(QNetworkInterface::IsLoopBack)
+        )
+    )
+    )
+  {
+    // ...has IPv4
+    for (const QNetworkAddressEntry& addr : iface.addressEntries())
     {
-        m_interface = value;
-        //emit networkInterfaceChanged();
+      if (addr.ip().protocol() == QAbstractSocket::IPv4Protocol)
+        return true;
     }
+  }
+  return false;
 }
 
-void Preferences::SetNetworkListenAll(const bool &value)
+QString Preferences::GetIPv4AddressString(const QNetworkInterface& iface)
 {
-    if (networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) return;
-    m_interfaceListenAll = value;
+  // List IPv4 Addresses
+  QString ipString;
+  for (const QNetworkAddressEntry& e : iface.addressEntries())
+  {
+    if (e.ip().protocol() == QAbstractSocket::IPv4Protocol)
+    {
+      ipString.append(e.ip().toString());
+      ipString.append(QLatin1Char(','));
+    }
+  }
+  ipString.chop(1);
+  return ipString;
 }
 
-bool Preferences::GetNetworkListenAll() const
+QColor Preferences::colorForCID(const CID& cid) const
 {
-    if (networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) return false;
-    return m_interfaceListenAll;
+  const auto existing = m_cidToColor.find(cid);
+  if (existing != m_cidToColor.end())
+    return existing.value();
+
+  // Use the zlib crc32 implementation to get a consistent checksum for a given CID
+  quint8 cid_buf[CID::CIDBYTES] = {};
+  cid.Pack(cid_buf);
+  quint32 id = crc32(crc32(0L, Z_NULL, 0), (const Bytef*)cid_buf, CID::CIDBYTES);
+
+  // Create a reasonable spread of different colors
+  constexpr double golden_ratio = 0.618033988749895;
+  double hue = golden_ratio * id;
+  hue = std::fmod(hue, 1.0);
+  double saturation = golden_ratio * id * 2;
+  saturation = std::fmod(saturation, 0.25);
+  saturation += 0.75; // High saturation
+
+  // Choose lightness based on theme
+  const double lightness = GetTheme() == Themes::DARK ? 0.25 : 0.5;
+  QColor newColor = QColor::fromHslF(hue, saturation, lightness);
+  m_cidToColor[cid] = newColor;
+  return newColor;
 }
 
-QColor Preferences::colorForCID(const CID &cid)
-{
-    const auto existing = m_cidToColor.find(cid);
-    if (existing != m_cidToColor.end())
-        return existing.value();
-
-    // Use the zlib crc32 implementation to get a consistent checksum for a given CID
-    quint8 cid_buf[CID::CIDBYTES] = {};
-    cid.Pack(cid_buf);
-    quint32 id = crc32( crc32(0L, Z_NULL, 0), (const Bytef*)cid_buf, CID::CIDBYTES);
-
-    // Create a reasonable spread of different colors
-    constexpr double golden_ratio = 0.618033988749895;
-    double hue = golden_ratio * id;
-    hue = std::fmod(hue, 1.0);
-    double saturation = golden_ratio * id * 2;
-    saturation = std::fmod(saturation, 0.25);
-    saturation += 0.75; // High saturation
-
-    // Choose lightness based on theme
-    const double lightness = GetTheme() == Themes::DARK ? 0.25 : 0.5;
-    QColor newColor = QColor::fromHslF(hue, saturation, lightness);
-    m_cidToColor[cid] = newColor;
-    return newColor;
-}
-
-QColor Preferences::colorForStatus(Status status)
+QColor Preferences::colorForStatus(Status status) const
 {
   switch (GetTheme())
   {
@@ -169,461 +204,275 @@ QColor Preferences::colorForStatus(Status status)
   return QColor();
 }
 
-void Preferences::SetDisplayFormat(unsigned int nDisplayFormat)
+void Preferences::SetDefaultTransmitName(const QString& sDefaultTransmitName)
 {
-    Q_ASSERT(nDisplayFormat < TOTAL_NUM_OF_FORMATS);
-    m_nDisplayFormat = nDisplayFormat;
+  m_sDefaultTransmitName = sDefaultTransmitName.trimmed();
+  m_sDefaultTransmitName.truncate(MAX_SOURCE_NAME_LEN);
+  // Don't want to leave whitespace at end
+  m_sDefaultTransmitName = m_sDefaultTransmitName.trimmed();
+}
+
+void Preferences::SetNumSecondsOfSacn(int nNumSecondsOfSacn)
+{
+  Q_ASSERT(nNumSecondsOfSacn >= 0 && nNumSecondsOfSacn <= MAX_SACN_TRANSMIT_TIME_SEC);
+  m_nNumSecondsOfSacn = nNumSecondsOfSacn;
+  return;
+}
+
+void Preferences::SetPreset(const QByteArray& data, int index)
+{
+  Q_ASSERT(index >= 0);
+  Q_ASSERT(index < PRESET_COUNT);
+
+  m_presets[index] = data;
+}
+
+const QByteArray& Preferences::GetPreset(int index) const
+{
+  Q_ASSERT(index >= 0);
+  Q_ASSERT(index < PRESET_COUNT);
+
+  return m_presets[index];
+}
+
+void Preferences::SetWindowMode(WindowMode mode)
+{
+  if (mode == m_windowMode)
     return;
+
+  // Switch mode and load settings for new mode
+  m_windowMode = mode;
+  loadWindowGeometrySettings();
 }
 
-QString Preferences::GetFormattedValue(unsigned int nLevelInDecimal, bool decorated) const
+void Preferences::SetNetworkListenAll(const bool& value)
 {
-    Q_ASSERT(nLevelInDecimal<=255);
-    QString result;
-    if (m_nDisplayFormat == DECIMAL)
-    {
-        result = QString::number(nLevelInDecimal, 10);
-    }
-    else if (m_nDisplayFormat == PERCENT)
-    {
-        result = QString::number(HTOPT[nLevelInDecimal], 10);
-        if(decorated) result += QString("%");
-    }
-    else if (m_nDisplayFormat == HEXADECIMAL)
-    {
-        if(decorated) result = QString("0x");
-        result = QString::number(nLevelInDecimal, 16);
-    }
-    else
-        result = QString ("Err");
-
-    return result;
+  if (networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) return;
+  m_interfaceListenAll = value;
 }
 
-void Preferences::SetBlindVisualizer (bool bBlindVisualizer)
+bool Preferences::GetNetworkListenAll() const
 {
-    Q_ASSERT(bBlindVisualizer == 0 || bBlindVisualizer == 1);
-    m_bBlindVisualizer = bBlindVisualizer;
-    return;
+  if (networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) return false;
+  return m_interfaceListenAll;
 }
 
-void Preferences::SetETCDisplayDDOnly(bool bETCDDOnly)
+void Preferences::SetPriorityPreset(const QByteArray& data, int index)
 {
-    Q_ASSERT(bETCDDOnly == 0 || bETCDDOnly == 1);
-    m_bETCDisplayDDOnly = bETCDDOnly;
-    return;
+  Q_ASSERT(index < PRIORITYPRESET_COUNT);
+  m_priorityPresets[index] = data;
 }
 
-void Preferences::SetETCDD(bool bETCDD)
+const QByteArray& Preferences::GetPriorityPreset(int index) const
 {
-    Q_ASSERT(bETCDD == 0 || bETCDD == 1);
-    m_bETCDD = bETCDD;
-    return;
+  Q_ASSERT(index < PRIORITYPRESET_COUNT);
+  return m_priorityPresets[index];
 }
 
-void Preferences::SetDefaultTransmitName (const QString &sDefaultTransmitName)
+void Preferences::SetPathwaySecureSequenceMap(const QByteArray& map)
 {
-    m_sDefaultTransmitName = sDefaultTransmitName.trimmed();
-    m_sDefaultTransmitName.truncate(MAX_SOURCE_NAME_LEN);
-    // Don't want to leave whitespace at end
-    m_sDefaultTransmitName = m_sDefaultTransmitName.trimmed();
-}
-
-void Preferences::SetNumSecondsOfSacn (int nNumSecondsOfSacn)
-{
-    Q_ASSERT(nNumSecondsOfSacn >= 0 && nNumSecondsOfSacn <= MAX_SACN_TRANSMIT_TIME_SEC);
-    m_nNumSecondsOfSacn = nNumSecondsOfSacn;
-    return;
-}
-
-unsigned int Preferences::GetDisplayFormat() const
-{
-    return m_nDisplayFormat;
-}
-
-unsigned int Preferences::GetMaxLevel() const
-{
-    if(m_nDisplayFormat==PERCENT)
-        return 100;
-    return MAX_SACN_LEVEL;
-}
-
-bool Preferences::GetBlindVisualizer() const
-{
-    return m_bBlindVisualizer;
-}
-
-bool Preferences::GetETCDisplayDDOnly() const
-{
-    return m_bETCDisplayDDOnly;
-}
-
-bool Preferences::GetETCDD() const
-{
-    return m_bETCDD;
-}
-
-QString Preferences::GetDefaultTransmitName() const
-{
-   return m_sDefaultTransmitName;
-}
-
-unsigned int Preferences::GetNumSecondsOfSacn() const
-{
-   return m_nNumSecondsOfSacn;
-}
-
-bool Preferences::defaultInterfaceAvailable() const
-{
-    return interfaceSuitable(m_interface);
-}
-
-QString Preferences::GetIPv4AddressString(const QNetworkInterface &iface)
-{
-    // List IPv4 Addresses
-    QString ipString;
-    for (const QNetworkAddressEntry &e : iface.addressEntries())
-    {
-        if (e.ip().protocol() == QAbstractSocket::IPv4Protocol)
-        {
-            ipString.append(e.ip().toString());
-            ipString.append(QLatin1Char(','));
-        }
-    }
-    ipString.chop(1);
-    return ipString;
-}
-
-bool Preferences::interfaceSuitable(const QNetworkInterface &iface) const
-{
-    if (iface.isValid() && (
-                (
-                    // Up, can multicast...
-                    iface.flags().testFlag(QNetworkInterface::IsRunning)
-                    && iface.flags().testFlag(QNetworkInterface::IsUp)
-                    && iface.flags().testFlag(QNetworkInterface::CanMulticast)
-                ) || (
-                    // Up, is loopback...
-                    iface.flags().testFlag(QNetworkInterface::IsRunning)
-                    && iface.flags().testFlag(QNetworkInterface::IsUp)
-                    && iface.flags().testFlag(QNetworkInterface::IsLoopBack)
-                )
-            )
-        )
-    {
-        // ...has IPv4
-        for (const QNetworkAddressEntry &addr : iface.addressEntries())
-        {
-            if(addr.ip().protocol() == QAbstractSocket::IPv4Protocol)
-               return true;
-        }
-    }
-    return false;
-}
-
-void Preferences::SetTheme(Themes::theme_e theme)
-{
-    m_theme = theme;
-}
-
-Themes::theme_e Preferences::GetTheme() const
-{
-    return m_theme;
-}
-
-void Preferences::SetPathwaySecureRx(bool enable)
-{
-    m_pathwaySecureRx = enable;
-}
-
-void Preferences::SetUpdateIgnore(QString version)
-{
-    QSettings settings;
-    settings.setValue(S_UPDATE_IGNORE, version);
-}
-
-bool Preferences::GetPathwaySecureRx() const
-{
-    return m_pathwaySecureRx;
-}
-
-void Preferences::SetPathwaySecureRxPassword(QString password)
-{
-    m_pathwaySecureRxPassword = password;
-}
-
-QString Preferences::GetPathwaySecureRxPassword() const
-{
-    return m_pathwaySecureRxPassword;
-}
-
-void Preferences::SetPathwaySecureTxPassword(QString password)
-{
-    m_pathwaySecureTxPassword = password;
-}
-
-QString Preferences::GetPathwaySecureTxPassword() const
-{
-    return m_pathwaySecureTxPassword;
-}
-
-void Preferences::SetPathwaySecureRxDataOnly(bool value)
-{
-    m_pathwaySecureRxDataOnly = value;
-}
-
-bool Preferences::GetPathwaySecureRxDataOnly() const
-{
-    return m_pathwaySecureRxDataOnly;
-}
-
-void Preferences::SetPathwaySecureTxSequenceType(quint8 type)
-{
-    m_pathwaySecureTxSequenceType = type;
-}
-
-quint8 Preferences::GetPathwaySecureTxSequenceType() const
-{
-    return m_pathwaySecureTxSequenceType;
-}
-
-void Preferences::SetPathwaySecureRxSequenceTimeWindow(quint32 value)
-{
-    m_pathwaySecureRxSequenceTimeWindow = value;
-}
-
-quint32 Preferences::GetPathwaySecureRxSequenceTimeWindow() const
-{
-    return m_pathwaySecureRxSequenceTimeWindow;
-}
-
-void Preferences::SetPathwaySecureRxSequenceBootCount(quint32 value)
-{
-    m_pathwaySecureTxSequenceBootCount = value;
-}
-
-quint32 Preferences::GetPathwaySecureRxSequenceBootCount() const
-{
-    return m_pathwaySecureTxSequenceBootCount;
-}
-
-void Preferences::SetPathwaySecureSequenceMap(QByteArray map)
-{
-    m_pathwaySecureSequenceMap = qCompress(map, 9);
+  m_pathwaySecureSequenceMap = qCompress(map, 9);
 }
 
 QByteArray Preferences::GetPathwaySecureSequenceMap() const
 {
-    return qUncompress(m_pathwaySecureSequenceMap);
+  return qUncompress(m_pathwaySecureSequenceMap);
+}
+
+void Preferences::SetUpdateIgnore(const QString& version)
+{
+  QSettings settings;
+  settings.setValue(S_UPDATE_IGNORE, version);
 }
 
 QString Preferences::GetUpdateIgnore() const
 {
-    QSettings settings;
-    return settings.value(S_UPDATE_IGNORE, QString()).toString();
+  QSettings settings;
+  return settings.value(S_UPDATE_IGNORE, QString()).toString();
 }
 
-void Preferences::savePreferences()
+QString Preferences::GetFormattedValue(unsigned int nLevelInDecimal, bool decorated) const
 {
-    QSettings settings;
+  Q_ASSERT(nLevelInDecimal <= 255);
 
-    if(m_interface.isValid())
-    {
-        settings.setValue(S_INTERFACE_ADDRESS, m_interface.hardwareAddress());
-        settings.setValue(S_INTERFACE_NAME, m_interface.name());
-    }
-    settings.setValue(S_DISPLAY_FORMAT, QVariant(m_nDisplayFormat));
-    settings.setValue(S_BLIND_VISUALIZER, QVariant(m_bBlindVisualizer));
-    settings.setValue(S_ETC_DDONLY, QVariant(m_bETCDisplayDDOnly));
-    settings.setValue(S_ETC_DD, QVariant(m_bETCDD));
-    settings.setValue(S_DEFAULT_SOURCENAME, m_sDefaultTransmitName);
-    settings.setValue(S_TIMEOUT, QVariant(m_nNumSecondsOfSacn));
-    settings.setValue(S_FLICKERFINDERSHOWINFO, QVariant(m_flickerFinderShowInfo));
-    settings.setValue(S_SAVEWINDOWLAYOUT, m_saveWindowLayout);
-    settings.setValue(S_MAINWINDOWGEOM, m_mainWindowGeometry);
-    settings.setValue(S_LISTEN_ALL, m_interfaceListenAll);
-    settings.setValue(S_THEME, m_theme);
-    settings.setValue(S_TX_RATE_OVERRIDE, m_txrateoverride);
-    settings.setValue(S_LOCALE, m_locale);
-    settings.setValue(S_UNIVERSESLISTED, m_universesListed);
+  switch (m_nDisplayFormat)
+  {
+  case DisplayFormat::DECIMAL: return QString::number(nLevelInDecimal, 10);
+  case DisplayFormat::PERCENT:
+  {
+    QString result = QString::number(HTOPT[nLevelInDecimal], 10);
+    if (decorated) return result + QLatin1Char('%');
+    return result;
+  }
+  case DisplayFormat::HEXADECIMAL:
+  {
+    QString result = QString::number(nLevelInDecimal, 16);
+    if (decorated) return QStringLiteral("0x") + result;
+    return result;
+  }
+  default:
+    return QStringLiteral("Err");
+  }
+}
 
-    settings.beginWriteArray(S_SUBWINDOWLIST);
-    for(int i=0; i<m_windowInfo.count(); i++)
-    {
-        settings.setArrayIndex(i);
-        settings.setValue(S_SUBWINDOWNAME, m_windowInfo[i].name);
-        settings.setValue(S_SUBWINDOWGEOM, m_windowInfo[i].geometry);
-    }
-    settings.endArray();
+void Preferences::savePreferences() const
+{
+  QSettings settings;
 
-    for(int i=0; i<PRESET_COUNT; i++)
-    {
-        settings.setValue(S_PRESETS.arg(i), QVariant(m_presets[i]));
-    }
+  if (m_interface.isValid())
+  {
+    settings.setValue(S_INTERFACE_ADDRESS, m_interface.hardwareAddress());
+    settings.setValue(S_INTERFACE_NAME, m_interface.name());
+  }
+  settings.setValue(S_DISPLAY_FORMAT, QVariant(static_cast<int>(m_nDisplayFormat)));
+  settings.setValue(S_BLIND_VISUALIZER, QVariant(m_bBlindVisualizer));
+  settings.setValue(S_ETC_DDONLY, QVariant(m_bETCDisplayDDOnly));
+  settings.setValue(S_ETC_DD, QVariant(m_bETCDD));
+  settings.setValue(S_DEFAULT_SOURCENAME, m_sDefaultTransmitName);
+  settings.setValue(S_TIMEOUT, QVariant(m_nNumSecondsOfSacn));
+  settings.setValue(S_FLICKERFINDERSHOWINFO, QVariant(m_flickerFinderShowInfo));
+  settings.setValue(S_SAVEWINDOWLAYOUT, m_saveWindowLayout);
+  settings.setValue(S_WINDOW_MODE, static_cast<int>(m_windowMode));
+  settings.setValue(S_LISTEN_ALL, m_interfaceListenAll);
+  settings.setValue(S_THEME, m_theme);
+  settings.setValue(S_TX_RATE_OVERRIDE, m_txrateoverride);
+  settings.setValue(S_LOCALE, m_locale);
+  settings.setValue(S_UNIVERSESLISTED, m_universesListed);
 
-    for(int i=0; i<PRIORITYPRESET_COUNT; i++)
-    {
-        settings.setValue(S_PRIORITYPRESET.arg(i), QVariant(m_priorityPresets[i]));
-    }
+  saveWindowGeometrySettings();
 
-    settings.setValue(S_MULTICASTTTL, m_multicastTtl);
+  for (int i = 0; i < PRESET_COUNT; i++)
+  {
+    settings.setValue(S_PRESETS.arg(i), QVariant(m_presets[i]));
+  }
 
-    settings.setValue(S_PATHWAYSECURE_RX, m_pathwaySecureRx);
-    settings.setValue(S_PATHWAYSECURE_RX_PASSWORD, m_pathwaySecureRxPassword);
-    settings.setValue(S_PATHWAYSECURE_TX_PASSWORD, m_pathwaySecureTxPassword);
-    settings.setValue(S_PATHWAYSECURE_RX_DATA_ONLY, m_pathwaySecureRxDataOnly);
-    settings.setValue(S_PATHWAYSECURE_TX_SEQUENCE_TYPE, m_pathwaySecureTxSequenceType);
-    settings.setValue(S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT, m_pathwaySecureTxSequenceBootCount);
-    settings.setValue(S_PATHWAYSECURE_RX_SEQUENCE_TIME_WINDOW, m_pathwaySecureRxSequenceTimeWindow);
-    settings.setValue(S_PATHWAYSECURE_SEQUENCE_MAP, m_pathwaySecureSequenceMap);
+  for (int i = 0; i < PRIORITYPRESET_COUNT; i++)
+  {
+    settings.setValue(S_PRIORITYPRESET.arg(i), QVariant(m_priorityPresets[i]));
+  }
 
-    settings.sync();
+  settings.setValue(S_MULTICASTTTL, m_multicastTtl);
+
+  settings.setValue(S_PATHWAYSECURE_RX, m_pathwaySecureRx);
+  settings.setValue(S_PATHWAYSECURE_RX_PASSWORD, m_pathwaySecureRxPassword);
+  settings.setValue(S_PATHWAYSECURE_TX_PASSWORD, m_pathwaySecureTxPassword);
+  settings.setValue(S_PATHWAYSECURE_RX_DATA_ONLY, m_pathwaySecureRxDataOnly);
+  settings.setValue(S_PATHWAYSECURE_TX_SEQUENCE_TYPE, m_pathwaySecureTxSequenceType);
+  settings.setValue(S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT, m_pathwaySecureTxSequenceBootCount);
+  settings.setValue(S_PATHWAYSECURE_RX_SEQUENCE_TIME_WINDOW, m_pathwaySecureRxSequenceTimeWindow);
+  settings.setValue(S_PATHWAYSECURE_SEQUENCE_MAP, m_pathwaySecureSequenceMap);
+
+  settings.sync();
 }
 
 void Preferences::loadPreferences()
 {
-    QSettings settings;
+  QSettings settings;
 
-    if(settings.contains(S_INTERFACE_ADDRESS))
+  if (settings.contains(S_INTERFACE_ADDRESS))
+  {
+    const QString mac = settings.value(S_INTERFACE_ADDRESS).toString();
+    const auto interFromName = QNetworkInterface::interfaceFromName(settings.value(S_INTERFACE_NAME).toString());
+    if (interFromName.isValid() && (interFromName.hardwareAddress() == mac))
     {
-        QString mac = settings.value(S_INTERFACE_ADDRESS).toString();
-        auto interFromName = QNetworkInterface::interfaceFromName(settings.value(S_INTERFACE_NAME).toString());
-        if (interFromName.isValid() && (interFromName.hardwareAddress() == mac))
-        {
-            m_interface = interFromName;
-        } else {
-            QList<QNetworkInterface> ifaceList = QNetworkInterface::allInterfaces();
-            for(const auto &i : ifaceList)
-                if(i.hardwareAddress() == mac)
-                    m_interface = i;
-        }
+      m_interface = interFromName;
     }
-
-    m_interfaceListenAll = settings.value(S_LISTEN_ALL, QVariant(false)).toBool();
-    m_nDisplayFormat = settings.value(S_DISPLAY_FORMAT, QVariant(DECIMAL)).toInt();
-    m_bBlindVisualizer = settings.value(S_BLIND_VISUALIZER, QVariant(true)).toBool();
-    m_bETCDisplayDDOnly = settings.value(S_ETC_DDONLY, QVariant(true)).toBool();
-    m_bETCDD = settings.value(S_ETC_DD, QVariant(true)).toBool();
-    m_sDefaultTransmitName = settings.value(S_DEFAULT_SOURCENAME, DEFAULT_SOURCE_NAME).toString();
-    m_nNumSecondsOfSacn = settings.value(S_TIMEOUT, QVariant(0)).toInt();
-    m_flickerFinderShowInfo = settings.value(S_FLICKERFINDERSHOWINFO, QVariant(true)).toBool();
-    m_saveWindowLayout = settings.value(S_SAVEWINDOWLAYOUT, QVariant(false)).toBool();
-    m_mainWindowGeometry = settings.value(S_MAINWINDOWGEOM, QVariant(QByteArray())).toByteArray();
-    m_theme = static_cast<Themes::theme_e>(settings.value(S_THEME, QVariant(static_cast<int>(Themes::LIGHT))).toInt());
-    m_txrateoverride = settings.value(S_TX_RATE_OVERRIDE, QVariant(false)).toBool();
-    m_locale = settings.value(S_LOCALE, QLocale::system()).toLocale();
-    m_universesListed = settings.value(S_UNIVERSESLISTED, QVariant(20)).toUInt();
-    m_multicastTtl = settings.value(S_MULTICASTTTL, QVariant(1)).toUInt();
-    m_pathwaySecureRx = settings.value(S_PATHWAYSECURE_RX, QVariant(true)).toBool();
-    m_pathwaySecureRxPassword = settings.value(S_PATHWAYSECURE_RX_PASSWORD, QString("Correct Horse Battery Staple")).toString();
-    m_pathwaySecureTxPassword = settings.value(S_PATHWAYSECURE_TX_PASSWORD, QString("Correct Horse Battery Staple")).toString();
-    m_pathwaySecureRxDataOnly = settings.value(S_PATHWAYSECURE_RX_DATA_ONLY, QVariant(false)).toBool();
-    m_pathwaySecureTxSequenceType = settings.value(S_PATHWAYSECURE_TX_SEQUENCE_TYPE, QVariant(0)).toUInt();
-    m_pathwaySecureTxSequenceBootCount = settings.value(S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT, QVariant(0)).toUInt();
-    m_pathwaySecureRxSequenceTimeWindow = settings.value(S_PATHWAYSECURE_RX_SEQUENCE_TIME_WINDOW, QVariant(1000)).toUInt();
-    m_pathwaySecureSequenceMap = settings.value(S_PATHWAYSECURE_SEQUENCE_MAP, QByteArray()).toByteArray();
-
-    m_windowInfo.clear();
-    int size = settings.beginReadArray(S_SUBWINDOWLIST);
-    for(int i=0; i<size; i++)
-    {
-        MDIWindowInfo value;
-        settings.setArrayIndex(i);
-        value.name = settings.value(S_SUBWINDOWNAME).toString();
-        value.geometry = settings.value(S_SUBWINDOWGEOM).toByteArray();
-        m_windowInfo << value;
+    else {
+      QList<QNetworkInterface> ifaceList = QNetworkInterface::allInterfaces();
+      for (const auto& i : ifaceList)
+        if (i.hardwareAddress() == mac)
+          m_interface = i;
     }
-    settings.endArray();
+  }
 
-    for (int i = 0; i < PRESET_COUNT; i++) {
-        if (settings.contains(S_PRESETS.arg(i))) {
-            // Never change the size
-            m_presets[i].replace(0, MAX_DMX_ADDRESS, settings.value(S_PRESETS.arg(i)).toByteArray());
-        }
+  m_interfaceListenAll = settings.value(S_LISTEN_ALL, m_interfaceListenAll).toBool();
+  m_nDisplayFormat = static_cast<DisplayFormat>(settings.value(S_DISPLAY_FORMAT, static_cast<int>(m_nDisplayFormat)).toInt());
+  m_bBlindVisualizer = settings.value(S_BLIND_VISUALIZER, m_bBlindVisualizer).toBool();
+  m_bETCDisplayDDOnly = settings.value(S_ETC_DDONLY, m_bETCDisplayDDOnly).toBool();
+  m_bETCDD = settings.value(S_ETC_DD, m_bETCDD).toBool();
+  m_sDefaultTransmitName = settings.value(S_DEFAULT_SOURCENAME, m_sDefaultTransmitName).toString();
+  m_nNumSecondsOfSacn = settings.value(S_TIMEOUT, m_nNumSecondsOfSacn).toInt();
+  m_flickerFinderShowInfo = settings.value(S_FLICKERFINDERSHOWINFO, m_flickerFinderShowInfo).toBool();
+  m_windowMode = static_cast<WindowMode>(settings.value(S_WINDOW_MODE, static_cast<int>(m_windowMode)).toInt());
+  m_saveWindowLayout = settings.value(S_SAVEWINDOWLAYOUT, m_saveWindowLayout).toBool();
+  m_theme = static_cast<Themes::theme_e>(settings.value(S_THEME, static_cast<int>(m_theme)).toInt());
+  m_txrateoverride = settings.value(S_TX_RATE_OVERRIDE, m_txrateoverride).toBool();
+  m_locale = settings.value(S_LOCALE, m_locale).toLocale();
+  m_universesListed = settings.value(S_UNIVERSESLISTED, m_universesListed).toUInt();
+  m_multicastTtl = settings.value(S_MULTICASTTTL, m_multicastTtl).toUInt();
+  m_pathwaySecureRx = settings.value(S_PATHWAYSECURE_RX, m_pathwaySecureRx).toBool();
+  m_pathwaySecureRxPassword = settings.value(S_PATHWAYSECURE_RX_PASSWORD, m_pathwaySecureRxPassword).toString();
+  m_pathwaySecureTxPassword = settings.value(S_PATHWAYSECURE_TX_PASSWORD, m_pathwaySecureTxPassword).toString();
+  m_pathwaySecureRxDataOnly = settings.value(S_PATHWAYSECURE_RX_DATA_ONLY, m_pathwaySecureRxDataOnly).toBool();
+  m_pathwaySecureTxSequenceType = settings.value(S_PATHWAYSECURE_TX_SEQUENCE_TYPE, m_pathwaySecureTxSequenceType).toUInt();
+  m_pathwaySecureTxSequenceBootCount = settings.value(S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT, m_pathwaySecureTxSequenceBootCount).toUInt();
+  m_pathwaySecureRxSequenceTimeWindow = settings.value(S_PATHWAYSECURE_RX_SEQUENCE_TIME_WINDOW, m_pathwaySecureRxSequenceTimeWindow).toUInt();
+  m_pathwaySecureSequenceMap = settings.value(S_PATHWAYSECURE_SEQUENCE_MAP, m_pathwaySecureSequenceMap).toByteArray();
+
+  loadWindowGeometrySettings();
+
+  for (int i = 0; i < PRESET_COUNT; i++) {
+    if (settings.contains(S_PRESETS.arg(i))) {
+      // Never change the size
+      m_presets[i].replace(0, MAX_DMX_ADDRESS, settings.value(S_PRESETS.arg(i)).toByteArray());
     }
+  }
 
-    for (int i = 0; i < PRIORITYPRESET_COUNT; i++) {
-        if (settings.contains(S_PRIORITYPRESET.arg(i))) {
-            // Never change the size
-            m_priorityPresets[i].replace(0,MAX_DMX_ADDRESS, settings.value(S_PRIORITYPRESET.arg(i)).toByteArray());
-        }
+  for (int i = 0; i < PRIORITYPRESET_COUNT; i++) {
+    if (settings.contains(S_PRIORITYPRESET.arg(i))) {
+      // Never change the size
+      m_priorityPresets[i].replace(0, MAX_DMX_ADDRESS, settings.value(S_PRIORITYPRESET.arg(i)).toByteArray());
     }
+  }
 }
 
-void Preferences::setFlickerFinderShowInfo(bool showIt)
+void Preferences::loadWindowGeometrySettings()
 {
-    m_flickerFinderShowInfo = showIt;
+  QSettings settings;
+  switch (m_windowMode)
+  {
+  default: break;
+  case WindowMode::Floating:
+    settings.beginGroup(S_GROUP_FLOATING_WINDOW);
+    break;
+  }
+
+  m_mainWindowGeometry.first = settings.value(S_MAINWINDOWGEOM, m_mainWindowGeometry.first).toByteArray();
+  m_mainWindowGeometry.second = settings.value(S_MAINWINDOWSTATE, m_mainWindowGeometry.second).toByteArray();
+
+  m_windowInfo.clear();
+  int size = settings.beginReadArray(S_SUBWINDOWLIST);
+  for (int i = 0; i < size; i++)
+  {
+    SubWindowInfo value;
+    settings.setArrayIndex(i);
+    value.name = settings.value(S_SUBWINDOWNAME).toString();
+    value.geometry = settings.value(S_SUBWINDOWGEOM).toByteArray();
+    m_windowInfo << value;
+  }
+  settings.endArray();
 }
 
-bool Preferences::getFlickerFinderShowInfo() const
+void Preferences::saveWindowGeometrySettings() const
 {
-    return m_flickerFinderShowInfo;
-}
+  QSettings settings;
+  switch (m_windowMode)
+  {
+  default: break;
+  case WindowMode::Floating:
+    settings.beginGroup(S_GROUP_FLOATING_WINDOW);
+    break;
+  }
 
-void Preferences::SetPreset(const QByteArray &data, int index)
-{
-    Q_ASSERT(index>=0);
-    Q_ASSERT(index<PRESET_COUNT);
+  settings.setValue(S_MAINWINDOWGEOM, m_mainWindowGeometry.first);
+  settings.setValue(S_MAINWINDOWSTATE, m_mainWindowGeometry.second);
 
-    m_presets[index] = data;
-}
-
-QByteArray Preferences::GetPreset(int index) const
-{
-    Q_ASSERT(index>=0);
-    Q_ASSERT(index<PRESET_COUNT);
-
-    return m_presets[index];
-}
-
-void Preferences::SetSaveWindowLayout(bool value)
-{
-    m_saveWindowLayout = value;
-}
-
-bool Preferences::GetSaveWindowLayout() const
-{
-    return m_saveWindowLayout;
-}
-
-void Preferences::SetMainWindowGeometry(const QByteArray &value)
-{
-    m_mainWindowGeometry = value;
-}
-
-QByteArray Preferences::GetMainWindowGeometry() const
-{
-    return m_mainWindowGeometry;
-}
-
-void Preferences::SetSavedWindows(const QList<MDIWindowInfo> &values)
-{
-    m_windowInfo = values;
-}
-
-QList<MDIWindowInfo> Preferences::GetSavedWindows() const
-{
-    return m_windowInfo;
-}
-
-void Preferences::SetLocale(const QLocale &locale)
-{
-    m_locale = locale;
-}
-
-QLocale Preferences::GetLocale() const
-{
-    return m_locale;
-}
-
-void Preferences::SetPriorityPreset(const QByteArray &data, int index)
-{
-    Q_ASSERT(index < PRIORITYPRESET_COUNT);
-    m_priorityPresets[index] = data;
-}
-
-QByteArray Preferences::GetPriorityPreset(int index) const
-{
-    Q_ASSERT(index < PRIORITYPRESET_COUNT);
-    return m_priorityPresets[index];
+  settings.beginWriteArray(S_SUBWINDOWLIST);
+  for (int i = 0; i < m_windowInfo.count(); i++)
+  {
+    settings.setArrayIndex(i);
+    settings.setValue(S_SUBWINDOWNAME, m_windowInfo[i].name);
+    settings.setValue(S_SUBWINDOWGEOM, m_windowInfo[i].geometry);
+  }
+  settings.endArray();
 }

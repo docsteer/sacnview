@@ -118,7 +118,7 @@ void sACNSentUniverse::startSending(bool preview)
     if(seconds>0)
     {
         m_checkTimeoutTimer = new QTimer(this);
-        connect(m_checkTimeoutTimer, SIGNAL(timeout()), this, SLOT(doTimeout()));
+        connect(m_checkTimeoutTimer, &QTimer::timeout, this, &sACNSentUniverse::doTimeout);
         m_checkTimeoutTimer->setSingleShot(true);
         m_checkTimeoutTimer->setInterval(1000 * seconds);
         m_checkTimeoutTimer->start();
@@ -370,7 +370,7 @@ CStreamServer::CStreamServer() :
     m_sendsock->bind();
 
     m_thread = new QThread();
-    connect(m_thread, SIGNAL(started()), this, SLOT(TickLoop()));
+    connect(m_thread, &QThread::started, this, &CStreamServer::TickLoop);
     connect(m_thread, &QThread::finished, this, &QThread::deleteLater);
     this->moveToThread(m_thread);
     m_thread->setObjectName(QString("Interface %1 TX").arg(m_sendsock->multicastInterface().name()));

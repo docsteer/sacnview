@@ -120,7 +120,7 @@ signals:
     void sourceResumed(sACNSource *source);
     void sourceChanged(sACNSource *source);
     void levelsChanged();
-    void dataReady(int address, QPointF data);
+    void dataReady(int address, QPointF data);  // Used by ScopeWidget
 
 private slots:
     void readPendingDatagrams();

@@ -89,7 +89,7 @@ public slots:
     void setTriggerDelay(int triggerDelay);
     void start();
     void stop();
-private slots:
+
     void dataReady(int address, const QPointF data);
 signals:
     void stopped();

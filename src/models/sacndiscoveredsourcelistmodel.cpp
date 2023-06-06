@@ -141,10 +141,10 @@ m_displayDDOnlySource(Preferences::Instance().GetETCDisplayDDOnly())
   while (it != m_discoveryInstance->getDiscoveryList().constEnd())
     newSource(it.key());
 
-  connect(m_discoveryInstance, SIGNAL(newSource(CID)), this, SLOT(newSource(CID)));
-  connect(m_discoveryInstance, SIGNAL(expiredSource(CID)), this, SLOT(expiredSource(CID)));
-  connect(m_discoveryInstance, SIGNAL(newUniverse(CID, quint16)), this, SLOT(newUniverse(CID, quint16)));
-  connect(m_discoveryInstance, SIGNAL(expiredUniverse(CID, quint16)), this, SLOT(expiredUniverse(CID, quint16)));
+  connect(m_discoveryInstance, &sACNDiscoveryRX::newSource, this, &sACNDiscoveredSourceListModel::newSource);
+  connect(m_discoveryInstance, &sACNDiscoveryRX::expiredSource, this, &sACNDiscoveredSourceListModel::expiredSource);
+  connect(m_discoveryInstance, &sACNDiscoveryRX::newUniverse, this, &sACNDiscoveredSourceListModel::newUniverse);
+  connect(m_discoveryInstance, &sACNDiscoveryRX::expiredUniverse, this, &sACNDiscoveredSourceListModel::expiredUniverse);
 }
 
 void sACNDiscoveredSourceListModel::newSource(CID cid)
