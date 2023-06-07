@@ -53,12 +53,12 @@ sACNListener::~sACNListener()
     m_initalSampleTimer->deleteLater();
     m_mergeTimer->deleteLater();
     qDeleteAll(m_sockets);
-    qDebug() << "sACNListener" << QThread::currentThreadId() << ": stopping";
+    qDebug() << this << ": stopping";
 }
 
 void sACNListener::startReception()
 {
-    qDebug() << "sACNListener" << QThread::currentThreadId() << ": Starting universe" << m_universe;
+    qDebug() << this << ": Starting universe" << m_universe;
 
     // Clear the levels array
     std::fill(std::begin(m_last_levels), std::end(m_last_levels), -1);
@@ -122,7 +122,7 @@ void sACNListener::startInterface(const QNetworkInterface &iface)
 void sACNListener::sampleExpiration()
 {
     m_isSampling = false;
-    qDebug() << "sACNListener" << QThread::currentThreadId() << ": Sampling has ended";
+    qDebug() << this << ": Sampling has ended";
 }
 
 void sACNListener::checkSourceExpiration()
@@ -147,7 +147,7 @@ void sACNListener::checkSourceExpiration()
                 (*it)->doing_per_channel = false;
                 emit sourceChanged(*it);
                 m_mergeAll = true;
-                qDebug() << "sACNListener" << QThread::currentThreadId() << ": Source stopped sending per-channel priority" << cidstr;
+                qDebug() << this << ": Source stopped sending per-channel priority" << cidstr;
             }
         }
     }
@@ -239,11 +239,11 @@ void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &d
     {
     case e_ValidateStreamHeader::StreamHeader_Invalid:
         // Recieved a packet but not valid. Log and discard
-        qDebug() << "sACNListener" << QThread::currentThreadId() << ": Invalid Packet";
+        qDebug() << this << ": Invalid Packet";
         return;
 
     case e_ValidateStreamHeader::StreamHeader_Unknown:
-        qDebug() << "sACNListener" << QThread::currentThreadId() << ": Unkown Root Vector";
+        qDebug() << this << ": Unkown Root Vector";
         return;
 
     case e_ValidateStreamHeader::StreamHeader_Extended:
@@ -262,7 +262,7 @@ void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &d
                 break;
 
             default:
-                qDebug() << "sACNListener" << QThread::currentThreadId() << ": Unknown Extended Packet";
+                qDebug() << this << ": Unknown Extended Packet";
             }
         }
         return;
@@ -270,7 +270,7 @@ void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &d
         case e_ValidateStreamHeader::StreamHeader_Pathway_Secure:
             if (!Preferences::Instance().GetPathwaySecureRx())
             {
-                qDebug() << "sACNListener" << QThread::currentThreadId() << ": Ignore Pathway secure";
+                qDebug() << this << ": Ignore Pathway secure";
                 return;
             }
 
@@ -292,8 +292,7 @@ void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &d
             return;
         } else {
             // Log and discard
-            qDebug() << "sACNListener" << QThread::currentThreadId()
-                     << ": Rejecting universe" << universe << "sent to" << destination;
+            qDebug() << this << ": Rejecting universe" << universe << "sent to" << destination;
             return;
         }
     }
@@ -302,7 +301,7 @@ void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &d
     preview = (PREVIEW_DATA_OPTION == (options & PREVIEW_DATA_OPTION));
     if ((preview) && !Preferences::Instance().GetBlindVisualizer())
     {
-        qDebug() << "sACNListener" << QThread::currentThreadId() << ": Ignore preview";
+        qDebug() << this << ": Ignore preview";
         return;
     }
 
@@ -434,7 +433,7 @@ void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &d
 
     if(!validpacket)
     {
-        qDebug() << "sACNListener" << QThread::currentThreadId() << ": Source coming up, not processing packet";
+        qDebug() << this<< ": Source coming up, not processing packet";
         return;
     }
 
@@ -474,7 +473,7 @@ void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &d
 
 
         // This is a brand new source
-        qDebug() << "sACNListener" << QThread::currentThreadId() << ": Found new source name " << source_name;
+        qDebug() << this << ": Found new source name " << source_name;
         m_mergeAll = true;
         emit sourceFound(ps);
     }
@@ -482,7 +481,7 @@ void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &d
     if (newsourcenotify)
     {
         // This is a source that came back online
-        qDebug() << "sACNListener" << QThread::currentThreadId() << ": Source came back name " << source_name;
+        qDebug() << this << ": Source came back name " << source_name;
         m_mergeAll = true;
         emit sourceResumed(ps);
         emit sourceChanged(ps);
