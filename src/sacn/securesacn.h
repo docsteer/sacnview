@@ -97,12 +97,12 @@ class PathwaySecure
          * @return True if header ok
          */
         static bool VerifyStreamHeader(
-                quint8* pbuf, uint buflen,
+                const quint8* pbuf, uint buflen,
                 CID &source_cid, char* source_name,
                 quint8 &priority, quint8 &start_code,
                 quint16 &synchronization, quint8 &sequence,
                 quint8 &options, quint16 &universe,
-                quint16 &slot_count, quint8* &pdata);
+                quint16 &slot_count, const quint8* &pdata);
 
         /**
          * @brief Setup stream header

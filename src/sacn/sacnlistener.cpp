@@ -217,48 +217,49 @@ void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &d
     QMutexLocker locker(&m_processMutex);
 
     // Process packet
-    quint32 root_vector;
+    quint32 root_vector = 0;
     CID source_cid;
-    quint8 start_code;
-    quint8 sequence;
-    quint16 universe;
-    quint16 slot_count;
-    quint8* pdata;
-    char source_name [SOURCE_NAME_SIZE];
-    quint8 priority;
+    quint8 start_code = 0;
+    quint8 sequence = 0;
+    quint16 universe = 0;
+    quint16 slot_count = 0;
+    const quint8* pdata = nullptr;
+    char source_name[SOURCE_NAME_SIZE] = {};
+    quint8 priority = 0;
     /*
      * These only apply to the ratified version of the spec, so we will hardwire
-     * them to be 0 just in case they never get set.
+     * them to defaults just in case they never get set.
     */
-    quint16 synchronization = NOT_SYNCHRONIZED_VALUE;
+    quint16 synchronization = NOT_SYNCHRONIZED_VALUE; // E1.31:2018
     quint8 options = NO_OPTIONS_VALUE;
-    bool preview = false;
 
-    switch (ValidateStreamHeader((quint8*)data.data(), data.length(), root_vector, source_cid, source_name, priority,
-            start_code, synchronization, sequence, options, universe, slot_count, pdata))
+    const e_ValidateStreamHeader streamHeaderVersion = ValidateStreamHeader(reinterpret_cast<const quint8*>(data.data()), data.length(), root_vector, source_cid, source_name, priority,
+      start_code, synchronization, sequence, options, universe, slot_count, pdata);
+
+    switch (streamHeaderVersion)
     {
     case e_ValidateStreamHeader::StreamHeader_Invalid:
         // Recieved a packet but not valid. Log and discard
         qDebug() << this << ": Invalid Packet";
         return;
 
-    case e_ValidateStreamHeader::StreamHeader_Unknown:
-        qDebug() << this << ": Unkown Root Vector";
-        return;
+    case e_ValidateStreamHeader::StreamHeader_Draft:
+    case e_ValidateStreamHeader::StreamHeader_Ratified:
+      break;
 
     case e_ValidateStreamHeader::StreamHeader_Extended:
         quint32 vector;
         if (static_cast<size_t>(data.length()) > ROOT_VECTOR_ADDR + sizeof(vector))
         {
-            vector = UpackBUint32((quint8*)data.data() + FRAMING_VECTOR_ADDR);
+            vector = UpackBUint32(reinterpret_cast<const quint8*>(data.data()) + FRAMING_VECTOR_ADDR);
             switch (vector)
             {
             case VECTOR_E131_EXTENDED_DISCOVERY:
-                sACNDiscoveryRX::getInstance()->processPacket((quint8*)data.data(), data.length());
+                sACNDiscoveryRX::getInstance()->processPacket(reinterpret_cast<const quint8*>(data.data()), data.length());
                 break;
 
             case VECTOR_E131_EXTENDED_SYNCHRONIZATION:
-                sACNSynchronizationRX::getInstance()->processPacket((quint8*)data.data(), data.length(), destination, sender);
+                sACNSynchronizationRX::getInstance()->processPacket(reinterpret_cast<const quint8*>(data.data()), data.length(), destination, sender);
                 break;
 
             default:
@@ -273,9 +274,12 @@ void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &d
                 qDebug() << this << ": Ignore Pathway secure";
                 return;
             }
-
-    default:
-        break;
+            break;
+        
+        default:
+        case e_ValidateStreamHeader::StreamHeader_Unknown:
+          qDebug() << this << ": Unkown Root Vector";
+          return;
     }
 
     // Wrong universe
@@ -287,149 +291,151 @@ void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &d
             // Unicast, send to correct listener!
             decltype(sACNManager::Instance().getListenerList()) listenerList
                     = sACNManager::Instance().getListenerList();
-            if (listenerList.contains(universe))
-                listenerList[universe].toStrongRef()->processDatagram(data, destination, sender);
-            return;
+            auto it = listenerList.find(universe);
+            if (it != listenerList.end())
+                it.value().toStrongRef()->processDatagram(data, destination, sender);
         } else {
             // Log and discard
             qDebug() << this << ": Rejecting universe" << universe << "sent to" << destination;
-            return;
         }
+        return;
     }
 
     // Listen to preview?
-    preview = (PREVIEW_DATA_OPTION == (options & PREVIEW_DATA_OPTION));
-    if ((preview) && !Preferences::Instance().GetBlindVisualizer())
+    const bool preview = (PREVIEW_DATA_OPTION == (options & PREVIEW_DATA_OPTION));
+    if (preview && !Preferences::Instance().GetBlindVisualizer())
     {
         qDebug() << this << ": Ignore preview";
         return;
     }
 
-    sACNSource *ps = NULL; // Pointer to the source
-    bool foundsource = false;
+    sACNSource* ps = nullptr; // Pointer to the source
     bool newsourcenotify = false;
     bool validpacket = true;  //whether or not we will actually process the packet
 
-    for(std::vector<sACNSource *>::iterator it = m_sources.begin(); it != m_sources.end(); ++it)
+    auto it = std::find_if(m_sources.begin(), m_sources.end(), [source_cid](sACNSource* source) {return source && source->src_cid == source_cid; });
+
+    if (it != m_sources.end())
     {
-        if((*it)->src_cid == source_cid)
+      ps = (*it);
+
+      // Verify Pathway Secure DMX security features, do this before updating the active flag
+      if (streamHeaderVersion == e_ValidateStreamHeader::StreamHeader_Pathway_Secure) {
+        PathwaySecure::VerifyStreamSecurity(reinterpret_cast<const quint8*>(data.data()), data.size(),
+          Preferences::Instance().GetPathwaySecureRxPassword(), *ps);
+      }
+      else {
+        ps->pathway_secure.passwordOk = false;
+        ps->pathway_secure.sequenceOk = false;
+        ps->pathway_secure.digestOk = false;
+      }
+
+      if (!ps->src_valid)
+      {
+        // This is a source which is coming back online, so we need to repeat the steps
+        // for initial source aquisition
+        ps->active.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
+        ps->lastseq = sequence;
+        ps->src_cid = source_cid;
+        ps->src_valid = true;
+        ps->doing_dmx = (start_code == STARTCODE_DMX);
+        ps->doing_per_channel = ps->waited_for_dd = false;
+        newsourcenotify = false;
+        ps->priority_wait.SetInterval(std::chrono::milliseconds(WAIT_PRIORITY));
+      }
+
+      if (streamHeaderVersion != e_ValidateStreamHeader::StreamHeader_Extended
+        && ((options & STREAM_TERMINATED_OPTION) == STREAM_TERMINATED_OPTION))
+      {
+        //by setting this flag to false, 0xdd packets that may come in while the terminated data
+        //packets come in won't reset the priority_wait timer
+        ps->waited_for_dd = false;
+        if (start_code == STARTCODE_DMX)
+          ps->doing_dmx = false;
+
+        //"Upon receipt of a packet containing this bit set
+        //to a value of 1, a receiver shall enter network
+        //data loss condition.  Any property values in
+        //these packets shall be ignored"
+        ps->active.SetInterval(std::chrono::milliseconds(m_ssHLL));  //We factor in the hold last look time here, rather than 0
+
+        if (ps->doing_per_channel)
+          ps->priority_wait.SetInterval(std::chrono::milliseconds(m_ssHLL)); //We factor in the hold last look time here, rather than 0
+
+        validpacket = false;
+      }
+      else
+      {
+        //Based on the start code, update the timers
+        switch (start_code)
         {
-            foundsource = true;
-            ps = *it;
+        case STARTCODE_DMX:
+        {
+          //No matter how valid, we got something -- but we'll tweak the interval for any hll change
+          ps->doing_dmx = true;
+          ps->active.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
+        } break;
 
-            // Verify Pathway Secure DMX security features, do this before updating the active flag
-            if (root_vector == VECTOR_ROOT_E131_DATA_PATHWAY_SECURE) {
-                PathwaySecure::VerifyStreamSecurity(
-                            (quint8*)data.data(), data.size(),
-                            Preferences::Instance().GetPathwaySecureRxPassword(),
-                            *ps);
-            } else {
-                ps->pathway_secure.passwordOk = false;
-                ps->pathway_secure.sequenceOk = false;
-                ps->pathway_secure.digestOk = false;
-            }
-
-            if(!ps->src_valid)
-            {
-                // This is a source which is coming back online, so we need to repeat the steps
-                // for initial source aquisition
-                ps->active.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
-                ps->lastseq = sequence;
-                ps->src_cid = source_cid;
-                ps->src_valid = true;
-                ps->doing_dmx = (start_code == STARTCODE_DMX);
-                ps->doing_per_channel = ps->waited_for_dd = false;
-                newsourcenotify = false;
-                ps->priority_wait.SetInterval(std::chrono::milliseconds(WAIT_PRIORITY));
-            }
-
-            if(
-                ((root_vector == VECTOR_ROOT_E131_DATA) || root_vector == VECTOR_ROOT_E131_DATA_PATHWAY_SECURE)
-                && ((options & STREAM_TERMINATED_OPTION) == STREAM_TERMINATED_OPTION))
-            {
-              //by setting this flag to false, 0xdd packets that may come in while the terminated data
-              //packets come in won't reset the priority_wait timer
-              (*it)->waited_for_dd = false;
-              if(start_code == STARTCODE_DMX)
-                (*it)->doing_dmx = false;
-
-              //"Upon receipt of a packet containing this bit set
-              //to a value of 1, a receiver shall enter network
-              //data loss condition.  Any property values in
-              //these packets shall be ignored"
-              (*it)->active.SetInterval(std::chrono::milliseconds(m_ssHLL));  //We factor in the hold last look time here, rather than 0
-
-              if((*it)->doing_per_channel)
-                  (*it)->priority_wait.SetInterval(std::chrono::milliseconds(m_ssHLL)); //We factor in the hold last look time here, rather than 0
-
-              validpacket = false;
-              break;
-            }
-
-            //Based on the start code, update the timers
-            if(start_code == STARTCODE_DMX)
-            {
-                //No matter how valid, we got something -- but we'll tweak the interval for any hll change
-                (*it)->doing_dmx = true;
-                (*it)->active.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
-            }
-            else if(start_code == STARTCODE_PRIORITY && (*it)->waited_for_dd)
-            {
-                (*it)->doing_per_channel = true;  //The source could have stopped sending dd for a while.
-                (*it)->priority_wait.Reset();
-            }
-
-            //Validate the sequence number, updating the stored one
-            //The two's complement math is to handle rollover, and we're explicitly
-            //doing assignment to force the type sizes.  A negative number means
-            //we got an "old" one, but we assume that anything really old is possibly
-            //due the device having rebooted and starting the sequence over.
-            qint8 result = ((qint8)sequence) - ((qint8)((*it)->lastseq));
-            if(result!=1)
-                (*it)->jumps++;
-            if((result <= 0) && (result > -20))
-            {
-                validpacket = false;
-                (*it)->seqErr++;
-            }
-            else
-                (*it)->lastseq = sequence;
-
-            //This next bit is a little tricky.  We want to wait for dd packets (sampling period
-            //tweaks aside) and notify them with the dd packet first, but we don't want to do that
-            //if we've never seen a dmx packet from the source.
-            if(!(*it)->doing_dmx)
-            {
-                /* For fault finding an installation which only sends 0xdd for a universe
-                 * (For example: ETC Cobalt does this for, currenlty, unpatched universes with in it's network map)
-                 * We do want to say that having not sent dimmer data is a valid source/packet
-                 */
-                // validpacket = false;
-                (*it)->priority_wait.Reset();  //We don't want to let the priority timer run out
-            }
-            else if(!(*it)->waited_for_dd && validpacket)
-            {
-                if(start_code == STARTCODE_PRIORITY)
-                {
-                    (*it)->waited_for_dd = true;
-                    (*it)->doing_per_channel = true;
-                    (*it)->priority_wait.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
-                    newsourcenotify = true;
-                }
-                else if((*it)->priority_wait.Expired())
-                {
-                    (*it)->waited_for_dd = true;
-                    (*it)->doing_per_channel = false;
-                    (*it)->priority_wait.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));  //In case the source later decides to sent 0xdd packets
-                    newsourcenotify = true;
-                }
-                else
-                    newsourcenotify = validpacket = false;
-            }
-
-        //Found the source, and we're ready to process the packet
+        case STARTCODE_PRIORITY: if (ps->waited_for_dd)
+        {
+          ps->doing_per_channel = true;  //The source could have stopped sending dd for a while.
+          ps->priority_wait.Reset();
+        } break;
         }
+
+        //Validate the sequence number, updating the stored one
+        //The two's complement math is to handle rollover, and we're explicitly
+        //doing assignment to force the type sizes.  A negative number means
+        //we got an "old" one, but we assume that anything really old is possibly
+        //due the device having rebooted and starting the sequence over.
+        const qint16 result = reinterpret_cast<qint8&>(sequence) - reinterpret_cast<qint8&>(ps->lastseq);
+        if (result != 1)
+        {
+          ps->jumps++;
+          if ((result <= 0) && (result > -20))
+          {
+            validpacket = false;
+            ps->seqErr++;
+          }
+        }
+
+        ps->lastseq = sequence;
+
+        //This next bit is a little tricky.  We want to wait for dd packets (sampling period
+        //tweaks aside) and notify them with the dd packet first, but we don't want to do that
+        //if we've never seen a dmx packet from the source.
+        if (!ps->doing_dmx)
+        {
+          /* For fault finding an installation which only sends 0xdd for a universe
+           * (For example: ETC Cobalt does this for, currenlty, unpatched universes with in it's network map)
+           * We do want to say that having not sent dimmer data is a valid source/packet
+           */
+           // validpacket = false;
+          ps->priority_wait.Reset();  //We don't want to let the priority timer run out
+        }
+        else if (!ps->waited_for_dd && validpacket)
+        {
+          if (start_code == STARTCODE_PRIORITY)
+          {
+            ps->waited_for_dd = true;
+            ps->doing_per_channel = true;
+            ps->priority_wait.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
+            newsourcenotify = true;
+          }
+          else if (ps->priority_wait.Expired())
+          {
+            ps->waited_for_dd = true;
+            ps->doing_per_channel = false;
+            ps->priority_wait.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));  //In case the source later decides to sent 0xdd packets
+            newsourcenotify = true;
+          }
+          else
+            newsourcenotify = validpacket = false;
+        }
+      }
+      // Found the source, and we're ready to process the packet
     }
+
 
     if(!validpacket)
     {
@@ -437,7 +443,7 @@ void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &d
         return;
     }
 
-    if(!foundsource)  //Add a new source to the list
+    if(ps == nullptr)  // Add a new source to the list
     {
         ps = new sACNSource();
 
