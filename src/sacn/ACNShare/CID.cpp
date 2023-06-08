@@ -180,12 +180,10 @@ CID::operator QString() const {
 // Create a CID
 CID CID::CreateCid()
 {
-    QUuid uuid = QUuid::createUuid();
-    QByteArray bits = uuid.toByteArray();
+    const QUuid uuid = QUuid::createUuid();
+    const QByteArray bits = uuid.toRfc4122();
 
-    CID result;
-    memcpy(result.m_cid, bits.data(), CIDBYTES);
-    return result;
+    return CID(reinterpret_cast<const quint8*>(bits.data()));
 }
 
 DCID DCID::StringToDCID(const char* ptext)  
