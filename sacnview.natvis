@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="CID">
+    <DisplayString>{{{(m_cid[0]),nvoXb}{(m_cid[1]),nvoXb}{(m_cid[2]),nvoXb}{(m_cid[3]),nvoXb}-{(m_cid[4]),nvoXb}{(m_cid[5]),nvoXb}-{(m_cid[6]),nvoXb}{(m_cid[7]),nvoXb}-{(m_cid[8]),nvoXb}{(m_cid[9]),nvoXb}-{(m_cid[10]),nvoXb}{(m_cid[11]),nvoXb}{(m_cid[12]),nvoXb}{(m_cid[13]),nvoXb}{(m_cid[14]),nvoXb}{(m_cid[15]),nvoXb}}}</DisplayString>
+  </Type>
+  <Type Name="DCID">
+    <DisplayString>{m_cid}</DisplayString>
+  </Type>
+  <Type Name="QHostAddress">
+    <DisplayString>{{ IPv4Addr = {(((uint32_t*)d.d)[8]>>24)&amp;0xff,d}.{(((uint32_t*)d.d)[8]>>16)&amp;0xff,d}.{(((uint32_t*)d.d)[8]>>8)&amp;0xff,d}.{(((uint32_t*)d.d)[8]>>0)&amp;0xff,d} }}</DisplayString>
+  </Type>
+</AutoVisualizer>
