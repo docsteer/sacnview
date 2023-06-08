@@ -110,9 +110,9 @@ private slots:
 private:
 };
 
-class sACNSource : public QObject
+class sACNSource
 {
-    Q_OBJECT
+    Q_DISABLE_COPY(sACNSource)
 public:
     explicit sACNSource();
     CID src_cid;
@@ -162,14 +162,8 @@ public:
         }
     } pathway_secure;
 
-public slots:
-    void resetSeqErr() {
-        seqErr = 0;
-    }
-
-    void resetJumps() {
-        jumps = 0;
-    }
+    void resetSeqErr() { seqErr = 0; }
+    void resetJumps() { jumps = 0; }
 };
 
 #endif // STREAMINGACN_H
