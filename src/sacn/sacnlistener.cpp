@@ -59,9 +59,8 @@ sACNListener::~sACNListener()
 void sACNListener::startReception()
 {
   qDebug() << this << ": Starting universe" << m_universe;
-
-  // Clear the levels array
-  std::fill(std::begin(m_last_levels), std::end(m_last_levels), -1);
+  m_last_levels.fill(-1);
+  m_last_priorities.fill(-1);
 
   if (Preferences::Instance().GetNetworkListenAll() && !Preferences::Instance().networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) {
     // Listen on ALL interfaces and not working offline
@@ -320,7 +319,7 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
   bool validpacket = true;  //whether or not we will actually process the packet
 
   // Find existing known source
-  auto it = std::find_if(m_sources.begin(), m_sources.end(), [source_cid](sACNSource* source){ return source && source->src_cid == source_cid; });
+  auto it = std::find_if(m_sources.begin(), m_sources.end(), [source_cid](sACNSource* source) { return source && source->src_cid == source_cid; });
   if (it != m_sources.end())
   {
     ps = (*it);
@@ -610,14 +609,6 @@ inline bool isPatched(const sACNSource& source, uint16_t address)
 
 void sACNListener::performMerge()
 {
-  //array of addresses to merge. to prevent duplicates and because you can have
-  //an odd collection of addresses, addresses[n] would be 'n' for the value in question
-  // and -1 if not required
-  int addresses_to_merge[DMX_SLOT_MAX];
-  int number_of_addresses_to_merge = 0;
-
-  memset(addresses_to_merge, -1, sizeof(int) * DMX_SLOT_MAX);
-
   {
     QMutexLocker locker(&m_monitoredChannelsMutex);
     for (auto const& chan : qAsConst(m_monitoredChannels))
@@ -636,13 +627,19 @@ void sACNListener::performMerge()
     m_mergesPerSecondTimer.restart();
   }
 
-  m_mergeCounter++;
+  ++m_mergeCounter;
+
+  //array of addresses to merge. to prevent duplicates and because you can have
+  //an odd collection of addresses, addresses[n] would be 'n' for the value in question
+  // and -1 if not required
+  std::array<int, DMX_SLOT_MAX> addresses_to_merge;
+  int number_of_addresses_to_merge = 0;
 
   // Step one : find any addresses which have changed
   if (m_mergeAll) // Act like all addresses changed
   {
-    number_of_addresses_to_merge = DMX_SLOT_MAX;
-    for (int i = 0; i < DMX_SLOT_MAX; i++)
+    number_of_addresses_to_merge = addresses_to_merge.size();
+    for (int i = 0; i < addresses_to_merge.size(); i++)
     {
       addresses_to_merge[i] = i;
     }
@@ -651,9 +648,11 @@ void sACNListener::performMerge()
   }
   else
   {
-    for (std::vector<sACNSource*>::iterator it = m_sources.begin(); it != m_sources.end(); ++it)
+    // Assume will not need to merge any addresses
+    addresses_to_merge.fill(-1);
+
+    for (sACNSource* ps : m_sources)
     {
-      sACNSource* ps = *it;
       if (!ps->src_valid)
         continue; // Inactive source, ignore it
       if (!ps->source_levels_change)
@@ -675,11 +674,11 @@ void sACNListener::performMerge()
   if (number_of_addresses_to_merge == 0) return; // Nothing to do
 
   // Clear out the sources list for all the affected channels, we'll be refreshing it
+  QMutexLocker mergeLocker(&m_merged_levelsMutex);
 
   int skipCounter = 0;
   for (int i = 0; i < DMX_SLOT_MAX && i < (number_of_addresses_to_merge + skipCounter); i++)
   {
-    QMutexLocker mergeLocker(&m_merged_levelsMutex);
     m_merged_levels[i].changedSinceLastMerge = false;
     if (addresses_to_merge[i] == -1) {
       ++skipCounter;
@@ -690,12 +689,8 @@ void sACNListener::performMerge()
   }
 
   // Find the highest priority source for each address we need to work on
-
-  int levels[DMX_SLOT_MAX];
-  memset(&levels, -1, sizeof(levels));
-
-  int priorities[DMX_SLOT_MAX];
-  memset(&priorities, -1, sizeof(priorities));
+  m_last_levels.fill(-1);
+  m_last_priorities.fill(-1);
 
   QMultiMap<int, sACNSource*> addressToSourceMap;
 
@@ -716,7 +711,6 @@ void sACNListener::performMerge()
     skipCounter = 0;
     for (int i = 0; i < DMX_SLOT_MAX && i < (number_of_addresses_to_merge + skipCounter); i++)
     {
-      QMutexLocker mergeLocker(&m_merged_levelsMutex);
       if (addresses_to_merge[i] == -1) {
         ++skipCounter;
         continue;
@@ -726,16 +720,16 @@ void sACNListener::performMerge()
       if (
         ps->src_valid // Valid Source
         && !ps->active.Expired() // Not expired
-        && !(ps->priority_array[address] < priorities[address]) // Not lesser priority
+        && !(ps->priority_array[address] < m_last_priorities[address]) // Not lesser priority
         && isPatched(*ps, address) // Priority > 0 if DD
         && (address < ps->slot_count) // Sending the required slot
         && ((!secureDataOnly) || (secureDataOnly && ps->pathway_secure.isSecure())) // Is secure, if only displaying secure sources
         )
       {
-        if (ps->priority_array[address] > priorities[address])
+        if (ps->priority_array[address] > m_last_priorities[address])
         {
           // Source of higher priority
-          priorities[address] = ps->priority_array[address];
+          m_last_priorities[address] = ps->priority_array[address];
           addressToSourceMap.remove(address);
         }
         addressToSourceMap.insert(address, ps);
@@ -755,7 +749,6 @@ void sACNListener::performMerge()
   skipCounter = 0;
   for (int i = 0; i < DMX_SLOT_MAX && i < (number_of_addresses_to_merge + skipCounter); i++)
   {
-    QMutexLocker mergeLocker(&m_merged_levelsMutex);
     if (addresses_to_merge[i] == -1) {
       ++skipCounter;
       continue;
@@ -763,22 +756,22 @@ void sACNListener::performMerge()
     int address = addresses_to_merge[i];
     QList<sACNSource*> sourceList = addressToSourceMap.values(address);
 
-    if (sourceList.count() == 0)
+    if (sourceList.empty())
     {
       m_merged_levels[address].level = -1;
-      m_merged_levels[address].winningSource = NULL;
+      m_merged_levels[address].winningSource = nullptr;
       m_merged_levels[address].otherSources.clear();
-      m_merged_levels[address].winningPriority = priorities[address];
+      m_merged_levels[address].winningPriority = m_last_priorities[address];
     }
-    for (auto s : sourceList)
+    for (sACNSource* s : sourceList)
     {
-      if (s->level_array[address] > levels[address])
+      if (s->level_array[address] > m_last_levels[address])
       {
-        levels[address] = s->level_array[address];
-        m_merged_levels[address].changedSinceLastMerge = (m_merged_levels[address].level != levels[address]);
-        m_merged_levels[address].level = levels[address];
+        m_last_levels[address] = s->level_array[address];
+        m_merged_levels[address].changedSinceLastMerge = (m_merged_levels[address].level != m_last_levels[address]);
+        m_merged_levels[address].level = m_last_levels[address];
         m_merged_levels[address].winningSource = s;
-        m_merged_levels[address].winningPriority = priorities[address];
+        m_merged_levels[address].winningPriority = m_last_priorities[address];
       }
     }
     // Remove the winning source from the list of others
@@ -786,7 +779,8 @@ void sACNListener::performMerge()
       m_merged_levels[address].otherSources.remove(m_merged_levels[address].winningSource);
   }
 
+  mergeLocker.unlock();
+
   // Tell people..
   emit levelsChanged();
 }
-

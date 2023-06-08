@@ -27,21 +27,18 @@
 #include "streamingacn.h"
 #include "sacnsocket.h"
 
+#include <array>
+
 Q_DECLARE_METATYPE(QHostAddress)
 
 struct sACNMergedAddress
 {
-  sACNMergedAddress() {
-    level = -1;
-    winningSource = NULL;
-    changedSinceLastMerge = false;
-    winningPriority = 0;
-  }
-  int level;
-  sACNSource* winningSource;
+  sACNMergedAddress() = default;
+  sACNSource* winningSource = nullptr;
   QSet<sACNSource*> otherSources;
-  bool changedSinceLastMerge;
-  int winningPriority;
+  int level = -1;
+  int winningPriority = 0;
+  bool changedSinceLastMerge = false;
 };
 
 typedef QVector<sACNMergedAddress> sACNMergedSourceList;
@@ -63,14 +60,44 @@ public:
    * @return the universe which this listener is listening for
    */
   int universe() const { return m_universe; }
+
   /**
    * @brief mergedLevels
-   * @return an sACNMergerdSourceList, a list of merged address structures, allowing you to see
+   * @return an sACNMergedSourceList, a list of merged address structures, allowing you to see
    * the result of the merge algorithm together with all the sub-sources, by address
    */
   sACNMergedSourceList mergedLevels() {
     QMutexLocker mergeLocker(&m_merged_levelsMutex);
     return m_merged_levels;
+  }
+
+  /**
+ * @brief mergedLevels
+ * @param address The address to return
+ * @return an sACNMergedAddress containing the result of the merge algorithm together with all the sub-sources
+ */
+  sACNMergedAddress mergedLevel(int address) {
+    if (address < 0 || address >= m_merged_levels.size()) return sACNMergedAddress();
+    QMutexLocker mergeLocker(&m_merged_levelsMutex);
+    return m_merged_levels[address];
+  }
+
+  /**
+ * @brief mergedLevelsOnly
+ * @return an array of merged levels. -1 means no source at all
+ */
+  std::array<int, MAX_DMX_ADDRESS> mergedLevelsOnly() {
+    QMutexLocker mergeLocker(&m_merged_levelsMutex);
+    return m_last_levels;
+  }
+
+  /**
+ * @brief mergedPrioritiesOnly
+ * @return an array of final priorities. -1 means no source at all
+ */
+  std::array<int, MAX_DMX_ADDRESS> mergedPrioritiesOnly() {
+    QMutexLocker mergeLocker(&m_merged_levelsMutex);
+    return m_last_priorities;
   }
 
   int sourceCount() const { return static_cast<int>(m_sources.size()); }
@@ -133,10 +160,11 @@ private:
   void startInterface(const QNetworkInterface& iface);
   std::list<sACNRxSocket*> m_sockets;
   std::vector<sACNSource*> m_sources;
-  int m_last_levels[MAX_DMX_ADDRESS];
+  std::array<int, MAX_DMX_ADDRESS> m_last_levels = {};
+  std::array<int, MAX_DMX_ADDRESS> m_last_priorities = {};
   sACNMergedSourceList m_merged_levels;
   QMutex m_merged_levelsMutex;
-  int m_universe;
+  const int m_universe = 0;
   // The per-source hold last look time
   int m_ssHLL = 1000;
   // Are we in the initial sampling state
@@ -147,9 +175,9 @@ private:
   int m_predictableTimerValue;
   QMutex m_monitoredChannelsMutex;
   QMultiMap<const QObject*, int> m_monitoredChannels;
-  bool m_mergeAll; // A flag to initiate a complete remerge of everything
+  bool m_mergeAll = true; // A flag to initiate a complete remerge of everything
   unsigned int m_mergesPerSecond = 0;
-  int m_mergeCounter;
+  int m_mergeCounter = 0;
   QElapsedTimer m_mergesPerSecondTimer;
 
   sACNRxSocket::sBindStatus m_bindStatus;
