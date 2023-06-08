@@ -59,8 +59,8 @@ public:
         sourceSequence(quint8 sequence) : lastNum(sequence) {}
 
         quint8 lastNum = 0;
-        quint16 jumps = 0;
-        quint16 seqErr = 0;
+        unsigned int jumps = 0;
+        unsigned int seqErr = 0;
 
         // Check sequence number
         bool checkSeq(quint8 newNum) {

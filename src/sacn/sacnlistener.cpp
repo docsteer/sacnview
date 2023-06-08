@@ -285,6 +285,8 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
     return;
   }
 
+  // Packet is now know to contain DMX Level Data
+
   // Wrong universe
   if (m_universe != universe)
   {
@@ -317,8 +319,8 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
   bool newsourcenotify = false;
   bool validpacket = true;  //whether or not we will actually process the packet
 
-  auto it = std::find_if(m_sources.begin(), m_sources.end(), [source_cid](sACNSource* source) {return source && source->src_cid == source_cid; });
-
+  // Find existing known source
+  auto it = std::find_if(m_sources.begin(), m_sources.end(), [source_cid](sACNSource* source){ return source && source->src_cid == source_cid; });
   if (it != m_sources.end())
   {
     ps = (*it);
@@ -340,7 +342,6 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
       // for initial source aquisition
       ps->active.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
       ps->lastseq = sequence;
-      ps->src_cid = source_cid;
       ps->src_valid = true;
       ps->doing_dmx = (start_code == STARTCODE_DMX);
       ps->doing_per_channel = ps->waited_for_dd = false;
@@ -348,9 +349,10 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
       ps->priority_wait.SetInterval(std::chrono::milliseconds(WAIT_PRIORITY));
     }
 
-    if (streamHeaderVersion != e_ValidateStreamHeader::StreamHeader_Extended
-      && ((options & STREAM_TERMINATED_OPTION) == STREAM_TERMINATED_OPTION))
+    if ((options & STREAM_TERMINATED_OPTION) == STREAM_TERMINATED_OPTION)
     {
+      // Source is terminating
+
       //by setting this flag to false, 0xdd packets that may come in while the terminated data
       //packets come in won't reset the priority_wait timer
       ps->waited_for_dd = false;
@@ -449,17 +451,15 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
 
   if (ps == nullptr)  // Add a new source to the list
   {
-    ps = new sACNSource();
+    ps = new sACNSource(source_cid, universe);
 
     m_sources.push_back(ps);
 
     ps->name = QString::fromUtf8(source_name);
     ps->ip = sender;
-    ps->universe = universe;
     ps->synchronization = synchronization;
     ps->active.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
     ps->lastseq = sequence;
-    ps->src_cid = source_cid;
     ps->src_valid = true;
     ps->src_stable = true;
     ps->doing_dmx = (start_code == STARTCODE_DMX);
@@ -558,32 +558,8 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
         ps->synchronization = synchronization;
         ps->source_params_change = true;
       }
-      // This is DMX
-      // Copy the last array back
-      memcpy(ps->last_level_array, ps->level_array, DMX_SLOT_MAX);
-      // Fill in the new array
-      memset(ps->level_array, 0, DMX_SLOT_MAX);
-      memcpy(ps->level_array, pdata, slot_count);
 
-      // Slot count change, re-merge all slots
-      if (ps->slot_count != slot_count)
-      {
-        ps->slot_count = slot_count;
-        ps->source_params_change = true;
-        ps->source_levels_change = true;
-        for (int i = 0; i < DMX_SLOT_MAX; i++)
-          ps->dirty_array[i] |= true;
-      }
-
-      // Compare the two
-      for (int i = 0; i < DMX_SLOT_MAX; i++)
-      {
-        if (ps->level_array[i] != ps->last_level_array[i])
-        {
-          ps->dirty_array[i] |= true;
-          ps->source_levels_change = true;
-        }
-      }
+      ps->storeReceivedLevels(pdata, slot_count);
 
       // FPS Counter - we count only DMX frames
       ps->fpscounter.newFrame();
@@ -592,25 +568,16 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
     }
     else if (start_code == STARTCODE_PRIORITY)
     {
-      // Copy the last array back
-      memcpy(ps->last_priority_array, ps->priority_array, DMX_SLOT_MAX);
-      // Fill in the new array
-      memset(ps->priority_array, 0, DMX_SLOT_MAX);
       if (!Preferences::Instance().GetETCDD())
-      { // DD is disabled, fill with universe priority
-        std::fill(std::begin(ps->priority_array), std::end(ps->priority_array), ps->priority);
+      { // DD is disabled, fill with universe priority.
+        // TODO: Does this actually ever do anything?
+        std::array<uint8_t, DMX_SLOT_MAX> univ_priority;
+        univ_priority.fill(ps->priority);
+        ps->storeReceivedPriorities(univ_priority.data(), slot_count);
       }
-      else {
-        memcpy(ps->priority_array, pdata, slot_count);
-      }
-      // Compare the two
-      for (int i = 0; i < DMX_SLOT_MAX; i++)
+      else
       {
-        if (ps->priority_array[i] != ps->last_priority_array[i])
-        {
-          ps->dirty_array[i] |= true;
-          ps->source_levels_change = true;
-        }
+        ps->storeReceivedPriorities(pdata, slot_count);
       }
     }
 
@@ -700,7 +667,7 @@ void sACNListener::performMerge()
         }
       }
       // Clear the flags
-      memset(ps->dirty_array, 0, DMX_SLOT_MAX);
+      ps->dirty_array.fill(false);
       ps->source_levels_change = false;
     }
   }
@@ -743,7 +710,7 @@ void sACNListener::performMerge()
     if (ps->src_valid && !ps->active.Expired() && !ps->doing_per_channel)
     {
       // Set the priority array for sources which are not doing per-channel
-      memset(ps->priority_array, ps->priority, sizeof(ps->priority_array));
+      ps->priority_array.fill(ps->priority);
     }
 
     skipCounter = 0;

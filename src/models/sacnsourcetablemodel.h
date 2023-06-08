@@ -98,8 +98,8 @@ private:
     StreamingACNProtocolVersion protocol_version = sACNProtocolUnknown;
     QHostAddress ip;
     float fps = 0;
-    int seq_err = 0;
-    int jumps = 0;
+    unsigned int seq_err = 0;
+    unsigned int jumps = 0;
     SourceState online = SourceState::Offline;
     SourceSecure security = SourceSecure::None;
     uint16_t sync_universe = 0;

@@ -386,6 +386,11 @@ bool VerifyStreamHeader(const quint8* pbuf, uint buflen, CID &source_cid,
   universe = UpackBUint16(pbuf + UNIVERSE_ADDR);
   slot_count = UpackBUint16(pbuf + PROP_COUNT_ADDR) - 1;  //The property value count includes the start code byte
   pdata = pbuf + STREAM_HEADER_SIZE;
+  
+  // Validate maximum slot count
+  if (slot_count > DMX_SLOT_MAX)
+    return false;
+
   quint16 post_amble_size = UpackBUint16(pbuf + POSTAMBLE_SIZE_ADDR);
   
   /*Do final length validation*/
