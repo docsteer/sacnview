@@ -34,6 +34,50 @@ void UniverseDisplay::setShowChannelPriority(bool enable)
     levelsChanged();
 }
 
+const QColor &UniverseDisplay::flickerHigherColor()
+{
+    switch (Preferences::Instance().GetTheme()) {
+    default:
+    case Themes::LIGHT: {
+        static const QColor highLight(0x8d, 0x32, 0xfd);
+        return highLight;
+    }
+    case Themes::DARK:
+        static const QColor highDark(0x46, 0x19, 0x7e);
+        return highDark;
+    }
+}
+
+const QColor &UniverseDisplay::flickerLowerColor()
+{
+    switch (Preferences::Instance().GetTheme()) {
+    default:
+    case Themes::LIGHT: {
+        static const QColor lowLight(0x04, 0xfd, 0x44);
+        return lowLight;
+    }
+    case Themes::DARK: {
+        static const QColor lowDark(0x02, 0x7e, 0x22);
+        return lowDark;
+    }
+    }
+}
+
+const QColor &UniverseDisplay::flickerChangedColor()
+{
+    switch (Preferences::Instance().GetTheme()) {
+    default:
+    case Themes::LIGHT: {
+        static const QColor changeLight(0xfb, 0x09, 0x09);
+        return changeLight;
+    }
+    case Themes::DARK: {
+        static const QColor changeDark(0x7d, 0x04, 0x04);
+        return changeDark;
+    }
+    }
+}
+
 void UniverseDisplay::setUniverse(int universe)
 {
     // Don't search if we have already found, eg pause-continue
@@ -75,21 +119,17 @@ void UniverseDisplay::levelsChanged()
             {
                 if(m_sources[i].level > m_flickerFinderLevels[i])
                 {
-                    setCellColor(i, flickerHigherColor);
+                    setCellColor(i, flickerHigherColor());
                     m_flickerFinderHasChanged[i] = true;
                 }
                 else if( m_sources[i].level < m_flickerFinderLevels[i])
                 {
-                    setCellColor(i, flickerLowerColor);
+                    setCellColor(i, flickerLowerColor());
                     m_flickerFinderHasChanged[i] = true;
                 }
                 else if(m_flickerFinderHasChanged[i])
                 {
-                    setCellColor(i, flickerChangedColor);
-                }
-                else
-                {
-                    setCellColor(i, Qt::white);
+                    setCellColor(i, flickerChangedColor());
                 }
             }
             else
@@ -99,7 +139,7 @@ void UniverseDisplay::levelsChanged()
         }
         else
         {
-            setCellColor(i, Qt::white);
+            setCellColor(i, Preferences::Instance().GetTheme() == Themes::LIGHT ? Qt::white : Qt::black);
             setCellValue(i, QString());
         }
     }
@@ -117,7 +157,7 @@ void UniverseDisplay::setFlickerFinder(bool on)
         {
             m_flickerFinderLevels[i] = m_listener->mergedLevels().at(i).level;
             m_flickerFinderHasChanged[i] = false;
-            setCellColor(i, Qt::white);
+            setCellColor(i, Preferences::Instance().GetTheme() == Themes::LIGHT ? Qt::white : Qt::black);
         }
     }
     else
