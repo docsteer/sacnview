@@ -45,6 +45,10 @@ public:
     Q_SLOT void setShowChannelPriority(bool enable);
     Q_SIGNAL void showChannelPriorityChanged(bool enable);
 
+    static const QColor &flickerHigherColor();
+    static const QColor &flickerLowerColor();
+    static const QColor &flickerChangedColor();
+
 public slots:
     void pause();
 
