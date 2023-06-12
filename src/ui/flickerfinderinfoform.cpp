@@ -15,20 +15,20 @@
 
 #include "flickerfinderinfoform.h"
 #include "ui_flickerfinderinfoform.h"
-#include "consts.h"
+#include "universedisplay.h"
 #include "preferences.h"
 
-FlickerFinderInfoForm::FlickerFinderInfoForm(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::FlickerFinderInfoForm)
+FlickerFinderInfoForm::FlickerFinderInfoForm(QWidget *parent)
+    : QDialog(parent)
+    , ui(new Ui::FlickerFinderInfoForm)
 {
     ui->setupUi(this);
     QPalette p = ui->wLower->palette();
-    p.setColor(QPalette::Window,    flickerLowerColor);
+    p.setColor(QPalette::Window, UniverseDisplay::flickerLowerColor());
     ui->wLower->setPalette(p);
-    p.setColor(QPalette::Window,    flickerHigherColor);
+    p.setColor(QPalette::Window, UniverseDisplay::flickerHigherColor());
     ui->wHigher->setPalette(p);
-    p.setColor(QPalette::Window,    flickerChangedColor);
+    p.setColor(QPalette::Window, UniverseDisplay::flickerChangedColor());
     ui->wChange->setPalette(p);
 }
 
