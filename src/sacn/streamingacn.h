@@ -60,6 +60,8 @@ public:
     typedef QSharedPointer<sACNListener> tListener;
     typedef QSharedPointer<sACNSentUniverse> tSender;
 
+    ~sACNManager();
+
 public slots:
     void listenerDelete(QObject *obj = Q_NULLPTR);
 
@@ -72,17 +74,22 @@ private:
     QHash<QObject*, CID> m_objToCid;
 
     QHash<quint16, QWeakPointer<sACNListener>> m_listenerHash;
-    QHash<quint16, QThread *> m_listenerThreads;
+
+    // The pool of threads to use for listener objects
+    std::vector<QThread*> m_threadPool;
+    size_t m_nextThread = 0;
+
+    QThread *GetThread();
 
     tSender createSender(CID cid, quint16 universe);
     QHash<CID, QHash<quint16, QWeakPointer<sACNSentUniverse>> > m_senderHash;
 
 public:
     tListener getListener(quint16 universe);
-    const decltype(m_listenerHash) &getListenerList() { return m_listenerHash; }
+    const decltype(m_listenerHash) &getListenerList() const { return m_listenerHash; }
 
     tSender getSender(quint16 universe, CID cid = CID::CreateCid());
-    const decltype(m_senderHash) &getSenderList() { return m_senderHash; }
+    const decltype(m_senderHash) &getSenderList() const { return m_senderHash; }
 
 signals:
     void newSender();
@@ -103,9 +110,9 @@ private slots:
 private:
 };
 
-class sACNSource : public QObject
+class sACNSource
 {
-    Q_OBJECT
+    Q_DISABLE_COPY(sACNSource)
 public:
     explicit sACNSource();
     CID src_cid;
@@ -155,14 +162,8 @@ public:
         }
     } pathway_secure;
 
-public slots:
-    void resetSeqErr() {
-        seqErr = 0;
-    }
-
-    void resetJumps() {
-        jumps = 0;
-    }
+    void resetSeqErr() { seqErr = 0; }
+    void resetJumps() { jumps = 0; }
 };
 
 #endif // STREAMINGACN_H

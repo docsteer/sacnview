@@ -107,7 +107,7 @@ void sACNSynchronizationRX::timeoutSyncAddresses() {
     }
 }
 
-void sACNSynchronizationRX::processPacket(quint8* pbuf, uint buflen, QHostAddress destination, QHostAddress sender)
+void sACNSynchronizationRX::processPacket(const quint8* pbuf, uint buflen, QHostAddress destination, QHostAddress sender)
 {
     bool flag1, flag2, flag3;
     quint32 length;

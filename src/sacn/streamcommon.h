@@ -215,23 +215,23 @@ enum e_ValidateStreamHeader
     StreamHeader_Unknown
 };
 e_ValidateStreamHeader ValidateStreamHeader(
-        quint8* pbuf, uint buflen,
+        const quint8* pbuf, uint buflen,
         quint32 &root_vector,
         CID &source_cid, char* source_sp, quint8 &priority,
         quint8 &start_code, quint16 &synchronization, quint8 &sequence,
         quint8 &options, quint16 &universe,
-        quint16 &slot_count, quint8* &pdata);
+        quint16 &slot_count, const quint8* &pdata);
 
 /*
  * helper function that does the actual validation of a header
  * that carries the post-ratification root vector
  */
 bool VerifyStreamHeader(
-        quint8 *pbuf, uint buflen,
+        const quint8 *pbuf, uint buflen,
         CID &source_cid, char* source_name, quint8 &priority,
         quint8 &start_code, quint16 &synchronization, quint8 &sequence,
         quint8 &options, quint16 &universe,
-        quint16 &slot_count, quint8* &pdata);
+        quint16 &slot_count, const quint8* &pdata);
 /*
  * helper function that does the actual validation of a header
  * that carries the early draft's root vector
@@ -239,11 +239,11 @@ bool VerifyStreamHeader(
  * ratification of the standard.
  */
 bool VerifyStreamHeaderForDraft(
-        quint8* pbuf, uint buflen,
+        const quint8* pbuf, uint buflen,
         CID &source_cid, char* source_space, quint8 &priority,
         quint8 &start_code, quint8 &sequence,
         quint16 &universe, quint16 &slot_count,
-        quint8* &pdata);
+        const quint8* &pdata);
 
 /*
  * Returns true if contains draft root vector value

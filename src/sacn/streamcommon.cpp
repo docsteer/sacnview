@@ -275,12 +275,12 @@ void SetStreamHeaderSequence(quint8* pbuf, quint8 seq, bool draft)
  * pdata is the offset into the buffer where the data is stored
  */
 e_ValidateStreamHeader ValidateStreamHeader(
-        quint8* pbuf, uint buflen,
+        const quint8* pbuf, uint buflen,
         quint32 &root_vector,
         CID &source_cid, char* source_name, quint8 &priority,
         quint8 &start_code, quint16 &synchronization,
         quint8 &sequence, quint8 &options, quint16 &universe,
-        quint16 &slot_count, quint8* &pdata)
+        quint16 &slot_count, const quint8* &pdata)
 {
   if(!pbuf)
      return e_ValidateStreamHeader::StreamHeader_Invalid;
@@ -325,11 +325,11 @@ e_ValidateStreamHeader ValidateStreamHeader(
  * helper function that does the actual validation of a header
  * that carries the post-ratification root vector
  */
-bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
+bool VerifyStreamHeader(const quint8* pbuf, uint buflen, CID &source_cid,
             char* source_name, quint8 &priority,
             quint8 &start_code, quint16 &synchronization, quint8 &sequence,
 			quint8 &options, quint16 &universe,
-			quint16 &slot_count, quint8* &pdata)
+			quint16 &slot_count, const quint8* &pdata)
 {
   if(!pbuf)
      return false;
@@ -377,7 +377,7 @@ bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
   source_cid.Unpack(pbuf + CID_ADDR);
   
   std::fill(source_name, source_name + SOURCE_NAME_SIZE, '\0');
-  std::string_view(reinterpret_cast<char*>(pbuf + SOURCE_NAME_ADDR), SOURCE_NAME_SIZE).copy(source_name, SOURCE_NAME_SIZE - 1);
+  std::string_view(reinterpret_cast<const char*>(pbuf + SOURCE_NAME_ADDR), SOURCE_NAME_SIZE).copy(source_name, SOURCE_NAME_SIZE - 1);
   priority = UpackBUint8(pbuf + PRIORITY_ADDR);
   start_code = UpackBUint8(pbuf + START_CODE_ADDR);
   synchronization = UpackBUint16(pbuf + SYNC_ADDR);
@@ -402,11 +402,11 @@ bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
  * ratification of the standard.
  */
 bool VerifyStreamHeaderForDraft(
-        quint8* pbuf, uint buflen,
+        const quint8* pbuf, uint buflen,
         CID &source_cid, char* source_name, quint8 &priority,
         quint8 &start_code, quint8 &sequence,
         quint16 &universe, quint16 &slot_count,
-        quint8* &pdata)
+        const quint8* &pdata)
 {
   if(!pbuf)
      return false;
@@ -457,7 +457,7 @@ bool VerifyStreamHeaderForDraft(
   source_cid.Unpack(pbuf + CID_ADDR);
   
   std::fill(source_name, source_name + SOURCE_NAME_SIZE, '\0');
-  std::string_view(reinterpret_cast<char*>(pbuf + DRAFT_SOURCE_NAME_ADDR), DRAFT_SOURCE_NAME_SIZE).copy(source_name, DRAFT_SOURCE_NAME_SIZE - 1);
+  std::string_view(reinterpret_cast<const char*>(pbuf + DRAFT_SOURCE_NAME_ADDR), DRAFT_SOURCE_NAME_SIZE).copy(source_name, DRAFT_SOURCE_NAME_SIZE - 1);
 
   priority = UpackBUint8(pbuf + DRAFT_PRIORITY_ADDR);
   if(priority == 0)

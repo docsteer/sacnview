@@ -113,6 +113,7 @@ set(SACNVIEW_HEADERS
 )
 
 set(SACNVIEW_SOURCES
+    sacnview.natvis
     src/commandline.cpp
     src/firewallcheck.cpp
     src/ipc.cpp
