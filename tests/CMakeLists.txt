@@ -15,6 +15,7 @@ endif()
 add_executable(unit_test_sACNView
   main.cpp
   ${SACNVIEW_SOURCES}
+  test_glscopewidget.cpp
 )
 
 target_include_directories(unit_test_sACNView PRIVATE
