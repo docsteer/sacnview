@@ -14,42 +14,146 @@
 
 #include "glscopewidget.h"
 
+#include <QPainter>
+
+static constexpr qreal AXIS_LABEL_WIDTH = 50.0;
+static constexpr qreal AXIS_LABEL_HEIGHT = 20.0;
+static constexpr qreal TOP_GAP = 10.0;
+static constexpr qreal RIGHT_GAP = 30.0;
+static constexpr qreal AXIS_TO_WINDOW_GAP = 5.0;
+static constexpr qreal AXIS_TICK_SIZE = 10.0;
+
 static const QString RowTitleColor = QStringLiteral("Color");
 static const QString ColumnTitleTimestamp = QStringLiteral("Time (s)");
 
-void GlScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array)
+bool ScopeTrace::extractUniverseAddress(QStringView address_string, uint16_t& universe, uint16_t& address_hi, uint16_t& address_lo)
+{
+  if (address_string.front() != QLatin1Char('U'))
+    return false;
+
+  // Extract the universe
+  const qsizetype univ_str_end = address_string.indexOf(QLatin1Char('.'));
+  bool ok = false;
+  if (univ_str_end > 0)
+  {
+    const QStringView univ_str = address_string.mid(1, univ_str_end - 1);
+    universe = univ_str.toUInt(&ok);
+    if (!ok || universe == 0 || universe > MAX_SACN_UNIVERSE)
+      return false;
+
+    return extractAddress(address_string.mid(univ_str_end + 1), address_hi, address_lo);
+  }
+
+  return false;
+}
+
+bool ScopeTrace::extractAddress(QStringView address_string, uint16_t& address_hi, uint16_t& address_lo)
+{
+  // Extract address_hi
+  const qsizetype addr_str_end = address_string.indexOf(QLatin1Char('/'));
+  bool ok = false;
+  if (addr_str_end > 0)
+  {
+    const QStringView slot_hi_str = address_string.left(addr_str_end);
+    address_hi = slot_hi_str.toUInt(&ok);
+    if (!ok)
+      return false;
+
+    // Extract slot_lo
+    const QStringView slot_lo_str = address_string.mid(addr_str_end + 1);
+    address_lo = slot_lo_str.toUInt(&ok);
+  }
+  else
+  {
+    const QStringView slot_hi_str = address_string.left(addr_str_end);
+    address_hi = slot_hi_str.toUInt(&ok);
+    address_lo = 0;
+    if (!ok)
+      return false;
+  }
+
+  return ok;
+}
+
+QString ScopeTrace::universeAddressString() const
+{
+  return QStringLiteral("U") + QString::number(universe()) + QLatin1Char('.') + addressString();
+}
+
+QString ScopeTrace::addressString() const
+{
+  return isSixteenBit() ?
+    QString::number(addressHi()) + QLatin1Char('/') + QString::number(addressLo())
+    : QString::number(addressHi());
+}
+
+bool ScopeTrace::setUniverse(uint16_t new_universe, bool clear_values)
+{
+  // Invalid or unchanged
+  if (new_universe == m_universe || new_universe < 0 || new_universe > MAX_SACN_UNIVERSE)
+    return false;
+
+  m_universe = new_universe;
+
+  if (clear_values)
+    clear();
+
+  return true;
+}
+
+bool ScopeTrace::setAddress(uint16_t address_hi, uint16_t address_lo, bool clear_values)
+{
+  // Validate
+  if (address_hi < 1 || address_hi > MAX_DMX_ADDRESS || address_lo > MAX_DMX_ADDRESS)
+    return false;
+
+  if (addressHi() == address_hi && addressLo() == address_lo)
+    return false; // No change
+
+  m_slot_hi = address_hi - 1;
+  m_slot_lo = address_lo == 0 ? 0 : address_lo - 1;
+
+  if (clear_values)
+    clear();
+
+  return true;
+}
+
+bool ScopeTrace::setAddress(QStringView addressString, bool clear_values)
+{
+  uint16_t address_hi, address_lo;
+  if (extractAddress(addressString, address_hi, address_lo))
+    return setAddress(address_hi, address_lo, clear_values);
+
+  return false;
+}
+
+void ScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array)
 {
   // Assumes slot numbers are valid
   if (m_slot_lo < MAX_DMX_ADDRESS)
   {
     // 16 bit
-    const uint16_t value = level_array[m_slot_hi] << 8 | level_array[m_slot_lo];
-    m_trace.emplace_back(timestamp, static_cast<float>(value));
+    const float value = static_cast<uint16_t>(level_array[m_slot_hi] << 8) | static_cast<uint16_t>(level_array[m_slot_lo]);
+    m_trace.emplace_back(timestamp, value);
     return;
   }
   // 8 bit
   m_trace.emplace_back(timestamp, static_cast<float>(level_array[m_slot_hi]));
 }
 
-void GlScopeTrace::addValue(const QVector2D& value)
-{
-  m_trace.push_back(value);
-}
-
-GlScopeWidget::GlScopeWidget(QWidget* parent)
-  : QOpenGLWidget(parent)
-{
-}
-
-GlScopeWidget::~GlScopeWidget()
-{
-}
-
-bool GlScopeWidget::addUpdateTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo)
+bool ScopeModel::addUpdateTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo)
 {
   // Verify validity
   if (!color.isValid())
     return false;
+
+  if (universe == 0)
+    return false;
+
+  if (address_hi == 0)
+    return false;
+
   if (universe > MAX_SACN_UNIVERSE)
     return false;
 
@@ -58,11 +162,18 @@ bool GlScopeWidget::addUpdateTrace(const QColor& color, uint16_t universe, uint1
 
   if (address_lo > MAX_DMX_ADDRESS)
     address_lo = 0;
-
-  auto univ_it = m_traces.find(universe);
-  if (univ_it == m_traces.end())
+  else if (address_lo > 0)
   {
-    m_traces.emplace(universe, std::vector<GlScopeTrace>(1, GlScopeTrace(color, address_hi, address_lo, m_reservation)));
+    // 16bit, adjust vertical scale
+    m_traceExtents.setTop(65535.0);
+  }
+
+  auto univ_it = m_traceLookup.find(universe);
+  if (univ_it == m_traceLookup.end())
+  {
+    ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_reservation);
+    m_traceTable.push_back(trace);
+    m_traceLookup.emplace(universe, std::vector<ScopeTrace*>(1, trace));
 
     // Maybe start listening
     if (isRunning())
@@ -77,35 +188,60 @@ bool GlScopeWidget::addUpdateTrace(const QColor& color, uint16_t universe, uint1
   auto& univs_item = univ_it->second;
   for (auto& item : univs_item)
   {
-    if (item.addressHi() == address_hi && item.addressLo() == address_lo)
+    if (item->addressHi() == address_hi && item->addressLo() == address_lo)
     {
-      item.setColor(color);
+      item->setColor(color);
       return true;
     }
   }
 
   // Add this new trace to the existing universe
-  univs_item.emplace_back(color, address_hi, address_lo, m_reservation);
+  ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_reservation);
+  m_traceTable.push_back(trace);
+  univs_item.push_back(trace);
   return true;
 }
 
 // Removes all traces that match this
-void GlScopeWidget::removeTrace(uint16_t universe, uint16_t address_hi, uint16_t address_lo)
+void ScopeModel::removeTrace(uint16_t universe, uint16_t address_hi, uint16_t address_lo)
 {
-  auto univ_it = m_traces.find(universe);
-  if (univ_it == m_traces.end())
+  auto univ_it = m_traceLookup.find(universe);
+  if (univ_it == m_traceLookup.end())
     return;
 
+  bool found = false;
   auto& univ_item = univ_it->second;
   for (auto it = univ_item.begin(); it != univ_item.end(); /**/)
   {
-    if (it->addressHi() == address_hi && it->addressLo() == address_lo)
+    if ((*it)->addressHi() == address_hi && (*it)->addressLo() == address_lo)
     {
+      found = true;
       it = univ_item.erase(it);
     }
     else
     {
       ++it;
+    }
+  }
+
+  // Find the index in the tracetable and delete the object
+  if (found)
+  {
+    for (auto it = m_traceTable.begin(); it != m_traceTable.end(); /**/)
+    {
+      ScopeTrace* trace = (*it);
+      if (trace->universe() == universe && trace->addressHi() == address_hi && trace->addressLo() == address_lo)
+      {
+        const int row = it - m_traceTable.begin();
+        beginRemoveRows(QModelIndex(), row, row);
+        it = m_traceTable.erase(it);
+        delete trace;
+        endRemoveRows();
+      }
+      else
+      {
+        ++it;
+      }
     }
   }
 
@@ -128,16 +264,16 @@ void GlScopeWidget::removeTrace(uint16_t universe, uint16_t address_hi, uint16_t
   }
 }
 
-const GlScopeTrace* GlScopeWidget::findTrace(uint16_t universe, uint16_t address_hi, uint16_t address_lo) const
+const ScopeTrace* ScopeModel::findTrace(uint16_t universe, uint16_t address_hi, uint16_t address_lo) const
 {
-  const auto univ_it = m_traces.find(universe);
-  if (univ_it != m_traces.end())
+  const auto univ_it = m_traceLookup.find(universe);
+  if (univ_it != m_traceLookup.end())
   {
     const auto& univ_item = univ_it->second;
-    for (auto it = univ_item.begin(); it != univ_item.end(); ++it)
+    for (const auto& item : univ_item)
     {
-      if (it->addressHi() == address_hi && it->addressLo() == address_lo)
-        return &(*it);
+      if (item->addressHi() == address_hi && item->addressLo() == address_lo)
+        return item;
     }
   }
 
@@ -145,35 +281,192 @@ const GlScopeTrace* GlScopeWidget::findTrace(uint16_t universe, uint16_t address
   return nullptr;
 }
 
-size_t GlScopeWidget::traceCount() const
+ScopeModel::ScopeModel(QObject* parent)
+  : QAbstractTableModel(parent)
 {
-  size_t result = 0;
-  for (const auto& univ : m_traces)
-  {
-    result += univ.second.size();
-  }
-  return result;
+  private_removeAllTraces();
 }
 
-void GlScopeWidget::removeAllTraces()
+ScopeModel::~ScopeModel()
 {
-  stop();
-  m_traces.clear();
+  private_removeAllTraces();
 }
 
-void GlScopeWidget::clearValues()
+QVariant ScopeModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-  // Clear all the trace values
-  for (auto& universe : m_traces)
+  if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
   {
-    for (auto& trace : universe.second)
+    switch (section)
     {
-      trace.clear();
+    case COL_UNIVERSE: return tr("Universe");
+    case COL_ADDRESS: return tr("Address");
+    case COL_COLOUR: return tr("Colour");
+    case COL_TRIGGER: return tr("Trigger");
     }
   }
+  return QVariant();
 }
 
-bool GlScopeWidget::saveTraces(QIODevice& file) const
+int ScopeModel::rowCount(const QModelIndex& parent) const
+{
+  if (parent.isValid())
+    return 0;
+
+  return m_traceTable.size();
+}
+
+Qt::ItemFlags ScopeModel::flags(const QModelIndex& index) const
+{
+  if (!index.isValid())
+    return Qt::ItemFlags();
+
+  switch (index.column())
+  {
+  default: return Qt::ItemFlags();
+  case  COL_UNIVERSE: return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
+  case  COL_ADDRESS: return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
+  case  COL_COLOUR: return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
+  case  COL_TRIGGER: return Qt::ItemIsEnabled | Qt::ItemIsUserCheckable;
+  }
+}
+
+QVariant ScopeModel::data(const QModelIndex& index, int role) const
+{
+  if (!index.isValid())
+    return QVariant();
+
+  if (index.column() < COL_COUNT && index.row() < rowCount())
+  {
+    const ScopeTrace* trace = m_traceTable.at(index.row());
+    if (trace)
+    {
+      switch (index.column())
+      {
+      default: break;
+      case COL_UNIVERSE:
+        if (role == Qt::DisplayRole) return trace->universe();
+        if (role == Qt::CheckStateRole) return trace->enabled() ? Qt::Checked : Qt::Unchecked;
+        break;
+      case COL_ADDRESS:
+        if (role == Qt::DisplayRole) return trace->addressString();
+        break;
+      case COL_COLOUR:
+        if (role == Qt::BackgroundRole || role == Qt::DisplayRole) return trace->color();
+        break;
+      case COL_TRIGGER:
+        if (role == Qt::CheckStateRole)
+          return m_trigger.IsTriggerTrace(*trace) ? Qt::Checked : Qt::Unchecked;
+        break;
+      }
+    }
+  }
+
+  return QVariant();
+}
+
+bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role)
+{
+  if (!idx.isValid())
+    return false;
+
+  if (idx.column() < COL_COUNT && idx.row() < rowCount())
+  {
+    ScopeTrace* trace = m_traceTable.at(idx.row());
+    if (trace)
+    {
+      switch (idx.column())
+      {
+      default: break;
+
+      case COL_UNIVERSE:
+        if (role == Qt::CheckStateRole)
+        {
+          trace->setEnabled(value.toBool());
+          emit dataChanged(idx, idx, { Qt::CheckStateRole });
+          return true;
+        }
+        if (role == Qt::EditRole)
+        {
+          if (moveTrace(trace, value.toUInt()))
+          {
+            emit dataChanged(idx, idx, { Qt::DisplayRole });
+            return true;
+          }
+        }
+        break;
+
+      case COL_ADDRESS:
+        if (role == Qt::EditRole)
+        {
+          if (trace->setAddress(value.toString(), true))
+            emit dataChanged(idx, idx, { Qt::DisplayRole });
+        }
+        break;
+      case COL_COLOUR:
+        if (role == Qt::BackgroundRole)
+        {
+          QColor color = value.value<QColor>();
+          if (color.isValid())
+          {
+            trace->setColor(color);
+            emit dataChanged(idx, idx, { Qt::BackgroundRole });
+            return true;
+          }
+        }
+        break;
+
+      case COL_TRIGGER:
+        if (role == Qt::CheckStateRole)
+        {
+          if (trace->isValid())
+          {
+            m_trigger.universe = trace->universe();
+            m_trigger.address_hi = trace->addressHi();
+            m_trigger.address_lo = trace->addressLo();
+            emit dataChanged(index(0, COL_TRIGGER), index(rowCount() - 1, COL_TRIGGER), { Qt::CheckStateRole });
+            return true;
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  return false;
+}
+
+void ScopeModel::removeAllTraces()
+{
+  beginResetModel();
+  private_removeAllTraces();
+  endResetModel();
+}
+
+void ScopeModel::private_removeAllTraces()
+{
+  stop();
+  for (ScopeTrace* trace : m_traceTable)
+    delete trace;
+
+  m_traceLookup.clear();
+  m_traceTable.clear();
+  // Set extents back to default
+  m_traceExtents = QRectF(0, 0, 0, 255.0);
+}
+
+void ScopeModel::clearValues()
+{
+  // Clear all the trace values
+  for (ScopeTrace* trace : m_traceTable)
+  {
+    trace->clear();
+  }
+
+  // Reset time extents
+  m_traceExtents.setWidth(0);
+}
+
+bool ScopeModel::saveTraces(QIODevice& file) const
 {
   if (!file.isWritable())
     return false;
@@ -206,40 +499,32 @@ bool GlScopeWidget::saveTraces(QIODevice& file) const
     ValueIterator current;
     ValueIterator end;
   };
-  std::vector<ValueItem> trace_values;
+  std::vector<ValueItem> traces_values;
 
   QString color_header = RowTitleColor;
   QString name_header = ColumnTitleTimestamp;
 
   // Header rows
-  for (const auto& universe : m_traces)
+  for (const auto& universe : m_traceLookup)
   {
-    for (const auto& trace : universe.second)
+    for (const ScopeTrace* trace : universe.second)
     {
       // Get the value iterators for this column
-      trace_values.emplace_back(trace.values().begin(), trace.values().end());
+      traces_values.emplace_back(trace->values().begin(), trace->values().end());
 
       // Assemble the color header string
       color_header.append(QLatin1Char(','));
-      color_header.append(trace.color().name());
+      color_header.append(trace->color().name());
 
       // Assemble the name header string
-      name_header.append(QLatin1String(", U"));
-      name_header.append(QString::number(universe.first));
-      name_header.append(QLatin1Char('.'));
-      name_header.append(QString::number(trace.addressHi()));
-
-      if (trace.isSixteenBit())
-      {
-        name_header.append(QLatin1Char('/'));
-        name_header.append(QString::number(trace.addressLo()));
-      }
+      name_header.append(QLatin1String(", "));
+      name_header.append(trace->universeAddressString());
 
       // Find the first and last row timestamps
-      if (!trace.values().empty())
+      if (!trace->values().empty())
       {
-        if (trace.values().front()[0] < this_row_time)
-          this_row_time = trace.values().front()[0];
+        if (trace->values().front()[0] < this_row_time)
+          this_row_time = trace->values().front()[0];
       }
     }
   }
@@ -252,7 +537,7 @@ bool GlScopeWidget::saveTraces(QIODevice& file) const
     out << '\n' << this_row_time;
     float next_row_time = std::numeric_limits<float>::max();
 
-    for (auto& value_its : trace_values)
+    for (auto& value_its : traces_values)
     {
       // Next Column
       out << ',';
@@ -301,7 +586,7 @@ QPair<QString, QString> FindUniverseTitles(QTextStream& in)
   return QPair<QString, QString>();
 }
 
-bool GlScopeWidget::loadTraces(QIODevice& file)
+bool ScopeModel::loadTraces(QIODevice& file)
 {
   if (!file.isReadable())
     return false;
@@ -330,8 +615,9 @@ bool GlScopeWidget::loadTraces(QIODevice& file)
   if (colors.size() != titles.size() || titles.size() < 2)
     return false; // No or invalid data
 
-  // Fairly likely to be valid, clear my data now and stop
-  removeAllTraces();
+  // Fairly likely to be valid, stop and clear my data now
+  beginResetModel();
+  private_removeAllTraces();
 
   struct UnivSlots
   {
@@ -348,38 +634,12 @@ bool GlScopeWidget::loadTraces(QIODevice& file)
 
     // Find universe and patch
     const auto& full_title = titles[i];
-    const QStringRef title = full_title.trimmed();
-    if (title.front() != QLatin1Char('U'))
+
+    UnivSlots univ_slots;
+    if (!ScopeTrace::extractUniverseAddress(full_title.trimmed(), univ_slots.universe, univ_slots.address_hi, univ_slots.address_lo))
     {
       trace_idents.push_back(UnivSlots());  // Skip this column
       continue;
-    }
-
-    bool ok = false;
-    UnivSlots univ_slots;
-
-    // Extract the universe
-    const int univ_str_end = title.indexOf(QLatin1Char('.'));
-    if (univ_str_end > 0)
-    {
-      const QStringRef univ_str = title.mid(1, univ_str_end - 1);
-      univ_slots.universe = univ_str.toUInt(&ok);
-      if (!ok || univ_slots.universe > MAX_SACN_UNIVERSE)
-        univ_slots.universe = 0; // Out of bounds
-    }
-
-    // Extract slot_hi
-    const int slot_str_end = title.indexOf(QLatin1Char('/'));
-    {
-      const QStringRef slot_hi_str = title.mid(univ_str_end + 1, slot_str_end - univ_str_end - 1);
-      univ_slots.address_hi = slot_hi_str.toUInt(&ok);
-    }
-
-    // Extract slot_lo
-    if (slot_str_end > 0)
-    {
-      const QStringRef slot_lo_str = title.mid(slot_str_end + 1);
-      univ_slots.address_lo = slot_lo_str.toUInt(&ok);
     }
 
     if (addUpdateTrace(color, univ_slots.universe, univ_slots.address_hi, univ_slots.address_lo))
@@ -390,11 +650,11 @@ bool GlScopeWidget::loadTraces(QIODevice& file)
 
   // Now have all the trace idents and the container will not change
   // Get all the pointers and cast away const
-  std::vector<GlScopeTrace*> traces;
+  std::vector<ScopeTrace*> traces;
   for (const auto& ident : trace_idents)
   {
-    const GlScopeTrace* trace = findTrace(ident.universe, ident.address_hi, ident.address_lo);
-    traces.push_back(const_cast<GlScopeTrace*>(trace));
+    const ScopeTrace* trace = findTrace(ident.universe, ident.address_hi, ident.address_lo);
+    traces.push_back(const_cast<ScopeTrace*>(trace));
   }
 
   QString data_line;
@@ -419,29 +679,39 @@ bool GlScopeWidget::loadTraces(QIODevice& file)
 
     for (size_t i = 1; i <= traces.size(); ++i)
     {
-      bool ok = false;
-      const float level = data[i].toFloat(&ok);
-      if (ok)
-        traces[i - 1]->addValue({ timestamp, level });
+      ScopeTrace* trace = traces[i - 1];
+      if (trace)
+      {
+        bool ok = false;
+        const float level = data[i].toFloat(&ok);
+        if (ok)
+          trace->addValue({ timestamp, level });
+      }
     }
   }
+
+  endResetModel();
   return true;
 }
 
-bool GlScopeWidget::listeningToUniverse(uint16_t universe) const
+bool ScopeModel::listeningToUniverse(uint16_t universe) const
 {
-  return m_traces.count(universe) != 0;
+  return m_traceLookup.count(universe) != 0;
 }
 
-void GlScopeWidget::start()
+void ScopeModel::start()
 {
   if (isRunning())
     return;
 
-  // Start the clock
+  // Clear all values and start the clock
+  // Cannot permit time to go backwards
+  clearValues();
   m_elapsed.start();
 
-  for (const auto& universe : m_traces)
+  // TODO: Set up the Trigger
+
+  for (const auto& universe : m_traceLookup)
   {
     addListener(universe.first);
   }
@@ -449,8 +719,11 @@ void GlScopeWidget::start()
   emit runningChanged(true);
 }
 
-void GlScopeWidget::stop()
+void ScopeModel::stop()
 {
+  if (!isRunning())
+    return;
+
   // Disconnect all
   for (auto& listener : m_listeners)
   {
@@ -462,14 +735,78 @@ void GlScopeWidget::stop()
   emit runningChanged(false);
 }
 
-void GlScopeWidget::addListener(uint16_t universe)
+bool ScopeModel::moveTrace(ScopeTrace* trace, uint16_t new_universe, bool clear_values)
+{
+  const uint16_t old_universe = trace->universe();
+
+  if (!trace->setUniverse(new_universe, clear_values))
+    return false; // New universe invalid or unchanged
+
+  // Remove from old universe
+  auto univ_it = m_traceLookup.find(old_universe);
+  if (univ_it != m_traceLookup.end())
+  {
+    // Remove from old Universe
+    auto& univ_item = univ_it->second;
+    for (auto it = univ_item.begin(); it != univ_item.end(); /**/)
+    {
+      if ((*it) == trace)
+      {
+        it = univ_item.erase(it);
+      }
+      else
+      {
+        ++it;
+      }
+    }
+
+    // If was last trace on a universe, stop listening
+    if (univ_item.empty())
+    {
+      for (auto it = m_listeners.begin(); it != m_listeners.end(); /**/)
+      {
+        if ((*it)->universe() == old_universe)
+        {
+          // Disconnect signal
+          disconnect((*it).data(), nullptr, this, nullptr);
+          it = m_listeners.erase(it);
+        }
+        else
+        {
+          ++it;
+        }
+      }
+    }
+  }
+
+  // Add the ScopeTrace to the new universe in map
+  univ_it = m_traceLookup.find(new_universe);
+  auto& univs_item = univ_it->second;
+  if (univ_it == m_traceLookup.end())
+  {
+    // First trace on this universe
+    m_traceLookup.emplace(new_universe, std::vector<ScopeTrace*>(1, trace));
+
+    // Maybe start listening
+    if (isRunning())
+      addListener(new_universe);
+  }
+  else
+  {
+    // Add this new trace to the existing universe
+    univs_item.push_back(trace);
+  }
+  return true;
+}
+
+void ScopeModel::addListener(uint16_t universe)
 {
   auto listener = sACNManager::Instance().getListener(universe);
-  connect(listener.data(), &sACNListener::levelsChanged, this, &GlScopeWidget::onLevelsChanged);
+  connect(listener.data(), &sACNListener::levelsChanged, this, &ScopeModel::onLevelsChanged);
   m_listeners.push_back(listener);
 }
 
-void GlScopeWidget::onLevelsChanged()
+void ScopeModel::onLevelsChanged()
 {
   if (!m_elapsed.isValid())
     return;
@@ -480,34 +817,224 @@ void GlScopeWidget::onLevelsChanged()
     return; // Check for deletion
 
   // Find traces for universe
-  auto it = m_traces.find(listener->universe());
-  if (it == m_traces.end())
+  auto it = m_traceLookup.find(listener->universe());
+  if (it == m_traceLookup.end())
     return;
 
   // Grab levels
   const auto levels = listener->mergedLevelsOnly();
 
-  // Time in seconds
-  float timestamp = m_elapsed.elapsed();
-  timestamp = timestamp / 1000.0f;
+  // TODO: Check the Trigger and only store one level for each trace until the trigger is fired
 
-  for (GlScopeTrace& trace : it->second)
+  // Time in seconds
+  qreal timestamp = m_elapsed.elapsed();
+  timestamp = timestamp / 1000.0;
+
+  m_traceExtents.setRight(timestamp);
+
+  for (ScopeTrace* trace : it->second)
   {
-    trace.addPoint(timestamp, levels);
+    trace->addPoint(timestamp, levels);
   }
+}
+
+GlScopeWidget::GlScopeWidget(QWidget* parent)
+  : QOpenGLWidget(parent)
+{
+  m_model = new ScopeModel(this);
+
+  setMinimumSize(200, 200);
+  setVerticalScaleMode(VerticalScale::Dmx);
+  setScopeView();
+}
+
+GlScopeWidget::~GlScopeWidget()
+{
+}
+
+void GlScopeWidget::setVerticalScaleMode(VerticalScale scaleMode)
+{
+  if (scaleMode == m_verticalScaleMode)
+    return;
+
+  switch (scaleMode)
+  {
+  default:
+    return; // Invalid, do nothing
+  case VerticalScale::Percent:
+  {
+    m_levelInterval = 10;
+  } break;
+  case VerticalScale::Dmx:
+  {
+    m_levelInterval = 20;
+  } break;
+  }
+
+  m_verticalScaleMode = scaleMode;
+
+  update();
+}
+
+void GlScopeWidget::setScopeView(const QRectF& rect)
+{
+  if (rect.isEmpty())
+  {
+    m_scopeView = m_model->traceExtents();
+    m_scopeView.setRight(m_defaultViewWidth);
+  }
+  else if (rect == m_scopeView)
+  {
+    return;
+  }
+  else
+  {
+    m_scopeView = rect;
+  }
+
+  updateMVPMatrix();
+  update();
 }
 
 void GlScopeWidget::initializeGL()
 {
+  initializeOpenGLFunctions();
+
+  glClearColor(0, 0, 0, 1);
+
   // TODO: Implement initializeGL
+}
+
+void GlScopeWidget::setTimeDivisions(int milliseconds)
+{
+  if (timeDivisions() == milliseconds)
+    return;
+
+  // Must not go lower than 1ms
+  if (milliseconds < 1)
+    milliseconds = 1;
+
+  m_timeInterval = static_cast<qreal>(milliseconds) / 1000.0;
+  emit timeDivisionsChanged(milliseconds);
+
+  update();
+}
+
+inline void DrawLevelAxisMark(QPainter& painter, const QFontMetricsF& metrics,
+  const QPen& gridPen, const QPen& textPen,
+  const QRectF& scopeWindow, int level, qreal y_scale, const QString& postfix)
+{
+  qreal y = scopeWindow.height() - (level * y_scale);
+  painter.setPen(gridPen);
+  painter.drawLine(QPointF(-AXIS_TICK_SIZE, y), QPointF(scopeWindow.width(), y));
+
+  // TODO: use QStaticText to optimise the text layout
+  const QString text = QString::number(level) + postfix;
+
+  QRectF fontRect = metrics.boundingRect(text);
+  fontRect.moveBottomRight(QPointF(-AXIS_TICK_SIZE, y + (fontRect.height() / 2.0)));
+
+  painter.setPen(textPen);
+  painter.drawText(fontRect, text, QTextOption(Qt::AlignLeft));
 }
 
 void GlScopeWidget::paintGL()
 {
-  // TODO: Implement paintGL
+  // Draw the axes using QPainter as is easiest way to get the text
+  {
+    QPen gridPen;
+    gridPen.setColor(QColor("#434343"));
+
+    QPen textPen;
+    textPen.setColor(Qt::white);
+
+    QPainter painter(this);
+
+    painter.setRenderHint(QPainter::Antialiasing, true);
+
+    // Origin is the bottom left of the scope window
+    QPointF origin(rect().bottomLeft().x() + AXIS_LABEL_WIDTH, rect().bottomLeft().y() - AXIS_LABEL_HEIGHT);
+
+    QRectF scopeWindow;
+    scopeWindow.setBottomLeft(origin);
+    scopeWindow.setTop(rect().top() + TOP_GAP);
+    scopeWindow.setRight(rect().right() - RIGHT_GAP);
+
+    // Draw nothing if tiny
+    if (scopeWindow.width() < AXIS_TICK_SIZE)
+      return;
+
+    painter.setBrush(QBrush(Qt::black));
+
+    QFont font;
+    QFontMetricsF metrics(font);
+
+    painter.translate(scopeWindow.topLeft().x(), scopeWindow.topLeft().y());
+
+    // Draw vertical (level) axis
+    {
+      painter.setPen(gridPen);
+      painter.drawLine(QPointF(0, 0), QPointF(0, scopeWindow.height()));
+
+      QString postfix;
+      int max_value = m_scopeView.bottom();
+      qreal y_scale = scopeWindow.height() / m_scopeView.bottom();
+
+      if (m_verticalScaleMode == VerticalScale::Percent)
+      {
+        postfix = QStringLiteral("%");
+        // TODO: Scale this properly
+        max_value = 100;
+        y_scale = scopeWindow.height() / 100.0;
+      }
+
+      // From bottom to top
+      for (int value = m_scopeView.top(); value < max_value; value += m_levelInterval)
+      {
+        DrawLevelAxisMark(painter, metrics, gridPen, textPen, scopeWindow, value, y_scale, postfix);
+      }
+
+      // Final row, may be uneven
+      DrawLevelAxisMark(painter, metrics, gridPen, textPen, scopeWindow, max_value, y_scale, postfix);
+    }
+
+    // Draw horizontal (time) axis
+    painter.resetTransform();
+    painter.translate(scopeWindow.bottomLeft().x(), scopeWindow.bottomLeft().y());
+
+    const qreal x_scale = scopeWindow.width() / m_scopeView.width();
+    const bool milliseconds = (m_timeInterval < 1.0);
+    for (qreal time = m_scopeView.left(); time < m_scopeView.right() + 0.001; time += m_timeInterval)
+    {
+      const qreal x = time * x_scale;
+      painter.setPen(gridPen);
+      painter.drawLine(x, 0, x, -scopeWindow.height());
+
+      // TODO: use QStaticText to optimise the text layout
+      const QString text = milliseconds ? QStringLiteral("%1ms").arg(time * 1000.0) : QStringLiteral("%1s").arg(time);
+
+      QRectF fontRect = metrics.boundingRect(text);
+
+      fontRect.moveCenter(QPointF(x, AXIS_LABEL_HEIGHT / 2.0));
+
+      painter.setPen(textPen);
+      painter.drawText(fontRect, text, QTextOption(Qt::AlignLeft));
+    }
+  }
+
+  // TODO: Draw the traces
+
 }
 
 void GlScopeWidget::resizeGL(int w, int h)
 {
-  // TODO: Implement resizeGL
+  m_viewMatrix.setToIdentity();
+  m_viewMatrix.ortho(QRect(0, 0, w, h));
+
+  updateMVPMatrix();
+}
+
+void GlScopeWidget::updateMVPMatrix()
+{
+  // TODO: Update the mvp matrix for the current scope view (pan and scale)
 }

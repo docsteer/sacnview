@@ -19,9 +19,9 @@
 #include <QBuffer>
 #include <QFile>
 
-TEST(GlScopeTrace, AddPoint)
+TEST(ScopeTrace, AddPoint)
 {
-  GlScopeTrace trace(Qt::red, 1, 0, 10);
+  ScopeTrace trace(Qt::red, 1, 1, 0, 10);
   EXPECT_TRUE(trace.isValid());
   EXPECT_FALSE(trace.isSixteenBit());
   EXPECT_TRUE(trace.values().empty());
@@ -31,14 +31,14 @@ TEST(GlScopeTrace, AddPoint)
   EXPECT_EQ(QVector2D(0, 1), trace.values()[0]);
 }
 
-void VerifyRedGreenTrace(const GlScopeWidget& glscope, const char* note)
+void VerifyRedGreenTrace(const ScopeModel& glscope, const char* note)
 {
   // There are Two! Traces!
-  EXPECT_EQ(2, glscope.traceCount()) << note;
+  EXPECT_EQ(2, glscope.rowCount()) << note;
 
   {
     // Get the Red one
-    const GlScopeTrace* red_trace = glscope.findTrace(1, 1);
+    const ScopeTrace* red_trace = glscope.findTrace(1, 1);
     EXPECT_NE(nullptr, red_trace);
     if (red_trace)
     {
@@ -54,7 +54,7 @@ void VerifyRedGreenTrace(const GlScopeWidget& glscope, const char* note)
 
   {
     // Get the Green one
-    const GlScopeTrace* green_trace = glscope.findTrace(1, 2, 3);
+    const ScopeTrace* green_trace = glscope.findTrace(1, 2, 3);
     EXPECT_NE(nullptr, green_trace) << note;
     if (green_trace)
     {
@@ -69,20 +69,20 @@ void VerifyRedGreenTrace(const GlScopeWidget& glscope, const char* note)
   }
 }
 
-TEST(GlScopeWidget, CSVImportExport)
+TEST(ScopeModel, CSVImportExport)
 {
-  GlScopeWidget glscope;
+  ScopeModel glscope;
 
-  // Data to load
-  QByteArray csvData = ("Color,red,green\n"
-    "Time (s), U1.1, U1.2/3\n"
-    "10, 1, 5\n"
-    "11, 2, 6\n"
-    "12, 3, 4\n"
-    "13, , 7\n"
-    "14, 4, 7\n"
-    "15, 4, 7\n"
-    "16, 4, 7\n");
+  // Data to load with a duff column
+  QByteArray csvData = ("Color,red,brown,green\n"
+    "Time (s), U1.1, U1.nope, U1.2/3\n"
+    "10, 1, 1, 5\n"
+    "11, 2, 1, 6\n"
+    "12, 3, 1, 4\n"
+    "13, , 1, 7\n"
+    "14, 4, 1, 7\n"
+    "15, 4, 1, 7\n"
+    "16, 4, 1, 7\n");
 
   {
     QBuffer buf(&csvData);
@@ -102,7 +102,7 @@ TEST(GlScopeWidget, CSVImportExport)
   }
 
   glscope.removeAllTraces();
-  EXPECT_EQ(0, glscope.traceCount()) << "after removeAllTraces";
+  EXPECT_EQ(0, glscope.rowCount()) << "after removeAllTraces";
 
   {
     // Then re-import and retest
