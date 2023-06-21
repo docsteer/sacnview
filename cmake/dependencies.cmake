@@ -35,3 +35,10 @@ endif()
 # OpenSSL
 include(openssl)
 target_link_libraries(${PROJECT_NAME} PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+
+# Windows Libs
+if (WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE user32.lib)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ole32.lib)
+    target_link_libraries(${PROJECT_NAME} PRIVATE oleaut32.lib)
+endif()
