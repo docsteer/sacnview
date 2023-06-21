@@ -16,6 +16,7 @@
 #include "mdimainwindow.h"
 #include "ui_mdimainwindow.h"
 #include "scopewindow.h"
+#include "glscopewindow.h"
 #include "universeview.h"
 #include "transmitwindow.h"
 #include "preferences.h"
@@ -88,7 +89,7 @@ void MDIMainWindow::showEvent(QShowEvent* ev)
 void MDIMainWindow::on_actionScopeView_triggered(bool checked)
 {
   Q_UNUSED(checked);
-  ScopeWindow* scopeWindow = new ScopeWindow(ui->sbUniverseList->value(), this);
+  GlScopeWindow* scopeWindow = new GlScopeWindow(this);
   showWidgetAsSubWindow(scopeWindow);
 }
 

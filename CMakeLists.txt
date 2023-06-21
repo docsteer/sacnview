@@ -154,6 +154,7 @@ set(SACNVIEW_SOURCES
     src/ui/bigdisplay.cpp
     src/ui/addmultidialog.cpp
     src/ui/multiview.cpp
+    src/ui/glscopewindow.cpp
     src/widgets/monitorspinbox.cpp
     src/widgets/qpushbutton_rightclick.cpp
     src/widgets/qspinbox_resizetocontent.cpp
