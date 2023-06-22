@@ -140,6 +140,9 @@ public:
   */
   void removeTrace(uint16_t universe, uint16_t address_hi, uint16_t address_lo = 0);
 
+  /// Remove traces by modelindex
+  void removeTraces(const QModelIndexList& indexes);
+
   /**
    * @brief Find the scope trace object for a universe and slot pair
    * Caution: This pointer is invalidated if any traces are added or removed
@@ -249,6 +252,7 @@ private:
   void private_removeAllTraces();
   // Move a trace from one universe to another if possible
   bool moveTrace(ScopeTrace* trace, uint16_t new_universe, bool clear_values = true);
+  void removeFromLookup(ScopeTrace* trace, uint16_t old_universe);
   void addListener(uint16_t universe);
 };
 

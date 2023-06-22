@@ -181,9 +181,11 @@ bool ScopeModel::addUpdateTrace(const QColor& color, uint16_t universe, uint16_t
   auto univ_it = m_traceLookup.find(universe);
   if (univ_it == m_traceLookup.end())
   {
+    beginInsertRows(QModelIndex(), m_traceTable.size(), m_traceTable.size());
     ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_reservation);
     m_traceTable.push_back(trace);
     m_traceLookup.emplace(universe, std::vector<ScopeTrace*>(1, trace));
+    endInsertRows();
 
     // Maybe start listening
     if (isRunning())
@@ -206,9 +208,11 @@ bool ScopeModel::addUpdateTrace(const QColor& color, uint16_t universe, uint16_t
   }
 
   // Add this new trace to the existing universe
+  beginInsertRows(QModelIndex(), m_traceTable.size(), m_traceTable.size());
   ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_reservation);
   m_traceTable.push_back(trace);
   univs_item.push_back(trace);
+  endInsertRows();
   return true;
 }
 
@@ -271,6 +275,41 @@ void ScopeModel::removeTrace(uint16_t universe, uint16_t address_hi, uint16_t ad
         ++it;
       }
     }
+  }
+}
+
+void ScopeModel::removeTraces(const QModelIndexList& indexes)
+{
+  // Create list of items to remove
+  std::vector<size_t> traceRows;
+  for (const QModelIndex& idx : indexes)
+  {
+    if (idx.isValid() && idx.row() < rowCount())
+    {
+      traceRows.push_back(idx.row());
+    }
+  }
+
+  // Start at the end
+  std::sort(traceRows.begin(), traceRows.end(), std::greater<size_t>());
+
+  size_t prevRow = std::numeric_limits<size_t>::max();
+
+  for (size_t row : traceRows)
+  {
+    if (prevRow == row)
+      continue; // This was a duplicate
+
+    beginRemoveRows(QModelIndex(), row, row);
+
+    ScopeTrace* trace = m_traceTable[row];
+    removeFromLookup(trace, trace->universe());
+
+    m_traceTable.erase(m_traceTable.begin() + row);
+    delete trace;
+    endRemoveRows();
+
+    prevRow = row;
   }
 }
 
@@ -756,6 +795,31 @@ bool ScopeModel::moveTrace(ScopeTrace* trace, uint16_t new_universe, bool clear_
   if (!trace->setUniverse(new_universe, clear_values))
     return false; // New universe invalid or unchanged
 
+  // Remove it from the old lookup
+  removeFromLookup(trace, old_universe);
+
+  // Add the ScopeTrace to the new universe in map
+  auto univ_it = m_traceLookup.find(new_universe);
+  if (univ_it == m_traceLookup.end())
+  {
+    // First trace on this universe
+    m_traceLookup.emplace(new_universe, std::vector<ScopeTrace*>(1, trace));
+
+    // Maybe start listening
+    if (isRunning())
+      addListener(new_universe);
+  }
+  else
+  {
+    // Add this new trace to the existing universe
+    auto& univs_item = univ_it->second;
+    univs_item.push_back(trace);
+  }
+  return true;
+}
+
+void ScopeModel::removeFromLookup(ScopeTrace* trace, uint16_t old_universe)
+{
   // Remove from old universe
   auto univ_it = m_traceLookup.find(old_universe);
   if (univ_it != m_traceLookup.end())
@@ -792,25 +856,6 @@ bool ScopeModel::moveTrace(ScopeTrace* trace, uint16_t new_universe, bool clear_
       }
     }
   }
-
-  // Add the ScopeTrace to the new universe in map
-  univ_it = m_traceLookup.find(new_universe);
-  auto& univs_item = univ_it->second;
-  if (univ_it == m_traceLookup.end())
-  {
-    // First trace on this universe
-    m_traceLookup.emplace(new_universe, std::vector<ScopeTrace*>(1, trace));
-
-    // Maybe start listening
-    if (isRunning())
-      addListener(new_universe);
-  }
-  else
-  {
-    // Add this new trace to the existing universe
-    univs_item.push_back(trace);
-  }
-  return true;
 }
 
 void ScopeModel::addListener(uint16_t universe)

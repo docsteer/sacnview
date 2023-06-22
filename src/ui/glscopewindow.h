@@ -34,14 +34,16 @@ public:
 
 private:
   Q_SLOT void onRunningChanged(bool running);
+  Q_SLOT void onTimeSliderMoved(int value);
 
   Q_SLOT void setVerticalScaleMode(int idx);
   Q_SLOT void setTriggerType(int idx);
 
+  Q_SLOT void addTrace(bool);
+  Q_SLOT void removeTrace(bool);
+
   Q_SLOT void saveTraces(bool);
   Q_SLOT void loadTraces(bool);
-
-  Q_SLOT void onTimeSliderMoved(int value);
 
 private:
   QSplitter* m_splitter = nullptr;
@@ -55,6 +57,9 @@ private:
   QPushButton* m_btnStop = nullptr;
   QTableView* m_tableView = nullptr;
   int m_refreshTimer = 0;
+
+  int m_lastTraceHue = 0;
+  int m_lastTraceSat = 255;
 
   void updateScrollBars();
 };

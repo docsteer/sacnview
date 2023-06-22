@@ -146,6 +146,7 @@ GlScopeWindow::GlScopeWindow(QWidget* parent)
       m_tableView = new QTableView(this);
       m_tableView->verticalHeader()->hide();
       m_tableView->setModel(m_scope->model());
+      m_tableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
       layoutGrp->addWidget(m_tableView);
 
@@ -153,8 +154,10 @@ GlScopeWindow::GlScopeWindow(QWidget* parent)
         QBoxLayout* layoutBtns = new QHBoxLayout();
 
         QPushButton* addChan = new QPushButton(tr("Add"), confWidget);
+        connect(addChan, &QPushButton::clicked, this, &GlScopeWindow::addTrace);
         layoutBtns->addWidget(addChan);
         QPushButton* removeChan = new QPushButton(tr("Remove"), confWidget);
+        connect(removeChan, &QPushButton::clicked, this, &GlScopeWindow::removeTrace);
         layoutBtns->addWidget(removeChan);
 
         QFrame* line = new QFrame(this);
@@ -211,6 +214,15 @@ void GlScopeWindow::onRunningChanged(bool running)
   updateScrollBars();
 }
 
+void GlScopeWindow::onTimeSliderMoved(int value)
+{
+  qreal startTime = value;
+  startTime = startTime / 1000;
+  QRectF scopeView = m_scope->scopeView();
+  scopeView.moveLeft(startTime);
+  m_scope->setScopeView(scopeView);
+}
+
 void GlScopeWindow::setVerticalScaleMode(int idx)
 {
   m_scope->setVerticalScaleMode(static_cast<GlScopeWidget::VerticalScale>(idx + 1));
@@ -219,6 +231,55 @@ void GlScopeWindow::setVerticalScaleMode(int idx)
 void GlScopeWindow::setTriggerType(int idx)
 {
   m_scope->model()->setTriggerType(static_cast<ScopeModel::Trigger>(idx + 1));
+}
+
+void GlScopeWindow::addTrace(bool)
+{
+  QColor traceColor = QColor::fromHsv(m_lastTraceHue, m_lastTraceSat, 255);
+  // Shift colour, won't quickly repeat
+  m_lastTraceHue += 40;
+  if (m_lastTraceHue >= 360)
+  {
+    m_lastTraceHue -= 360;
+    m_lastTraceSat -= 30;
+    if (m_lastTraceSat < 0)
+      m_lastTraceSat += 255;
+  }
+
+  if (m_scope->model()->rowCount() == 0)
+  {
+    m_scope->model()->addUpdateTrace(traceColor, 1, 1, 0);
+    return;
+  }
+
+  // Add an 8bit trace defaulting to the next item, based on the current index
+  QModelIndex current = m_tableView->currentIndex();
+  if (!current.isValid())
+    current = m_scope->model()->index(m_scope->model()->rowCount() - 1, ScopeModel::COL_UNIVERSE);
+
+  if (current.column() == ScopeModel::COL_UNIVERSE)
+  {
+    // if Universe column is selected, add the next Universe
+    m_scope->model()->addUpdateTrace(traceColor, current.data(Qt::DisplayRole).toUInt() + 1, 1);
+  }
+  else
+  {
+    // if any other column is selected, add the next 8bit slot on the same universe
+    uint16_t universe = m_scope->model()->index(current.row(), ScopeModel::COL_UNIVERSE).data(Qt::DisplayRole).toUInt();
+    uint16_t address_hi = m_scope->model()->index(current.row(), ScopeModel::COL_ADDRESS).data(Qt::DisplayRole).toUInt();
+    m_scope->model()->addUpdateTrace(traceColor, universe, address_hi);
+  }
+}
+
+void GlScopeWindow::removeTrace(bool)
+{
+  QItemSelectionModel* selection = m_tableView->selectionModel();
+  if (!selection->hasSelection())
+    return;
+
+  // Get the items to delete
+  QModelIndexList selected = selection->selectedIndexes();
+  m_scope->model()->removeTraces(selected);
 }
 
 void GlScopeWindow::saveTraces(bool)
@@ -250,15 +311,6 @@ void GlScopeWindow::loadTraces(bool)
   updateScrollBars();
 }
 
-void GlScopeWindow::onTimeSliderMoved(int value)
-{
-  qreal startTime = value;
-  startTime = startTime / 1000;
-  QRectF scopeView = m_scope->scopeView();
-  scopeView.moveLeft(startTime);
-  m_scope->setScopeView(scopeView);
-}
-
 void GlScopeWindow::updateScrollBars()
 {
   // Disable scrolling when running
@@ -277,7 +329,7 @@ void GlScopeWindow::updateScrollBars()
   // Use milliseconds
   m_scrollTime->setMinimum(extents.left() * 1000);
   const qreal maxVal = (extents.right() - viewWidth) * 1000;
-  m_scrollTime->setMaximum(maxVal > 0 ? maxVal: 0);
+  m_scrollTime->setMaximum(maxVal > 0 ? maxVal : 0);
   m_scrollTime->setPageStep(viewWidth * 1000);
 
   // And jump to an appropriate end
