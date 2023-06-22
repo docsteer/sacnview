@@ -1118,10 +1118,26 @@ void GlScopeWidget::paintGL()
 
   m_program->bind();
 
-  glLineWidth(2);
+  glLineWidth(1);
   glEnable(GL_LINE_SMOOTH);
 
   m_program->setUniformValue(m_matrixUniform, m_mvpMatrix);
+
+  {
+    // Draw the current time
+    m_program->setUniformValue(m_colorUniform, QColor(Qt::white));
+    const std::vector<QVector2D> nowLine = {
+      {static_cast<float>(m_model->maxTime()), 0}, {static_cast<float>(m_model->maxTime()), 65535}
+    };
+    glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, nowLine.data());
+
+    glEnableVertexAttribArray(m_vertexLocation);
+
+    glDrawArrays(GL_LINE_STRIP, 0, 2);
+
+    glDisableVertexAttribArray(m_vertexLocation);
+  }
+
 
   for (const ScopeTrace* trace : m_model->traces())
   {

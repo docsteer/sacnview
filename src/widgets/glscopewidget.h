@@ -214,6 +214,8 @@ public:
   */
   QRectF traceExtents() const { return m_traceExtents; }
 
+  qreal maxTime() const { return m_traceExtents.right(); }
+
 private:
   Q_SLOT void onLevelsChanged();
 
