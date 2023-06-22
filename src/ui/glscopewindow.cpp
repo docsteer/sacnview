@@ -53,6 +53,7 @@ GlScopeWindow::GlScopeWindow(QWidget* parent)
     layout->addWidget(m_scope);
 
     m_scrollTime = new QScrollBar(Qt::Horizontal, scopeWidget);
+    connect(m_scrollTime, &QScrollBar::sliderMoved, this, &GlScopeWindow::onTimeSliderMoved);
     layout->addWidget(m_scrollTime);
   }
   m_splitter->addWidget(scopeWidget);
@@ -177,13 +178,12 @@ GlScopeWindow::GlScopeWindow(QWidget* parent)
   }
 
   m_splitter->addWidget(confWidget);
-  
+
   // Can't collapse the scope
   m_splitter->setCollapsible(0, false);
 
   // Refresh
   onRunningChanged(m_scope->model()->isRunning());
-  updateScrollBars();
 }
 
 GlScopeWindow::~GlScopeWindow()
@@ -201,6 +201,11 @@ void GlScopeWindow::onRunningChanged(bool running)
   m_triggerType->setEnabled(!running);
   m_spinTriggerLevel->setEnabled(!running);
   m_spinTriggerDelay->setEnabled(!running);
+
+  // Force to follow now when running
+  m_scope->setFollowNow(running);
+
+  updateScrollBars();
 }
 
 void GlScopeWindow::setVerticalScaleMode(int idx)
@@ -242,14 +247,35 @@ void GlScopeWindow::loadTraces(bool)
   updateScrollBars();
 }
 
+void GlScopeWindow::onTimeSliderMoved(int value)
+{
+  qreal startTime = value;
+  startTime = startTime / 1000;
+  QRectF scopeView = m_scope->scopeView();
+  scopeView.moveLeft(startTime);
+  m_scope->setScopeView(scopeView);
+}
+
 void GlScopeWindow::updateScrollBars()
 {
+  // Disable scrolling when running
+  if (m_scope->model()->isRunning())
+  {
+    m_scrollTime->setEnabled(false);
+    m_scrollTime->setMinimum(0);
+    m_scrollTime->setMaximum(0);
+    return;
+  }
+
   const QRectF extents = m_scope->model()->traceExtents();
-  m_scrollTime->setEnabled(extents.width() > m_scope->scopeView().width());
+  const qreal viewWidth = m_scope->scopeView().width();
+  m_scrollTime->setEnabled(extents.width() > viewWidth);
 
   // Use milliseconds
   m_scrollTime->setMinimum(extents.left() * 1000);
-  m_scrollTime->setMaximum(extents.right() * 1000);
-  m_scrollTime->setPageStep(m_scope->scopeView().width() * 1000);
+  m_scrollTime->setMaximum((extents.right() - viewWidth) * 1000);
+  m_scrollTime->setPageStep(viewWidth * 1000);
   m_scrollTime->setValue(m_scope->scopeView().left() * 1000);
+
+  m_scrollTime->setEnabled(true);
 }

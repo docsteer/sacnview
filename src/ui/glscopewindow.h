@@ -41,6 +41,8 @@ private:
   Q_SLOT void saveTraces(bool);
   Q_SLOT void loadTraces(bool);
 
+  Q_SLOT void onTimeSliderMoved(int value);
+
 private:
   QSplitter* m_splitter = nullptr;
   GlScopeWidget* m_scope = nullptr;
@@ -52,6 +54,7 @@ private:
   QPushButton* m_btnStart = nullptr;
   QPushButton* m_btnStop = nullptr;
   QTableView* m_tableView = nullptr;
+  int m_refreshTimer = 0;
 
   void updateScrollBars();
 };
