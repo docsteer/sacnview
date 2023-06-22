@@ -88,7 +88,7 @@ public:
  */
   std::array<int, MAX_DMX_ADDRESS> mergedLevelsOnly() {
     QMutexLocker mergeLocker(&m_merged_levelsMutex);
-    return m_last_levels;
+    return m_current_levels;
   }
 
   /**
@@ -97,7 +97,7 @@ public:
  */
   std::array<int, MAX_DMX_ADDRESS> mergedPrioritiesOnly() {
     QMutexLocker mergeLocker(&m_merged_levelsMutex);
-    return m_last_priorities;
+    return m_current_priorities;
   }
 
   int sourceCount() const { return static_cast<int>(m_sources.size()); }
@@ -162,6 +162,8 @@ private:
   std::vector<sACNSource*> m_sources;
   std::array<int, MAX_DMX_ADDRESS> m_last_levels = {};
   std::array<int, MAX_DMX_ADDRESS> m_last_priorities = {};
+  std::array<int, MAX_DMX_ADDRESS> m_current_levels = {};
+  std::array<int, MAX_DMX_ADDRESS> m_current_priorities = {};
   sACNMergedSourceList m_merged_levels;
   QMutex m_merged_levelsMutex;
   const int m_universe = 0;
