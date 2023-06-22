@@ -393,6 +393,7 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
         {
           trace->setEnabled(value.toBool());
           emit dataChanged(idx, idx, { Qt::CheckStateRole });
+          emit traceVisibilityChanged();
           return true;
         }
         if (role == Qt::EditRole)
@@ -877,6 +878,7 @@ GlScopeWidget::GlScopeWidget(QWidget* parent)
 
   m_model = new ScopeModel(this);
   connect(m_model, &ScopeModel::runningChanged, this, &GlScopeWidget::onRunningChanged);
+  connect(m_model, &ScopeModel::traceVisibilityChanged, this, QOverload<void>::of(&QOpenGLWidget::update));
 
   setMinimumSize(200, 200);
   setVerticalScaleMode(VerticalScale::Dmx);
@@ -1039,9 +1041,9 @@ inline void DrawLevelAxisMark(QPainter& painter, const QFontMetricsF& metrics,
 
 void GlScopeWidget::paintGL()
 {
+  const qreal endTime = m_model->endTime();
   if (m_followNow)
   {
-    const qreal endTime = m_model->endTime();
     if (endTime > m_defaultViewWidth)
     {
       m_scopeView.moveRight(endTime);
@@ -1159,8 +1161,11 @@ void GlScopeWidget::paintGL()
   }
 
 
-  for (const ScopeTrace* trace : m_model->traces())
+  for (ScopeTrace* trace : m_model->traces())
   {
+    if (!trace->enabled())
+      continue;
+
     m_program->setUniformValue(m_colorUniform, trace->color());
 
     glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, trace->values().data());

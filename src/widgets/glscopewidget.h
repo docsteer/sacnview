@@ -186,17 +186,16 @@ public:
   */
   bool listeningToUniverse(uint16_t universe) const;
 
-  /**
-   * @brief Start listening and storing trace info
-  */
+  /// Start listening and storing trace info
   Q_SLOT void start();
-  /**
-   * @brief Stop adding data to the traces
-  */
+  /// Stop adding data to the traces
   Q_SLOT void stop();
   /// @return true if currently running
   bool isRunning() const { return m_elapsed.isValid(); }
   Q_SIGNAL void runningChanged(bool running);
+
+  /// Trace visibility has changed so must re-render
+  Q_SIGNAL void traceVisibilityChanged();
 
   // Triggers
   void setTriggerType(Trigger mode) { m_trigger.mode = mode; }
