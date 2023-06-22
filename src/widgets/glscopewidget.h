@@ -14,14 +14,17 @@
 
 #pragma once
 
-#include <QOpenGLWidget>
-#include <QOpenGLFunctions>
-#include <QMatrix4x4>
 #include <QVector2D>
 #include <QAbstractTableModel>
 #include <QElapsedTimer>
 
 #include "sacn/sacnlistener.h"
+
+#include <QOpenGLWidget>
+#include <QOpenGLFunctions>
+#include <QMatrix4x4>
+
+class QOpenGLShaderProgram;
 
 class ScopeTrace
 {
@@ -291,8 +294,16 @@ public:
 
 protected:
   void initializeGL() override;
+  Q_SLOT void cleanupGL();
+
+  void setupVertexAttribs();
+
   void paintGL() override;
   void resizeGL(int w, int h) override;
+
+  void timerEvent(QTimerEvent* ev) override;
+
+  Q_SLOT void onRunningChanged(bool running);
 
 private:
   ScopeModel* m_model = nullptr;
@@ -306,6 +317,12 @@ private:
   QRectF m_scopeView; // Current scope view range in DMX
 
   // Rendering configuration
+  int m_renderTimer = 0;
+  QOpenGLShaderProgram* m_program = nullptr;
+  int m_vertexLocation = -1;
+  int m_matrixUniform = -1;
+  int m_colorUniform = -1;
+
   QMatrix4x4 m_viewMatrix;
   QMatrix4x4 m_mvpMatrix;
 

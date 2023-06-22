@@ -15,6 +15,8 @@
 #include "glscopewidget.h"
 
 #include <QPainter>
+#include <QScreen>
+#include <QOpenGLShaderProgram>
 
 static constexpr qreal AXIS_LABEL_WIDTH = 50.0;
 static constexpr qreal AXIS_LABEL_HEIGHT = 20.0;
@@ -841,7 +843,10 @@ void ScopeModel::onLevelsChanged()
 GlScopeWidget::GlScopeWidget(QWidget* parent)
   : QOpenGLWidget(parent)
 {
+  setUpdateBehavior(QOpenGLWidget::NoPartialUpdate);
+
   m_model = new ScopeModel(this);
+  connect(m_model, &ScopeModel::runningChanged, this, &GlScopeWidget::onRunningChanged);
 
   setMinimumSize(200, 200);
   setVerticalScaleMode(VerticalScale::Dmx);
@@ -850,6 +855,7 @@ GlScopeWidget::GlScopeWidget(QWidget* parent)
 
 GlScopeWidget::~GlScopeWidget()
 {
+  cleanupGL();
 }
 
 void GlScopeWidget::setVerticalScaleMode(VerticalScale scaleMode)
@@ -896,15 +902,6 @@ void GlScopeWidget::setScopeView(const QRectF& rect)
   update();
 }
 
-void GlScopeWidget::initializeGL()
-{
-  initializeOpenGLFunctions();
-
-  glClearColor(0, 0, 0, 1);
-
-  // TODO: Implement initializeGL
-}
-
 void GlScopeWidget::setTimeDivisions(int milliseconds)
 {
   if (timeDivisions() == milliseconds)
@@ -915,9 +912,80 @@ void GlScopeWidget::setTimeDivisions(int milliseconds)
     milliseconds = 1;
 
   m_timeInterval = static_cast<qreal>(milliseconds) / 1000.0;
-  emit timeDivisionsChanged(milliseconds);
-
+  m_scopeView.setWidth(m_timeInterval * 10);
+  updateMVPMatrix();
   update();
+  emit timeDivisionsChanged(milliseconds);
+}
+
+void GlScopeWidget::initializeGL()
+{
+  // Reparenting to a different top-level window causes the OpenGL Context to be destroyed and recreated
+  connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &GlScopeWidget::cleanupGL);
+
+  initializeOpenGLFunctions();
+
+  glClearColor(0, 0, 0, 1);
+
+  // Compile shaders
+  // 2D passthrough shader
+  const char* vertexShaderSource =
+    "in vec2 vertex;\n"
+    "uniform mat4 mvp;\n"
+    "void main()\n"
+    "{\n"
+    "  gl_Position = mvp * vec4(vertex.x, vertex.y, 0, 1.0);\n"
+    "}\n";
+
+  const char* fragmentShaderSource =
+    "uniform vec4 color;\n"
+    "void main()\n"
+    "{\n"
+    "  gl_FragColor = color;\n"
+    "}\n";
+
+  m_program = new QOpenGLShaderProgram(this);
+  if (!m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource))
+  {
+    qDebug() << "Vertex Shader Failed:" << m_program->log();
+    cleanupGL();
+    return;
+  }
+
+  if (!m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource))
+  {
+    qDebug() << "Fragment Shader Failed:" << m_program->log();
+    cleanupGL();
+    return;
+  }
+
+  if (!m_program->link())
+  {
+    qDebug() << "Shader Link Failed:" << m_program->log();
+    cleanupGL();
+    return;
+  }
+
+  m_vertexLocation = m_program->attributeLocation("vertex");
+  Q_ASSERT(m_vertexLocation != -1);
+  m_matrixUniform = m_program->uniformLocation("mvp");
+  Q_ASSERT(m_matrixUniform != -1);
+  m_colorUniform = m_program->uniformLocation("color");
+  Q_ASSERT(m_colorUniform != -1);
+}
+
+void GlScopeWidget::cleanupGL()
+{
+  // The context is about to be destroyed, it may be recreated later
+  if (m_program == nullptr)
+    return; // Never started
+
+  makeCurrent();
+
+  delete m_program;
+  m_program = nullptr;
+
+  doneCurrent();
 }
 
 inline void DrawLevelAxisMark(QPainter& painter, const QFontMetricsF& metrics,
@@ -940,6 +1008,8 @@ inline void DrawLevelAxisMark(QPainter& painter, const QFontMetricsF& metrics,
 
 void GlScopeWidget::paintGL()
 {
+  glClear(GL_COLOR_BUFFER_BIT);
+
   // Draw the axes using QPainter as is easiest way to get the text
   {
     QPen gridPen;
@@ -963,8 +1033,6 @@ void GlScopeWidget::paintGL()
     // Draw nothing if tiny
     if (scopeWindow.width() < AXIS_TICK_SIZE)
       return;
-
-    painter.setBrush(QBrush(Qt::black));
 
     QFont font;
     QFontMetricsF metrics(font);
@@ -1022,19 +1090,88 @@ void GlScopeWidget::paintGL()
     }
   }
 
-  // TODO: Draw the traces
+  // TODO: Draw the graph lines using the mvpMatrix to ensure they match and improve performance
+  // It's ok if the labels aren't pixel perfect
+
+  // Unable to render at all
+  if (!m_program)
+    return;
+
+  m_program->bind();
+
+  glLineWidth(2);
+  glEnable(GL_LINE_SMOOTH);
+
+  m_program->setUniformValue(m_matrixUniform, m_mvpMatrix);
+
+  for (const ScopeTrace* trace : m_model->traces())
+  {
+    m_program->setUniformValue(m_colorUniform, trace->color());
+
+    glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, trace->values().data());
+
+    glEnableVertexAttribArray(m_vertexLocation);
+
+    glDrawArrays(GL_LINE_STRIP, 0, trace->values().size());
+
+    glDisableVertexAttribArray(m_vertexLocation);
+  }
+
+  glDisable(GL_LINE_SMOOTH);
+
+  m_program->release();
 
 }
 
 void GlScopeWidget::resizeGL(int w, int h)
 {
+  // Pixel-to-pixel projection
   m_viewMatrix.setToIdentity();
-  m_viewMatrix.ortho(QRect(0, 0, w, h));
+  m_viewMatrix.ortho(0, w, 0, h, -1.0f, 1.0f);
 
   updateMVPMatrix();
 }
 
+void GlScopeWidget::timerEvent(QTimerEvent* /*ev*/)
+{
+  // Schedule an update
+  update();
+}
+
+void GlScopeWidget::onRunningChanged(bool running)
+{
+  if (running)
+  {
+    if (m_renderTimer == 0)
+    {
+      // Redraw at half the screen refresh or 5fps, whichever is greater
+      const int framerate = screen()->refreshRate() / 2;
+      m_renderTimer = startTimer(1 / (framerate > 5 ? framerate : 5));
+    }
+  }
+  else
+  {
+    killTimer(m_renderTimer);
+    m_renderTimer = 0;
+  }
+}
+
 void GlScopeWidget::updateMVPMatrix()
 {
-  // TODO: Update the mvp matrix for the current scope view (pan and scale)
+  QMatrix4x4 modelMatrix;
+
+  // Translate to origin
+  modelMatrix.translate(AXIS_LABEL_WIDTH, AXIS_LABEL_HEIGHT);
+
+  // Vertical scale
+  const qreal pix_height = rect().height() - AXIS_LABEL_HEIGHT - TOP_GAP;
+  const qreal y_scale = pix_height / m_scopeView.height();
+
+  // Horizontal scale
+  const qreal pix_width = rect().width() - AXIS_LABEL_WIDTH - RIGHT_GAP;
+  const qreal x_scale = pix_width / m_scopeView.width();
+
+  modelMatrix.scale(x_scale, y_scale, 1);
+
+  m_mvpMatrix = m_viewMatrix * modelMatrix;
 }
