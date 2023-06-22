@@ -175,7 +175,7 @@ bool ScopeModel::addUpdateTrace(const QColor& color, uint16_t universe, uint16_t
   else if (address_lo > 0)
   {
     // 16bit, adjust vertical scale
-    m_traceExtents.setTop(65535.0);
+    m_maxValue = 65535;
   }
 
   auto univ_it = m_traceLookup.find(universe);
@@ -461,7 +461,8 @@ void ScopeModel::private_removeAllTraces()
   m_traceLookup.clear();
   m_traceTable.clear();
   // Set extents back to default
-  m_traceExtents = QRectF(0, 0, 0, 255.0);
+  m_endTime = 0;
+  m_maxValue = 255;
 }
 
 void ScopeModel::clearValues()
@@ -473,7 +474,7 @@ void ScopeModel::clearValues()
   }
 
   // Reset time extents
-  m_traceExtents.setWidth(0);
+  m_endTime = 0;
 }
 
 bool ScopeModel::saveTraces(QIODevice& file) const
@@ -615,9 +616,9 @@ bool ScopeModel::loadTraces(QIODevice& file)
   auto colors = title_line.first.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
   auto titles = title_line.second.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
 
+  // Remove empty colors from the end
   while (colors.last().isEmpty())
     colors.pop_back();
-
   // Remove empty items from the end
   while (titles.last().isEmpty())
     titles.pop_back();
@@ -640,7 +641,7 @@ bool ScopeModel::loadTraces(QIODevice& file)
   for (qsizetype i = 0; i < titles.size(); ++i)
   {
     // Grab color
-    QColor color(colors[i]);
+    const QColor color(colors[i]);
 
     // Find universe and patch
     const auto& full_title = titles[i];
@@ -699,6 +700,8 @@ bool ScopeModel::loadTraces(QIODevice& file)
       }
     }
   }
+
+  m_endTime = prev_timestamp;
 
   endResetModel();
   return true;
@@ -813,7 +816,21 @@ void ScopeModel::addListener(uint16_t universe)
 {
   auto listener = sACNManager::Instance().getListener(universe);
   connect(listener.data(), &sACNListener::levelsChanged, this, &ScopeModel::onLevelsChanged);
+  readLevels(listener.data());
   m_listeners.push_back(listener);
+}
+
+QRectF ScopeModel::traceExtents() const
+{
+  return QRectF(0, 0, m_endTime, m_maxValue);
+}
+
+qreal ScopeModel::endTime() const
+{
+  if (isRunning())
+    return qreal(m_elapsed.elapsed()) / 1000;
+
+  return m_endTime;
 }
 
 void ScopeModel::onLevelsChanged()
@@ -826,6 +843,11 @@ void ScopeModel::onLevelsChanged()
   if (!listener)
     return; // Check for deletion
 
+  readLevels(listener);
+}
+
+void ScopeModel::readLevels(sACNListener* listener)
+{
   // Find traces for universe
   auto it = m_traceLookup.find(listener->universe());
   if (it == m_traceLookup.end())
@@ -837,14 +859,14 @@ void ScopeModel::onLevelsChanged()
   // TODO: Check the Trigger and only store one level for each trace until the trigger is fired
 
   // Time in seconds
-  qreal timestamp = m_elapsed.elapsed();
-  timestamp = timestamp / 1000.0;
-
-  m_traceExtents.setRight(timestamp);
+  {
+    const qreal timestamp = m_elapsed.elapsed();
+    m_endTime = timestamp / 1000.0;
+  }
 
   for (ScopeTrace* trace : it->second)
   {
-    trace->addPoint(timestamp, levels);
+    trace->addPoint(m_endTime, levels);
   }
 }
 
@@ -1019,10 +1041,10 @@ void GlScopeWidget::paintGL()
 {
   if (m_followNow)
   {
-    qreal maxTime = m_model->traceExtents().right();
-    if (maxTime > m_scopeView.right())
+    const qreal endTime = m_model->endTime();
+    if (endTime > m_defaultViewWidth)
     {
-      m_scopeView.moveRight(maxTime);
+      m_scopeView.moveRight(endTime);
       updateMVPMatrix();
     }
   }
@@ -1126,9 +1148,7 @@ void GlScopeWidget::paintGL()
   {
     // Draw the current time
     m_program->setUniformValue(m_colorUniform, QColor(Qt::white));
-    const std::vector<QVector2D> nowLine = {
-      {static_cast<float>(m_model->maxTime()), 0}, {static_cast<float>(m_model->maxTime()), 65535}
-    };
+    const std::vector<QVector2D> nowLine = { {static_cast<float>(m_model->endTime()), 0}, {static_cast<float>(m_model->endTime()), 65535} };
     glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, nowLine.data());
 
     glEnableVertexAttribArray(m_vertexLocation);

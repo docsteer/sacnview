@@ -212,19 +212,22 @@ public:
    * @brief Get current overall trace extents
    * Suitable to use as zoom-to-extents
   */
-  QRectF traceExtents() const { return m_traceExtents; }
+  QRectF traceExtents() const;
 
-  qreal maxTime() const { return m_traceExtents.right(); }
+  /// @brief Get current end time in seconds
+  qreal endTime() const;
 
 private:
   Q_SLOT void onLevelsChanged();
+  void readLevels(sACNListener* listener);
 
 private:
   std::vector<ScopeTrace*> m_traceTable;
   std::map<uint16_t, std::vector<ScopeTrace*>> m_traceLookup;
   std::vector<sACNManager::tListener> m_listeners; // Keep the listeners alive
   QElapsedTimer m_elapsed;
-  QRectF m_traceExtents; // Maximum extents of the scope measurements in DMX
+  qreal m_endTime = 0;// Maximum extents of the scope measurements in DMX
+  qreal m_maxValue = 0;
 
   struct
   {

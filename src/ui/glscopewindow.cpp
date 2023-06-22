@@ -202,6 +202,9 @@ void GlScopeWindow::onRunningChanged(bool running)
   m_spinTriggerLevel->setEnabled(!running);
   m_spinTriggerDelay->setEnabled(!running);
 
+  // Reset to start
+  if (running)
+    m_scope->setScopeView();
   // Force to follow now when running
   m_scope->setFollowNow(running);
 
@@ -273,9 +276,17 @@ void GlScopeWindow::updateScrollBars()
 
   // Use milliseconds
   m_scrollTime->setMinimum(extents.left() * 1000);
-  m_scrollTime->setMaximum((extents.right() - viewWidth) * 1000);
+  const qreal maxVal = (extents.right() - viewWidth) * 1000;
+  m_scrollTime->setMaximum(maxVal > 0 ? maxVal: 0);
   m_scrollTime->setPageStep(viewWidth * 1000);
-  m_scrollTime->setValue(m_scope->scopeView().left() * 1000);
 
+  // And jump to an appropriate end
+  if (extents.right() > viewWidth)
+    m_scrollTime->setValue(m_scrollTime->maximum());
+  else
+    m_scrollTime->setValue(m_scrollTime->minimum());
+
+  onTimeSliderMoved(m_scrollTime->value());
   m_scrollTime->setEnabled(true);
+
 }
