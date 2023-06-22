@@ -136,11 +136,19 @@ void ScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS
   if (m_slot_lo < MAX_DMX_ADDRESS)
   {
     // 16 bit
+    // Do nothing if no level yet
+    if (level_array[m_slot_hi] < 0 || level_array[m_slot_lo] < 0)
+      return;
+
     const float value = static_cast<uint16_t>(level_array[m_slot_hi] << 8) | static_cast<uint16_t>(level_array[m_slot_lo]);
     m_trace.emplace_back(timestamp, value);
     return;
   }
   // 8 bit
+  // Do nothing if no level
+  if (level_array[m_slot_hi] < 0)
+    return;
+
   m_trace.emplace_back(timestamp, static_cast<float>(level_array[m_slot_hi]));
 }
 
@@ -915,6 +923,7 @@ void GlScopeWidget::setTimeDivisions(int milliseconds)
   m_scopeView.setWidth(m_timeInterval * 10);
   updateMVPMatrix();
   update();
+
   emit timeDivisionsChanged(milliseconds);
 }
 
@@ -1008,6 +1017,16 @@ inline void DrawLevelAxisMark(QPainter& painter, const QFontMetricsF& metrics,
 
 void GlScopeWidget::paintGL()
 {
+  if (m_followNow)
+  {
+    qreal maxTime = m_model->traceExtents().right();
+    if (maxTime > m_scopeView.right())
+    {
+      m_scopeView.moveRight(maxTime);
+      updateMVPMatrix();
+    }
+  }
+
   glClear(GL_COLOR_BUFFER_BIT);
 
   // Draw the axes using QPainter as is easiest way to get the text
@@ -1074,7 +1093,7 @@ void GlScopeWidget::paintGL()
     const bool milliseconds = (m_timeInterval < 1.0);
     for (qreal time = m_scopeView.left(); time < m_scopeView.right() + 0.001; time += m_timeInterval)
     {
-      const qreal x = time * x_scale;
+      const qreal x = (time - m_scopeView.left()) * x_scale;
       painter.setPen(gridPen);
       painter.drawLine(x, 0, x, -scopeWindow.height());
 
@@ -1172,6 +1191,9 @@ void GlScopeWidget::updateMVPMatrix()
   const qreal x_scale = pix_width / m_scopeView.width();
 
   modelMatrix.scale(x_scale, y_scale, 1);
+
+  // Translate to current time and vertical offset
+  modelMatrix.translate(-m_scopeView.left(), -m_scopeView.top(), 0);
 
   m_mvpMatrix = m_viewMatrix * modelMatrix;
 }

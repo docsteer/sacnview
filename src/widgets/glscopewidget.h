@@ -271,6 +271,9 @@ public:
   VerticalScale verticalScaleMode() const { return m_verticalScaleMode; }
   void setVerticalScaleMode(VerticalScale scaleMode);
 
+  void setFollowNow(bool follow) { m_followNow = follow; }
+  bool followNow() const { return m_followNow; }
+
   /**
    * @brief Get the current scope view
    * x is time axis in seconds (0 to ...)
@@ -315,6 +318,7 @@ private:
   qreal m_timeInterval = 1.0; // Time axis label interval
 
   QRectF m_scopeView; // Current scope view range in DMX
+  bool m_followNow = true;
 
   // Rendering configuration
   int m_renderTimer = 0;
