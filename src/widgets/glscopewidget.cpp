@@ -1183,13 +1183,9 @@ void GlScopeWidget::cleanupGL()
   doneCurrent();
 }
 
-inline void DrawLevelAxisMark(QPainter& painter, const QFontMetricsF& metrics,
-  const QPen& gridPen, const QPen& textPen,
-  const QRectF& scopeWindow, int level, qreal y_scale, const QString& postfix)
+inline void DrawLevelAxisText(QPainter& painter, const QFontMetricsF& metrics, const QRectF& scopeWindow, int level, qreal y_scale, const QString& postfix)
 {
   qreal y = scopeWindow.height() - (level * y_scale);
-  painter.setPen(gridPen);
-  painter.drawLine(QPointF(-AXIS_TICK_SIZE, y), QPointF(scopeWindow.width(), y));
 
   // TODO: use QStaticText to optimise the text layout
   const QString text = QString::number(level) + postfix;
@@ -1197,7 +1193,6 @@ inline void DrawLevelAxisMark(QPainter& painter, const QFontMetricsF& metrics,
   QRectF fontRect = metrics.boundingRect(text);
   fontRect.moveBottomRight(QPointF(-AXIS_TICK_SIZE, y + (fontRect.height() / 2.0)));
 
-  painter.setPen(textPen);
   painter.drawText(fontRect, text, QTextOption(Qt::AlignLeft));
 }
 
@@ -1215,17 +1210,26 @@ void GlScopeWidget::paintGL()
 
   glClear(GL_COLOR_BUFFER_BIT);
 
-  // Draw the axes using QPainter as is easiest way to get the text
-  {
-    QPen gridPen;
-    gridPen.setColor(QColor("#434343"));
+  // Pixel-perfect grid lines
+  std::vector<QVector2D> gridLines;
+  gridLines.reserve((11 + 14) * 2); // 10 ticks across, 13 up for 0-255
 
+  // Colors
+  static const QColor gridColor(0x43, 0x43, 0x43);
+  static const QColor textColor(Qt::white);
+  static const QColor timeCursorColor(Qt::white);
+  static const QColor triggerCursorColor(Qt::gray);
+
+  // Draw the axes using QPainter as is easiest way to get the text
+  // It's ok if the labels aren't pixel perfect
+  {
     QPen textPen;
-    textPen.setColor(Qt::white);
+    textPen.setColor(textColor);
 
     QPainter painter(this);
 
     painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setPen(textPen);
 
     // Origin is the bottom left of the scope window
     QPointF origin(rect().bottomLeft().x() + AXIS_LABEL_WIDTH, rect().bottomLeft().y() - AXIS_LABEL_HEIGHT);
@@ -1246,9 +1250,6 @@ void GlScopeWidget::paintGL()
 
     // Draw vertical (level) axis
     {
-      painter.setPen(gridPen);
-      painter.drawLine(QPointF(0, 0), QPointF(0, scopeWindow.height()));
-
       QString postfix;
       int max_value = m_scopeView.bottom();
       qreal y_scale = scopeWindow.height() / m_scopeView.bottom();
@@ -1261,14 +1262,23 @@ void GlScopeWidget::paintGL()
         y_scale = scopeWindow.height() / 100.0;
       }
 
+      const float lineLeft = m_scopeView.left();
+      const float lineRight = std::fmaxf(m_scopeView.right(), endTime);
+
       // From bottom to top
       for (int value = m_scopeView.top(); value < max_value; value += m_levelInterval)
       {
-        DrawLevelAxisMark(painter, metrics, gridPen, textPen, scopeWindow, value, y_scale, postfix);
+        // Grid lines in trace space
+        gridLines.emplace_back(lineLeft, static_cast<float>(value));
+        gridLines.emplace_back(lineRight, static_cast<float>(value));
+        DrawLevelAxisText(painter, metrics, scopeWindow, value, y_scale, postfix);
       }
 
       // Final row, may be uneven
-      DrawLevelAxisMark(painter, metrics, gridPen, textPen, scopeWindow, max_value, y_scale, postfix);
+      // Grid lines in trace space
+      gridLines.emplace_back(lineLeft, max_value);
+      gridLines.emplace_back(lineRight, max_value);
+      DrawLevelAxisText(painter, metrics, scopeWindow, max_value, y_scale, postfix);
     }
 
     // Draw horizontal (time) axis
@@ -1280,24 +1290,19 @@ void GlScopeWidget::paintGL()
 
     for (qreal time = roundCeilMultiple(m_scopeView.left(), m_timeInterval); time < m_scopeView.right() + 0.001; time += m_timeInterval)
     {
+      // Grid lines in trace space
+      gridLines.emplace_back(static_cast<float>(time), 0.0f);
+      gridLines.emplace_back(static_cast<float>(time), m_scopeView.bottom());
+
       const qreal x = (time - m_scopeView.left()) * x_scale;
-      painter.setPen(gridPen);
-      painter.drawLine(x, 0, x, -scopeWindow.height());
 
       // TODO: use QStaticText to optimise the text layout
       const QString text = milliseconds ? QStringLiteral("%1ms").arg(time * 1000.0) : QStringLiteral("%1s").arg(time);
-
       QRectF fontRect = metrics.boundingRect(text);
-
       fontRect.moveCenter(QPointF(x, AXIS_LABEL_HEIGHT / 2.0));
-
-      painter.setPen(textPen);
       painter.drawText(fontRect, text, QTextOption(Qt::AlignLeft));
     }
   }
-
-  // TODO: Draw the graph lines using the mvpMatrix to ensure they match and improve performance
-  // It's ok if the labels aren't pixel perfect
 
   // Unable to render at all
   if (!m_program)
@@ -1307,10 +1312,22 @@ void GlScopeWidget::paintGL()
 
   m_program->setUniformValue(m_matrixUniform, m_mvpMatrix);
 
+  // Draw the gridlines
+  {
+    m_program->setUniformValue(m_colorUniform, gridColor);
+    glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, gridLines.data());
+
+    glEnableVertexAttribArray(m_vertexLocation);
+
+    glDrawArrays(GL_LINES, 0, gridLines.size());
+
+    glDisableVertexAttribArray(m_vertexLocation);
+  }
+
   if (m_model->isTriggered())
   {
     // Draw the current time
-    m_program->setUniformValue(m_colorUniform, QColor(Qt::white));
+    m_program->setUniformValue(m_colorUniform, timeCursorColor);
     const std::vector<QVector2D> nowLine = {
       {static_cast<float>(m_model->endTime()), 0},
       {static_cast<float>(m_model->endTime()), 65535}
@@ -1326,7 +1343,7 @@ void GlScopeWidget::paintGL()
   else if (m_model->triggerType() != ScopeModel::Trigger::FreeRun)
   {
     // Draw the trigger level as a triangle pointing up or down
-    m_program->setUniformValue(m_colorUniform, QColor(Qt::gray));
+    m_program->setUniformValue(m_colorUniform, triggerCursorColor);
 
     const std::vector<QVector2D> triggerLine = makeTriggerLine(m_model->triggerType());
 
