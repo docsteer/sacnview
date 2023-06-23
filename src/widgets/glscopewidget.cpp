@@ -201,6 +201,14 @@ bool ScopeModel::addUpdateTrace(const QColor& color, uint16_t universe, uint16_t
   auto univ_it = m_traceLookup.find(universe);
   if (univ_it == m_traceLookup.end())
   {
+    // Set the first one to be the trigger
+    if (m_traceTable.empty())
+    {
+      m_trigger.universe = universe;
+      m_trigger.address_hi = address_hi;
+      m_trigger.address_lo = address_lo;
+    }
+
     beginInsertRows(QModelIndex(), m_traceTable.size(), m_traceTable.size());
     ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_reservation);
     m_traceTable.push_back(trace);
