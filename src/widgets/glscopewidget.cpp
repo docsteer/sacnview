@@ -750,6 +750,8 @@ bool ScopeModel::loadTraces(QIODevice& file)
   m_endTime = prev_timestamp;
 
   endResetModel();
+  // Force a re-render
+  emit traceVisibilityChanged();
   return true;
 }
 
@@ -995,7 +997,7 @@ void GlScopeWidget::setTimeDivisions(int milliseconds)
     milliseconds = 1;
 
   m_timeInterval = static_cast<qreal>(milliseconds) / 1000.0;
-  m_scopeView.setWidth(m_timeInterval * 10);
+  m_scopeView.setWidth(m_timeInterval * m_defaultViewWidth);
   updateMVPMatrix();
   update();
 
