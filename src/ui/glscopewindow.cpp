@@ -111,8 +111,16 @@ GlScopeWindow::GlScopeWindow(QWidget* parent)
       ++row;
       // Trigger setup
       m_triggerType = new QComboBox(confWidget);
-      m_triggerType->addItems({ tr("Free Run"), tr("Rising Edge"), tr("Falling Edge") });
-      connect(m_triggerType, QOverload<int>::of(&QComboBox::activated), this, &GlScopeWindow::setTriggerType);
+      m_triggerType->addItems({
+        //! No trigger, runs immediately
+        tr("Free Run"),
+        //! Triggers when above the target level
+        tr("Above"),
+        //! Triggers when below the target level
+        tr("Below"),
+        //! Triggers when passes through or leaves the target level
+        tr("Crossed Level") });
+      connect(m_triggerType, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &GlScopeWindow::setTriggerType);
       layoutGrp->addWidget(m_triggerType, row, 0, 1, 2);
 
       ++row;
@@ -133,6 +141,11 @@ GlScopeWindow::GlScopeWindow(QWidget* parent)
       connect(m_spinTriggerDelay, QOverload<int>::of(&QSpinBox::valueChanged), m_scope->model(), &ScopeModel::setTriggerDelay);
       layoutGrp->addWidget(m_spinTriggerDelay, row, 1);
 
+      // Set initial trigger type and values
+      m_triggerType->setCurrentIndex(0);
+      m_spinTriggerLevel->setValue(127);
+      m_spinTriggerDelay->setValue(0);
+
       // Spacer at the bottom
       ++row;
       layoutGrp->setRowStretch(row, 1);
@@ -147,12 +160,12 @@ GlScopeWindow::GlScopeWindow(QWidget* parent)
       m_tableView = new QTableView(this);
       m_tableView->verticalHeader()->hide();
       m_tableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-      
+
       // Sorting
       QSortFilterProxyModel* sortProxy = new QSortFilterProxyModel(m_tableView);
       sortProxy->setSourceModel(m_scope->model());
       sortProxy->setSortRole(ScopeModel::DataSortRole);
-      
+
       m_tableView->setModel(sortProxy);
       m_tableView->setSortingEnabled(true);
       m_tableView->sortByColumn(0, Qt::AscendingOrder);
@@ -211,8 +224,16 @@ void GlScopeWindow::onRunningChanged(bool running)
 
   // Enable/Disable trigger items
   m_triggerType->setEnabled(!running);
-  m_spinTriggerLevel->setEnabled(!running);
-  m_spinTriggerDelay->setEnabled(!running);
+  if (running || m_triggerType->currentIndex() == 0)
+  {
+    m_spinTriggerLevel->setEnabled(false);
+    m_spinTriggerDelay->setEnabled(false);
+  }
+  else
+  {
+    m_spinTriggerLevel->setEnabled(true);
+    m_spinTriggerDelay->setEnabled(true);
+  }
 
   // Reset to start
   if (running)
@@ -239,7 +260,10 @@ void GlScopeWindow::setVerticalScaleMode(int idx)
 
 void GlScopeWindow::setTriggerType(int idx)
 {
-  m_scope->model()->setTriggerType(static_cast<ScopeModel::Trigger>(idx + 1));
+  m_scope->model()->setTriggerType(static_cast<ScopeModel::Trigger>(idx));
+  // Enable/disable trigger settings
+  m_spinTriggerLevel->setEnabled(idx != 0);
+  m_spinTriggerDelay->setEnabled(idx != 0);
 }
 
 void GlScopeWindow::addTrace(bool)

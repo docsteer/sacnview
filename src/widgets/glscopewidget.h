@@ -74,6 +74,8 @@ public:
   void reserve(size_t point_count) { m_trace.reserve(point_count); }
 
   void addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array);
+  // For pretrigger
+  void setFirstPoint(const std::array<int, MAX_DMX_ADDRESS>& level_array);
 
   const std::vector<QVector2D>& values() const { return m_trace; }
 
@@ -110,8 +112,9 @@ public:
   enum class Trigger
   {
     FreeRun,
-    RisingEdge,
-    FallingEdge
+    Above,
+    Below,
+    LevelCross
   };
 
 public:
@@ -199,21 +202,25 @@ public:
   /// Stop adding data to the traces
   Q_SLOT void stop();
   /// @return true if currently running
-  bool isRunning() const { return m_elapsed.isValid(); }
+  bool isRunning() const { return m_running; }
   Q_SIGNAL void runningChanged(bool running);
 
   /// Trace visibility has changed so must re-render
   Q_SIGNAL void traceVisibilityChanged();
 
   // Triggers
-  void setTriggerType(Trigger mode) { m_trigger.mode = mode; }
+  void setTriggerType(Trigger mode);
   Trigger triggerType() const { return m_trigger.mode; }
 
-  Q_SLOT void setTriggerLevel(uint16_t level) { m_trigger.level = level; }
+  Q_SLOT void setTriggerLevel(uint16_t level);
   uint16_t triggerLevel() const { return m_trigger.level; }
 
-  Q_SLOT void setTriggerDelay(qint64 millisecs) { m_trigger.delay = millisecs; }
+  Q_SLOT void setTriggerDelay(qint64 millisecs);
   qint64 getTriggerDelay() const { return m_trigger.delay; }
+
+  bool isTriggered() const { return m_elapsed.isValid(); }
+  void triggerNow();
+  Q_SIGNAL void triggered();
 
   /**
    * @brief Get current overall trace extents
@@ -236,7 +243,7 @@ private:
   qreal m_endTime = 0;// Maximum extents of the scope measurements in DMX
   qreal m_maxValue = 0;
 
-  struct
+  struct TriggerConfig
   {
     uint16_t universe = 0;
     uint16_t address_hi = 0;
@@ -244,13 +251,16 @@ private:
     uint16_t level = 0;
     qint64 delay = 0;
     Trigger mode = Trigger::FreeRun;
-    bool triggered = false;
 
-    bool IsTriggerTrace(const ScopeTrace& trace) const
-    {
-      return trace.universe() == universe && trace.addressHi() == address_hi && trace.addressLo() == address_lo;
-    }
-  } m_trigger; // Trigger configuration
+    int last_level = -1;
+
+    bool IsTrigger() const;
+    bool IsTriggerTrace(const ScopeTrace& trace) const;
+  };
+
+  TriggerConfig m_trigger; // Trigger configuration
+
+  bool m_running = false;
 
   size_t m_reservation = 12000; // Reserve space for this many samples. 300s @ 40Hz
 
@@ -344,4 +354,5 @@ private:
   QMatrix4x4 m_mvpMatrix;
 
   void updateMVPMatrix();
+  std::vector<QVector2D> makeTriggerLine(ScopeModel::Trigger type);
 };

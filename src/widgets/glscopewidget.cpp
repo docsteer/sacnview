@@ -130,26 +130,46 @@ bool ScopeTrace::setAddress(QStringView addressString, bool clear_values)
   return false;
 }
 
-void ScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array)
+template<typename T, std::enable_if_t<std::is_arithmetic<T>::value, bool> = true>
+inline bool fillValue(T& value, uint16_t slot_hi, uint16_t slot_lo, const std::array<int, MAX_DMX_ADDRESS>& level_array)
 {
   // Assumes slot numbers are valid
-  if (m_slot_lo < MAX_DMX_ADDRESS)
+  if (slot_lo < MAX_DMX_ADDRESS)
   {
     // 16 bit
     // Do nothing if no level yet
-    if (level_array[m_slot_hi] < 0 || level_array[m_slot_lo] < 0)
-      return;
+    if (level_array[slot_hi] < 0 || level_array[slot_lo] < 0)
+      return false;
 
-    const float value = static_cast<uint16_t>(level_array[m_slot_hi] << 8) | static_cast<uint16_t>(level_array[m_slot_lo]);
-    m_trace.emplace_back(timestamp, value);
-    return;
+    value = static_cast<uint16_t>(level_array[slot_hi] << 8) | static_cast<uint16_t>(level_array[slot_lo]);
+    return true;
   }
   // 8 bit
   // Do nothing if no level
-  if (level_array[m_slot_hi] < 0)
-    return;
+  if (level_array[slot_hi] < 0)
+    return false;
 
-  m_trace.emplace_back(timestamp, static_cast<float>(level_array[m_slot_hi]));
+  value = static_cast<T>(level_array[slot_hi]);
+  return true;
+}
+
+void ScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array)
+{
+  float value;
+  if (fillValue(value, m_slot_hi, m_slot_lo, level_array))
+    m_trace.emplace_back(timestamp, value);
+}
+
+void ScopeTrace::setFirstPoint(const std::array<int, MAX_DMX_ADDRESS>& level_array)
+{
+  float value;
+  if (fillValue(value, m_slot_hi, m_slot_lo, level_array))
+  {
+    if (m_trace.empty())
+      m_trace.emplace_back(0, value);
+    else
+      m_trace[0].setY(value);
+  }
 }
 
 bool ScopeModel::addUpdateTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo)
@@ -768,9 +788,19 @@ void ScopeModel::start()
   // Clear all values and start the clock
   // Cannot permit time to go backwards
   clearValues();
-  m_elapsed.start();
 
-  // TODO: Set up the Trigger
+  m_running = true;
+
+  // Set up the Trigger or start immediately
+  if (m_trigger.IsTrigger())
+  {
+    m_trigger.last_level = -1;
+  }
+  else
+  {
+    m_elapsed.start();
+  }
+
 
   for (const auto& universe : m_traceLookup)
   {
@@ -785,6 +815,8 @@ void ScopeModel::stop()
   if (!isRunning())
     return;
 
+  m_running = false;
+
   // Disconnect all
   for (auto& listener : m_listeners)
   {
@@ -794,6 +826,25 @@ void ScopeModel::stop()
   m_listeners.clear();
   m_elapsed.invalidate();
   emit runningChanged(false);
+}
+
+// Triggers
+void ScopeModel::setTriggerType(Trigger mode)
+{
+  m_trigger.mode = mode;
+  emit traceVisibilityChanged();
+}
+
+void ScopeModel::setTriggerLevel(uint16_t level)
+{
+  m_trigger.level = level;
+  emit traceVisibilityChanged();
+}
+
+void ScopeModel::setTriggerDelay(qint64 millisecs)
+{
+  m_trigger.delay = millisecs;
+  emit traceVisibilityChanged();
 }
 
 bool ScopeModel::moveTrace(ScopeTrace* trace, uint16_t new_universe, bool clear_values)
@@ -874,6 +925,12 @@ void ScopeModel::addListener(uint16_t universe)
   m_listeners.push_back(listener);
 }
 
+void ScopeModel::triggerNow()
+{
+  m_elapsed.start();
+  emit triggered();
+}
+
 QRectF ScopeModel::traceExtents() const
 {
   return QRectF(0, 0, m_endTime, m_maxValue);
@@ -881,7 +938,7 @@ QRectF ScopeModel::traceExtents() const
 
 qreal ScopeModel::endTime() const
 {
-  if (isRunning())
+  if (isTriggered())
     return qreal(m_elapsed.elapsed()) / 1000;
 
   return m_endTime;
@@ -889,7 +946,7 @@ qreal ScopeModel::endTime() const
 
 void ScopeModel::onLevelsChanged()
 {
-  if (!m_elapsed.isValid())
+  if (!isRunning())
     return;
 
   sACNListener* listener = qobject_cast<sACNListener*>(sender());
@@ -910,7 +967,44 @@ void ScopeModel::readLevels(sACNListener* listener)
   // Grab levels
   const auto levels = listener->mergedLevelsOnly();
 
-  // TODO: Check the Trigger and only store one level for each trace until the trigger is fired
+  if (!isTriggered())
+  {
+    {
+      uint16_t current_level;
+      if (listener->universe() == m_trigger.universe && fillValue(current_level, m_trigger.address_hi - 1, m_trigger.address_lo - 1, levels))
+      {
+        // Have a current level, maybe start the clock
+        switch (m_trigger.mode)
+        {
+        default: break;
+        case Trigger::Above:
+          if (current_level > m_trigger.level)
+            triggerNow();
+          break;
+        case Trigger::Below:
+          if (current_level < m_trigger.level)
+            triggerNow();
+          break;
+        case Trigger::LevelCross:
+          if ((m_trigger.last_level == m_trigger.level && current_level != m_trigger.level) // Was at, now not
+            || (m_trigger.last_level > m_trigger.level && current_level < m_trigger.level) // Was above, now below
+            || (m_trigger.last_level != -1 && m_trigger.last_level < m_trigger.level && current_level > m_trigger.level) // Was below, now above
+            )
+            triggerNow();
+          break;
+        }
+        m_trigger.last_level = current_level;
+      }
+    }
+
+    // Only store the zero-time level for each trace until the trigger is fired
+    // Store the values for zero time
+    for (ScopeTrace* trace : it->second)
+    {
+      trace->setFirstPoint(levels);
+    }
+    return;
+  }
 
   // Time in seconds
   {
@@ -1195,20 +1289,36 @@ void GlScopeWidget::paintGL()
 
   m_program->bind();
 
-  //glLineWidth(1);
-  //glEnable(GL_LINE_SMOOTH);
-
   m_program->setUniformValue(m_matrixUniform, m_mvpMatrix);
 
+  if (m_model->isTriggered())
   {
     // Draw the current time
     m_program->setUniformValue(m_colorUniform, QColor(Qt::white));
-    const std::vector<QVector2D> nowLine = { {static_cast<float>(m_model->endTime()), 0}, {static_cast<float>(m_model->endTime()), 65535} };
+    const std::vector<QVector2D> nowLine = {
+      {static_cast<float>(m_model->endTime()), 0},
+      {static_cast<float>(m_model->endTime()), 65535}
+    };
     glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, nowLine.data());
 
     glEnableVertexAttribArray(m_vertexLocation);
 
     glDrawArrays(GL_LINE_STRIP, 0, 2);
+
+    glDisableVertexAttribArray(m_vertexLocation);
+  }
+  else if (m_model->triggerType() != ScopeModel::Trigger::FreeRun)
+  {
+    // Draw the trigger level as a triangle pointing up or down
+    m_program->setUniformValue(m_colorUniform, QColor(Qt::gray));
+
+    const std::vector<QVector2D> triggerLine = makeTriggerLine(m_model->triggerType());
+
+    glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, triggerLine.data());
+
+    glEnableVertexAttribArray(m_vertexLocation);
+
+    glDrawArrays(GL_TRIANGLES, 0, triggerLine.size());
 
     glDisableVertexAttribArray(m_vertexLocation);
   }
@@ -1229,8 +1339,6 @@ void GlScopeWidget::paintGL()
 
     glDisableVertexAttribArray(m_vertexLocation);
   }
-
-  //glDisable(GL_LINE_SMOOTH);
 
   m_program->release();
 
@@ -1290,4 +1398,70 @@ void GlScopeWidget::updateMVPMatrix()
   modelMatrix.translate(-m_scopeView.left(), -m_scopeView.top(), 0);
 
   m_mvpMatrix = m_viewMatrix * modelMatrix;
+}
+
+std::vector<QVector2D> GlScopeWidget::makeTriggerLine(ScopeModel::Trigger type)
+{
+  const float level = static_cast<float>(m_model->triggerLevel());
+  const float h_offset = m_timeInterval / 6.0;
+  float v_offset = 0;
+
+  switch (type)
+  {
+  default: return std::vector<QVector2D>();
+
+  case ScopeModel::Trigger::Above: v_offset = 10.0f; break;
+  case ScopeModel::Trigger::Below: v_offset = -10.0f; break;
+  case ScopeModel::Trigger::LevelCross:
+    // Two triangles point-to-point
+    return {
+      { static_cast<float>(m_scopeView.left()) - h_offset, level + 5.0f},
+      { static_cast<float>(m_scopeView.left()), level },
+      { static_cast<float>(m_scopeView.left()) - h_offset, level - 5.0f },
+      { static_cast<float>(m_scopeView.left()) + h_offset, level + 5.0f},
+      { static_cast<float>(m_scopeView.left()), level },
+      { static_cast<float>(m_scopeView.left()) + h_offset, level - 5.0f }
+    };
+  }
+
+  return {
+    {static_cast<float>(m_scopeView.left()) - h_offset, level},
+    {static_cast<float>(m_scopeView.left()) + h_offset , level},
+    {static_cast<float>(m_scopeView.left()), level + v_offset}
+  };
+}
+
+bool ScopeModel::TriggerConfig::IsTrigger() const
+{
+  // Free Run is not a trigger
+  if (mode == Trigger::FreeRun)
+    return false;
+
+  if (universe > 0 && universe <= MAX_SACN_UNIVERSE && address_hi > 0 && address_hi <= MAX_DMX_ADDRESS
+    && address_lo <= MAX_DMX_ADDRESS)
+  {
+    // Valid coarse byte
+
+    // Check level could trigger
+    // 8 or 16bit
+    const uint16_t max_level = (address_lo == 0 ? 255 : 65535);
+    if (level > max_level)
+      return false;
+
+    // Can't rise above max
+    if (mode == Trigger::Above && level == max_level)
+      return false;
+
+    // Can't fall below 0
+    if (mode == Trigger::Below && level == 0)
+      return false;
+
+    return true;
+  }
+  return false;
+}
+
+bool ScopeModel::TriggerConfig::IsTriggerTrace(const ScopeTrace& trace) const
+{
+  return trace.universe() == universe && trace.addressHi() == address_hi && trace.addressLo() == address_lo;
 }
