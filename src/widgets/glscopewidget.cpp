@@ -1081,7 +1081,7 @@ void GlScopeWidget::setScopeView(const QRectF& rect)
   if (rect.isEmpty())
   {
     m_scopeView = m_model->traceExtents();
-    m_scopeView.setRight(m_defaultViewWidth);
+    m_scopeView.setRight(m_defaultIntervalCount * m_timeInterval);
   }
   else if (rect == m_scopeView)
   {
@@ -1106,7 +1106,7 @@ void GlScopeWidget::setTimeDivisions(int milliseconds)
     milliseconds = 1;
 
   m_timeInterval = static_cast<qreal>(milliseconds) / 1000.0;
-  m_scopeView.setWidth(m_timeInterval * m_defaultViewWidth);
+  m_scopeView.setWidth(m_timeInterval * m_defaultIntervalCount);
   updateMVPMatrix();
   update();
 
@@ -1206,7 +1206,7 @@ void GlScopeWidget::paintGL()
   const qreal endTime = m_model->endTime();
   if (m_followNow)
   {
-    if (endTime > m_defaultViewWidth)
+    if (endTime > m_scopeView.width())
     {
       m_scopeView.moveRight(endTime);
       updateMVPMatrix();

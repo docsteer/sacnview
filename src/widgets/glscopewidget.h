@@ -337,8 +337,8 @@ private:
   // View configuration
   VerticalScale m_verticalScaleMode = VerticalScale::Invalid;
   int m_levelInterval = 20; // Level axis label interval
-  qreal m_defaultViewWidth = 10.0; // Seconds to show when reset to default
   qreal m_timeInterval = 1.0; // Time axis label interval
+  qreal m_defaultIntervalCount = 10.0; // Time axis intervals to show when view is reset
 
   QRectF m_scopeView; // Current scope view range in DMX
   bool m_followNow = true;
