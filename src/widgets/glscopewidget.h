@@ -102,6 +102,11 @@ public:
     COL_COUNT
   };
 
+  enum UserRoles : int
+  {
+    DataSortRole = Qt::UserRole, // Provides the data as a number suitable for sorting
+  };
+
   enum class Trigger
   {
     FreeRun,

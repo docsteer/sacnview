@@ -113,7 +113,7 @@ bool ScopeTrace::setAddress(uint16_t address_hi, uint16_t address_lo, bool clear
     return false; // No change
 
   m_slot_hi = address_hi - 1;
-  m_slot_lo = address_lo == 0 ? 0 : address_lo - 1;
+  m_slot_lo = address_lo == 0 ? MAX_DMX_ADDRESS : address_lo - 1;
 
   if (clear_values)
     clear();
@@ -393,18 +393,21 @@ QVariant ScopeModel::data(const QModelIndex& index, int role) const
       {
       default: break;
       case COL_UNIVERSE:
-        if (role == Qt::DisplayRole) return trace->universe();
+        if (role == Qt::DisplayRole || role == Qt::EditRole || role == DataSortRole) return trace->universe();
         if (role == Qt::CheckStateRole) return trace->enabled() ? Qt::Checked : Qt::Unchecked;
         break;
       case COL_ADDRESS:
-        if (role == Qt::DisplayRole) return trace->addressString();
+        if (role == Qt::DisplayRole || role == Qt::EditRole) return trace->addressString();
+        if (role == DataSortRole) return uint32_t(trace->addressHi()) << 16 | trace->addressLo();
         break;
       case COL_COLOUR:
-        if (role == Qt::BackgroundRole || role == Qt::DisplayRole) return trace->color();
+        if (role == Qt::BackgroundRole || role == Qt::DisplayRole || role == Qt::EditRole) return trace->color();
+        if (role == DataSortRole) return static_cast<uint32_t>(trace->color().rgba());
         break;
       case COL_TRIGGER:
         if (role == Qt::CheckStateRole)
           return m_trigger.IsTriggerTrace(*trace) ? Qt::Checked : Qt::Unchecked;
+        if (role == DataSortRole) return m_trigger.IsTriggerTrace(*trace) ? 0 : 1;
         break;
       }
     }
@@ -439,7 +442,7 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
         {
           if (moveTrace(trace, value.toUInt()))
           {
-            emit dataChanged(idx, idx, { Qt::DisplayRole });
+            emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
             return true;
           }
         }
@@ -449,17 +452,20 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
         if (role == Qt::EditRole)
         {
           if (trace->setAddress(value.toString(), true))
-            emit dataChanged(idx, idx, { Qt::DisplayRole });
+          {
+            emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
+            return true;
+          }
         }
         break;
       case COL_COLOUR:
-        if (role == Qt::BackgroundRole)
+        if (role == Qt::EditRole)
         {
           QColor color = value.value<QColor>();
           if (color.isValid())
           {
             trace->setColor(color);
-            emit dataChanged(idx, idx, { Qt::BackgroundRole });
+            emit dataChanged(idx, idx, { Qt::BackgroundRole, Qt::DisplayRole, Qt::EditRole, DataSortRole });
             return true;
           }
         }
@@ -473,7 +479,7 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
             m_trigger.universe = trace->universe();
             m_trigger.address_hi = trace->addressHi();
             m_trigger.address_lo = trace->addressLo();
-            emit dataChanged(index(0, COL_TRIGGER), index(rowCount() - 1, COL_TRIGGER), { Qt::CheckStateRole });
+            emit dataChanged(index(0, COL_TRIGGER), index(rowCount() - 1, COL_TRIGGER), { Qt::CheckStateRole, DataSortRole });
             return true;
           }
         }
@@ -1187,8 +1193,8 @@ void GlScopeWidget::paintGL()
 
   m_program->bind();
 
-  glLineWidth(1);
-  glEnable(GL_LINE_SMOOTH);
+  //glLineWidth(1);
+  //glEnable(GL_LINE_SMOOTH);
 
   m_program->setUniformValue(m_matrixUniform, m_mvpMatrix);
 
@@ -1222,7 +1228,7 @@ void GlScopeWidget::paintGL()
     glDisableVertexAttribArray(m_vertexLocation);
   }
 
-  glDisable(GL_LINE_SMOOTH);
+  //glDisable(GL_LINE_SMOOTH);
 
   m_program->release();
 

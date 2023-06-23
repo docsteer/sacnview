@@ -28,6 +28,7 @@
 #include <QScrollBar>
 #include <QSpinBox>
 #include <QTableWidget>
+#include <QSortFilterProxyModel>
 
 #include <QFileDialog>
 
@@ -66,15 +67,15 @@ GlScopeWindow::GlScopeWindow(QWidget* parent)
       QGridLayout* layoutGrp = new QGridLayout(grpScope);
 
       int row = 0;
-      m_btnStart = new QPushButton(tr("Start"), confWidget);
-      m_btnStart->setCheckable(true);
-      connect(m_btnStart, &QPushButton::clicked, m_scope->model(), &ScopeModel::start);
-      layoutGrp->addWidget(m_btnStart, row, 0);
-
       m_btnStop = new QPushButton(tr("Stop"), confWidget);
       m_btnStop->setCheckable(true);
       connect(m_btnStop, &QPushButton::clicked, m_scope->model(), &ScopeModel::stop);
-      layoutGrp->addWidget(m_btnStop, row, 1);
+      layoutGrp->addWidget(m_btnStop, row, 0);
+
+      m_btnStart = new QPushButton(tr("Start"), confWidget);
+      m_btnStart->setCheckable(true);
+      connect(m_btnStart, &QPushButton::clicked, m_scope->model(), &ScopeModel::start);
+      layoutGrp->addWidget(m_btnStart, row, 1);
 
       ++row;
 
@@ -145,8 +146,16 @@ GlScopeWindow::GlScopeWindow(QWidget* parent)
 
       m_tableView = new QTableView(this);
       m_tableView->verticalHeader()->hide();
-      m_tableView->setModel(m_scope->model());
       m_tableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+      
+      // Sorting
+      QSortFilterProxyModel* sortProxy = new QSortFilterProxyModel(m_tableView);
+      sortProxy->setSourceModel(m_scope->model());
+      sortProxy->setSortRole(ScopeModel::DataSortRole);
+      
+      m_tableView->setModel(sortProxy);
+      m_tableView->setSortingEnabled(true);
+      m_tableView->sortByColumn(0, Qt::AscendingOrder);
 
       layoutGrp->addWidget(m_tableView);
 
