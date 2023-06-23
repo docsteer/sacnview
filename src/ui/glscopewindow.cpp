@@ -35,6 +35,7 @@
 GlScopeWindow::GlScopeWindow(QWidget* parent)
   : QWidget(parent)
 {
+  setWindowTitle(tr("Scope"));
   setWindowIcon(QIcon(QStringLiteral(":/icons/scope.png")));
 
   QBoxLayout* layout = new QVBoxLayout(this);
