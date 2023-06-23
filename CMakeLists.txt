@@ -110,6 +110,7 @@ set(SACNVIEW_HEADERS
     src/ui/multiview.h
     src/models/sacnsourcetablemodel.h
     src/models/csvmodelexport.h
+    src/widgets/glscopewidget.h
 )
 
 set(SACNVIEW_SOURCES
@@ -117,7 +118,6 @@ set(SACNVIEW_SOURCES
     src/commandline.cpp
     src/firewallcheck.cpp
     src/ipc.cpp
-    src/main.cpp
     src/preferences.cpp
     src/models/sacnsynclistmodel.cpp
     src/models/sacndiscoveredsourcelistmodel.cpp
@@ -154,6 +154,7 @@ set(SACNVIEW_SOURCES
     src/ui/bigdisplay.cpp
     src/ui/addmultidialog.cpp
     src/ui/multiview.cpp
+    src/ui/glscopewindow.cpp
     src/widgets/monitorspinbox.cpp
     src/widgets/qpushbutton_rightclick.cpp
     src/widgets/qspinbox_resizetocontent.cpp
@@ -162,9 +163,13 @@ set(SACNVIEW_SOURCES
     src/widgets/scopewidget.cpp
     src/widgets/clssnapshot.cpp
     src/widgets/grideditwidget.cpp
+    src/widgets/glscopewidget.cpp
     src/models/sacnsourcetablemodel.cpp
     src/models/csvmodelexport.cpp
 )
+
+# Prepend the path to all sources
+LIST(TRANSFORM SACNVIEW_SOURCES PREPEND ${CMAKE_CURRENT_LIST_DIR}/)
 
 set(SACNVIEW_FORMS
     ui/mdimainwindow.ui
@@ -208,8 +213,18 @@ set(CMAKE_AUTORCC ON)
 # Find Qt 5.15 or Qt 6
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui Network Multimedia Widgets REQUIRED)
+set(SACNVIEW_QT_LIBRARIES
+   Qt::Core Qt::Gui Qt::Network Qt::Multimedia Qt::Widgets
+)
+
+# Qt 6 moved some components
+if (Qt6_FOUND)
+    find_package(Qt6 COMPONENTS OpenGLWidgets REQUIRED)
+    list(APPEND SACNVIEW_QT_LIBRARIES Qt::OpenGLWidgets)
+endif()
 
 add_executable(sACNView WIN32
+    src/main.cpp
     ${SACNVIEW_HEADERS}
     ${SACNVIEW_SOURCES}
     ${SACNVIEW_FORMS}
@@ -228,7 +243,7 @@ set_target_properties(sACNView PROPERTIES
 )
 
 # Link Qt libraries
-target_link_libraries(sACNView PRIVATE Qt::Core Qt::Gui Qt::Network Qt::Multimedia Qt::Widgets)
+target_link_libraries(sACNView PRIVATE ${SACNVIEW_QT_LIBRARIES})
 
 # Link PCap/WinPCap libraries
 target_link_libraries(sACNView PRIVATE ${PCAP_LIBS})
@@ -302,6 +317,13 @@ target_compile_definitions(sACNView PRIVATE
   "GIT_DATE_YEAR=\"${GIT_DATE_YEAR}\""
   "VERSION=\"${GIT_TAG}\""
 )
+
+# GoogleTest
+option(SACNVIEW_UNIT_TESTS "Enable unit tests" OFF)
+if (SACNVIEW_UNIT_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
 
 # Deploy the build using windeployqt
 option(SACNVIEW_CREATE_INSTALLER "Create the sACNView installer" OFF)

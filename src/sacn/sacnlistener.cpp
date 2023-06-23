@@ -61,6 +61,8 @@ void sACNListener::startReception()
   qDebug() << this << ": Starting universe" << m_universe;
   m_last_levels.fill(-1);
   m_last_priorities.fill(-1);
+  m_current_levels.fill(-1);
+  m_current_priorities.fill(-1);
 
   if (Preferences::Instance().GetNetworkListenAll() && !Preferences::Instance().networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) {
     // Listen on ALL interfaces and not working offline
@@ -777,6 +779,10 @@ void sACNListener::performMerge()
     // Remove the winning source from the list of others
     if (m_merged_levels[address].winningSource)
       m_merged_levels[address].otherSources.remove(m_merged_levels[address].winningSource);
+
+    // Update current final merge
+    m_current_levels[address] = m_last_levels[address];
+    m_current_priorities[address] = m_last_priorities[address];
   }
 
   mergeLocker.unlock();
