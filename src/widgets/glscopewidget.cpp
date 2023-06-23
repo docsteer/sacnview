@@ -164,7 +164,18 @@ void ScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS
 {
   float value;
   if (fillValue(value, m_slot_hi, m_slot_lo, level_array))
-    m_trace.emplace_back(timestamp, value);
+  {
+    // If level did not change in the last two, only update timestamp
+    const size_t trace_size = m_trace.size();
+    if (trace_size > 3 && m_trace[trace_size - 1].y() == value && m_trace[trace_size - 2].y() == value)
+    {
+      m_trace.back().setX(timestamp);
+    }
+    else
+    {
+      m_trace.emplace_back(timestamp, value);
+    }
+  }
 }
 
 void ScopeTrace::setFirstPoint(const std::array<int, MAX_DMX_ADDRESS>& level_array)
