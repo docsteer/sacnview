@@ -928,7 +928,7 @@ void ScopeModel::removeFromLookup(ScopeTrace* trace, uint16_t old_universe)
 void ScopeModel::addListener(uint16_t universe)
 {
   auto listener = sACNManager::Instance().getListener(universe);
-  connect(listener.data(), &sACNListener::levelsChanged, this, &ScopeModel::onLevelsChanged);
+  connect(listener.data(), &sACNListener::dmxReceived, this, &ScopeModel::onDmxReceived);
   readLevels(listener.data());
   m_listeners.push_back(listener);
 }
@@ -952,7 +952,7 @@ qreal ScopeModel::endTime() const
   return m_endTime;
 }
 
-void ScopeModel::onLevelsChanged()
+void ScopeModel::onDmxReceived()
 {
   if (!isRunning())
     return;

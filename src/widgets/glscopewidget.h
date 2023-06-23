@@ -232,7 +232,7 @@ public:
   qreal endTime() const;
 
 private:
-  Q_SLOT void onLevelsChanged();
+  Q_SLOT void onDmxReceived();
   void readLevels(sACNListener* listener);
 
 private:
