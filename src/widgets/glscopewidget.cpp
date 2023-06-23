@@ -21,12 +21,19 @@
 static constexpr qreal AXIS_LABEL_WIDTH = 50.0;
 static constexpr qreal AXIS_LABEL_HEIGHT = 20.0;
 static constexpr qreal TOP_GAP = 10.0;
-static constexpr qreal RIGHT_GAP = 30.0;
+static constexpr qreal RIGHT_GAP = 15.0;
 static constexpr qreal AXIS_TO_WINDOW_GAP = 5.0;
 static constexpr qreal AXIS_TICK_SIZE = 10.0;
 
 static const QString RowTitleColor = QStringLiteral("Color");
 static const QString ColumnTitleTimestamp = QStringLiteral("Time (s)");
+
+template<typename T>
+T roundCeilMultiple(T value, T multiple)
+{
+  if (multiple == 0) return value;
+  return static_cast<T>(std::ceil(static_cast<qreal>(value) / static_cast<qreal>(multiple)) * static_cast<qreal>(multiple));
+}
 
 bool ScopeTrace::extractUniverseAddress(QStringView address_string, uint16_t& universe, uint16_t& address_hi, uint16_t& address_lo)
 {
@@ -1270,7 +1277,8 @@ void GlScopeWidget::paintGL()
 
     const qreal x_scale = scopeWindow.width() / m_scopeView.width();
     const bool milliseconds = (m_timeInterval < 1.0);
-    for (qreal time = m_scopeView.left(); time < m_scopeView.right() + 0.001; time += m_timeInterval)
+
+    for (qreal time = roundCeilMultiple(m_scopeView.left(), m_timeInterval); time < m_scopeView.right() + 0.001; time += m_timeInterval)
     {
       const qreal x = (time - m_scopeView.left()) * x_scale;
       painter.setPen(gridPen);
