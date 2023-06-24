@@ -16,12 +16,13 @@ If you are interested in building the application you will need the following:
 
 * Qt Library and Creator - https://www.qt.io/ide/
 	* Note : Due to [this bug](https://bugreports.qt.io/browse/QTBUG-27641) in Qt you need to use Qt version 5.9.0 or higher to build sACNView. 
-* To build the windows installer - NSIS - http://nsis.sourceforge.net/ and the [SimpleFW NSIS Plugin](http://nsis.sourceforge.net/NSIS_Simple_Firewall_Plugin)
-	* If NSIS is included in your $PATH the installer will be built automatically
+* CMake - https://cmake.org
+* To build the windows installer - NSIS - http://nsis.sourceforge.net/
 
-The application uses a couple of external libraries:
+The application uses a few external libraries:
 
-* Google Breakpad for crash reporting
-* LibPCAP for captured packet playback
 * Blake2 for Pathway Secure Protocol
-
+* Google Breakpad for crash reporting
+* LibPCAP (or Npacp/WinPcap on Windows) for captured packet playback
+* OpenSSL for secure web access during updated version checking
+* ZLib for checksum generation

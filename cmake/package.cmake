@@ -16,7 +16,9 @@ set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://sacnview.org")
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    set(CPACK_PACKAGE_ICON "${${PROJECT_NAME}_ICON_PNG}")
+    set(CPACK_PACKAGE_ICON "${${PROJECT_NAME}_ICON_ICO}")
+    file(TO_NATIVE_PATH ${CPACK_PACKAGE_ICON} CPACK_PACKAGE_ICON)
+string(REPLACE "\\" "\\\\" CPACK_PACKAGE_ICON  ${CPACK_PACKAGE_ICON})
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(CPACK_PACKAGE_ICON "${${PROJECT_NAME}_ICON_SVG}")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
@@ -33,7 +35,7 @@ set(CPACK_STRIP_FILES TRUE)
 # Select CPack Generator
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # Create an NSIS installer
-    # include(package_nsis)
+    include(package_nsis)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # Install into /opt/sacnview
     string(TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
@@ -53,7 +55,7 @@ include(CPack)
 
 # Config Packing scripts
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/package_prebuild.cmake.in" 
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/package_prebuild.cmake.in"
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/package_prebuild.cmake"
     @ONLY
 )
@@ -63,18 +65,27 @@ cpack_add_component(
     ${PROJECT_NAME}
     DISPLAY_NAME ${PROJECT_NAME}
     DESCRIPTION "Main Application"
-    DEPENDS "OpenSSL"
+    DEPENDS OpenSSL
     REQUIRED
 )
 
-#--System Libraries (i.e. MSVC)
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    #--System Libraries (i.e. MSVC)
     set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
     set(CMAKE_INSTALL_SYSTEM_RUNTIME_COMPONENT "SYSTEM_RUNTIME")
     include(InstallRequiredSystemLibraries)
     cpack_add_component(
         "SYSTEM_RUNTIME"
         DISPLAY_NAME "Required System Libraries"
+        HIDDEN
+        REQUIRED
+    )
+
+    #--OpenSSL DLLs
+    cpack_add_component(
+        OpenSSL
+        DISPLAY_NAME "OpenSSL"
+        DESCRIPTION "OpenSSL Runtimes"
         HIDDEN
         REQUIRED
     )

@@ -38,8 +38,8 @@ jobs:
               choco install -y winflexbison3
             arch: amd64
             artifact: |
-              build/src/sACNView.exe
-              build/src/sACNView.pdb 
+              build/sACNView*.exe
+              build/src/Release/sACNView*.pdb
 
           - os: macos-latest
             qt_modules: 'qtmultimedia qtcharts'
