@@ -12,6 +12,9 @@ if (WIN32)
     )
     FetchContent_MakeAvailable(npcap)
 
+    # Due to Npcap license restrictions, we can't bundle the dll
+    # So we will delay load
+    add_definitions(-DPCAP_DLL)
     if(CMAKE_CXX_COMPILER_ARCHITECTURE_ID MATCHES "x64")
         set(npcap_LIB_DIR ${npcap_SOURCE_DIR}/Lib/x64)
     else()
@@ -22,6 +25,9 @@ if (WIN32)
         ${npcap_LIB_DIR}/wpcap.lib)
     add_library(pcap ${npcap_LIB_FILES})
     target_link_libraries(pcap ${npcap_LIB_FILES})
+    set_property(TARGET pcap PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS true)
+    target_link_libraries(${PROJECT_NAME} PRIVATE delayimp)
+    target_link_options(${PROJECT_NAME} PRIVATE "/DELAYLOAD:wpcap.dll")
 
     set(PCAP_INCLUDE_DIR ${npcap_SOURCE_DIR}/include)
 else()

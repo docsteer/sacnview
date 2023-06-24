@@ -16,6 +16,10 @@ public:
     explicit PcapPlayback(QWidget *parent = 0);
     ~PcapPlayback();
 
+    void show();
+
+    static bool foundLib();
+
 private slots:
     void on_btnOpen_clicked();
     void on_btnStartPause_clicked();

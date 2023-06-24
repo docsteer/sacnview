@@ -16,6 +16,7 @@
 #include "aboutdialog.h"
 #include "ui_aboutdialog.h"
 #include "consts.h"
+#include "pcapplayback.h"
 #include <pcap.h>
 #include <openssl/opensslv.h>
 #include "translations.h"
@@ -62,20 +63,28 @@ aboutDialog::aboutDialog(QWidget *parent) :
            "Licensed under the <a href=\"http://www.gnu.org/licenses/lgpl.html\">GNU LGPL</a></p>")
             .arg(qVersion()));
     
-    const char *libpcap = pcap_lib_version();
-    ui->lblLibs->setText(
-        tr("<p>This application uses <a href=\"https://www.tcpdump.org/\">libpcap</a><br>"
-           "%1<br>"
-           "Licensed under the <a href=\"https://opensource.org/licenses/BSD-3-Clause\">The 3-Clause BSD License</a></p>")
-        .arg(qPrintable(libpcap)));
-    ui->lblLibs->setText(ui->lblLibs->text() +
+
+    QString libsText = "";
+
+    if (PcapPlayback::foundLib())
+    {
+        const char *libpcap = pcap_lib_version();
+        libsText.append(
+            tr("<p>This application uses<br>%1</p>")
+            .arg(qPrintable(libpcap)));
+    }
+
+    libsText.append(
         tr("<p>This application uses <a href=\"https://www.blake2.net/\">BLAKE2</a><br>"
            "Licensed under the <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\">Creative Commons Zero v1.0 Universal</a></p>"));
-    ui->lblLibs->setText(ui->lblLibs->text() +
+
+    libsText.append(
         tr("<p>This application uses <a href=\"https://www.openssl.org/\">OpenSSL</a><br>"
            "%1<br>"
            "Licensed under the <a href=\"https://www.openssl.org/source/license.html\">Licensed under the OpenSSL license</a></p>")
         .arg(OPENSSL_VERSION_TEXT));
+
+    ui->lblLibs->setText(libsText);
 
     // Setup diagnostics tree
     ui->twDiag->setColumnCount(2);
