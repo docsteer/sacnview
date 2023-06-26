@@ -66,7 +66,7 @@ private:
   int m_lastTraceHue = 0;
   int m_lastTraceSat = 255;
 
-  void updateScrollBars();
+  void updateTimeScrollBars();
 };
 
 class ColorDialog : public QColorDialog

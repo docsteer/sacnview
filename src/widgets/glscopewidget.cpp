@@ -193,23 +193,23 @@ void ScopeTrace::setFirstPoint(const std::array<int, MAX_DMX_ADDRESS>& level_arr
   }
 }
 
-bool ScopeModel::addUpdateTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo)
+ScopeModel::AddResult ScopeModel::addTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo)
 {
   // Verify validity
   if (!color.isValid())
-    return false;
+    return AddResult::Invalid;
 
   if (universe < MIN_SACN_UNIVERSE)
-    return false;
+    return AddResult::Invalid;
 
   if (address_hi == 0)
-    return false;
+    return AddResult::Invalid;
 
   if (universe > MAX_SACN_UNIVERSE)
-    return false;
+    return AddResult::Invalid;
 
   if (address_hi > MAX_DMX_ADDRESS)
-    return false;
+    return AddResult::Invalid;
 
   if (address_lo > MAX_DMX_ADDRESS)
     address_lo = 0;
@@ -242,17 +242,16 @@ bool ScopeModel::addUpdateTrace(const QColor& color, uint16_t universe, uint16_t
       addListener(universe);
     }
 
-    return true;
+    return AddResult::Added;
   }
 
-  // If we have already got this trace, update the color
+  // If we have already got this trace, skip
   auto& univs_item = univ_it->second;
   for (auto& item : univs_item)
   {
     if (item->addressHi() == address_hi && item->addressLo() == address_lo)
     {
-      item->setColor(color);
-      return true;
+      return AddResult::Exists;
     }
   }
 
@@ -262,7 +261,7 @@ bool ScopeModel::addUpdateTrace(const QColor& color, uint16_t universe, uint16_t
   m_traceTable.push_back(trace);
   univs_item.push_back(trace);
   endInsertRows();
-  return true;
+  return AddResult::Added;
 }
 
 // Removes all traces that match this
@@ -377,6 +376,19 @@ const ScopeTrace* ScopeModel::findTrace(uint16_t universe, uint16_t address_hi, 
 
   // Not found
   return nullptr;
+}
+
+QModelIndex ScopeModel::findFirstTraceIndex(uint16_t universe, uint16_t address_hi, uint16_t address_lo, int column) const
+{
+  for (size_t row = 0; row < m_traceTable.size(); ++row)
+  {
+    const ScopeTrace* trace = m_traceTable[row];
+    if (trace && trace->universe() == universe && trace->addressHi() == address_hi && trace->addressLo() == address_lo)
+    {
+      return index(row, column);
+    }
+  }
+  return QModelIndex();
 }
 
 ScopeModel::ScopeModel(QObject* parent)
@@ -759,7 +771,7 @@ bool ScopeModel::loadTraces(QIODevice& file)
       continue;
     }
 
-    if (addUpdateTrace(color, univ_slots.universe, univ_slots.address_hi, univ_slots.address_lo))
+    if (addTrace(color, univ_slots.universe, univ_slots.address_hi, univ_slots.address_lo) == AddResult::Added)
       trace_idents.push_back(univ_slots);
     else
       trace_idents.push_back(UnivSlots());

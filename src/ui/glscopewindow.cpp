@@ -154,6 +154,8 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       m_tableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
       m_tableView->setAlternatingRowColors(true);
       m_tableView->setItemDelegateForColumn(ScopeModel::COL_COLOUR, new ColorPickerDelegate(this));
+      m_tableView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+      m_tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
       // Sorting
       QSortFilterProxyModel* sortProxy = new QSortFilterProxyModel(m_tableView);
@@ -235,7 +237,7 @@ void GlScopeWindow::onRunningChanged(bool running)
   // Force to follow now when running
   m_scope->setFollowNow(running);
 
-  updateScrollBars();
+  updateTimeScrollBars();
 }
 
 void GlScopeWindow::onTimeSliderMoved(int value)
@@ -250,7 +252,7 @@ void GlScopeWindow::onTimeSliderMoved(int value)
 void GlScopeWindow::onTimeDivisionsChanged(int value)
 {
   m_scope->setTimeDivisions(value);
-  updateScrollBars();
+  updateTimeScrollBars();
 }
 
 void GlScopeWindow::setVerticalScaleMode(int idx)
@@ -280,26 +282,71 @@ void GlScopeWindow::addTrace(bool)
 
   if (m_scope->model()->rowCount() == 0)
   {
-    m_scope->model()->addUpdateTrace(traceColor, m_defaultUniverse, 1, 0);
+    m_scope->model()->addTrace(traceColor, m_defaultUniverse, MIN_DMX_ADDRESS);
     return;
   }
 
   // Add an 8bit trace defaulting to the next item, based on the current index
   QModelIndex current = m_tableView->currentIndex();
   if (!current.isValid())
-    current = m_scope->model()->index(m_scope->model()->rowCount() - 1, ScopeModel::COL_UNIVERSE);
+    current = m_tableView->model()->index(m_tableView->model()->rowCount() - 1, ScopeModel::COL_UNIVERSE);
+
+  uint16_t universe = current.model()->index(current.row(), ScopeModel::COL_UNIVERSE).data(Qt::DisplayRole).toUInt();
+
+  uint16_t address_hi;
+  uint16_t address_lo;
+  {
+    const QString addr_string = current.model()->index(current.row(), ScopeModel::COL_ADDRESS).data(Qt::DisplayRole).toString();
+    if (!ScopeTrace::extractAddress(addr_string, address_hi, address_lo))
+    {
+      qDebug() << "Bad format, logic error:" << addr_string;
+      address_hi = 1;
+      address_lo = 0;
+    }
+  }
 
   if (current.column() == ScopeModel::COL_UNIVERSE)
   {
-    // if Universe column is selected, add the next Universe
-    m_scope->model()->addUpdateTrace(traceColor, current.data(Qt::DisplayRole).toUInt() + 1, 1);
+    // If Universe column is selected, add the same slot(s) in the next unused Universe
+    do
+    {
+      ++universe;
+    } while (m_scope->model()->addTrace(traceColor, universe, address_hi, address_lo) == ScopeModel::AddResult::Exists);
   }
   else
   {
-    // if any other column is selected, add the next 8bit slot on the same universe
-    const uint16_t universe = m_scope->model()->index(current.row(), ScopeModel::COL_UNIVERSE).data(Qt::DisplayRole).toUInt();
-    const uint16_t address_hi = m_scope->model()->index(current.row(), ScopeModel::COL_ADDRESS).data(Qt::DisplayRole).toUInt();
-    m_scope->model()->addUpdateTrace(traceColor, universe, address_hi + 1);
+    // If any other column is selected, add the next unused 8/16bit slot on the same universe
+    if (universe < MIN_SACN_UNIVERSE)
+      universe = MIN_SACN_UNIVERSE;
+    do
+    {
+      ++address_hi;
+
+      // 16 bit, default to coarse/fine as is by far the most common
+      if (address_lo != 0)
+      {
+        ++address_hi;
+        address_lo = address_hi + 1;
+      }
+
+      // Next universe
+      if (address_hi > MAX_DMX_ADDRESS)
+      {
+        ++universe;
+        address_hi = MIN_DMX_ADDRESS;
+        if (address_lo != 0)
+          address_lo = address_hi + 1;
+      }
+    } while (m_scope->model()->addTrace(traceColor, universe, address_hi, address_lo) == ScopeModel::AddResult::Exists);
+  }
+
+  // Select the item that was added
+  QAbstractProxyModel* proxy = qobject_cast<QAbstractProxyModel*>(m_tableView->model());
+  if (proxy)
+  {
+    const QModelIndex srcIndex = m_scope->model()->findFirstTraceIndex(universe, address_hi, address_lo, proxy->mapToSource(current).column());
+    if (srcIndex.isValid())
+      m_tableView->setCurrentIndex(proxy->mapFromSource(srcIndex));
   }
 }
 
@@ -340,10 +387,10 @@ void GlScopeWindow::loadTraces(bool)
   m_scope->model()->loadTraces(csvExport);
 
   // Update
-  updateScrollBars();
+  updateTimeScrollBars();
 }
 
-void GlScopeWindow::updateScrollBars()
+void GlScopeWindow::updateTimeScrollBars()
 {
   // Disable scrolling when running
   if (m_scope->model()->isRunning())

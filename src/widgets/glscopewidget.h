@@ -117,6 +117,13 @@ public:
     LevelCross
   };
 
+  enum class AddResult
+  {
+    Invalid,
+    Added,
+    Exists
+  };
+
 public:
   ScopeModel(QObject* parent = nullptr);
   ~ScopeModel();
@@ -131,14 +138,14 @@ public:
   bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole) override;
 
   /**
- * @brief Add or update a trace
+ * @brief Add a new trace
  * @param color Color to use for the trace. Must be valid
  * @param universe Universe for the trace. (1 - Max sACN Universe)
  * @param address_hi DMX address of the Coarse byte. (1-512)
  * @param address_lo DMX address of the Fine byte. Out of range for 8bit.
- * @return true if added or updated the trace, false for invalid parameters
+ * @return Added if added the trace, Invalid for invalid parameters, Exists for already extant
 */
-  bool addUpdateTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo = 0);
+  AddResult addTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo = 0);
 
   /**
    * @brief Remove a trace
@@ -160,6 +167,8 @@ public:
    * @return
   */
   const ScopeTrace* findTrace(uint16_t universe, uint16_t address_hi, uint16_t address_lo = 0) const;
+
+  QModelIndex findFirstTraceIndex(uint16_t universe, uint16_t address_hi, uint16_t address_lo = 0, int column = 0) const;
 
   /**
    * @brief Get all traces for rendering
