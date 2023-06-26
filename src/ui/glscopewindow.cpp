@@ -32,8 +32,9 @@
 
 #include <QFileDialog>
 
-GlScopeWindow::GlScopeWindow(QWidget* parent)
+GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
   : QWidget(parent)
+  , m_defaultUniverse(universe)
 {
   setWindowTitle(tr("Scope"));
   setWindowIcon(QIcon(QStringLiteral(":/icons/scope.png")));
@@ -282,7 +283,7 @@ void GlScopeWindow::addTrace(bool)
 
   if (m_scope->model()->rowCount() == 0)
   {
-    m_scope->model()->addUpdateTrace(traceColor, 1, 1, 0);
+    m_scope->model()->addUpdateTrace(traceColor, m_defaultUniverse, 1, 0);
     return;
   }
 
@@ -299,9 +300,9 @@ void GlScopeWindow::addTrace(bool)
   else
   {
     // if any other column is selected, add the next 8bit slot on the same universe
-    uint16_t universe = m_scope->model()->index(current.row(), ScopeModel::COL_UNIVERSE).data(Qt::DisplayRole).toUInt();
-    uint16_t address_hi = m_scope->model()->index(current.row(), ScopeModel::COL_ADDRESS).data(Qt::DisplayRole).toUInt();
-    m_scope->model()->addUpdateTrace(traceColor, universe, address_hi);
+    const uint16_t universe = m_scope->model()->index(current.row(), ScopeModel::COL_UNIVERSE).data(Qt::DisplayRole).toUInt();
+    const uint16_t address_hi = m_scope->model()->index(current.row(), ScopeModel::COL_ADDRESS).data(Qt::DisplayRole).toUInt();
+    m_scope->model()->addUpdateTrace(traceColor, universe, address_hi + 1);
   }
 }
 

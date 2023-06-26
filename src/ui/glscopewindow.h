@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include "consts.h"
+
 #include <QWidget>
 
 class GlScopeWidget;
@@ -29,7 +31,7 @@ class GlScopeWindow : public QWidget
 {
   Q_OBJECT
 public:
-  explicit GlScopeWindow(QWidget* parent = nullptr);
+  explicit GlScopeWindow(int universe, QWidget* parent = nullptr);
   ~GlScopeWindow();
 
 private:
@@ -56,7 +58,7 @@ private:
   QPushButton* m_btnStart = nullptr;
   QPushButton* m_btnStop = nullptr;
   QTableView* m_tableView = nullptr;
-  int m_refreshTimer = 0;
+  int m_defaultUniverse = MIN_SACN_UNIVERSE;
 
   int m_lastTraceHue = 0;
   int m_lastTraceSat = 255;

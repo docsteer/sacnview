@@ -89,7 +89,7 @@ void MDIMainWindow::showEvent(QShowEvent* ev)
 void MDIMainWindow::on_actionScopeView_triggered(bool checked)
 {
   Q_UNUSED(checked);
-  GlScopeWindow* scopeWindow = new GlScopeWindow(this);
+  GlScopeWindow* scopeWindow = new GlScopeWindow(ui->sbUniverseList->value(), this);
   showWidgetAsSubWindow(scopeWindow);
 }
 
