@@ -1384,6 +1384,7 @@ void GlScopeWidget::paintGL()
     return;
 
   m_program->bind();
+  glEnableVertexAttribArray(m_vertexLocation);
 
   m_program->setUniformValue(m_matrixUniform, m_mvpMatrix);
 
@@ -1391,12 +1392,7 @@ void GlScopeWidget::paintGL()
   {
     m_program->setUniformValue(m_colorUniform, gridColor);
     glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, gridLines.data());
-
-    glEnableVertexAttribArray(m_vertexLocation);
-
     glDrawArrays(GL_LINES, 0, gridLines.size());
-
-    glDisableVertexAttribArray(m_vertexLocation);
   }
 
   if (m_model->isTriggered())
@@ -1408,12 +1404,7 @@ void GlScopeWidget::paintGL()
       {static_cast<float>(m_model->endTime()), static_cast<float>(m_scopeView.bottom())}
     };
     glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, nowLine.data());
-
-    glEnableVertexAttribArray(m_vertexLocation);
-
     glDrawArrays(GL_LINE_STRIP, 0, 2);
-
-    glDisableVertexAttribArray(m_vertexLocation);
   }
   else if (m_model->triggerType() != ScopeModel::Trigger::FreeRun)
   {
@@ -1423,12 +1414,7 @@ void GlScopeWidget::paintGL()
     const std::vector<QVector2D> triggerLine = makeTriggerLine(m_model->triggerType());
 
     glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, triggerLine.data());
-
-    glEnableVertexAttribArray(m_vertexLocation);
-
     glDrawArrays(GL_TRIANGLES, 0, triggerLine.size());
-
-    glDisableVertexAttribArray(m_vertexLocation);
   }
 
 
@@ -1446,16 +1432,11 @@ void GlScopeWidget::paintGL()
     m_program->setUniformValue(m_colorUniform, trace->color());
 
     glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, trace->values().data());
-
-    glEnableVertexAttribArray(m_vertexLocation);
-
     glDrawArrays(GL_LINE_STRIP, 0, trace->values().size());
-
-    glDisableVertexAttribArray(m_vertexLocation);
   }
 
+  glDisableVertexAttribArray(m_vertexLocation);
   m_program->release();
-
 }
 
 void GlScopeWidget::resizeGL(int w, int h)
