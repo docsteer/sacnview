@@ -55,10 +55,10 @@ private:
   QSpinBox* m_spinTimeScale = nullptr;
   QComboBox* m_triggerType = nullptr;
   QSpinBox* m_spinTriggerLevel = nullptr;
-  QSpinBox* m_spinTriggerDelay = nullptr;
   QPushButton* m_btnStart = nullptr;
   QPushButton* m_btnStop = nullptr;
   QTableView* m_tableView = nullptr;
+
   int m_defaultUniverse = MIN_SACN_UNIVERSE;
 
   int m_lastTraceHue = 0;

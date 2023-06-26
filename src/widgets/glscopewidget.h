@@ -215,9 +215,6 @@ public:
   Q_SLOT void setTriggerLevel(uint16_t level);
   uint16_t triggerLevel() const { return m_trigger.level; }
 
-  Q_SLOT void setTriggerDelay(qint64 millisecs);
-  qint64 getTriggerDelay() const { return m_trigger.delay; }
-
   bool isTriggered() const { return m_elapsed.isValid(); }
   void triggerNow();
   Q_SIGNAL void triggered();
@@ -251,7 +248,6 @@ private:
     uint16_t address_hi = 0;
     uint16_t address_lo = 0;
     uint16_t level = 0;
-    qint64 delay = 0;
     Trigger mode = Trigger::FreeRun;
 
     int last_level = -1;

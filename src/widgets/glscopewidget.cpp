@@ -881,12 +881,6 @@ void ScopeModel::setTriggerLevel(uint16_t level)
   emit traceVisibilityChanged();
 }
 
-void ScopeModel::setTriggerDelay(qint64 millisecs)
-{
-  m_trigger.delay = millisecs;
-  emit traceVisibilityChanged();
-}
-
 bool ScopeModel::moveTrace(ScopeTrace* trace, uint16_t new_universe, bool clear_values)
 {
   const uint16_t old_universe = trace->universe();

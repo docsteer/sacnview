@@ -134,20 +134,9 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       connect(m_spinTriggerLevel, QOverload<int>::of(&QSpinBox::valueChanged), m_scope->model(), &ScopeModel::setTriggerLevel);
       layoutGrp->addWidget(m_spinTriggerLevel, row, 1);
 
-      ++row;
-      lbl = new QLabel(tr("Trigger Delay:"), confWidget);
-      layoutGrp->addWidget(lbl, row, 0);
-      m_spinTriggerDelay = new QSpinBox(this);
-      m_spinTriggerDelay->setRange(0, 1000);  // Milliseconds
-      //! Milliseconds suffix
-      m_spinTriggerDelay->setSuffix(tr("ms"));
-      connect(m_spinTriggerDelay, QOverload<int>::of(&QSpinBox::valueChanged), m_scope->model(), &ScopeModel::setTriggerDelay);
-      layoutGrp->addWidget(m_spinTriggerDelay, row, 1);
-
       // Set initial trigger type and values
       m_triggerType->setCurrentIndex(0);
       m_spinTriggerLevel->setValue(127);
-      m_spinTriggerDelay->setValue(0);
 
       // Spacer at the bottom
       ++row;
@@ -227,15 +216,13 @@ void GlScopeWindow::onRunningChanged(bool running)
 
   // Enable/Disable trigger items
   m_triggerType->setEnabled(!running);
-  if (running || m_triggerType->currentIndex() == 0)
+  if (running || m_triggerType->currentIndex() == static_cast<int>(ScopeModel::Trigger::FreeRun))
   {
     m_spinTriggerLevel->setEnabled(false);
-    m_spinTriggerDelay->setEnabled(false);
   }
   else
   {
     m_spinTriggerLevel->setEnabled(true);
-    m_spinTriggerDelay->setEnabled(true);
   }
 
   // Reset to start
@@ -271,8 +258,7 @@ void GlScopeWindow::setTriggerType(int idx)
 {
   m_scope->model()->setTriggerType(static_cast<ScopeModel::Trigger>(idx));
   // Enable/disable trigger settings
-  m_spinTriggerLevel->setEnabled(idx != 0);
-  m_spinTriggerDelay->setEnabled(idx != 0);
+  m_spinTriggerLevel->setEnabled(idx != static_cast<int>(ScopeModel::Trigger::FreeRun));
 }
 
 void GlScopeWindow::addTrace(bool)
