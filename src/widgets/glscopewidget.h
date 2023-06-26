@@ -240,8 +240,8 @@ private:
   std::map<uint16_t, std::vector<ScopeTrace*>> m_traceLookup;
   std::vector<sACNManager::tListener> m_listeners; // Keep the listeners alive
   QElapsedTimer m_elapsed;
-  qreal m_endTime = 0;// Maximum extents of the scope measurements in DMX
-  qreal m_maxValue = 0;
+  qreal m_endTime = 0;  // Max. time extents of the scope measurements
+  qreal m_maxValue = 0; // Max. possible value in DMX
 
   struct TriggerConfig
   {
@@ -269,6 +269,9 @@ private:
   bool moveTrace(ScopeTrace* trace, uint16_t new_universe, bool clear_values = true);
   void removeFromLookup(ScopeTrace* trace, uint16_t old_universe);
   void addListener(uint16_t universe);
+
+  // A trace has changed from 16bit to 8bit
+  void updateMaxValue();
 };
 
 class GlScopeWidget : public QOpenGLWidget, protected QOpenGLFunctions
@@ -321,8 +324,6 @@ public:
 protected:
   void initializeGL() override;
   Q_SLOT void cleanupGL();
-
-  void setupVertexAttribs();
 
   void paintGL() override;
   void resizeGL(int w, int h) override;

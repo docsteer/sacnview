@@ -28,6 +28,9 @@ static constexpr qreal AXIS_TICK_SIZE = 10.0;
 static const QString RowTitleColor = QStringLiteral("Color");
 static const QString ColumnTitleTimestamp = QStringLiteral("Time (s)");
 
+static constexpr qreal kMaxDmx16 = 65535;
+static constexpr qreal kMaxDmx8 = 255;
+
 template<typename T>
 T roundCeilMultiple(T value, T multiple)
 {
@@ -196,7 +199,7 @@ bool ScopeModel::addUpdateTrace(const QColor& color, uint16_t universe, uint16_t
   if (!color.isValid())
     return false;
 
-  if (universe == 0)
+  if (universe < MIN_SACN_UNIVERSE)
     return false;
 
   if (address_hi == 0)
@@ -213,7 +216,7 @@ bool ScopeModel::addUpdateTrace(const QColor& color, uint16_t universe, uint16_t
   else if (address_lo > 0)
   {
     // 16bit, adjust vertical scale
-    m_maxValue = 65535;
+    m_maxValue = kMaxDmx16;
   }
 
   auto univ_it = m_traceLookup.find(universe);
@@ -497,8 +500,17 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
       case COL_ADDRESS:
         if (role == Qt::EditRole)
         {
+          // If 16bit changed, recheck the vertical scale
+          const bool was16bit = trace->isSixteenBit();
           if (trace->setAddress(value.toString(), true))
           {
+            if (was16bit != trace->isSixteenBit())
+            {
+              if (trace->isSixteenBit())
+                m_maxValue = kMaxDmx16;
+              else
+                updateMaxValue();
+            }
             emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
             return true;
           }
@@ -547,14 +559,16 @@ void ScopeModel::removeAllTraces()
 void ScopeModel::private_removeAllTraces()
 {
   stop();
+  m_traceLookup.clear();
+
   for (ScopeTrace* trace : m_traceTable)
     delete trace;
 
-  m_traceLookup.clear();
   m_traceTable.clear();
+
   // Set extents back to default
   m_endTime = 0;
-  m_maxValue = 255;
+  m_maxValue = kMaxDmx8;
 }
 
 void ScopeModel::clearValues()
@@ -951,6 +965,19 @@ void ScopeModel::addListener(uint16_t universe)
   m_listeners.push_back(listener);
 }
 
+void ScopeModel::updateMaxValue()
+{
+  for (const ScopeTrace* trace : m_traceTable)
+  {
+    if (trace->isSixteenBit())
+    {
+      m_maxValue = kMaxDmx16;
+      return;
+    }
+  }
+  m_maxValue = kMaxDmx8;
+}
+
 void ScopeModel::triggerNow()
 {
   m_elapsed.start();
@@ -1078,7 +1105,8 @@ void GlScopeWidget::setVerticalScaleMode(VerticalScale scaleMode)
   } break;
   case VerticalScale::Dmx:
   {
-    m_levelInterval = 20;
+    // Reasonable scales for 16bit and 8bit
+    m_levelInterval = m_model->traceExtents().height() > kMaxDmx8 ? 10000 : 20;
   } break;
   }
 
@@ -1341,7 +1369,7 @@ void GlScopeWidget::paintGL()
     m_program->setUniformValue(m_colorUniform, timeCursorColor);
     const std::vector<QVector2D> nowLine = {
       {static_cast<float>(m_model->endTime()), 0},
-      {static_cast<float>(m_model->endTime()), 65535}
+      {static_cast<float>(m_model->endTime()), kMaxDmx16}
     };
     glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, nowLine.data());
 
@@ -1488,7 +1516,7 @@ bool ScopeModel::TriggerConfig::IsTrigger() const
 
     // Check level could trigger
     // 8 or 16bit
-    const uint16_t max_level = (address_lo == 0 ? 255 : 65535);
+    const uint16_t max_level = (address_lo == 0 ? kMaxDmx8 : kMaxDmx16);
     if (level > max_level)
       return false;
 
