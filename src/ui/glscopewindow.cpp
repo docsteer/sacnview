@@ -85,8 +85,9 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       QLabel* lbl = new QLabel(tr("Vertical Scale:"), confWidget);
       layoutGrp->addWidget(lbl, row, 0);
       QComboBox* verticalScale = new QComboBox(confWidget);
-      verticalScale->addItems({ tr("DMX"), tr("Percent") });
+      verticalScale->addItems({ tr("Percent"), tr("DMX8"), tr("DMX16") });
       connect(verticalScale, QOverload<int>::of(&QComboBox::activated), this, &GlScopeWindow::setVerticalScaleMode);
+      verticalScale->setCurrentIndex(static_cast<int>(m_scope->verticalScaleMode()));
       layoutGrp->addWidget(verticalScale, row, 1);
 
       ++row;
@@ -257,7 +258,7 @@ void GlScopeWindow::onTimeSliderMoved(int value)
 
 void GlScopeWindow::setVerticalScaleMode(int idx)
 {
-  m_scope->setVerticalScaleMode(static_cast<GlScopeWidget::VerticalScale>(idx + 1));
+  m_scope->setVerticalScaleMode(static_cast<GlScopeWidget::VerticalScale>(idx));
 }
 
 void GlScopeWindow::setTriggerType(int idx)

@@ -216,7 +216,7 @@ bool ScopeModel::addUpdateTrace(const QColor& color, uint16_t universe, uint16_t
   else if (address_lo > 0)
   {
     // 16bit, adjust vertical scale
-    m_maxValue = kMaxDmx16;
+    setMaxValue(kMaxDmx16);
   }
 
   auto univ_it = m_traceLookup.find(universe);
@@ -507,7 +507,7 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
             if (was16bit != trace->isSixteenBit())
             {
               if (trace->isSixteenBit())
-                m_maxValue = kMaxDmx16;
+                setMaxValue(kMaxDmx16);
               else
                 updateMaxValue();
             }
@@ -568,7 +568,7 @@ void ScopeModel::private_removeAllTraces()
 
   // Set extents back to default
   m_endTime = 0;
-  m_maxValue = kMaxDmx8;
+  setMaxValue(kMaxDmx8);
 }
 
 void ScopeModel::clearValues()
@@ -971,11 +971,19 @@ void ScopeModel::updateMaxValue()
   {
     if (trace->isSixteenBit())
     {
-      m_maxValue = kMaxDmx16;
+      setMaxValue(kMaxDmx16);
       return;
     }
   }
-  m_maxValue = kMaxDmx8;
+  setMaxValue(kMaxDmx8);
+}
+
+void ScopeModel::setMaxValue(qreal maxValue)
+{
+  if (m_maxValue == maxValue)
+    return;
+  m_maxValue = maxValue;
+  maxValueChanged();
 }
 
 void ScopeModel::triggerNow()
@@ -1081,7 +1089,7 @@ GlScopeWidget::GlScopeWidget(QWidget* parent)
   connect(m_model, &ScopeModel::traceVisibilityChanged, this, QOverload<void>::of(&QOpenGLWidget::update));
 
   setMinimumSize(200, 200);
-  setVerticalScaleMode(VerticalScale::Dmx);
+  setVerticalScaleMode(VerticalScale::Percent);
   setScopeView();
 }
 
@@ -1092,9 +1100,6 @@ GlScopeWidget::~GlScopeWidget()
 
 void GlScopeWidget::setVerticalScaleMode(VerticalScale scaleMode)
 {
-  if (scaleMode == m_verticalScaleMode)
-    return;
-
   switch (scaleMode)
   {
   default:
@@ -1102,16 +1107,23 @@ void GlScopeWidget::setVerticalScaleMode(VerticalScale scaleMode)
   case VerticalScale::Percent:
   {
     m_levelInterval = 10;
+    m_scopeView.setBottom(kMaxDmx8);  // The 16 bit matrix downscales to 8bit
   } break;
-  case VerticalScale::Dmx:
+  case VerticalScale::Dmx8:
   {
-    // Reasonable scales for 16bit and 8bit
-    m_levelInterval = m_model->traceExtents().height() > kMaxDmx8 ? 10000 : 20;
+    m_levelInterval = 20;
+    m_scopeView.setBottom(kMaxDmx8);
+  } break;
+  case VerticalScale::Dmx16:
+  {
+    m_levelInterval = 10000;
+    m_scopeView.setBottom(kMaxDmx16);
   } break;
   }
 
   m_verticalScaleMode = scaleMode;
 
+  updateMVPMatrix();
   update();
 }
 
@@ -1121,6 +1133,7 @@ void GlScopeWidget::setScopeView(const QRectF& rect)
   {
     m_scopeView = m_model->traceExtents();
     m_scopeView.setRight(m_defaultIntervalCount * m_timeInterval);
+    setVerticalScaleMode(m_verticalScaleMode);
   }
   else if (rect == m_scopeView)
   {
@@ -1289,35 +1302,52 @@ void GlScopeWidget::paintGL()
 
     // Draw vertical (level) axis
     {
-      QString postfix;
-      int max_value = m_scopeView.bottom();
-      qreal y_scale = scopeWindow.height() / m_scopeView.bottom();
-
-      if (m_verticalScaleMode == VerticalScale::Percent)
-      {
-        postfix = QStringLiteral("%");
-        // TODO: Scale this properly
-        max_value = 100;
-        y_scale = scopeWindow.height() / 100.0;
-      }
-
       const float lineLeft = m_scopeView.left();
       const float lineRight = std::fmaxf(m_scopeView.right(), endTime);
 
-      // From bottom to top
-      for (int value = m_scopeView.top(); value < max_value; value += m_levelInterval)
+      if (m_verticalScaleMode == VerticalScale::Percent)
       {
-        // Grid lines in trace space
-        gridLines.emplace_back(lineLeft, static_cast<float>(value));
-        gridLines.emplace_back(lineRight, static_cast<float>(value));
-        DrawLevelAxisText(painter, metrics, scopeWindow, value, y_scale, postfix);
-      }
+        const QString postfix = QStringLiteral("%");
+        const qreal max_value = 100.0;
+        const qreal y_scale = scopeWindow.height() / 100.0; // Percent
+        const float value_scale = kMaxDmx8 / 100.0f;
 
-      // Final row, may be uneven
-      // Grid lines in trace space
-      gridLines.emplace_back(lineLeft, max_value);
-      gridLines.emplace_back(lineRight, max_value);
-      DrawLevelAxisText(painter, metrics, scopeWindow, max_value, y_scale, postfix);
+        // From bottom to top
+        for (qreal value = m_scopeView.top(); value < max_value; value += m_levelInterval)
+        {
+          // Grid lines in trace space
+          gridLines.emplace_back(lineLeft, static_cast<float>(value) * value_scale);
+          gridLines.emplace_back(lineRight, static_cast<float>(value) * value_scale);
+          DrawLevelAxisText(painter, metrics, scopeWindow, value, y_scale, postfix);
+        }
+
+        // Final row, may be uneven
+        // Grid lines in trace space
+        gridLines.emplace_back(lineLeft, static_cast<float>(m_scopeView.bottom()));
+        gridLines.emplace_back(lineRight, static_cast<float>(m_scopeView.bottom()));
+        DrawLevelAxisText(painter, metrics, scopeWindow, max_value, y_scale, postfix);
+      }
+      else
+      {
+        const QString postfix;
+        const int max_value = m_scopeView.bottom();
+        const qreal y_scale = scopeWindow.height() / m_scopeView.bottom();
+
+        // From bottom to top
+        for (int value = m_scopeView.top(); value < max_value; value += m_levelInterval)
+        {
+          // Grid lines in trace space
+          gridLines.emplace_back(lineLeft, static_cast<float>(value));
+          gridLines.emplace_back(lineRight, static_cast<float>(value));
+          DrawLevelAxisText(painter, metrics, scopeWindow, value, y_scale, postfix);
+        }
+
+        // Final row, may be uneven
+        // Grid lines in trace space
+        gridLines.emplace_back(lineLeft, max_value);
+        gridLines.emplace_back(lineRight, max_value);
+        DrawLevelAxisText(painter, metrics, scopeWindow, max_value, y_scale, postfix);
+      }
     }
 
     // Draw horizontal (time) axis
@@ -1369,7 +1399,7 @@ void GlScopeWidget::paintGL()
     m_program->setUniformValue(m_colorUniform, timeCursorColor);
     const std::vector<QVector2D> nowLine = {
       {static_cast<float>(m_model->endTime()), 0},
-      {static_cast<float>(m_model->endTime()), kMaxDmx16}
+      {static_cast<float>(m_model->endTime()), static_cast<float>(m_scopeView.bottom())}
     };
     glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, nowLine.data());
 
@@ -1381,7 +1411,7 @@ void GlScopeWidget::paintGL()
   }
   else if (m_model->triggerType() != ScopeModel::Trigger::FreeRun)
   {
-    // Draw the trigger level as a triangle pointing up or down
+    // Draw the trigger level marker
     m_program->setUniformValue(m_colorUniform, triggerCursorColor);
 
     const std::vector<QVector2D> triggerLine = makeTriggerLine(m_model->triggerType());
@@ -1400,6 +1430,12 @@ void GlScopeWidget::paintGL()
   {
     if (!trace->enabled())
       continue;
+
+    // Change the scale as needed
+    if (m_verticalScaleMode == VerticalScale::Percent)
+    {
+      m_program->setUniformValue(m_matrixUniform, trace->isSixteenBit() ? m_mvpMatrix16 : m_mvpMatrix);
+    }
 
     m_program->setUniformValue(m_colorUniform, trace->color());
 
@@ -1456,13 +1492,13 @@ void GlScopeWidget::updateMVPMatrix()
   // Translate to origin
   modelMatrix.translate(AXIS_LABEL_WIDTH, AXIS_LABEL_HEIGHT);
 
-  // Vertical scale
-  const qreal pix_height = rect().height() - AXIS_LABEL_HEIGHT - TOP_GAP;
-  const qreal y_scale = pix_height / m_scopeView.height();
-
   // Horizontal scale
   const qreal pix_width = rect().width() - AXIS_LABEL_WIDTH - RIGHT_GAP;
   const qreal x_scale = pix_width / m_scopeView.width();
+
+  // Vertical scale
+  const qreal pix_height = rect().height() - AXIS_LABEL_HEIGHT - TOP_GAP;
+  const qreal y_scale = pix_height / m_scopeView.height();
 
   modelMatrix.scale(x_scale, y_scale, 1);
 
@@ -1470,6 +1506,21 @@ void GlScopeWidget::updateMVPMatrix()
   modelMatrix.translate(-m_scopeView.left(), -m_scopeView.top(), 0);
 
   m_mvpMatrix = m_viewMatrix * modelMatrix;
+
+  if (m_verticalScaleMode == VerticalScale::Percent)
+  {
+    // Vertical scale for 16bit
+    const qreal y_scale16 = pix_height / (m_scopeView.height() * 256.0);
+
+    QMatrix4x4 modelMatrix16;
+    modelMatrix16.translate(AXIS_LABEL_WIDTH, AXIS_LABEL_HEIGHT);
+    modelMatrix16.scale(x_scale, y_scale16, 1);
+
+    // Translate to current time and vertical offset
+    modelMatrix16.translate(-m_scopeView.left(), -m_scopeView.top(), 0);
+
+    m_mvpMatrix16 = m_viewMatrix * modelMatrix16;
+  }
 }
 
 std::vector<QVector2D> GlScopeWidget::makeTriggerLine(ScopeModel::Trigger type)

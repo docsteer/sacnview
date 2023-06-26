@@ -227,6 +227,8 @@ public:
    * Suitable to use as zoom-to-extents
   */
   QRectF traceExtents() const;
+  /// Trace has switched between 8 or 16 bit
+  Q_SIGNAL void maxValueChanged();
 
   /// @brief Get current end time in seconds
   qreal endTime() const;
@@ -272,6 +274,7 @@ private:
 
   // A trace has changed from 16bit to 8bit
   void updateMaxValue();
+  void setMaxValue(qreal maxValue);
 };
 
 class GlScopeWidget : public QOpenGLWidget, protected QOpenGLFunctions
@@ -280,9 +283,10 @@ class GlScopeWidget : public QOpenGLWidget, protected QOpenGLFunctions
 public:
   enum class VerticalScale
   {
-    Invalid,
-    Dmx,
     Percent,
+    Dmx8,
+    Dmx16,
+    Invalid,
   };
 
 public:
@@ -353,6 +357,7 @@ private:
 
   QMatrix4x4 m_viewMatrix;
   QMatrix4x4 m_mvpMatrix;
+  QMatrix4x4 m_mvpMatrix16;
 
   void updateMVPMatrix();
   std::vector<QVector2D> makeTriggerLine(ScopeModel::Trigger type);
