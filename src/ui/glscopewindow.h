@@ -17,6 +17,8 @@
 #include "consts.h"
 
 #include <QWidget>
+#include <QColorDialog>
+#include <QStyledItemDelegate>
 
 class GlScopeWidget;
 
@@ -65,4 +67,31 @@ private:
   int m_lastTraceSat = 255;
 
   void updateScrollBars();
+};
+
+class ColorDialog : public QColorDialog
+{
+  Q_OBJECT
+
+public:
+  ColorDialog(QWidget* parent = nullptr) : QColorDialog(parent) {}
+
+protected:
+  void showEvent(QShowEvent* ev) override;
+};
+
+class ColorPickerDelegate : public QStyledItemDelegate
+{
+  Q_OBJECT
+
+public:
+  ColorPickerDelegate(QWidget* parent = nullptr);
+
+  QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& idx) const override;
+  void destroyEditor(QWidget* editor, const QModelIndex& idx) const override;
+  void setEditorData(QWidget* editor, const QModelIndex& idx) const override;
+  void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& idx) const override;
+
+private:
+  QDialog* m_dialog = nullptr;
 };

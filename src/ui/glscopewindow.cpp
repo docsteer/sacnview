@@ -152,6 +152,8 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       m_tableView = new QTableView(this);
       m_tableView->verticalHeader()->hide();
       m_tableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+      m_tableView->setAlternatingRowColors(true);
+      m_tableView->setItemDelegateForColumn(ScopeModel::COL_COLOUR, new ColorPickerDelegate(this));
 
       // Sorting
       QSortFilterProxyModel* sortProxy = new QSortFilterProxyModel(m_tableView);
@@ -161,6 +163,8 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       m_tableView->setModel(sortProxy);
       m_tableView->setSortingEnabled(true);
       m_tableView->sortByColumn(0, Qt::AscendingOrder);
+      m_tableView->horizontalHeader()->setStretchLastSection(true);
+      m_tableView->resizeColumnsToContents();
 
       layoutGrp->addWidget(m_tableView);
 
@@ -368,5 +372,53 @@ void GlScopeWindow::updateScrollBars()
 
   onTimeSliderMoved(m_scrollTime->value());
   m_scrollTime->setEnabled(true);
+}
 
+// QColorDialog doesn't autocentre when used as a delegate
+void ColorDialog::showEvent(QShowEvent* ev)
+{
+  QRect parentRect(parentWidget()->mapToGlobal(QPoint(0, 0)), parentWidget()->size());
+  move(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, size(), parentRect).topLeft());
+
+  QColorDialog::showEvent(ev);
+}
+
+
+ColorPickerDelegate::ColorPickerDelegate(QWidget* parent)
+  : QStyledItemDelegate(parent)
+{
+  m_dialog = new ColorDialog(parent);
+}
+
+QWidget* ColorPickerDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& /*option*/, const QModelIndex& /*idx*/) const
+{
+  return m_dialog;
+}
+
+void ColorPickerDelegate::destroyEditor(QWidget* editor, const QModelIndex& /*idx*/) const
+{
+  // Don't delete it, reuse it instead
+  if (editor == m_dialog)
+    return;
+}
+
+void ColorPickerDelegate::setEditorData(QWidget* editor, const QModelIndex& idx) const
+{
+  ColorDialog* dialog = qobject_cast<ColorDialog*>(editor);
+  if (dialog)
+  {
+    QColor color = idx.data(Qt::BackgroundRole).value<QColor>();
+    dialog->setCurrentColor(color);
+  }
+}
+
+void ColorPickerDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& idx) const
+{
+  ColorDialog* dialog = qobject_cast<ColorDialog*>(editor);
+  if (dialog)
+  {
+    QColor color = dialog->selectedColor();
+    if (color.isValid())
+      model->setData(idx, color, Qt::EditRole);
+  }
 }
