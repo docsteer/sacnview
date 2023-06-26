@@ -101,7 +101,7 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       //! Milliseconds suffix
       m_spinTimeScale->setSuffix(tr("ms"));
       m_spinTimeScale->setValue(m_scope->timeDivisions());
-      connect(m_spinTimeScale, QOverload<int>::of(&QSpinBox::valueChanged), m_scope, &GlScopeWidget::setTimeDivisions);
+      connect(m_spinTimeScale, QOverload<int>::of(&QSpinBox::valueChanged), this, &GlScopeWindow::onTimeDivisionsChanged);
       connect(m_scope, &GlScopeWidget::timeDivisionsChanged, m_spinTimeScale, &QSpinBox::setValue);
       layoutGrp->addWidget(m_spinTimeScale, row, 1);
 
@@ -254,6 +254,12 @@ void GlScopeWindow::onTimeSliderMoved(int value)
   QRectF scopeView = m_scope->scopeView();
   scopeView.moveLeft(startTime);
   m_scope->setScopeView(scopeView);
+}
+
+void GlScopeWindow::onTimeDivisionsChanged(int value)
+{
+  m_scope->setTimeDivisions(value);
+  updateScrollBars();
 }
 
 void GlScopeWindow::setVerticalScaleMode(int idx)

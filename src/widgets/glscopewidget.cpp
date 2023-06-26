@@ -18,7 +18,7 @@
 #include <QScreen>
 #include <QOpenGLShaderProgram>
 
-static constexpr qreal AXIS_LABEL_WIDTH = 50.0;
+static constexpr qreal AXIS_LABEL_WIDTH = 45.0;
 static constexpr qreal AXIS_LABEL_HEIGHT = 20.0;
 static constexpr qreal TOP_GAP = 10.0;
 static constexpr qreal RIGHT_GAP = 15.0;
