@@ -63,6 +63,11 @@ private:
   QPushButton* m_btnStop = nullptr;
   QTableView* m_tableView = nullptr;
 
+  // Widgets to disable when running and enable when stopped
+  std::vector<QWidget*> m_disableWhenRunning;
+  // Widgets to disable when trigger is Free Run
+  std::vector<QWidget*> m_triggerSetup;
+
   int m_defaultUniverse = MIN_SACN_UNIVERSE;
 
   int m_lastTraceHue = 0;

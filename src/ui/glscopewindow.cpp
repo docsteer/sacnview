@@ -58,6 +58,7 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
     m_scrollTime = new QScrollBar(Qt::Horizontal, scopeWidget);
     connect(m_scrollTime, &QScrollBar::sliderMoved, this, &GlScopeWindow::onTimeSliderMoved);
     layout->addWidget(m_scrollTime);
+    m_disableWhenRunning.push_back(m_scrollTime);
   }
   m_splitter->addWidget(scopeWidget);
 
@@ -93,6 +94,9 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       connect(m_spinRunTime, QOverload<int>::of(&QSpinBox::valueChanged), m_scope->model(), &ScopeModel::setRunTime);
       connect(m_scope->model(), &ScopeModel::runTimeChanged, m_spinRunTime, &QSpinBox::setValue);
       layoutGrp->addWidget(m_spinRunTime, row, 1);
+
+      m_disableWhenRunning.push_back(lbl);
+      m_disableWhenRunning.push_back(m_spinRunTime);
 
       ++row;
 
@@ -141,6 +145,8 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       connect(m_triggerType, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &GlScopeWindow::setTriggerType);
       layoutGrp->addWidget(m_triggerType, row, 0, 1, 2);
 
+      m_disableWhenRunning.push_back(m_triggerType);
+
       ++row;
       lbl = new QLabel(tr("Trigger Level:"), confWidget);
       layoutGrp->addWidget(lbl, row, 0);
@@ -148,6 +154,9 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       m_spinTriggerLevel->setRange(0, 65535);
       connect(m_spinTriggerLevel, QOverload<int>::of(&QSpinBox::valueChanged), m_scope->model(), &ScopeModel::setTriggerLevel);
       layoutGrp->addWidget(m_spinTriggerLevel, row, 1);
+
+      m_triggerSetup.push_back(lbl);
+      m_triggerSetup.push_back(m_spinTriggerLevel);
 
       // Set initial trigger type and values
       m_triggerType->setCurrentIndex(0);
@@ -191,12 +200,17 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
         QPushButton* addChan = new QPushButton(tr("Add"), confWidget);
         connect(addChan, &QPushButton::clicked, this, &GlScopeWindow::addTrace);
         layoutBtns->addWidget(addChan);
+        m_disableWhenRunning.push_back(addChan);
+
         QPushButton* removeChan = new QPushButton(tr("Remove"), confWidget);
         connect(removeChan, &QPushButton::clicked, this, &GlScopeWindow::removeTrace);
         layoutBtns->addWidget(removeChan);
+        m_disableWhenRunning.push_back(removeChan);
+
         QPushButton* removeAllChan = new QPushButton(tr("Remove All"), confWidget);
         connect(removeAllChan, &QPushButton::clicked, this, &GlScopeWindow::removeAllTraces);
         layoutBtns->addWidget(removeAllChan);
+        m_disableWhenRunning.push_back(removeAllChan);
 
         QFrame* line = new QFrame(this);
         line->setFrameShape(QFrame::VLine);
@@ -205,9 +219,12 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
         QPushButton* btnSave = new QPushButton(tr("Save"), confWidget);
         connect(btnSave, &QPushButton::clicked, this, &GlScopeWindow::saveTraces);
         layoutBtns->addWidget(btnSave);
+        m_disableWhenRunning.push_back(btnSave);
+
         QPushButton* btnLoad = new QPushButton(tr("Load"), confWidget);
         connect(btnLoad, &QPushButton::clicked, this, &GlScopeWindow::loadTraces);
         layoutBtns->addWidget(btnLoad);
+        m_disableWhenRunning.push_back(btnLoad);
 
         layoutBtns->addStretch();
 
@@ -241,18 +258,12 @@ void GlScopeWindow::onRunningChanged(bool running)
   // Enable/disable the start button
   m_btnStart->setEnabled(m_scope->model()->rowCount() > 0);
 
-  m_spinRunTime->setEnabled(!running);
+  for (QWidget* w : m_disableWhenRunning)
+    w->setEnabled(!running);
 
-  // Enable/Disable trigger items
-  m_triggerType->setEnabled(!running);
-  if (running || m_triggerType->currentIndex() == static_cast<int>(ScopeModel::Trigger::FreeRun))
-  {
-    m_spinTriggerLevel->setEnabled(false);
-  }
-  else
-  {
-    m_spinTriggerLevel->setEnabled(true);
-  }
+  // Disable invalid trigger setup
+  for (QWidget* w : m_triggerSetup)
+    w->setEnabled(!running && m_triggerType->currentIndex() != static_cast<int>(ScopeModel::Trigger::FreeRun));
 
   // Reset to start
   if (running)
@@ -287,7 +298,8 @@ void GlScopeWindow::setTriggerType(int idx)
 {
   m_scope->model()->setTriggerType(static_cast<ScopeModel::Trigger>(idx));
   // Enable/disable trigger settings
-  m_spinTriggerLevel->setEnabled(idx != static_cast<int>(ScopeModel::Trigger::FreeRun));
+  for (QWidget* w : m_triggerSetup)
+    w->setEnabled(idx != static_cast<int>(ScopeModel::Trigger::FreeRun));
 }
 
 void GlScopeWindow::addTrace(bool)
@@ -426,7 +438,6 @@ void GlScopeWindow::updateTimeScrollBars()
   // Disable scrolling when running
   if (m_scope->model()->isRunning())
   {
-    m_scrollTime->setEnabled(false);
     m_scrollTime->setMinimum(0);
     m_scrollTime->setMaximum(0);
     return;
