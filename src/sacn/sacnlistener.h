@@ -147,6 +147,7 @@ signals:
   void sourceResumed(sACNSource* source);
   void sourceChanged(sACNSource* source);
   void levelsChanged();
+  void dmxReceived(); // Used by GlScopeWidget
   void dataReady(int address, QPointF data);  // Used by ScopeWidget
 
 private slots:

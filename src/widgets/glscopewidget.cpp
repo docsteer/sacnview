@@ -18,15 +18,25 @@
 #include <QScreen>
 #include <QOpenGLShaderProgram>
 
-static constexpr qreal AXIS_LABEL_WIDTH = 50.0;
+static constexpr qreal AXIS_LABEL_WIDTH = 45.0;
 static constexpr qreal AXIS_LABEL_HEIGHT = 20.0;
 static constexpr qreal TOP_GAP = 10.0;
-static constexpr qreal RIGHT_GAP = 30.0;
+static constexpr qreal RIGHT_GAP = 15.0;
 static constexpr qreal AXIS_TO_WINDOW_GAP = 5.0;
 static constexpr qreal AXIS_TICK_SIZE = 10.0;
 
 static const QString RowTitleColor = QStringLiteral("Color");
 static const QString ColumnTitleTimestamp = QStringLiteral("Time (s)");
+
+static constexpr qreal kMaxDmx16 = 65535;
+static constexpr qreal kMaxDmx8 = 255;
+
+template<typename T>
+T roundCeilMultiple(T value, T multiple)
+{
+  if (multiple == 0) return value;
+  return static_cast<T>(std::ceil(static_cast<qreal>(value) / static_cast<qreal>(multiple)) * static_cast<qreal>(multiple));
+}
 
 bool ScopeTrace::extractUniverseAddress(QStringView address_string, uint16_t& universe, uint16_t& address_hi, uint16_t& address_lo)
 {
@@ -157,7 +167,18 @@ void ScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS
 {
   float value;
   if (fillValue(value, m_slot_hi, m_slot_lo, level_array))
-    m_trace.emplace_back(timestamp, value);
+  {
+    // If level did not change in the last two, only update timestamp
+    const size_t trace_size = m_trace.size();
+    if (trace_size > 3 && m_trace[trace_size - 1].y() == value && m_trace[trace_size - 2].y() == value)
+    {
+      m_trace.back().setX(timestamp);
+    }
+    else
+    {
+      m_trace.emplace_back(timestamp, value);
+    }
+  }
 }
 
 void ScopeTrace::setFirstPoint(const std::array<int, MAX_DMX_ADDRESS>& level_array)
@@ -172,30 +193,30 @@ void ScopeTrace::setFirstPoint(const std::array<int, MAX_DMX_ADDRESS>& level_arr
   }
 }
 
-bool ScopeModel::addUpdateTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo)
+ScopeModel::AddResult ScopeModel::addTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo)
 {
   // Verify validity
   if (!color.isValid())
-    return false;
+    return AddResult::Invalid;
 
-  if (universe == 0)
-    return false;
+  if (universe < MIN_SACN_UNIVERSE)
+    return AddResult::Invalid;
 
   if (address_hi == 0)
-    return false;
+    return AddResult::Invalid;
 
   if (universe > MAX_SACN_UNIVERSE)
-    return false;
+    return AddResult::Invalid;
 
   if (address_hi > MAX_DMX_ADDRESS)
-    return false;
+    return AddResult::Invalid;
 
   if (address_lo > MAX_DMX_ADDRESS)
     address_lo = 0;
   else if (address_lo > 0)
   {
     // 16bit, adjust vertical scale
-    m_maxValue = 65535;
+    setMaxValue(kMaxDmx16);
   }
 
   auto univ_it = m_traceLookup.find(universe);
@@ -221,17 +242,16 @@ bool ScopeModel::addUpdateTrace(const QColor& color, uint16_t universe, uint16_t
       addListener(universe);
     }
 
-    return true;
+    return AddResult::Added;
   }
 
-  // If we have already got this trace, update the color
+  // If we have already got this trace, skip
   auto& univs_item = univ_it->second;
   for (auto& item : univs_item)
   {
     if (item->addressHi() == address_hi && item->addressLo() == address_lo)
     {
-      item->setColor(color);
-      return true;
+      return AddResult::Exists;
     }
   }
 
@@ -241,7 +261,7 @@ bool ScopeModel::addUpdateTrace(const QColor& color, uint16_t universe, uint16_t
   m_traceTable.push_back(trace);
   univs_item.push_back(trace);
   endInsertRows();
-  return true;
+  return AddResult::Added;
 }
 
 // Removes all traces that match this
@@ -356,6 +376,19 @@ const ScopeTrace* ScopeModel::findTrace(uint16_t universe, uint16_t address_hi, 
 
   // Not found
   return nullptr;
+}
+
+QModelIndex ScopeModel::findFirstTraceIndex(uint16_t universe, uint16_t address_hi, uint16_t address_lo, int column) const
+{
+  for (size_t row = 0; row < m_traceTable.size(); ++row)
+  {
+    const ScopeTrace* trace = m_traceTable[row];
+    if (trace && trace->universe() == universe && trace->addressHi() == address_hi && trace->addressLo() == address_lo)
+    {
+      return index(row, column);
+    }
+  }
+  return QModelIndex();
 }
 
 ScopeModel::ScopeModel(QObject* parent)
@@ -479,8 +512,17 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
       case COL_ADDRESS:
         if (role == Qt::EditRole)
         {
+          // If 16bit changed, recheck the vertical scale
+          const bool was16bit = trace->isSixteenBit();
           if (trace->setAddress(value.toString(), true))
           {
+            if (was16bit != trace->isSixteenBit())
+            {
+              if (trace->isSixteenBit())
+                setMaxValue(kMaxDmx16);
+              else
+                updateMaxValue();
+            }
             emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
             return true;
           }
@@ -529,14 +571,16 @@ void ScopeModel::removeAllTraces()
 void ScopeModel::private_removeAllTraces()
 {
   stop();
+  m_traceLookup.clear();
+
   for (ScopeTrace* trace : m_traceTable)
     delete trace;
 
-  m_traceLookup.clear();
   m_traceTable.clear();
+
   // Set extents back to default
   m_endTime = 0;
-  m_maxValue = 255;
+  setMaxValue(kMaxDmx8);
 }
 
 void ScopeModel::clearValues()
@@ -727,7 +771,7 @@ bool ScopeModel::loadTraces(QIODevice& file)
       continue;
     }
 
-    if (addUpdateTrace(color, univ_slots.universe, univ_slots.address_hi, univ_slots.address_lo))
+    if (addTrace(color, univ_slots.universe, univ_slots.address_hi, univ_slots.address_lo) == AddResult::Added)
       trace_idents.push_back(univ_slots);
     else
       trace_idents.push_back(UnivSlots());
@@ -836,6 +880,18 @@ void ScopeModel::stop()
   emit runningChanged(false);
 }
 
+void ScopeModel::setRunTime(qreal seconds)
+{
+  if (runTime() == seconds)
+    return;
+
+  // Validate and emit new or existing value
+  if (seconds >= 0)
+    m_runTime = seconds;
+
+  emit runTimeChanged(runTime());
+}
+
 // Triggers
 void ScopeModel::setTriggerType(Trigger mode)
 {
@@ -846,12 +902,6 @@ void ScopeModel::setTriggerType(Trigger mode)
 void ScopeModel::setTriggerLevel(uint16_t level)
 {
   m_trigger.level = level;
-  emit traceVisibilityChanged();
-}
-
-void ScopeModel::setTriggerDelay(qint64 millisecs)
-{
-  m_trigger.delay = millisecs;
   emit traceVisibilityChanged();
 }
 
@@ -928,9 +978,30 @@ void ScopeModel::removeFromLookup(ScopeTrace* trace, uint16_t old_universe)
 void ScopeModel::addListener(uint16_t universe)
 {
   auto listener = sACNManager::Instance().getListener(universe);
-  connect(listener.data(), &sACNListener::levelsChanged, this, &ScopeModel::onLevelsChanged);
+  connect(listener.data(), &sACNListener::dmxReceived, this, &ScopeModel::onDmxReceived);
   readLevels(listener.data());
   m_listeners.push_back(listener);
+}
+
+void ScopeModel::updateMaxValue()
+{
+  for (const ScopeTrace* trace : m_traceTable)
+  {
+    if (trace->isSixteenBit())
+    {
+      setMaxValue(kMaxDmx16);
+      return;
+    }
+  }
+  setMaxValue(kMaxDmx8);
+}
+
+void ScopeModel::setMaxValue(qreal maxValue)
+{
+  if (m_maxValue == maxValue)
+    return;
+  m_maxValue = maxValue;
+  maxValueChanged();
 }
 
 void ScopeModel::triggerNow()
@@ -952,7 +1023,7 @@ qreal ScopeModel::endTime() const
   return m_endTime;
 }
 
-void ScopeModel::onLevelsChanged()
+void ScopeModel::onDmxReceived()
 {
   if (!isRunning())
     return;
@@ -1018,6 +1089,11 @@ void ScopeModel::readLevels(sACNListener* listener)
   {
     const qreal timestamp = m_elapsed.elapsed();
     m_endTime = timestamp / 1000.0;
+    if (m_runTime > 0 && m_endTime >= m_runTime)
+    {
+      stop();
+      return;
+    }
   }
 
   for (ScopeTrace* trace : it->second)
@@ -1036,7 +1112,7 @@ GlScopeWidget::GlScopeWidget(QWidget* parent)
   connect(m_model, &ScopeModel::traceVisibilityChanged, this, QOverload<void>::of(&QOpenGLWidget::update));
 
   setMinimumSize(200, 200);
-  setVerticalScaleMode(VerticalScale::Dmx);
+  setVerticalScaleMode(VerticalScale::Percent);
   setScopeView();
 }
 
@@ -1047,9 +1123,6 @@ GlScopeWidget::~GlScopeWidget()
 
 void GlScopeWidget::setVerticalScaleMode(VerticalScale scaleMode)
 {
-  if (scaleMode == m_verticalScaleMode)
-    return;
-
   switch (scaleMode)
   {
   default:
@@ -1057,15 +1130,23 @@ void GlScopeWidget::setVerticalScaleMode(VerticalScale scaleMode)
   case VerticalScale::Percent:
   {
     m_levelInterval = 10;
+    m_scopeView.setBottom(kMaxDmx8);  // The 16 bit matrix downscales to 8bit
   } break;
-  case VerticalScale::Dmx:
+  case VerticalScale::Dmx8:
   {
     m_levelInterval = 20;
+    m_scopeView.setBottom(kMaxDmx8);
+  } break;
+  case VerticalScale::Dmx16:
+  {
+    m_levelInterval = 10000;
+    m_scopeView.setBottom(kMaxDmx16);
   } break;
   }
 
   m_verticalScaleMode = scaleMode;
 
+  updateMVPMatrix();
   update();
 }
 
@@ -1074,7 +1155,8 @@ void GlScopeWidget::setScopeView(const QRectF& rect)
   if (rect.isEmpty())
   {
     m_scopeView = m_model->traceExtents();
-    m_scopeView.setRight(m_defaultViewWidth);
+    m_scopeView.setRight(m_defaultIntervalCount * m_timeInterval);
+    setVerticalScaleMode(m_verticalScaleMode);
   }
   else if (rect == m_scopeView)
   {
@@ -1099,7 +1181,7 @@ void GlScopeWidget::setTimeDivisions(int milliseconds)
     milliseconds = 1;
 
   m_timeInterval = static_cast<qreal>(milliseconds) / 1000.0;
-  m_scopeView.setWidth(m_timeInterval * m_defaultViewWidth);
+  m_scopeView.setWidth(m_timeInterval * m_defaultIntervalCount);
   updateMVPMatrix();
   update();
 
@@ -1176,13 +1258,9 @@ void GlScopeWidget::cleanupGL()
   doneCurrent();
 }
 
-inline void DrawLevelAxisMark(QPainter& painter, const QFontMetricsF& metrics,
-  const QPen& gridPen, const QPen& textPen,
-  const QRectF& scopeWindow, int level, qreal y_scale, const QString& postfix)
+inline void DrawLevelAxisText(QPainter& painter, const QFontMetricsF& metrics, const QRectF& scopeWindow, int level, qreal y_scale, const QString& postfix)
 {
   qreal y = scopeWindow.height() - (level * y_scale);
-  painter.setPen(gridPen);
-  painter.drawLine(QPointF(-AXIS_TICK_SIZE, y), QPointF(scopeWindow.width(), y));
 
   // TODO: use QStaticText to optimise the text layout
   const QString text = QString::number(level) + postfix;
@@ -1190,7 +1268,6 @@ inline void DrawLevelAxisMark(QPainter& painter, const QFontMetricsF& metrics,
   QRectF fontRect = metrics.boundingRect(text);
   fontRect.moveBottomRight(QPointF(-AXIS_TICK_SIZE, y + (fontRect.height() / 2.0)));
 
-  painter.setPen(textPen);
   painter.drawText(fontRect, text, QTextOption(Qt::AlignLeft));
 }
 
@@ -1199,7 +1276,7 @@ void GlScopeWidget::paintGL()
   const qreal endTime = m_model->endTime();
   if (m_followNow)
   {
-    if (endTime > m_defaultViewWidth)
+    if (endTime > m_scopeView.width())
     {
       m_scopeView.moveRight(endTime);
       updateMVPMatrix();
@@ -1208,17 +1285,26 @@ void GlScopeWidget::paintGL()
 
   glClear(GL_COLOR_BUFFER_BIT);
 
-  // Draw the axes using QPainter as is easiest way to get the text
-  {
-    QPen gridPen;
-    gridPen.setColor(QColor("#434343"));
+  // Pixel-perfect grid lines
+  std::vector<QVector2D> gridLines;
+  gridLines.reserve((11 + 14) * 2); // 10 ticks across, 13 up for 0-255
 
+  // Colors
+  static const QColor gridColor(0x43, 0x43, 0x43);
+  static const QColor textColor(Qt::white);
+  static const QColor timeCursorColor(Qt::white);
+  static const QColor triggerCursorColor(Qt::gray);
+
+  // Draw the axes using QPainter as is easiest way to get the text
+  // It's ok if the labels aren't pixel perfect
+  {
     QPen textPen;
-    textPen.setColor(Qt::white);
+    textPen.setColor(textColor);
 
     QPainter painter(this);
 
     painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setPen(textPen);
 
     // Origin is the bottom left of the scope window
     QPointF origin(rect().bottomLeft().x() + AXIS_LABEL_WIDTH, rect().bottomLeft().y() - AXIS_LABEL_HEIGHT);
@@ -1239,29 +1325,52 @@ void GlScopeWidget::paintGL()
 
     // Draw vertical (level) axis
     {
-      painter.setPen(gridPen);
-      painter.drawLine(QPointF(0, 0), QPointF(0, scopeWindow.height()));
-
-      QString postfix;
-      int max_value = m_scopeView.bottom();
-      qreal y_scale = scopeWindow.height() / m_scopeView.bottom();
+      const float lineLeft = m_scopeView.left();
+      const float lineRight = std::fmaxf(m_scopeView.right(), endTime);
 
       if (m_verticalScaleMode == VerticalScale::Percent)
       {
-        postfix = QStringLiteral("%");
-        // TODO: Scale this properly
-        max_value = 100;
-        y_scale = scopeWindow.height() / 100.0;
-      }
+        const QString postfix = QStringLiteral("%");
+        const qreal max_value = 100.0;
+        const qreal y_scale = scopeWindow.height() / 100.0; // Percent
+        const float value_scale = kMaxDmx8 / 100.0f;
 
-      // From bottom to top
-      for (int value = m_scopeView.top(); value < max_value; value += m_levelInterval)
+        // From bottom to top
+        for (qreal value = m_scopeView.top(); value < max_value; value += m_levelInterval)
+        {
+          // Grid lines in trace space
+          gridLines.emplace_back(lineLeft, static_cast<float>(value) * value_scale);
+          gridLines.emplace_back(lineRight, static_cast<float>(value) * value_scale);
+          DrawLevelAxisText(painter, metrics, scopeWindow, value, y_scale, postfix);
+        }
+
+        // Final row, may be uneven
+        // Grid lines in trace space
+        gridLines.emplace_back(lineLeft, static_cast<float>(m_scopeView.bottom()));
+        gridLines.emplace_back(lineRight, static_cast<float>(m_scopeView.bottom()));
+        DrawLevelAxisText(painter, metrics, scopeWindow, max_value, y_scale, postfix);
+      }
+      else
       {
-        DrawLevelAxisMark(painter, metrics, gridPen, textPen, scopeWindow, value, y_scale, postfix);
-      }
+        const QString postfix;
+        const int max_value = m_scopeView.bottom();
+        const qreal y_scale = scopeWindow.height() / m_scopeView.bottom();
 
-      // Final row, may be uneven
-      DrawLevelAxisMark(painter, metrics, gridPen, textPen, scopeWindow, max_value, y_scale, postfix);
+        // From bottom to top
+        for (int value = m_scopeView.top(); value < max_value; value += m_levelInterval)
+        {
+          // Grid lines in trace space
+          gridLines.emplace_back(lineLeft, static_cast<float>(value));
+          gridLines.emplace_back(lineRight, static_cast<float>(value));
+          DrawLevelAxisText(painter, metrics, scopeWindow, value, y_scale, postfix);
+        }
+
+        // Final row, may be uneven
+        // Grid lines in trace space
+        gridLines.emplace_back(lineLeft, max_value);
+        gridLines.emplace_back(lineRight, max_value);
+        DrawLevelAxisText(painter, metrics, scopeWindow, max_value, y_scale, postfix);
+      }
     }
 
     // Draw horizontal (time) axis
@@ -1270,65 +1379,59 @@ void GlScopeWidget::paintGL()
 
     const qreal x_scale = scopeWindow.width() / m_scopeView.width();
     const bool milliseconds = (m_timeInterval < 1.0);
-    for (qreal time = m_scopeView.left(); time < m_scopeView.right() + 0.001; time += m_timeInterval)
+
+    for (qreal time = roundCeilMultiple(m_scopeView.left(), m_timeInterval); time < m_scopeView.right() + 0.001; time += m_timeInterval)
     {
+      // Grid lines in trace space
+      gridLines.emplace_back(static_cast<float>(time), 0.0f);
+      gridLines.emplace_back(static_cast<float>(time), m_scopeView.bottom());
+
       const qreal x = (time - m_scopeView.left()) * x_scale;
-      painter.setPen(gridPen);
-      painter.drawLine(x, 0, x, -scopeWindow.height());
 
       // TODO: use QStaticText to optimise the text layout
       const QString text = milliseconds ? QStringLiteral("%1ms").arg(time * 1000.0) : QStringLiteral("%1s").arg(time);
-
       QRectF fontRect = metrics.boundingRect(text);
-
       fontRect.moveCenter(QPointF(x, AXIS_LABEL_HEIGHT / 2.0));
-
-      painter.setPen(textPen);
       painter.drawText(fontRect, text, QTextOption(Qt::AlignLeft));
     }
   }
-
-  // TODO: Draw the graph lines using the mvpMatrix to ensure they match and improve performance
-  // It's ok if the labels aren't pixel perfect
 
   // Unable to render at all
   if (!m_program)
     return;
 
   m_program->bind();
+  glEnableVertexAttribArray(m_vertexLocation);
 
   m_program->setUniformValue(m_matrixUniform, m_mvpMatrix);
+
+  // Draw the gridlines
+  {
+    m_program->setUniformValue(m_colorUniform, gridColor);
+    glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, gridLines.data());
+    glDrawArrays(GL_LINES, 0, gridLines.size());
+  }
 
   if (m_model->isTriggered())
   {
     // Draw the current time
-    m_program->setUniformValue(m_colorUniform, QColor(Qt::white));
+    m_program->setUniformValue(m_colorUniform, timeCursorColor);
     const std::vector<QVector2D> nowLine = {
       {static_cast<float>(m_model->endTime()), 0},
-      {static_cast<float>(m_model->endTime()), 65535}
+      {static_cast<float>(m_model->endTime()), static_cast<float>(m_scopeView.bottom())}
     };
     glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, nowLine.data());
-
-    glEnableVertexAttribArray(m_vertexLocation);
-
     glDrawArrays(GL_LINE_STRIP, 0, 2);
-
-    glDisableVertexAttribArray(m_vertexLocation);
   }
   else if (m_model->triggerType() != ScopeModel::Trigger::FreeRun)
   {
-    // Draw the trigger level as a triangle pointing up or down
-    m_program->setUniformValue(m_colorUniform, QColor(Qt::gray));
+    // Draw the trigger level marker
+    m_program->setUniformValue(m_colorUniform, triggerCursorColor);
 
     const std::vector<QVector2D> triggerLine = makeTriggerLine(m_model->triggerType());
 
     glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, triggerLine.data());
-
-    glEnableVertexAttribArray(m_vertexLocation);
-
     glDrawArrays(GL_TRIANGLES, 0, triggerLine.size());
-
-    glDisableVertexAttribArray(m_vertexLocation);
   }
 
 
@@ -1337,19 +1440,20 @@ void GlScopeWidget::paintGL()
     if (!trace->enabled())
       continue;
 
+    // Change the scale as needed
+    if (m_verticalScaleMode == VerticalScale::Percent)
+    {
+      m_program->setUniformValue(m_matrixUniform, trace->isSixteenBit() ? m_mvpMatrix16 : m_mvpMatrix);
+    }
+
     m_program->setUniformValue(m_colorUniform, trace->color());
 
     glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, trace->values().data());
-
-    glEnableVertexAttribArray(m_vertexLocation);
-
     glDrawArrays(GL_LINE_STRIP, 0, trace->values().size());
-
-    glDisableVertexAttribArray(m_vertexLocation);
   }
 
+  glDisableVertexAttribArray(m_vertexLocation);
   m_program->release();
-
 }
 
 void GlScopeWidget::resizeGL(int w, int h)
@@ -1392,13 +1496,13 @@ void GlScopeWidget::updateMVPMatrix()
   // Translate to origin
   modelMatrix.translate(AXIS_LABEL_WIDTH, AXIS_LABEL_HEIGHT);
 
-  // Vertical scale
-  const qreal pix_height = rect().height() - AXIS_LABEL_HEIGHT - TOP_GAP;
-  const qreal y_scale = pix_height / m_scopeView.height();
-
   // Horizontal scale
   const qreal pix_width = rect().width() - AXIS_LABEL_WIDTH - RIGHT_GAP;
   const qreal x_scale = pix_width / m_scopeView.width();
+
+  // Vertical scale
+  const qreal pix_height = rect().height() - AXIS_LABEL_HEIGHT - TOP_GAP;
+  const qreal y_scale = pix_height / m_scopeView.height();
 
   modelMatrix.scale(x_scale, y_scale, 1);
 
@@ -1406,6 +1510,21 @@ void GlScopeWidget::updateMVPMatrix()
   modelMatrix.translate(-m_scopeView.left(), -m_scopeView.top(), 0);
 
   m_mvpMatrix = m_viewMatrix * modelMatrix;
+
+  if (m_verticalScaleMode == VerticalScale::Percent)
+  {
+    // Vertical scale for 16bit
+    const qreal y_scale16 = pix_height / (m_scopeView.height() * 256.0);
+
+    QMatrix4x4 modelMatrix16;
+    modelMatrix16.translate(AXIS_LABEL_WIDTH, AXIS_LABEL_HEIGHT);
+    modelMatrix16.scale(x_scale, y_scale16, 1);
+
+    // Translate to current time and vertical offset
+    modelMatrix16.translate(-m_scopeView.left(), -m_scopeView.top(), 0);
+
+    m_mvpMatrix16 = m_viewMatrix * modelMatrix16;
+  }
 }
 
 std::vector<QVector2D> GlScopeWidget::makeTriggerLine(ScopeModel::Trigger type)
@@ -1452,7 +1571,7 @@ bool ScopeModel::TriggerConfig::IsTrigger() const
 
     // Check level could trigger
     // 8 or 16bit
-    const uint16_t max_level = (address_lo == 0 ? 255 : 65535);
+    const uint16_t max_level = (address_lo == 0 ? kMaxDmx8 : kMaxDmx16);
     if (level > max_level)
       return false;
 

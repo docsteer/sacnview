@@ -32,9 +32,11 @@
 
 #include <QFileDialog>
 
-GlScopeWindow::GlScopeWindow(QWidget* parent)
+GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
   : QWidget(parent)
+  , m_defaultUniverse(universe)
 {
+  setWindowTitle(tr("Scope"));
   setWindowIcon(QIcon(QStringLiteral(":/icons/scope.png")));
 
   QBoxLayout* layout = new QVBoxLayout(this);
@@ -56,6 +58,7 @@ GlScopeWindow::GlScopeWindow(QWidget* parent)
     m_scrollTime = new QScrollBar(Qt::Horizontal, scopeWidget);
     connect(m_scrollTime, &QScrollBar::sliderMoved, this, &GlScopeWindow::onTimeSliderMoved);
     layout->addWidget(m_scrollTime);
+    m_disableWhenRunning.push_back(m_scrollTime);
   }
   m_splitter->addWidget(scopeWidget);
 
@@ -79,12 +82,31 @@ GlScopeWindow::GlScopeWindow(QWidget* parent)
 
       ++row;
 
+      QLabel* lbl = new QLabel(tr("Run For:"), confWidget);
+      layoutGrp->addWidget(lbl, row, 0);
+      m_spinRunTime = new QSpinBox(confWidget);
+      m_spinRunTime->setRange(0, 300); // Five minutes
+      m_spinRunTime->setSingleStep(10);
+      //! Seconds suffix
+      m_spinRunTime->setSuffix(tr("s"));
+      m_spinRunTime->setSpecialValueText(tr("Forever"));
+      m_spinRunTime->setValue(m_scope->model()->runTime());
+      connect(m_spinRunTime, QOverload<int>::of(&QSpinBox::valueChanged), m_scope->model(), &ScopeModel::setRunTime);
+      connect(m_scope->model(), &ScopeModel::runTimeChanged, m_spinRunTime, &QSpinBox::setValue);
+      layoutGrp->addWidget(m_spinRunTime, row, 1);
+
+      m_disableWhenRunning.push_back(lbl);
+      m_disableWhenRunning.push_back(m_spinRunTime);
+
+      ++row;
+
       // Scope scale configuration
-      QLabel* lbl = new QLabel(tr("Vertical Scale:"), confWidget);
+      lbl = new QLabel(tr("Vertical Scale:"), confWidget);
       layoutGrp->addWidget(lbl, row, 0);
       QComboBox* verticalScale = new QComboBox(confWidget);
-      verticalScale->addItems({ tr("DMX"), tr("Percent") });
+      verticalScale->addItems({ tr("Percent"), tr("DMX8"), tr("DMX16") });
       connect(verticalScale, QOverload<int>::of(&QComboBox::activated), this, &GlScopeWindow::setVerticalScaleMode);
+      verticalScale->setCurrentIndex(static_cast<int>(m_scope->verticalScaleMode()));
       layoutGrp->addWidget(verticalScale, row, 1);
 
       ++row;
@@ -98,7 +120,7 @@ GlScopeWindow::GlScopeWindow(QWidget* parent)
       //! Milliseconds suffix
       m_spinTimeScale->setSuffix(tr("ms"));
       m_spinTimeScale->setValue(m_scope->timeDivisions());
-      connect(m_spinTimeScale, QOverload<int>::of(&QSpinBox::valueChanged), m_scope, &GlScopeWidget::setTimeDivisions);
+      connect(m_spinTimeScale, QOverload<int>::of(&QSpinBox::valueChanged), this, &GlScopeWindow::onTimeDivisionsChanged);
       connect(m_scope, &GlScopeWidget::timeDivisionsChanged, m_spinTimeScale, &QSpinBox::setValue);
       layoutGrp->addWidget(m_spinTimeScale, row, 1);
 
@@ -123,6 +145,8 @@ GlScopeWindow::GlScopeWindow(QWidget* parent)
       connect(m_triggerType, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &GlScopeWindow::setTriggerType);
       layoutGrp->addWidget(m_triggerType, row, 0, 1, 2);
 
+      m_disableWhenRunning.push_back(m_triggerType);
+
       ++row;
       lbl = new QLabel(tr("Trigger Level:"), confWidget);
       layoutGrp->addWidget(lbl, row, 0);
@@ -131,20 +155,12 @@ GlScopeWindow::GlScopeWindow(QWidget* parent)
       connect(m_spinTriggerLevel, QOverload<int>::of(&QSpinBox::valueChanged), m_scope->model(), &ScopeModel::setTriggerLevel);
       layoutGrp->addWidget(m_spinTriggerLevel, row, 1);
 
-      ++row;
-      lbl = new QLabel(tr("Trigger Delay:"), confWidget);
-      layoutGrp->addWidget(lbl, row, 0);
-      m_spinTriggerDelay = new QSpinBox(this);
-      m_spinTriggerDelay->setRange(0, 1000);  // Milliseconds
-      //! Milliseconds suffix
-      m_spinTriggerDelay->setSuffix(tr("ms"));
-      connect(m_spinTriggerDelay, QOverload<int>::of(&QSpinBox::valueChanged), m_scope->model(), &ScopeModel::setTriggerDelay);
-      layoutGrp->addWidget(m_spinTriggerDelay, row, 1);
+      m_triggerSetup.push_back(lbl);
+      m_triggerSetup.push_back(m_spinTriggerLevel);
 
       // Set initial trigger type and values
       m_triggerType->setCurrentIndex(0);
       m_spinTriggerLevel->setValue(127);
-      m_spinTriggerDelay->setValue(0);
 
       // Spacer at the bottom
       ++row;
@@ -160,6 +176,10 @@ GlScopeWindow::GlScopeWindow(QWidget* parent)
       m_tableView = new QTableView(this);
       m_tableView->verticalHeader()->hide();
       m_tableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+      m_tableView->setAlternatingRowColors(true);
+      m_tableView->setItemDelegateForColumn(ScopeModel::COL_COLOUR, new ColorPickerDelegate(this));
+      m_tableView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+      m_tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
       // Sorting
       QSortFilterProxyModel* sortProxy = new QSortFilterProxyModel(m_tableView);
@@ -169,6 +189,8 @@ GlScopeWindow::GlScopeWindow(QWidget* parent)
       m_tableView->setModel(sortProxy);
       m_tableView->setSortingEnabled(true);
       m_tableView->sortByColumn(0, Qt::AscendingOrder);
+      m_tableView->horizontalHeader()->setStretchLastSection(true);
+      m_tableView->resizeColumnsToContents();
 
       layoutGrp->addWidget(m_tableView);
 
@@ -178,9 +200,17 @@ GlScopeWindow::GlScopeWindow(QWidget* parent)
         QPushButton* addChan = new QPushButton(tr("Add"), confWidget);
         connect(addChan, &QPushButton::clicked, this, &GlScopeWindow::addTrace);
         layoutBtns->addWidget(addChan);
+        m_disableWhenRunning.push_back(addChan);
+
         QPushButton* removeChan = new QPushButton(tr("Remove"), confWidget);
         connect(removeChan, &QPushButton::clicked, this, &GlScopeWindow::removeTrace);
         layoutBtns->addWidget(removeChan);
+        m_disableWhenRunning.push_back(removeChan);
+
+        QPushButton* removeAllChan = new QPushButton(tr("Remove All"), confWidget);
+        connect(removeAllChan, &QPushButton::clicked, this, &GlScopeWindow::removeAllTraces);
+        layoutBtns->addWidget(removeAllChan);
+        m_disableWhenRunning.push_back(removeAllChan);
 
         QFrame* line = new QFrame(this);
         line->setFrameShape(QFrame::VLine);
@@ -189,9 +219,12 @@ GlScopeWindow::GlScopeWindow(QWidget* parent)
         QPushButton* btnSave = new QPushButton(tr("Save"), confWidget);
         connect(btnSave, &QPushButton::clicked, this, &GlScopeWindow::saveTraces);
         layoutBtns->addWidget(btnSave);
+        m_disableWhenRunning.push_back(btnSave);
+
         QPushButton* btnLoad = new QPushButton(tr("Load"), confWidget);
         connect(btnLoad, &QPushButton::clicked, this, &GlScopeWindow::loadTraces);
         layoutBtns->addWidget(btnLoad);
+        m_disableWhenRunning.push_back(btnLoad);
 
         layoutBtns->addStretch();
 
@@ -222,18 +255,15 @@ void GlScopeWindow::onRunningChanged(bool running)
   m_btnStart->setChecked(running);
   m_btnStop->setChecked(!running);
 
-  // Enable/Disable trigger items
-  m_triggerType->setEnabled(!running);
-  if (running || m_triggerType->currentIndex() == 0)
-  {
-    m_spinTriggerLevel->setEnabled(false);
-    m_spinTriggerDelay->setEnabled(false);
-  }
-  else
-  {
-    m_spinTriggerLevel->setEnabled(true);
-    m_spinTriggerDelay->setEnabled(true);
-  }
+  // Enable/disable the start button
+  m_btnStart->setEnabled(m_scope->model()->rowCount() > 0);
+
+  for (QWidget* w : m_disableWhenRunning)
+    w->setEnabled(!running);
+
+  // Disable invalid trigger setup
+  for (QWidget* w : m_triggerSetup)
+    w->setEnabled(!running && m_triggerType->currentIndex() != static_cast<int>(ScopeModel::Trigger::FreeRun));
 
   // Reset to start
   if (running)
@@ -241,7 +271,7 @@ void GlScopeWindow::onRunningChanged(bool running)
   // Force to follow now when running
   m_scope->setFollowNow(running);
 
-  updateScrollBars();
+  updateTimeScrollBars();
 }
 
 void GlScopeWindow::onTimeSliderMoved(int value)
@@ -253,17 +283,23 @@ void GlScopeWindow::onTimeSliderMoved(int value)
   m_scope->setScopeView(scopeView);
 }
 
+void GlScopeWindow::onTimeDivisionsChanged(int value)
+{
+  m_scope->setTimeDivisions(value);
+  updateTimeScrollBars();
+}
+
 void GlScopeWindow::setVerticalScaleMode(int idx)
 {
-  m_scope->setVerticalScaleMode(static_cast<GlScopeWidget::VerticalScale>(idx + 1));
+  m_scope->setVerticalScaleMode(static_cast<GlScopeWidget::VerticalScale>(idx));
 }
 
 void GlScopeWindow::setTriggerType(int idx)
 {
   m_scope->model()->setTriggerType(static_cast<ScopeModel::Trigger>(idx));
   // Enable/disable trigger settings
-  m_spinTriggerLevel->setEnabled(idx != 0);
-  m_spinTriggerDelay->setEnabled(idx != 0);
+  for (QWidget* w : m_triggerSetup)
+    w->setEnabled(idx != static_cast<int>(ScopeModel::Trigger::FreeRun));
 }
 
 void GlScopeWindow::addTrace(bool)
@@ -281,26 +317,72 @@ void GlScopeWindow::addTrace(bool)
 
   if (m_scope->model()->rowCount() == 0)
   {
-    m_scope->model()->addUpdateTrace(traceColor, 1, 1, 0);
+    m_scope->model()->addTrace(traceColor, m_defaultUniverse, MIN_DMX_ADDRESS);
+    m_btnStart->setEnabled(true);
     return;
   }
 
   // Add an 8bit trace defaulting to the next item, based on the current index
   QModelIndex current = m_tableView->currentIndex();
   if (!current.isValid())
-    current = m_scope->model()->index(m_scope->model()->rowCount() - 1, ScopeModel::COL_UNIVERSE);
+    current = m_tableView->model()->index(m_tableView->model()->rowCount() - 1, ScopeModel::COL_UNIVERSE);
+
+  uint16_t universe = current.model()->index(current.row(), ScopeModel::COL_UNIVERSE).data(Qt::DisplayRole).toUInt();
+
+  uint16_t address_hi;
+  uint16_t address_lo;
+  {
+    const QString addr_string = current.model()->index(current.row(), ScopeModel::COL_ADDRESS).data(Qt::DisplayRole).toString();
+    if (!ScopeTrace::extractAddress(addr_string, address_hi, address_lo))
+    {
+      qDebug() << "Bad format, logic error:" << addr_string;
+      address_hi = 1;
+      address_lo = 0;
+    }
+  }
 
   if (current.column() == ScopeModel::COL_UNIVERSE)
   {
-    // if Universe column is selected, add the next Universe
-    m_scope->model()->addUpdateTrace(traceColor, current.data(Qt::DisplayRole).toUInt() + 1, 1);
+    // If Universe column is selected, add the same slot(s) in the next unused Universe
+    do
+    {
+      ++universe;
+    } while (m_scope->model()->addTrace(traceColor, universe, address_hi, address_lo) == ScopeModel::AddResult::Exists);
   }
   else
   {
-    // if any other column is selected, add the next 8bit slot on the same universe
-    uint16_t universe = m_scope->model()->index(current.row(), ScopeModel::COL_UNIVERSE).data(Qt::DisplayRole).toUInt();
-    uint16_t address_hi = m_scope->model()->index(current.row(), ScopeModel::COL_ADDRESS).data(Qt::DisplayRole).toUInt();
-    m_scope->model()->addUpdateTrace(traceColor, universe, address_hi);
+    // If any other column is selected, add the next unused 8/16bit slot on the same universe
+    if (universe < MIN_SACN_UNIVERSE)
+      universe = MIN_SACN_UNIVERSE;
+    do
+    {
+      ++address_hi;
+
+      // 16 bit, default to coarse/fine as is by far the most common
+      if (address_lo != 0)
+      {
+        ++address_hi;
+        address_lo = address_hi + 1;
+      }
+
+      // Next universe
+      if (address_hi > MAX_DMX_ADDRESS)
+      {
+        ++universe;
+        address_hi = MIN_DMX_ADDRESS;
+        if (address_lo != 0)
+          address_lo = address_hi + 1;
+      }
+    } while (m_scope->model()->addTrace(traceColor, universe, address_hi, address_lo) == ScopeModel::AddResult::Exists);
+  }
+
+  // Select the item that was added
+  QAbstractProxyModel* proxy = qobject_cast<QAbstractProxyModel*>(m_tableView->model());
+  if (proxy)
+  {
+    const QModelIndex srcIndex = m_scope->model()->findFirstTraceIndex(universe, address_hi, address_lo, proxy->mapToSource(current).column());
+    if (srcIndex.isValid())
+      m_tableView->setCurrentIndex(proxy->mapFromSource(srcIndex));
   }
 }
 
@@ -313,6 +395,12 @@ void GlScopeWindow::removeTrace(bool)
   // Get the items to delete
   QModelIndexList selected = selection->selectedIndexes();
   m_scope->model()->removeTraces(selected);
+}
+
+void GlScopeWindow::removeAllTraces(bool)
+{
+  m_scope->model()->removeAllTraces();
+  m_btnStart->setEnabled(false);
 }
 
 void GlScopeWindow::saveTraces(bool)
@@ -341,15 +429,15 @@ void GlScopeWindow::loadTraces(bool)
   m_scope->model()->loadTraces(csvExport);
 
   // Update
-  updateScrollBars();
+  updateTimeScrollBars();
+  m_btnStart->setEnabled(m_scope->model()->rowCount() > 0);
 }
 
-void GlScopeWindow::updateScrollBars()
+void GlScopeWindow::updateTimeScrollBars()
 {
   // Disable scrolling when running
   if (m_scope->model()->isRunning())
   {
-    m_scrollTime->setEnabled(false);
     m_scrollTime->setMinimum(0);
     m_scrollTime->setMaximum(0);
     return;
@@ -373,5 +461,53 @@ void GlScopeWindow::updateScrollBars()
 
   onTimeSliderMoved(m_scrollTime->value());
   m_scrollTime->setEnabled(true);
+}
 
+// QColorDialog doesn't autocentre when used as a delegate
+void ColorDialog::showEvent(QShowEvent* ev)
+{
+  QRect parentRect(parentWidget()->mapToGlobal(QPoint(0, 0)), parentWidget()->size());
+  move(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, size(), parentRect).topLeft());
+
+  QColorDialog::showEvent(ev);
+}
+
+
+ColorPickerDelegate::ColorPickerDelegate(QWidget* parent)
+  : QStyledItemDelegate(parent)
+{
+  m_dialog = new ColorDialog(parent);
+}
+
+QWidget* ColorPickerDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& /*option*/, const QModelIndex& /*idx*/) const
+{
+  return m_dialog;
+}
+
+void ColorPickerDelegate::destroyEditor(QWidget* editor, const QModelIndex& /*idx*/) const
+{
+  // Don't delete it, reuse it instead
+  if (editor == m_dialog)
+    return;
+}
+
+void ColorPickerDelegate::setEditorData(QWidget* editor, const QModelIndex& idx) const
+{
+  ColorDialog* dialog = qobject_cast<ColorDialog*>(editor);
+  if (dialog)
+  {
+    QColor color = idx.data(Qt::BackgroundRole).value<QColor>();
+    dialog->setCurrentColor(color);
+  }
+}
+
+void ColorPickerDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& idx) const
+{
+  ColorDialog* dialog = qobject_cast<ColorDialog*>(editor);
+  if (dialog)
+  {
+    QColor color = dialog->selectedColor();
+    if (color.isValid())
+      model->setData(idx, color, Qt::EditRole);
+  }
 }

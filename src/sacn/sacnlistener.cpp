@@ -596,6 +596,9 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
 
     // Merge
     performMerge();
+    // Inform everyone who cares that a DMX packet has been received
+    if (start_code == STARTCODE_DMX)
+      emit dmxReceived();
   }
 }
 

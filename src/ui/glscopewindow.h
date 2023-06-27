@@ -14,7 +14,11 @@
 
 #pragma once
 
+#include "consts.h"
+
 #include <QWidget>
+#include <QColorDialog>
+#include <QStyledItemDelegate>
 
 class GlScopeWidget;
 
@@ -29,18 +33,20 @@ class GlScopeWindow : public QWidget
 {
   Q_OBJECT
 public:
-  explicit GlScopeWindow(QWidget* parent = nullptr);
+  explicit GlScopeWindow(int universe, QWidget* parent = nullptr);
   ~GlScopeWindow();
 
 private:
   Q_SLOT void onRunningChanged(bool running);
   Q_SLOT void onTimeSliderMoved(int value);
+  Q_SLOT void onTimeDivisionsChanged(int value);
 
   Q_SLOT void setVerticalScaleMode(int idx);
   Q_SLOT void setTriggerType(int idx);
 
   Q_SLOT void addTrace(bool);
   Q_SLOT void removeTrace(bool);
+  Q_SLOT void removeAllTraces(bool);
 
   Q_SLOT void saveTraces(bool);
   Q_SLOT void loadTraces(bool);
@@ -49,17 +55,50 @@ private:
   QSplitter* m_splitter = nullptr;
   GlScopeWidget* m_scope = nullptr;
   QScrollBar* m_scrollTime = nullptr;
+  QSpinBox* m_spinRunTime = nullptr;
   QSpinBox* m_spinTimeScale = nullptr;
   QComboBox* m_triggerType = nullptr;
   QSpinBox* m_spinTriggerLevel = nullptr;
-  QSpinBox* m_spinTriggerDelay = nullptr;
   QPushButton* m_btnStart = nullptr;
   QPushButton* m_btnStop = nullptr;
   QTableView* m_tableView = nullptr;
-  int m_refreshTimer = 0;
+
+  // Widgets to disable when running and enable when stopped
+  std::vector<QWidget*> m_disableWhenRunning;
+  // Widgets to disable when trigger is Free Run
+  std::vector<QWidget*> m_triggerSetup;
+
+  int m_defaultUniverse = MIN_SACN_UNIVERSE;
 
   int m_lastTraceHue = 0;
   int m_lastTraceSat = 255;
 
-  void updateScrollBars();
+  void updateTimeScrollBars();
+};
+
+class ColorDialog : public QColorDialog
+{
+  Q_OBJECT
+
+public:
+  ColorDialog(QWidget* parent = nullptr) : QColorDialog(parent) {}
+
+protected:
+  void showEvent(QShowEvent* ev) override;
+};
+
+class ColorPickerDelegate : public QStyledItemDelegate
+{
+  Q_OBJECT
+
+public:
+  ColorPickerDelegate(QWidget* parent = nullptr);
+
+  QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& idx) const override;
+  void destroyEditor(QWidget* editor, const QModelIndex& idx) const override;
+  void setEditorData(QWidget* editor, const QModelIndex& idx) const override;
+  void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& idx) const override;
+
+private:
+  QDialog* m_dialog = nullptr;
 };

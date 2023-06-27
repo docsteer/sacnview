@@ -117,6 +117,13 @@ public:
     LevelCross
   };
 
+  enum class AddResult
+  {
+    Invalid,
+    Added,
+    Exists
+  };
+
 public:
   ScopeModel(QObject* parent = nullptr);
   ~ScopeModel();
@@ -131,14 +138,14 @@ public:
   bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole) override;
 
   /**
- * @brief Add or update a trace
+ * @brief Add a new trace
  * @param color Color to use for the trace. Must be valid
  * @param universe Universe for the trace. (1 - Max sACN Universe)
  * @param address_hi DMX address of the Coarse byte. (1-512)
  * @param address_lo DMX address of the Fine byte. Out of range for 8bit.
- * @return true if added or updated the trace, false for invalid parameters
+ * @return Added if added the trace, Invalid for invalid parameters, Exists for already extant
 */
-  bool addUpdateTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo = 0);
+  AddResult addTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo = 0);
 
   /**
    * @brief Remove a trace
@@ -160,6 +167,8 @@ public:
    * @return
   */
   const ScopeTrace* findTrace(uint16_t universe, uint16_t address_hi, uint16_t address_lo = 0) const;
+
+  QModelIndex findFirstTraceIndex(uint16_t universe, uint16_t address_hi, uint16_t address_lo = 0, int column = 0) const;
 
   /**
    * @brief Get all traces for rendering
@@ -205,6 +214,14 @@ public:
   bool isRunning() const { return m_running; }
   Q_SIGNAL void runningChanged(bool running);
 
+  /**
+  * @brief Length of time in seconds to run after Start or Trigger
+  * Zero for forever (or until memory is exhausted)
+  */
+  qreal runTime() const { return m_runTime; }
+  Q_SLOT void setRunTime(qreal seconds);
+  Q_SIGNAL void runTimeChanged(qreal seconds);
+
   /// Trace visibility has changed so must re-render
   Q_SIGNAL void traceVisibilityChanged();
 
@@ -215,9 +232,6 @@ public:
   Q_SLOT void setTriggerLevel(uint16_t level);
   uint16_t triggerLevel() const { return m_trigger.level; }
 
-  Q_SLOT void setTriggerDelay(qint64 millisecs);
-  qint64 getTriggerDelay() const { return m_trigger.delay; }
-
   bool isTriggered() const { return m_elapsed.isValid(); }
   void triggerNow();
   Q_SIGNAL void triggered();
@@ -227,12 +241,14 @@ public:
    * Suitable to use as zoom-to-extents
   */
   QRectF traceExtents() const;
+  /// Trace has switched between 8 or 16 bit
+  Q_SIGNAL void maxValueChanged();
 
   /// @brief Get current end time in seconds
   qreal endTime() const;
 
 private:
-  Q_SLOT void onLevelsChanged();
+  Q_SLOT void onDmxReceived();
   void readLevels(sACNListener* listener);
 
 private:
@@ -240,8 +256,9 @@ private:
   std::map<uint16_t, std::vector<ScopeTrace*>> m_traceLookup;
   std::vector<sACNManager::tListener> m_listeners; // Keep the listeners alive
   QElapsedTimer m_elapsed;
-  qreal m_endTime = 0;// Maximum extents of the scope measurements in DMX
-  qreal m_maxValue = 0;
+  qreal m_endTime = 0;  // Max. time extents of the scope measurements
+  qreal m_maxValue = 0; // Max. possible value in DMX
+  qreal m_runTime = 0;
 
   struct TriggerConfig
   {
@@ -249,7 +266,6 @@ private:
     uint16_t address_hi = 0;
     uint16_t address_lo = 0;
     uint16_t level = 0;
-    qint64 delay = 0;
     Trigger mode = Trigger::FreeRun;
 
     int last_level = -1;
@@ -269,6 +285,10 @@ private:
   bool moveTrace(ScopeTrace* trace, uint16_t new_universe, bool clear_values = true);
   void removeFromLookup(ScopeTrace* trace, uint16_t old_universe);
   void addListener(uint16_t universe);
+
+  // A trace has changed from 16bit to 8bit
+  void updateMaxValue();
+  void setMaxValue(qreal maxValue);
 };
 
 class GlScopeWidget : public QOpenGLWidget, protected QOpenGLFunctions
@@ -277,9 +297,10 @@ class GlScopeWidget : public QOpenGLWidget, protected QOpenGLFunctions
 public:
   enum class VerticalScale
   {
-    Invalid,
-    Dmx,
     Percent,
+    Dmx8,
+    Dmx16,
+    Invalid,
   };
 
 public:
@@ -322,8 +343,6 @@ protected:
   void initializeGL() override;
   Q_SLOT void cleanupGL();
 
-  void setupVertexAttribs();
-
   void paintGL() override;
   void resizeGL(int w, int h) override;
 
@@ -337,8 +356,8 @@ private:
   // View configuration
   VerticalScale m_verticalScaleMode = VerticalScale::Invalid;
   int m_levelInterval = 20; // Level axis label interval
-  qreal m_defaultViewWidth = 10.0; // Seconds to show when reset to default
   qreal m_timeInterval = 1.0; // Time axis label interval
+  qreal m_defaultIntervalCount = 10.0; // Time axis intervals to show when view is reset
 
   QRectF m_scopeView; // Current scope view range in DMX
   bool m_followNow = true;
@@ -352,6 +371,7 @@ private:
 
   QMatrix4x4 m_viewMatrix;
   QMatrix4x4 m_mvpMatrix;
+  QMatrix4x4 m_mvpMatrix16;
 
   void updateMVPMatrix();
   std::vector<QVector2D> makeTriggerLine(ScopeModel::Trigger type);
