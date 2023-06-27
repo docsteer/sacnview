@@ -880,6 +880,18 @@ void ScopeModel::stop()
   emit runningChanged(false);
 }
 
+void ScopeModel::setRunTime(qreal seconds)
+{
+  if (runTime() == seconds)
+    return;
+
+  // Validate and emit new or existing value
+  if (seconds >= 0)
+    m_runTime = seconds;
+
+  emit runTimeChanged(runTime());
+}
+
 // Triggers
 void ScopeModel::setTriggerType(Trigger mode)
 {
@@ -1077,6 +1089,11 @@ void ScopeModel::readLevels(sACNListener* listener)
   {
     const qreal timestamp = m_elapsed.elapsed();
     m_endTime = timestamp / 1000.0;
+    if (m_runTime > 0 && m_endTime >= m_runTime)
+    {
+      stop();
+      return;
+    }
   }
 
   for (ScopeTrace* trace : it->second)

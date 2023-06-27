@@ -81,8 +81,23 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
 
       ++row;
 
+      QLabel* lbl = new QLabel(tr("Run For:"), confWidget);
+      layoutGrp->addWidget(lbl, row, 0);
+      m_spinRunTime = new QSpinBox(confWidget);
+      m_spinRunTime->setRange(0, 300); // Five minutes
+      m_spinRunTime->setSingleStep(10);
+      //! Seconds suffix
+      m_spinRunTime->setSuffix(tr("s"));
+      m_spinRunTime->setSpecialValueText(tr("Forever"));
+      m_spinRunTime->setValue(m_scope->model()->runTime());
+      connect(m_spinRunTime, QOverload<int>::of(&QSpinBox::valueChanged), m_scope->model(), &ScopeModel::setRunTime);
+      connect(m_scope->model(), &ScopeModel::runTimeChanged, m_spinRunTime, &QSpinBox::setValue);
+      layoutGrp->addWidget(m_spinRunTime, row, 1);
+
+      ++row;
+
       // Scope scale configuration
-      QLabel* lbl = new QLabel(tr("Vertical Scale:"), confWidget);
+      lbl = new QLabel(tr("Vertical Scale:"), confWidget);
       layoutGrp->addWidget(lbl, row, 0);
       QComboBox* verticalScale = new QComboBox(confWidget);
       verticalScale->addItems({ tr("Percent"), tr("DMX8"), tr("DMX16") });
@@ -179,6 +194,9 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
         QPushButton* removeChan = new QPushButton(tr("Remove"), confWidget);
         connect(removeChan, &QPushButton::clicked, this, &GlScopeWindow::removeTrace);
         layoutBtns->addWidget(removeChan);
+        QPushButton* removeAllChan = new QPushButton(tr("Remove All"), confWidget);
+        connect(removeAllChan, &QPushButton::clicked, this, &GlScopeWindow::removeAllTraces);
+        layoutBtns->addWidget(removeAllChan);
 
         QFrame* line = new QFrame(this);
         line->setFrameShape(QFrame::VLine);
@@ -219,6 +237,11 @@ void GlScopeWindow::onRunningChanged(bool running)
 {
   m_btnStart->setChecked(running);
   m_btnStop->setChecked(!running);
+
+  // Enable/disable the start button
+  m_btnStart->setEnabled(m_scope->model()->rowCount() > 0);
+
+  m_spinRunTime->setEnabled(!running);
 
   // Enable/Disable trigger items
   m_triggerType->setEnabled(!running);
@@ -283,6 +306,7 @@ void GlScopeWindow::addTrace(bool)
   if (m_scope->model()->rowCount() == 0)
   {
     m_scope->model()->addTrace(traceColor, m_defaultUniverse, MIN_DMX_ADDRESS);
+    m_btnStart->setEnabled(true);
     return;
   }
 
@@ -361,6 +385,12 @@ void GlScopeWindow::removeTrace(bool)
   m_scope->model()->removeTraces(selected);
 }
 
+void GlScopeWindow::removeAllTraces(bool)
+{
+  m_scope->model()->removeAllTraces();
+  m_btnStart->setEnabled(false);
+}
+
 void GlScopeWindow::saveTraces(bool)
 {
   const QString filename = QFileDialog::getSaveFileName(this, tr("Save Traces"), QString(), QStringLiteral("CSV (*.csv)"));
@@ -388,6 +418,7 @@ void GlScopeWindow::loadTraces(bool)
 
   // Update
   updateTimeScrollBars();
+  m_btnStart->setEnabled(m_scope->model()->rowCount() > 0);
 }
 
 void GlScopeWindow::updateTimeScrollBars()

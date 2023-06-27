@@ -214,6 +214,14 @@ public:
   bool isRunning() const { return m_running; }
   Q_SIGNAL void runningChanged(bool running);
 
+  /**
+  * @brief Length of time in seconds to run after Start or Trigger
+  * Zero for forever (or until memory is exhausted)
+  */
+  qreal runTime() const { return m_runTime; }
+  Q_SLOT void setRunTime(qreal seconds);
+  Q_SIGNAL void runTimeChanged(qreal seconds);
+
   /// Trace visibility has changed so must re-render
   Q_SIGNAL void traceVisibilityChanged();
 
@@ -250,6 +258,7 @@ private:
   QElapsedTimer m_elapsed;
   qreal m_endTime = 0;  // Max. time extents of the scope measurements
   qreal m_maxValue = 0; // Max. possible value in DMX
+  qreal m_runTime = 0;
 
   struct TriggerConfig
   {

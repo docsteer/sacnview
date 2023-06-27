@@ -46,6 +46,7 @@ private:
 
   Q_SLOT void addTrace(bool);
   Q_SLOT void removeTrace(bool);
+  Q_SLOT void removeAllTraces(bool);
 
   Q_SLOT void saveTraces(bool);
   Q_SLOT void loadTraces(bool);
@@ -54,6 +55,7 @@ private:
   QSplitter* m_splitter = nullptr;
   GlScopeWidget* m_scope = nullptr;
   QScrollBar* m_scrollTime = nullptr;
+  QSpinBox* m_spinRunTime = nullptr;
   QSpinBox* m_spinTimeScale = nullptr;
   QComboBox* m_triggerType = nullptr;
   QSpinBox* m_spinTriggerLevel = nullptr;
