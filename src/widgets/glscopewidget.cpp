@@ -315,7 +315,7 @@ void ScopeModel::removeTrace(uint16_t universe, uint16_t address_hi, uint16_t ad
       if ((*it)->universe() == universe)
       {
         // Disconnect signal
-        disconnect((*it).data(), nullptr, this, nullptr);
+        (*it)->removeDirectCallback(this);
         it = m_listeners.erase(it);
       }
       else
@@ -395,6 +395,7 @@ ScopeModel::ScopeModel(QObject* parent)
   : QAbstractTableModel(parent)
 {
   private_removeAllTraces();
+  connect(this, &ScopeModel::stopNow, this, &ScopeModel::stop, Qt::QueuedConnection);
 }
 
 ScopeModel::~ScopeModel()
@@ -856,9 +857,8 @@ void ScopeModel::start()
   }
   else
   {
-    m_elapsed.start();
+    triggerNow(sACNManager::secsElapsed());
   }
-
 
   for (const auto& universe : m_traceLookup)
   {
@@ -878,11 +878,11 @@ void ScopeModel::stop()
   // Disconnect all
   for (auto& listener : m_listeners)
   {
-    disconnect(listener.data(), nullptr, this, nullptr);
+    listener->removeDirectCallback(this);
   }
   // And clear/shutdown
   m_listeners.clear();
-  m_elapsed.invalidate();
+  m_startOffset = 0;
   emit runningChanged(false);
 }
 
@@ -969,7 +969,7 @@ void ScopeModel::removeFromLookup(ScopeTrace* trace, uint16_t old_universe)
         if ((*it)->universe() == old_universe)
         {
           // Disconnect signal
-          disconnect((*it).data(), nullptr, this, nullptr);
+          (*it)->removeDirectCallback(this);
           it = m_listeners.erase(it);
         }
         else
@@ -984,8 +984,7 @@ void ScopeModel::removeFromLookup(ScopeTrace* trace, uint16_t old_universe)
 void ScopeModel::addListener(uint16_t universe)
 {
   auto listener = sACNManager::Instance().getListener(universe);
-  connect(listener.data(), &sACNListener::dmxReceived, this, &ScopeModel::onDmxReceived);
-  readLevels(listener.data());
+  listener->addDirectCallback(this);
   m_listeners.push_back(listener);
 }
 
@@ -1010,9 +1009,9 @@ void ScopeModel::setMaxValue(qreal maxValue)
   maxValueChanged();
 }
 
-void ScopeModel::triggerNow()
+void ScopeModel::triggerNow(qreal offset)
 {
-  m_elapsed.start();
+  m_startOffset = offset;
   emit triggered();
 }
 
@@ -1024,39 +1023,26 @@ QRectF ScopeModel::traceExtents() const
 qreal ScopeModel::endTime() const
 {
   if (isTriggered())
-    return qreal(m_elapsed.elapsed()) / 1000;
+    return (qreal(sACNManager::elapsed()) / 1000) - m_startOffset;
 
   return m_endTime;
 }
 
-void ScopeModel::onDmxReceived()
+void ScopeModel::sACNListenerDmxReceived(qreal timestamp, int universe, const std::array<int, MAX_DMX_ADDRESS>& levels)
 {
-  if (!isRunning())
+  if (!m_running)
     return;
 
-  sACNListener* listener = qobject_cast<sACNListener*>(sender());
-
-  if (!listener)
-    return; // Check for deletion
-
-  readLevels(listener);
-}
-
-void ScopeModel::readLevels(sACNListener* listener)
-{
   // Find traces for universe
-  auto it = m_traceLookup.find(listener->universe());
+  auto it = m_traceLookup.find(universe);
   if (it == m_traceLookup.end())
     return;
-
-  // Grab levels
-  const auto levels = listener->mergedLevelsOnly();
 
   if (!isTriggered())
   {
     {
       uint16_t current_level;
-      if (listener->universe() == m_trigger.universe && fillValue(current_level, m_trigger.address_hi - 1, m_trigger.address_lo - 1, levels))
+      if (universe == m_trigger.universe && fillValue(current_level, m_trigger.address_hi - 1, m_trigger.address_lo - 1, levels))
       {
         // Have a current level, maybe start the clock
         switch (m_trigger.mode)
@@ -1064,18 +1050,18 @@ void ScopeModel::readLevels(sACNListener* listener)
         default: break;
         case Trigger::Above:
           if (current_level > m_trigger.level)
-            triggerNow();
+            triggerNow(timestamp);
           break;
         case Trigger::Below:
           if (current_level < m_trigger.level)
-            triggerNow();
+            triggerNow(timestamp);
           break;
         case Trigger::LevelCross:
           if ((m_trigger.last_level == m_trigger.level && current_level != m_trigger.level) // Was at, now not
             || (m_trigger.last_level > m_trigger.level && current_level < m_trigger.level) // Was above, now below
             || (m_trigger.last_level != -1 && m_trigger.last_level < m_trigger.level && current_level > m_trigger.level) // Was below, now above
             )
-            triggerNow();
+            triggerNow(timestamp);
           break;
         }
         m_trigger.last_level = current_level;
@@ -1093,11 +1079,11 @@ void ScopeModel::readLevels(sACNListener* listener)
 
   // Time in seconds
   {
-    const qreal timestamp = m_elapsed.elapsed();
-    m_endTime = timestamp / 1000.0;
+    m_endTime = timestamp - m_startOffset;
+    qDebug() << m_endTime;
     if (m_runTime > 0 && m_endTime >= m_runTime)
     {
-      stop();
+      emit stopNow();
       return;
     }
   }

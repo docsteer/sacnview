@@ -94,7 +94,6 @@ void sACNListener::startReception()
   m_initalSampleTimer->start();
 
   // Merge is performed whenever a packet arrives and every BACKGROUND_MERGE interval
-  m_elapsedTime.start();
   m_mergesPerSecondTimer.start();
   m_mergeTimer = new QTimer(this);
   m_mergeTimer->setInterval(BACKGROUND_MERGE);
@@ -218,6 +217,8 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
       Q_ARG(QHostAddress, sender));
     return;
   };
+
+  const qreal timestamp = sACNManager::secsElapsed();
 
   QMutexLocker locker(&m_processMutex);
 
@@ -600,7 +601,36 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
     performMerge();
     // Inform everyone who cares that a DMX packet has been received
     if (start_code == STARTCODE_DMX)
-      emit dmxReceived();
+    {
+      QMutexLocker locker(&m_monitoredChannelsMutex);
+      for (IDmxReceivedCallback* callback : m_dmxReceivedCallbacks)
+      {
+        callback->sACNListenerDmxReceived(timestamp, m_universe, m_current_levels);
+      }
+    }
+  }
+}
+
+void sACNListener::addDirectCallback(IDmxReceivedCallback* callback)
+{
+  QMutexLocker locker(&m_monitoredChannelsMutex);
+  for (const IDmxReceivedCallback* existing : m_dmxReceivedCallbacks)
+  {
+    if (existing == callback)
+      return;
+  }
+  m_dmxReceivedCallbacks.push_back(callback);
+}
+
+void sACNListener::removeDirectCallback(IDmxReceivedCallback* callback)
+{
+  QMutexLocker locker(&m_monitoredChannelsMutex);
+  for (auto it = m_dmxReceivedCallbacks.begin(); it != m_dmxReceivedCallbacks.end(); /**/)
+  {
+    if (callback == (*it))
+      it = m_dmxReceivedCallbacks.erase(it);
+    else
+      ++it;
   }
 }
 
@@ -621,7 +651,7 @@ void sACNListener::performMerge()
     for (auto const& chan : qAsConst(m_monitoredChannels))
     {
       QPointF data;
-      data.setX(m_elapsedTime.nsecsElapsed() / 1000000.0);
+      data.setX(sACNManager::nsecsElapsed() / 1000000.0);
       data.setY(mergedLevels().at(chan).level);
       emit dataReady(chan, data);
     }

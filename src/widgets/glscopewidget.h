@@ -91,7 +91,7 @@ private:
   bool m_enabled = true;
 };
 
-class ScopeModel : public QAbstractTableModel
+class ScopeModel : public QAbstractTableModel, public sACNListener::IDmxReceivedCallback
 {
   Q_OBJECT
 public:
@@ -232,8 +232,7 @@ public:
   Q_SLOT void setTriggerLevel(uint16_t level);
   uint16_t triggerLevel() const { return m_trigger.level; }
 
-  bool isTriggered() const { return m_elapsed.isValid(); }
-  void triggerNow();
+  bool isTriggered() const { return m_startOffset != 0; }
   Q_SIGNAL void triggered();
 
   /**
@@ -247,15 +246,17 @@ public:
   /// @brief Get current end time in seconds
   qreal endTime() const;
 
+  /// sACNListener::IDmxReceivedCallback
+  void sACNListenerDmxReceived(qreal timestamp, int universe, const std::array<int, MAX_DMX_ADDRESS>& levels) final;
+
 private:
-  Q_SLOT void onDmxReceived();
-  void readLevels(sACNListener* listener);
+  Q_SIGNAL void stopNow();
 
 private:
   std::vector<ScopeTrace*> m_traceTable;
   std::map<uint16_t, std::vector<ScopeTrace*>> m_traceLookup;
   std::vector<sACNManager::tListener> m_listeners; // Keep the listeners alive
-  QElapsedTimer m_elapsed;
+  qreal m_startOffset = 0; // Offset between this scope and global timeframe
   qreal m_endTime = 0;  // Max. time extents of the scope measurements
   qreal m_maxValue = 0; // Max. possible value in DMX
   qreal m_runTime = 0;
@@ -280,6 +281,9 @@ private:
   bool m_running = false;
 
   size_t m_reservation = 12000; // Reserve space for this many samples. 300s @ 40Hz
+
+  // Start the trace
+  void triggerNow(qreal offset);
 
   void private_removeAllTraces();
   // Move a trace from one universe to another if possible

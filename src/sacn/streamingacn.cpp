@@ -145,6 +145,9 @@ sACNManager::~sACNManager()
 
 sACNManager::sACNManager() : QObject()
 {
+  // Start the global timer
+  m_elapsed.start();
+
   // Start E1.31 Universe Discovery
   sACNDiscoveryTX::start();
   sACNDiscoveryRX::start();

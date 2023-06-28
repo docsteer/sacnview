@@ -51,6 +51,21 @@ typedef QVector<sACNMergedAddress> sACNMergedSourceList;
 class sACNListener : public QObject
 {
   Q_OBJECT
+
+public:
+  class IDmxReceivedCallback
+  {
+  public:
+    virtual ~IDmxReceivedCallback() {}
+    /**
+    * @brief Called in the listener thread after a DMX packet has been received and merged
+    * @param timestamp seconds since this receiver started
+    * @param universe number
+    * @param mergedLevels array of merged levels
+    */
+    virtual void sACNListenerDmxReceived(qreal timestamp, int universe, const std::array<int, MAX_DMX_ADDRESS> &mergedLevels) = 0;
+  };
+
 public:
   sACNListener(int universe, QObject* parent = 0);
   virtual ~sACNListener();
@@ -126,6 +141,10 @@ public:
    */
   void doFullMerge() { m_mergeAll = true; }
 
+  // Objects that want a direct, in-thread callback for levels
+  void addDirectCallback(IDmxReceivedCallback* callback);
+  void removeDirectCallback(IDmxReceivedCallback* callback);
+
 public slots:
   void startReception();
   void monitorAddress(int address, const QObject* owner) {
@@ -147,7 +166,6 @@ signals:
   void sourceResumed(sACNSource* source);
   void sourceChanged(sACNSource* source);
   void levelsChanged();
-  void dmxReceived(); // Used by GlScopeWidget
   void dataReady(int address, QPointF data);  // Used by ScopeWidget
 
 private slots:
@@ -174,9 +192,9 @@ private:
   bool m_isSampling = true;
   QTimer* m_initalSampleTimer = nullptr;
   QTimer* m_mergeTimer = nullptr;
-  QElapsedTimer m_elapsedTime;
   int m_predictableTimerValue;
   QMutex m_monitoredChannelsMutex;
+  std::vector<IDmxReceivedCallback*> m_dmxReceivedCallbacks;
   QMultiMap<const QObject*, int> m_monitoredChannels;
   bool m_mergeAll = true; // A flag to initiate a complete remerge of everything
   unsigned int m_mergesPerSecond = 0;
