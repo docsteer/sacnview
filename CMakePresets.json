@@ -28,7 +28,15 @@
         "strategy": "external"
       },
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "windows-x64-release-installer",
+      "displayName": "x64 Installer",
+      "description": "Windows (64-bit) MSVC Release with Installer",
+      "inherits": "windows-x64-release",
+      "cacheVariables": {
         "SACNVIEW_CREATE_INSTALLER": true
       }
     },
