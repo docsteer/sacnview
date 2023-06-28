@@ -170,7 +170,7 @@ void ScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS
   {
     // If level did not change in the last two, only update timestamp
     const size_t trace_size = m_trace.size();
-    if (trace_size > 3 && m_trace[trace_size - 1].y() == value && m_trace[trace_size - 2].y() == value)
+    if (trace_size > 2 && m_trace[trace_size - 1].y() == value && m_trace[trace_size - 2].y() == value)
     {
       m_trace.back().setX(timestamp);
     }
