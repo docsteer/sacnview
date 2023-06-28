@@ -272,6 +272,7 @@ private:
 
     bool IsTrigger() const;
     bool IsTriggerTrace(const ScopeTrace& trace) const;
+    void SetTrigger(const ScopeTrace& trace);
   };
 
   TriggerConfig m_trigger; // Trigger configuration

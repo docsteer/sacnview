@@ -501,8 +501,12 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
         }
         if (role == Qt::EditRole)
         {
+          // Maybe update the trigger
+          const bool isTrigger = m_trigger.IsTriggerTrace(*trace);
           if (moveTrace(trace, value.toUInt()))
           {
+            if (isTrigger)
+              m_trigger.SetTrigger(*trace);
             emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
             return true;
           }
@@ -514,6 +518,8 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
         {
           // If 16bit changed, recheck the vertical scale
           const bool was16bit = trace->isSixteenBit();
+          // Maybe update the trigger
+          const bool isTrigger = m_trigger.IsTriggerTrace(*trace);
           if (trace->setAddress(value.toString(), true))
           {
             if (was16bit != trace->isSixteenBit())
@@ -523,6 +529,8 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
               else
                 updateMaxValue();
             }
+            if (isTrigger)
+              m_trigger.SetTrigger(*trace);
             emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
             return true;
           }
@@ -546,9 +554,7 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
         {
           if (trace->isValid())
           {
-            m_trigger.universe = trace->universe();
-            m_trigger.address_hi = trace->addressHi();
-            m_trigger.address_lo = trace->addressLo();
+            m_trigger.SetTrigger(*trace);
             emit dataChanged(index(0, COL_TRIGGER), index(rowCount() - 1, COL_TRIGGER), { Qt::CheckStateRole, DataSortRole });
             return true;
           }
@@ -1591,4 +1597,11 @@ bool ScopeModel::TriggerConfig::IsTrigger() const
 bool ScopeModel::TriggerConfig::IsTriggerTrace(const ScopeTrace& trace) const
 {
   return trace.universe() == universe && trace.addressHi() == address_hi && trace.addressLo() == address_lo;
+}
+
+void ScopeModel::TriggerConfig::SetTrigger(const ScopeTrace& trace)
+{
+  universe = trace.universe();
+  address_hi = trace.addressHi();
+  address_lo = trace.addressLo();
 }
