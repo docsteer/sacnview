@@ -46,6 +46,8 @@ sACNListener::sACNListener(int universe, QObject* parent)
   , m_universe(universe)
 {
   qRegisterMetaType<QHostAddress>("QHostAddress");
+  m_current_levels.fill(-1);
+  m_current_priorities.fill(-1);
 }
 
 sACNListener::~sACNListener()

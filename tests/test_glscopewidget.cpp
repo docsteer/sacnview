@@ -31,6 +31,35 @@ TEST(ScopeTrace, AddPoint)
   EXPECT_EQ(QVector2D(0, 1), trace.values()[0]);
 }
 
+TEST(ScopeTrace, CompressPoints)
+{
+  ScopeTrace trace(Qt::red, 1, 1, 0, 10);
+  
+  // Add three identical levels
+  std::array<int, MAX_DMX_ADDRESS> levels = { 1, 2 };
+  float time = 0;
+  trace.addPoint(time, levels);
+  trace.addPoint(++time, levels);
+  trace.addPoint(++time, levels);
+  EXPECT_EQ(3, trace.values().size());
+  EXPECT_EQ(time, trace.values().back().x());
+  // Should now start compressing points
+  trace.addPoint(++time, levels);
+  EXPECT_EQ(3, trace.values().size());
+  EXPECT_EQ(time, trace.values().back().x());
+  // Change level
+  levels[0] = 3;
+  trace.addPoint(++time, levels);
+  EXPECT_EQ(4, trace.values().size());
+  trace.addPoint(++time, levels);
+  EXPECT_EQ(5, trace.values().size());
+  EXPECT_EQ(time, trace.values().back().x());
+  // Should now start compressing points
+  trace.addPoint(++time, levels);
+  EXPECT_EQ(5, trace.values().size());
+  EXPECT_EQ(time, trace.values().back().x());
+}
+
 void VerifyRedGreenTrace(const ScopeModel& glscope, const char* note)
 {
   // There are Two! Traces!
