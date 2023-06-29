@@ -1475,9 +1475,9 @@ void GlScopeWidget::onRunningChanged(bool running)
   {
     if (m_renderTimer == 0)
     {
-      // Redraw at half the screen refresh or 5fps, whichever is greater
-      const int framerate = screen()->refreshRate() / 2;
-      m_renderTimer = startTimer(1 / (framerate > 5 ? framerate : 5));
+      // Redraw at the screen refresh or 5fps, whichever is greater
+      const qreal framerate = screen()->refreshRate();
+      m_renderTimer = startTimer(framerate > 5.0 ? static_cast<int>(std::ceil(1000.0 / framerate)) : 200);
     }
   }
   else
