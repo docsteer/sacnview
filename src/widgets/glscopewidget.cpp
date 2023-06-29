@@ -692,12 +692,11 @@ bool ScopeModel::saveTraces(QIODevice& file) const
           // Output a value for this timestamp and step forward
           out << static_cast<int>((*value_its.current)[1]);
           ++value_its.current;
-
-          // Determine the next row time
-          if (value_its.current != value_its.values.end() && (*value_its.current)[0] < next_row_time)
-          {
-            next_row_time = (*value_its.current)[0];
-          }
+        }
+        // Determine the next row time
+        if (value_its.current != value_its.values.end() && (*value_its.current)[0] < next_row_time)
+        {
+          next_row_time = (*value_its.current)[0];
         }
       }
     }
