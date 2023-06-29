@@ -63,6 +63,10 @@ public:
 
   ~sACNManager();
 
+  static qint64 nsecsElapsed() { return Instance().m_elapsed.nsecsElapsed(); }
+  static qint64 elapsed() { return Instance().m_elapsed.elapsed(); }
+  static qreal secsElapsed() { return static_cast<qreal>(Instance().m_elapsed.elapsed()) / 1000.0; }
+
 public slots:
   void listenerDelete(QObject* obj = Q_NULLPTR);
 
@@ -70,6 +74,7 @@ public slots:
 private:
   sACNManager();
   QMutex sACNManager_mutex;
+  QElapsedTimer m_elapsed;
 
   QHash<QObject*, quint16> m_objToUniverse;
   QHash<QObject*, CID> m_objToCid;

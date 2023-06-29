@@ -26,6 +26,22 @@
 
 class QOpenGLShaderProgram;
 
+template<typename T>
+class InterlockedReader
+{
+public:
+  InterlockedReader(const InterlockedReader&) = delete;
+  InterlockedReader& operator=(const InterlockedReader&) = delete;
+
+  inline InterlockedReader(const T& item, QMutex& mutex) noexcept : m_value(item), m_mutex(mutex) { m_mutex.lock(); }
+  inline ~InterlockedReader() { m_mutex.unlock(); }
+  inline const T& value() const { return m_value; }
+
+private:
+  const T& m_value;
+  QMutex& m_mutex;
+};
+
 class ScopeTrace
 {
 public:
@@ -70,19 +86,21 @@ public:
   const QColor& color() const { return m_color; };
   void setColor(const QColor& color) { m_color = color; };
 
-  void clear() { m_trace.clear(); }
-  void reserve(size_t point_count) { m_trace.reserve(point_count); }
+  void clear() { QMutexLocker lock(&m_mutex); m_trace.clear(); }
+  void reserve(size_t point_count) { QMutexLocker lock(&m_mutex); m_trace.reserve(point_count); }
 
   void addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array);
   // For pretrigger
   void setFirstPoint(const std::array<int, MAX_DMX_ADDRESS>& level_array);
 
-  const std::vector<QVector2D>& values() const { return m_trace; }
+  // For rendering
+  InterlockedReader<std::vector<QVector2D>> values() const { return InterlockedReader<std::vector<QVector2D>>(m_trace, m_mutex); }
 
   // For loading from CSV
-  void addValue(const QVector2D& value) { m_trace.push_back(value); }
+  void addValue(const QVector2D& value) { QMutexLocker lock(&m_mutex); m_trace.push_back(value); }
 
 private:
+  mutable QMutex m_mutex;
   std::vector<QVector2D> m_trace;
   QColor m_color;
   uint16_t m_universe = 0;
@@ -91,7 +109,7 @@ private:
   bool m_enabled = true;
 };
 
-class ScopeModel : public QAbstractTableModel
+class ScopeModel : public QAbstractTableModel, public sACNListener::IDmxReceivedCallback
 {
   Q_OBJECT
 public:
@@ -159,15 +177,21 @@ public:
   void removeTraces(const QModelIndexList& indexes);
 
   /**
-   * @brief Find the scope trace object for a universe and slot pair
-   * Caution: This pointer is invalidated if any traces are added or removed
+   * @brief Find the scope trace pointer for a universe and slot pair
+   * Caution: Invalidated if any traces are added or removed
    * @param universe Universe
    * @param address_hi DMX address of the Coarse byte. (1-512)
    * @param address_lo DMX address of the Fine byte. Out of range for 8bit. (Valid range 1-512)
-   * @return
   */
-  const ScopeTrace* findTrace(uint16_t universe, uint16_t address_hi, uint16_t address_lo = 0) const;
+  ScopeTrace* findTrace(uint16_t universe, uint16_t address_hi, uint16_t address_lo = 0);
 
+  /**
+   * @brief Find the scope trace index for a universe and slot pair
+   * Caution: Invalidated if any traces are added or removed
+   * @param universe Universe
+   * @param address_hi DMX address of the Coarse byte. (1-512)
+   * @param address_lo DMX address of the Fine byte. Out of range for 8bit. (Valid range 1-512)
+  */
   QModelIndex findFirstTraceIndex(uint16_t universe, uint16_t address_hi, uint16_t address_lo = 0, int column = 0) const;
 
   /**
@@ -232,8 +256,7 @@ public:
   Q_SLOT void setTriggerLevel(uint16_t level);
   uint16_t triggerLevel() const { return m_trigger.level; }
 
-  bool isTriggered() const { return m_elapsed.isValid(); }
-  void triggerNow();
+  bool isTriggered() const { return m_startOffset != 0; }
   Q_SIGNAL void triggered();
 
   /**
@@ -247,15 +270,17 @@ public:
   /// @brief Get current end time in seconds
   qreal endTime() const;
 
+  /// sACNListener::IDmxReceivedCallback
+  void sACNListenerDmxReceived(qreal timestamp, int universe, const std::array<int, MAX_DMX_ADDRESS>& levels) final;
+
 private:
-  Q_SLOT void onDmxReceived();
-  void readLevels(sACNListener* listener);
+  Q_SIGNAL void stopNow();
 
 private:
   std::vector<ScopeTrace*> m_traceTable;
   std::map<uint16_t, std::vector<ScopeTrace*>> m_traceLookup;
   std::vector<sACNManager::tListener> m_listeners; // Keep the listeners alive
-  QElapsedTimer m_elapsed;
+  qreal m_startOffset = 0; // Offset between this scope and global timeframe
   qreal m_endTime = 0;  // Max. time extents of the scope measurements
   qreal m_maxValue = 0; // Max. possible value in DMX
   qreal m_runTime = 0;
@@ -280,6 +305,9 @@ private:
   bool m_running = false;
 
   size_t m_reservation = 12000; // Reserve space for this many samples. 300s @ 40Hz
+
+  // Start the trace
+  void triggerNow(qreal offset);
 
   void private_removeAllTraces();
   // Move a trace from one universe to another if possible
