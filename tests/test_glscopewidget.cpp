@@ -24,11 +24,11 @@ TEST(ScopeTrace, AddPoint)
   ScopeTrace trace(Qt::red, 1, 1, 0, 10);
   EXPECT_TRUE(trace.isValid());
   EXPECT_FALSE(trace.isSixteenBit());
-  EXPECT_TRUE(trace.values().empty());
+  EXPECT_TRUE(trace.values().value().empty());
   const std::array<int, MAX_DMX_ADDRESS> levels = { 1, 2 };
   trace.addPoint(0, levels);
-  ASSERT_EQ(1, trace.values().size());
-  EXPECT_EQ(QVector2D(0, 1), trace.values()[0]);
+  ASSERT_EQ(1, trace.values().value().size());
+  EXPECT_EQ(QVector2D(0, 1), trace.values().value()[0]);
 }
 
 TEST(ScopeTrace, CompressPoints)
@@ -41,26 +41,26 @@ TEST(ScopeTrace, CompressPoints)
   trace.addPoint(time, levels);
   trace.addPoint(++time, levels);
   trace.addPoint(++time, levels);
-  EXPECT_EQ(3, trace.values().size());
-  EXPECT_EQ(time, trace.values().back().x());
+  EXPECT_EQ(3, trace.values().value().size());
+  EXPECT_EQ(time, trace.values().value().back().x());
   // Should now start compressing points
   trace.addPoint(++time, levels);
-  EXPECT_EQ(3, trace.values().size());
-  EXPECT_EQ(time, trace.values().back().x());
+  EXPECT_EQ(3, trace.values().value().size());
+  EXPECT_EQ(time, trace.values().value().back().x());
   // Change level
   levels[0] = 3;
   trace.addPoint(++time, levels);
-  EXPECT_EQ(4, trace.values().size());
+  EXPECT_EQ(4, trace.values().value().size());
   trace.addPoint(++time, levels);
-  EXPECT_EQ(5, trace.values().size());
-  EXPECT_EQ(time, trace.values().back().x());
+  EXPECT_EQ(5, trace.values().value().size());
+  EXPECT_EQ(time, trace.values().value().back().x());
   // Should now start compressing points
   trace.addPoint(++time, levels);
-  EXPECT_EQ(5, trace.values().size());
-  EXPECT_EQ(time, trace.values().back().x());
+  EXPECT_EQ(5, trace.values().value().size());
+  EXPECT_EQ(time, trace.values().value().back().x());
 }
 
-void VerifyRedGreenTrace(const ScopeModel& glscope, const char* note)
+void VerifyRedGreenTrace(ScopeModel& glscope, const char* note)
 {
   // There are Two! Traces!
   EXPECT_EQ(2, glscope.rowCount()) << note;
@@ -74,10 +74,10 @@ void VerifyRedGreenTrace(const ScopeModel& glscope, const char* note)
       EXPECT_TRUE(red_trace->isValid()) << note;
       EXPECT_FALSE(red_trace->isSixteenBit()) << note;
       EXPECT_EQ(QColor(Qt::red), red_trace->color()) << note;
-      EXPECT_EQ(6, red_trace->values().size()) << note;
+      EXPECT_EQ(6, red_trace->values().value().size()) << note;
       // Verify first and last values
-      EXPECT_EQ(QVector2D(10, 1), red_trace->values().front()) << note;
-      EXPECT_EQ(QVector2D(16, 4), red_trace->values().back()) << note;
+      EXPECT_EQ(QVector2D(10, 1), red_trace->values().value().front()) << note;
+      EXPECT_EQ(QVector2D(16, 4), red_trace->values().value().back()) << note;
     }
   }
 
@@ -90,10 +90,10 @@ void VerifyRedGreenTrace(const ScopeModel& glscope, const char* note)
       EXPECT_TRUE(green_trace->isValid()) << note;
       EXPECT_TRUE(green_trace->isSixteenBit()) << note;
       EXPECT_EQ(QColor("green"), green_trace->color()) << note;
-      EXPECT_EQ(7, green_trace->values().size()) << note;
+      EXPECT_EQ(7, green_trace->values().value().size()) << note;
       // Verify first and last values
-      EXPECT_EQ(QVector2D(10, 5), green_trace->values().front()) << note;
-      EXPECT_EQ(QVector2D(16, 7), green_trace->values().back()) << note;
+      EXPECT_EQ(QVector2D(10, 5), green_trace->values().value().front()) << note;
+      EXPECT_EQ(QVector2D(16, 7), green_trace->values().value().back()) << note;
     }
   }
 }

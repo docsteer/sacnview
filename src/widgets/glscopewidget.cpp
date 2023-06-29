@@ -168,6 +168,7 @@ void ScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS
   float value;
   if (fillValue(value, m_slot_hi, m_slot_lo, level_array))
   {
+    QMutexLocker lock(&m_mutex);
     // If level did not change in the last two, only update timestamp
     const size_t trace_size = m_trace.size();
     if (trace_size > 2 && m_trace[trace_size - 1].y() == value && m_trace[trace_size - 2].y() == value)
@@ -186,6 +187,7 @@ void ScopeTrace::setFirstPoint(const std::array<int, MAX_DMX_ADDRESS>& level_arr
   float value;
   if (fillValue(value, m_slot_hi, m_slot_lo, level_array))
   {
+    QMutexLocker lock(&m_mutex);
     if (m_trace.empty())
       m_trace.emplace_back(0, value);
     else
@@ -361,7 +363,7 @@ void ScopeModel::removeTraces(const QModelIndexList& indexes)
   }
 }
 
-const ScopeTrace* ScopeModel::findTrace(uint16_t universe, uint16_t address_hi, uint16_t address_lo) const
+ScopeTrace* ScopeModel::findTrace(uint16_t universe, uint16_t address_hi, uint16_t address_lo)
 {
   const auto univ_it = m_traceLookup.find(universe);
   if (univ_it != m_traceLookup.end())
@@ -607,7 +609,7 @@ bool ScopeModel::saveTraces(QIODevice& file) const
   if (!file.isWritable())
     return false;
 
-  // Cannot write while running
+  // Cannot write while running as would block the receive threads
   if (isRunning())
     return false;
 
@@ -629,24 +631,29 @@ bool ScopeModel::saveTraces(QIODevice& file) const
 
   // Iterators for each trace
   using ValueIterator = std::vector<QVector2D>::const_iterator;
+  // Copy the values
   struct ValueItem
   {
-    ValueItem(ValueIterator c, ValueIterator e) : current(c), end(e) {}
+    ValueItem(const ScopeTrace* trace) : values(trace->values().value())
+    {
+      current = values.begin();
+    }
+    const std::vector<QVector2D> values;
     ValueIterator current;
-    ValueIterator end;
   };
   std::vector<ValueItem> traces_values;
+  traces_values.reserve(rowCount());
 
   QString color_header = RowTitleColor;
   QString name_header = ColumnTitleTimestamp;
 
-  // Header rows
+  // Header rows sorted by universe
   for (const auto& universe : m_traceLookup)
   {
     for (const ScopeTrace* trace : universe.second)
     {
-      // Get the value iterators for this column
-      traces_values.emplace_back(trace->values().begin(), trace->values().end());
+      // Get the values for this column
+      traces_values.emplace_back(trace);
 
       // Assemble the color header string
       color_header.append(QLatin1Char(','));
@@ -657,10 +664,10 @@ bool ScopeModel::saveTraces(QIODevice& file) const
       name_header.append(trace->universeAddressString());
 
       // Find the first and last row timestamps
-      if (!trace->values().empty())
+      if (!traces_values.back().values.empty())
       {
-        if (trace->values().front()[0] < this_row_time)
-          this_row_time = trace->values().front()[0];
+        if (traces_values.back().values.front()[0] < this_row_time)
+          this_row_time = traces_values.back().values.front()[0];
       }
     }
   }
@@ -677,7 +684,7 @@ bool ScopeModel::saveTraces(QIODevice& file) const
     {
       // Next Column
       out << ',';
-      if (value_its.current != value_its.end)
+      if (value_its.current != value_its.values.end())
       {
         // This column has a value for this time
         if (qFuzzyCompare(this_row_time, (*value_its.current)[0]))
@@ -687,7 +694,7 @@ bool ScopeModel::saveTraces(QIODevice& file) const
           ++value_its.current;
 
           // Determine the next row time
-          if (value_its.current != value_its.end && (*value_its.current)[0] < next_row_time)
+          if (value_its.current != value_its.values.end() && (*value_its.current)[0] < next_row_time)
           {
             next_row_time = (*value_its.current)[0];
           }
@@ -785,12 +792,11 @@ bool ScopeModel::loadTraces(QIODevice& file)
   }
 
   // Now have all the trace idents and the container will not change
-  // Get all the pointers and cast away const
+  // Get all the pointers in order with null for bad columns
   std::vector<ScopeTrace*> traces;
   for (const auto& ident : trace_idents)
   {
-    const ScopeTrace* trace = findTrace(ident.universe, ident.address_hi, ident.address_lo);
-    traces.push_back(const_cast<ScopeTrace*>(trace));
+    traces.push_back(findTrace(ident.universe, ident.address_hi, ident.address_lo));
   }
 
   QString data_line;
@@ -1439,9 +1445,9 @@ void GlScopeWidget::paintGL()
     }
 
     m_program->setUniformValue(m_colorUniform, trace->color());
-
-    glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, trace->values().data());
-    glDrawArrays(GL_LINE_STRIP, 0, trace->values().size());
+    const auto levels = trace->values();
+    glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, levels.value().data());
+    glDrawArrays(GL_LINE_STRIP, 0, levels.value().size());
   }
 
   glDisableVertexAttribArray(m_vertexLocation);
