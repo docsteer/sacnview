@@ -17,6 +17,7 @@
 #include <QPainter>
 #include <QScreen>
 #include <QOpenGLShaderProgram>
+#include <QMetaEnum>
 
 static constexpr qreal AXIS_LABEL_WIDTH = 45.0;
 static constexpr qreal AXIS_LABEL_HEIGHT = 20.0;
@@ -25,6 +26,7 @@ static constexpr qreal RIGHT_GAP = 15.0;
 static constexpr qreal AXIS_TO_WINDOW_GAP = 5.0;
 static constexpr qreal AXIS_TICK_SIZE = 10.0;
 
+static const QString CaptureOptionsTitle = QStringLiteral("Capture Options");
 static const QString RowTitleColor = QStringLiteral("Color");
 static const QString ColumnTitleTimestamp = QStringLiteral("Time (s)");
 
@@ -87,16 +89,26 @@ bool ScopeTrace::extractAddress(QStringView address_string, uint16_t& address_hi
   return ok;
 }
 
+QString ScopeTrace::universeAddressString(uint16_t universe, uint16_t address_hi, uint16_t address_lo)
+{
+  return QStringLiteral("U") + QString::number(universe) + QLatin1Char('.') + addressString(address_hi, address_lo);
+}
+
+QString ScopeTrace::addressString(uint16_t address_hi, uint16_t address_lo)
+{
+  if (address_lo > 0 && address_lo <= MAX_DMX_ADDRESS)
+    return QString::number(address_hi) + QLatin1Char('/') + QString::number(address_lo);
+  return QString::number(address_hi);
+}
+
 QString ScopeTrace::universeAddressString() const
 {
-  return QStringLiteral("U") + QString::number(universe()) + QLatin1Char('.') + addressString();
+  return universeAddressString(universe(), addressHi(), addressLo());
 }
 
 QString ScopeTrace::addressString() const
 {
-  return isSixteenBit() ?
-    QString::number(addressHi()) + QLatin1Char('/') + QString::number(addressLo())
-    : QString::number(addressHi());
+  return addressString(addressHi(), addressLo());
 }
 
 bool ScopeTrace::setUniverse(uint16_t new_universe, bool clear_values)
@@ -163,12 +175,17 @@ inline bool fillValue(T& value, uint16_t slot_hi, uint16_t slot_lo, const std::a
   return true;
 }
 
-void ScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array)
+void ScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array, bool storeAllPoints)
 {
   float value;
   if (fillValue(value, m_slot_hi, m_slot_lo, level_array))
   {
     QMutexLocker lock(&m_mutex);
+    if (storeAllPoints)
+    {
+      m_trace.emplace_back(timestamp, value);
+      return;
+    }
     // If level did not change in the last two, only update timestamp
     const size_t trace_size = m_trace.size();
     if (trace_size > 2 && m_trace[trace_size - 1].y() == value && m_trace[trace_size - 2].y() == value)
@@ -182,17 +199,24 @@ void ScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS
   }
 }
 
-void ScopeTrace::setFirstPoint(const std::array<int, MAX_DMX_ADDRESS>& level_array)
+void ScopeTrace::setFirstPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array)
 {
   float value;
   if (fillValue(value, m_slot_hi, m_slot_lo, level_array))
   {
     QMutexLocker lock(&m_mutex);
     if (m_trace.empty())
-      m_trace.emplace_back(0, value);
+      m_trace.emplace_back(timestamp, value);
     else
-      m_trace[0].setY(value);
+      m_trace[0] = { timestamp,value };
   }
+}
+
+void ScopeTrace::applyOffset(float offset)
+{
+  QMutexLocker lock(&m_mutex);
+  for (auto& point : m_trace)
+    point.setX(point.x() - offset);
 }
 
 ScopeModel::AddResult ScopeModel::addTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo)
@@ -470,8 +494,8 @@ QVariant ScopeModel::data(const QModelIndex& index, int role) const
         break;
       case COL_TRIGGER:
         if (role == Qt::CheckStateRole)
-          return m_trigger.IsTriggerTrace(*trace) ? Qt::Checked : Qt::Unchecked;
-        if (role == DataSortRole) return m_trigger.IsTriggerTrace(*trace) ? 0 : 1;
+          return m_trigger.isTriggerTrace(*trace) ? Qt::Checked : Qt::Unchecked;
+        if (role == DataSortRole) return m_trigger.isTriggerTrace(*trace) ? 0 : 1;
         break;
       }
     }
@@ -505,11 +529,11 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
         if (role == Qt::EditRole)
         {
           // Maybe update the trigger
-          const bool isTrigger = m_trigger.IsTriggerTrace(*trace);
+          const bool isTrigger = m_trigger.isTriggerTrace(*trace);
           if (moveTrace(trace, value.toUInt()))
           {
             if (isTrigger)
-              m_trigger.SetTrigger(*trace);
+              m_trigger.setTrigger(*trace);
             emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
             return true;
           }
@@ -522,7 +546,7 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
           // If 16bit changed, recheck the vertical scale
           const bool was16bit = trace->isSixteenBit();
           // Maybe update the trigger
-          const bool isTrigger = m_trigger.IsTriggerTrace(*trace);
+          const bool isTrigger = m_trigger.isTriggerTrace(*trace);
           if (trace->setAddress(value.toString(), true))
           {
             if (was16bit != trace->isSixteenBit())
@@ -533,7 +557,7 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
                 updateMaxValue();
             }
             if (isTrigger)
-              m_trigger.SetTrigger(*trace);
+              m_trigger.setTrigger(*trace);
             emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
             return true;
           }
@@ -557,7 +581,7 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
         {
           if (trace->isValid())
           {
-            m_trigger.SetTrigger(*trace);
+            m_trigger.setTrigger(*trace);
             emit dataChanged(index(0, COL_TRIGGER), index(rowCount() - 1, COL_TRIGGER), { Qt::CheckStateRole, DataSortRole });
             return true;
           }
@@ -604,6 +628,45 @@ void ScopeModel::clearValues()
   m_endTime = 0;
 }
 
+QString ScopeModel::captureConfigurationString() const
+{
+  QString result = (m_storeAllPoints ? QLatin1String("All Packets,") : QLatin1String("Level Changes,"));
+
+  result.append(m_trigger.configurationString());
+  result.append(QLatin1Char(','));
+
+  if (m_runTime > 0)
+    result.append(QStringLiteral("Run For %1 sec,").arg(m_runTime));
+
+  result.chop(1);
+  return result;
+}
+
+void ScopeModel::setCaptureConfiguration(const QString& configString)
+{
+  if (configString.isEmpty())
+    return;
+
+  m_storeAllPoints = configString.contains(QLatin1String("All Packets"), Qt::CaseInsensitive);
+
+  m_trigger.setConfiguration(configString);
+
+  qsizetype runTimePos = configString.indexOf(QLatin1String("Run For"));
+  const qsizetype runTimeSecPos = configString.indexOf(QLatin1String("sec"), runTimePos);
+  if (runTimePos < 0 || runTimeSecPos < 0)
+  {
+    m_runTime = 0;
+  }
+  else
+  {
+    bool ok;
+    runTimePos += 8;
+    const qreal time = configString.mid(runTimePos, runTimeSecPos - runTimePos).toDouble(&ok);
+    if (ok)
+      m_runTime = time;
+  }
+}
+
 bool ScopeModel::saveTraces(QIODevice& file) const
 {
   if (!file.isWritable())
@@ -620,11 +683,17 @@ bool ScopeModel::saveTraces(QIODevice& file) const
   out.setRealNumberPrecision(3);
 
   // Table:
+  // Capture Options:,All Packets/Level Changes
+  // 
   // Color,     red, green, ...
   // Time (s), U1.1, U1.2/3, ... (Given as Universe.CoarseDMX/FineDmx (1-512)
   // 0.000,     255,    0, ...
   // 0.020,     128,  128, ...
   // 0.040,     127,  255, ...
+
+  // Export capture configuration line
+  out << CaptureOptionsTitle << QLatin1String(":,") << captureConfigurationString();
+  out << "\n\n";
 
   // First row time
   float this_row_time = std::numeric_limits<float>::max();
@@ -707,25 +776,35 @@ bool ScopeModel::saveTraces(QIODevice& file) const
   return true;
 }
 
-QPair<QString, QString> FindUniverseTitles(QTextStream& in)
-{
-  // Find start of data
-  QString top_line;
-  while (in.readLineInto(&top_line))
-  {
-    if (top_line.startsWith(RowTitleColor))
-    {
-      // Probably the title line, remove the timestamp title
-      top_line.remove(0, RowTitleColor.size() + 1);
-      QString next_line = in.readLine();
-      if (!next_line.startsWith(ColumnTitleTimestamp))
-        return QPair<QString, QString>();// Failed
+struct TitleRows {
+  QString config;
+  QString colors;
+  QString universes;
+};
 
-      next_line.remove(0, ColumnTitleTimestamp.size() + 1);
-      return { top_line, next_line };
+TitleRows FindUniverseTitles(QTextStream& in)
+{
+  TitleRows result;
+  // Find start of data
+  QString line;
+  while (in.readLineInto(&line))
+  {
+    if (line.startsWith(CaptureOptionsTitle))
+    {
+      result.config = line;
+    }
+    else if (line.startsWith(RowTitleColor))
+    {
+      // Probably the title line
+      result.colors = line;
+      result.universes = in.readLine();
+      if (!result.universes.startsWith(ColumnTitleTimestamp))
+        return TitleRows();  // Failed
+
+      return result;
     }
   }
-  return QPair<QString, QString>();
+  return TitleRows();
 }
 
 bool ScopeModel::loadTraces(QIODevice& file)
@@ -740,12 +819,16 @@ bool ScopeModel::loadTraces(QIODevice& file)
   in.setRealNumberPrecision(3);
 
   const auto title_line = FindUniverseTitles(in);
-  if (title_line.second.isEmpty())
+  if (title_line.universes.isEmpty())
     return false;
 
   // Split the title lines to find the trace colors and names
-  auto colors = title_line.first.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
-  auto titles = title_line.second.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
+  auto colors = title_line.colors.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
+  auto titles = title_line.universes.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
+
+  // Remove the first column as these are known titles
+  colors.pop_front();
+  titles.pop_front();
 
   // Remove empty colors from the end
   while (colors.last().isEmpty())
@@ -754,7 +837,7 @@ bool ScopeModel::loadTraces(QIODevice& file)
   while (titles.last().isEmpty())
     titles.pop_back();
 
-  if (colors.size() != titles.size() || titles.size() < 2)
+  if (colors.size() != titles.size() || titles.empty())
     return false; // No or invalid data
 
   // Fairly likely to be valid, stop and clear my data now
@@ -833,6 +916,9 @@ bool ScopeModel::loadTraces(QIODevice& file)
 
   m_endTime = prev_timestamp;
 
+  // Finally, update the config
+  setCaptureConfiguration(title_line.config);
+
   endResetModel();
   // Force a re-render
   emit traceVisibilityChanged();
@@ -856,7 +942,7 @@ void ScopeModel::start()
   m_running = true;
 
   // Set up the Trigger or start immediately
-  if (m_trigger.IsTrigger())
+  if (m_trigger.isTrigger())
   {
     m_trigger.last_level = -1;
   }
@@ -1017,6 +1103,12 @@ void ScopeModel::setMaxValue(qreal maxValue)
 void ScopeModel::triggerNow(qreal offset)
 {
   m_startOffset = offset;
+  // And update the offsets of all traces
+  for (ScopeTrace* trace : m_traceTable)
+  {
+    trace->applyOffset(offset);
+  }
+
   emit triggered();
 }
 
@@ -1045,39 +1137,36 @@ void ScopeModel::sACNListenerDmxReceived(qreal timestamp, int universe, const st
 
   if (!isTriggered())
   {
-    {
-      uint16_t current_level;
-      if (universe == m_trigger.universe && fillValue(current_level, m_trigger.address_hi - 1, m_trigger.address_lo - 1, levels))
-      {
-        // Have a current level, maybe start the clock
-        switch (m_trigger.mode)
-        {
-        default: break;
-        case Trigger::Above:
-          if (current_level > m_trigger.level)
-            triggerNow(timestamp);
-          break;
-        case Trigger::Below:
-          if (current_level < m_trigger.level)
-            triggerNow(timestamp);
-          break;
-        case Trigger::LevelCross:
-          if ((m_trigger.last_level == m_trigger.level && current_level != m_trigger.level) // Was at, now not
-            || (m_trigger.last_level > m_trigger.level && current_level < m_trigger.level) // Was above, now below
-            || (m_trigger.last_level != -1 && m_trigger.last_level < m_trigger.level && current_level > m_trigger.level) // Was below, now above
-            )
-            triggerNow(timestamp);
-          break;
-        }
-        m_trigger.last_level = current_level;
-      }
-    }
-
-    // Only store the zero-time level for each trace until the trigger is fired
-    // Store the values for zero time
+    // Only store one level for each trace until the trigger is fired
     for (ScopeTrace* trace : it->second)
     {
-      trace->setFirstPoint(levels);
+      trace->setFirstPoint(timestamp, levels);
+    }
+
+    uint16_t current_level;
+    if (universe == m_trigger.universe && fillValue(current_level, m_trigger.address_hi - 1, m_trigger.address_lo - 1, levels))
+    {
+      // Have a current level, maybe start the clock
+      switch (m_trigger.mode)
+      {
+      default: break;
+      case Trigger::Above:
+        if (current_level > m_trigger.level)
+          triggerNow(timestamp);
+        break;
+      case Trigger::Below:
+        if (current_level < m_trigger.level)
+          triggerNow(timestamp);
+        break;
+      case Trigger::LevelCross:
+        if ((m_trigger.last_level == m_trigger.level && current_level != m_trigger.level) // Was at, now not
+          || (m_trigger.last_level > m_trigger.level && current_level < m_trigger.level) // Was above, now below
+          || (m_trigger.last_level != -1 && m_trigger.last_level < m_trigger.level && current_level > m_trigger.level) // Was below, now above
+          )
+          triggerNow(timestamp);
+        break;
+      }
+      m_trigger.last_level = current_level;
     }
     return;
   }
@@ -1095,7 +1184,7 @@ void ScopeModel::sACNListenerDmxReceived(qreal timestamp, int universe, const st
 
   for (ScopeTrace* trace : it->second)
   {
-    trace->addPoint(m_endTime, levels);
+    trace->addPoint(m_endTime, levels, m_storeAllPoints);
   }
 }
 
@@ -1555,7 +1644,7 @@ std::vector<QVector2D> GlScopeWidget::makeTriggerLine(ScopeModel::Trigger type)
   };
 }
 
-bool ScopeModel::TriggerConfig::IsTrigger() const
+bool ScopeModel::TriggerConfig::isTrigger() const
 {
   // Free Run is not a trigger
   if (mode == Trigger::FreeRun)
@@ -1585,14 +1674,64 @@ bool ScopeModel::TriggerConfig::IsTrigger() const
   return false;
 }
 
-bool ScopeModel::TriggerConfig::IsTriggerTrace(const ScopeTrace& trace) const
+bool ScopeModel::TriggerConfig::isTriggerTrace(const ScopeTrace& trace) const
 {
   return trace.universe() == universe && trace.addressHi() == address_hi && trace.addressLo() == address_lo;
 }
 
-void ScopeModel::TriggerConfig::SetTrigger(const ScopeTrace& trace)
+void ScopeModel::TriggerConfig::setTrigger(const ScopeTrace& trace)
 {
   universe = trace.universe();
   address_hi = trace.addressHi();
   address_lo = trace.addressLo();
+}
+
+QString ScopeModel::TriggerConfig::configurationString() const
+{
+  if (isTrigger())
+  {
+    return QStringLiteral("Trigger %1 %2@%3")
+      .arg(QMetaEnum::fromType<ScopeModel::Trigger>().valueToKey(static_cast<int>(mode)))
+      .arg(ScopeTrace::universeAddressString(universe, address_hi, address_lo))
+      .arg(level);
+  }
+  return QString();
+}
+
+void ScopeModel::TriggerConfig::setConfiguration(const QString& configString)
+{
+  const qsizetype triggerPos = configString.indexOf(QLatin1String("Trigger"));
+  if (triggerPos < 0)
+  {
+    mode = Trigger::FreeRun;
+  }
+  else
+  {
+    const auto metaEnum = QMetaEnum::fromType<Trigger>();
+    for (int i = 0; i < metaEnum.keyCount(); ++i)
+    {
+      if (configString.indexOf(QLatin1String(metaEnum.key(i)), triggerPos) > -1)
+      {
+        mode = static_cast<Trigger>(metaEnum.value(i));
+        break;
+      }
+    }
+
+    // Read trigger value
+    const qsizetype triggerUnivPos = configString.indexOf(QLatin1Char(' '), triggerPos + 8);
+    const qsizetype triggerLevelPos = configString.indexOf(QLatin1Char('@'), triggerUnivPos);
+    uint16_t new_univ, new_addr_hi, new_addr_lo;
+    if (ScopeTrace::extractUniverseAddress(configString.mid(triggerUnivPos + 1, triggerLevelPos - triggerUnivPos - 1), new_univ, new_addr_hi, new_addr_lo))
+    {
+      universe = new_univ;
+      address_hi = new_addr_hi;
+      address_lo = new_addr_lo;
+    }
+
+    const qsizetype triggerLevelEnd = configString.indexOf(QLatin1Char(','), triggerLevelPos) - 1;
+    bool ok;
+    const qsizetype triggerLevel = configString.mid(triggerLevelPos + 1, triggerLevelEnd - triggerLevelPos).toInt(&ok);
+    if (ok)
+      level = triggerLevel;
+  }
 }

@@ -16,7 +16,6 @@
 
 #include <QVector2D>
 #include <QAbstractTableModel>
-#include <QElapsedTimer>
 
 #include "sacn/sacnlistener.h"
 
@@ -66,6 +65,9 @@ public:
   static bool extractUniverseAddress(QStringView address_string, uint16_t& universe, uint16_t& address_hi, uint16_t& address_lo);
   static bool extractAddress(QStringView address_string, uint16_t& address_hi, uint16_t& address_lo);
 
+  static QString universeAddressString(uint16_t universe, uint16_t address_hi, uint16_t address_lo);
+  static QString addressString(uint16_t address_hi, uint16_t address_lo);
+
   QString universeAddressString() const;
   QString addressString() const;
 
@@ -89,9 +91,11 @@ public:
   void clear() { QMutexLocker lock(&m_mutex); m_trace.clear(); }
   void reserve(size_t point_count) { QMutexLocker lock(&m_mutex); m_trace.reserve(point_count); }
 
-  void addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array);
+  void addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array, bool storeAllPoints);
   // For pretrigger
-  void setFirstPoint(const std::array<int, MAX_DMX_ADDRESS>& level_array);
+  void setFirstPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array);
+  // Add an offset to all times (trigger has fired)
+  void applyOffset(float offset);
 
   // For rendering
   InterlockedReader<std::vector<QVector2D>> values() const { return InterlockedReader<std::vector<QVector2D>>(m_trace, m_mutex); }
@@ -134,6 +138,7 @@ public:
     Below,
     LevelCross
   };
+  Q_ENUM(Trigger);
 
   enum class AddResult
   {
@@ -156,13 +161,13 @@ public:
   bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole) override;
 
   /**
- * @brief Add a new trace
- * @param color Color to use for the trace. Must be valid
- * @param universe Universe for the trace. (1 - Max sACN Universe)
- * @param address_hi DMX address of the Coarse byte. (1-512)
- * @param address_lo DMX address of the Fine byte. Out of range for 8bit.
- * @return Added if added the trace, Invalid for invalid parameters, Exists for already extant
-*/
+   * @brief Add a new trace
+   * @param color Color to use for the trace. Must be valid
+   * @param universe Universe for the trace. (1 - Max sACN Universe)
+   * @param address_hi DMX address of the Coarse byte. (1-512)
+   * @param address_lo DMX address of the Fine byte. Out of range for 8bit.
+   * @return Added if added the trace, Invalid for invalid parameters, Exists for already extant
+  */
   AddResult addTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo = 0);
 
   /**
@@ -239,6 +244,18 @@ public:
   Q_SIGNAL void runningChanged(bool running);
 
   /**
+  * @brief Get a string describing the capture configuration
+  * All Packets/Level Changes, Trigger setup etc
+  */
+  QString captureConfigurationString() const;
+  /// Set capture configuration from string
+  void setCaptureConfiguration(const QString& configString);
+
+  /// Store all points, or only level changes
+  bool storeAllPoints() const { return m_storeAllPoints; }
+  void setStoreAllPoints(bool b) { m_storeAllPoints = b; }
+
+  /**
   * @brief Length of time in seconds to run after Start or Trigger
   * Zero for forever (or until memory is exhausted)
   */
@@ -295,14 +312,18 @@ private:
 
     int last_level = -1;
 
-    bool IsTrigger() const;
-    bool IsTriggerTrace(const ScopeTrace& trace) const;
-    void SetTrigger(const ScopeTrace& trace);
+    bool isTrigger() const;
+    bool isTriggerTrace(const ScopeTrace& trace) const;
+    void setTrigger(const ScopeTrace& trace);
+
+    QString configurationString() const;
+    void setConfiguration(const QString& configString);
   };
 
   TriggerConfig m_trigger; // Trigger configuration
 
   bool m_running = false;
+  bool m_storeAllPoints = true;
 
   size_t m_reservation = 12000; // Reserve space for this many samples. 300s @ 40Hz
 

@@ -41,6 +41,7 @@ private:
   Q_SLOT void onTimeSliderMoved(int value);
   Q_SLOT void onTimeDivisionsChanged(int value);
 
+  Q_SLOT void setRecordMode(int idx);
   Q_SLOT void setVerticalScaleMode(int idx);
   Q_SLOT void setTriggerType(int idx);
 
@@ -55,6 +56,7 @@ private:
   QSplitter* m_splitter = nullptr;
   GlScopeWidget* m_scope = nullptr;
   QScrollBar* m_scrollTime = nullptr;
+  QComboBox* m_recordMode = nullptr;
   QSpinBox* m_spinRunTime = nullptr;
   QSpinBox* m_spinTimeScale = nullptr;
   QComboBox* m_triggerType = nullptr;
@@ -74,6 +76,7 @@ private:
   int m_lastTraceSat = 255;
 
   void updateTimeScrollBars();
+  void updateConfiguration();
 };
 
 class ColorDialog : public QColorDialog

@@ -21,41 +21,62 @@
 
 TEST(ScopeTrace, AddPoint)
 {
+  // Storing all points, even if same level
+
   ScopeTrace trace(Qt::red, 1, 1, 0, 10);
   EXPECT_TRUE(trace.isValid());
   EXPECT_FALSE(trace.isSixteenBit());
   EXPECT_TRUE(trace.values().value().empty());
+
   const std::array<int, MAX_DMX_ADDRESS> levels = { 1, 2 };
-  trace.addPoint(0, levels);
+  float time = 0;
+  trace.addPoint(time, levels, true);
   ASSERT_EQ(1, trace.values().value().size());
-  EXPECT_EQ(QVector2D(0, 1), trace.values().value()[0]);
+  EXPECT_EQ(QVector2D(time, 1), trace.values().value().back());
+
+  trace.addPoint(++time, levels, true);
+  EXPECT_EQ(2, trace.values().value().size());
+  EXPECT_EQ(QVector2D(time, 1), trace.values().value().back());
+
+  trace.addPoint(++time, levels, true);
+  EXPECT_EQ(3, trace.values().value().size());
+  EXPECT_EQ(QVector2D(time, 1), trace.values().value().back());
+
+  trace.addPoint(++time, levels, true);
+  EXPECT_EQ(4, trace.values().value().size());
+  EXPECT_EQ(QVector2D(time, 1), trace.values().value().back());
+
+  trace.addPoint(++time, levels, true);
+  EXPECT_EQ(5, trace.values().value().size());
+  EXPECT_EQ(QVector2D(time, 1), trace.values().value().back());
 }
 
 TEST(ScopeTrace, CompressPoints)
 {
+  // Only storing level changes
+
   ScopeTrace trace(Qt::red, 1, 1, 0, 10);
-  
   // Add three identical levels
   std::array<int, MAX_DMX_ADDRESS> levels = { 1, 2 };
   float time = 0;
-  trace.addPoint(time, levels);
-  trace.addPoint(++time, levels);
-  trace.addPoint(++time, levels);
+  trace.addPoint(time, levels, false);
+  trace.addPoint(++time, levels, false);
+  trace.addPoint(++time, levels, false);
   EXPECT_EQ(3, trace.values().value().size());
   EXPECT_EQ(time, trace.values().value().back().x());
   // Should now start compressing points
-  trace.addPoint(++time, levels);
+  trace.addPoint(++time, levels, false);
   EXPECT_EQ(3, trace.values().value().size());
   EXPECT_EQ(time, trace.values().value().back().x());
   // Change level
   levels[0] = 3;
-  trace.addPoint(++time, levels);
+  trace.addPoint(++time, levels, false);
   EXPECT_EQ(4, trace.values().value().size());
-  trace.addPoint(++time, levels);
+  trace.addPoint(++time, levels, false);
   EXPECT_EQ(5, trace.values().value().size());
   EXPECT_EQ(time, trace.values().value().back().x());
   // Should now start compressing points
-  trace.addPoint(++time, levels);
+  trace.addPoint(++time, levels, false);
   EXPECT_EQ(5, trace.values().value().size());
   EXPECT_EQ(time, trace.values().value().back().x());
 }
@@ -142,4 +163,47 @@ TEST(ScopeModel, CSVImportExport)
 
     VerifyRedGreenTrace(glscope, "round_trip");
   }
+}
+
+TEST(ScopeModel, CaptureConfigImportExport)
+{
+  const ScopeModel defaultScope;
+  ScopeModel scope;
+  scope.addTrace(Qt::red, 1, 2);
+
+  const QString defaultConfig = scope.captureConfigurationString();
+  scope.setCaptureConfiguration(defaultConfig);
+  QString currentConfig = scope.captureConfigurationString();
+  EXPECT_STREQ(qUtf8Printable(defaultConfig), qUtf8Printable(currentConfig));
+
+  // Write and read trigger setting
+  scope.setTriggerType(ScopeModel::Trigger::Above);
+  scope.setTriggerLevel(120);
+  currentConfig = scope.captureConfigurationString();
+  EXPECT_STRNE(qUtf8Printable(defaultConfig), qUtf8Printable(currentConfig));
+
+  scope.setTriggerType(ScopeModel::Trigger::FreeRun);
+  scope.setTriggerLevel(0);
+  scope.setCaptureConfiguration(currentConfig);
+
+  EXPECT_EQ(ScopeModel::Trigger::Above, scope.triggerType());
+  EXPECT_EQ(120, scope.triggerLevel());
+
+  // Write and read run time
+  scope.setRunTime(10.0);
+  currentConfig = scope.captureConfigurationString();
+  EXPECT_STRNE(qUtf8Printable(defaultConfig), qUtf8Printable(currentConfig));
+
+  scope.setRunTime(0);
+  scope.setCaptureConfiguration(currentConfig);
+  EXPECT_EQ(10.0, scope.runTime());
+
+  // Clear and set trigger again
+  scope.setTriggerType(ScopeModel::Trigger::FreeRun);
+  scope.setTriggerLevel(0);
+  scope.setCaptureConfiguration(currentConfig);
+
+  EXPECT_EQ(ScopeModel::Trigger::Above, scope.triggerType());
+  EXPECT_EQ(120, scope.triggerLevel());
+
 }
