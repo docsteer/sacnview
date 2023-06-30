@@ -16,7 +16,6 @@
 
 #include <QVector2D>
 #include <QAbstractTableModel>
-#include <QElapsedTimer>
 
 #include "sacn/sacnlistener.h"
 
@@ -91,7 +90,9 @@ public:
 
   void addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array);
   // For pretrigger
-  void setFirstPoint(const std::array<int, MAX_DMX_ADDRESS>& level_array);
+  void setFirstPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array);
+  // Add an offset to all times (trigger has fired)
+  void applyOffset(float offset);
 
   // For rendering
   InterlockedReader<std::vector<QVector2D>> values() const { return InterlockedReader<std::vector<QVector2D>>(m_trace, m_mutex); }

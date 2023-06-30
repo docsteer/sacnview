@@ -182,17 +182,24 @@ void ScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS
   }
 }
 
-void ScopeTrace::setFirstPoint(const std::array<int, MAX_DMX_ADDRESS>& level_array)
+void ScopeTrace::setFirstPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array)
 {
   float value;
   if (fillValue(value, m_slot_hi, m_slot_lo, level_array))
   {
     QMutexLocker lock(&m_mutex);
     if (m_trace.empty())
-      m_trace.emplace_back(0, value);
+      m_trace.emplace_back(timestamp, value);
     else
-      m_trace[0].setY(value);
+      m_trace[0] = { timestamp,value };
   }
+}
+
+void ScopeTrace::applyOffset(float offset)
+{
+  QMutexLocker lock(&m_mutex);
+  for (auto& point : m_trace)
+    point.setX(point.x() - offset);
 }
 
 ScopeModel::AddResult ScopeModel::addTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo)
@@ -1017,6 +1024,12 @@ void ScopeModel::setMaxValue(qreal maxValue)
 void ScopeModel::triggerNow(qreal offset)
 {
   m_startOffset = offset;
+  // And update the offsets of all traces
+  for (ScopeTrace* trace : m_traceTable)
+  {
+    trace->applyOffset(offset);
+  }
+
   emit triggered();
 }
 
@@ -1045,39 +1058,36 @@ void ScopeModel::sACNListenerDmxReceived(qreal timestamp, int universe, const st
 
   if (!isTriggered())
   {
-    {
-      uint16_t current_level;
-      if (universe == m_trigger.universe && fillValue(current_level, m_trigger.address_hi - 1, m_trigger.address_lo - 1, levels))
-      {
-        // Have a current level, maybe start the clock
-        switch (m_trigger.mode)
-        {
-        default: break;
-        case Trigger::Above:
-          if (current_level > m_trigger.level)
-            triggerNow(timestamp);
-          break;
-        case Trigger::Below:
-          if (current_level < m_trigger.level)
-            triggerNow(timestamp);
-          break;
-        case Trigger::LevelCross:
-          if ((m_trigger.last_level == m_trigger.level && current_level != m_trigger.level) // Was at, now not
-            || (m_trigger.last_level > m_trigger.level && current_level < m_trigger.level) // Was above, now below
-            || (m_trigger.last_level != -1 && m_trigger.last_level < m_trigger.level && current_level > m_trigger.level) // Was below, now above
-            )
-            triggerNow(timestamp);
-          break;
-        }
-        m_trigger.last_level = current_level;
-      }
-    }
-
-    // Only store the zero-time level for each trace until the trigger is fired
-    // Store the values for zero time
+    // Only store one level for each trace until the trigger is fired
     for (ScopeTrace* trace : it->second)
     {
-      trace->setFirstPoint(levels);
+      trace->setFirstPoint(timestamp, levels);
+    }
+
+    uint16_t current_level;
+    if (universe == m_trigger.universe && fillValue(current_level, m_trigger.address_hi - 1, m_trigger.address_lo - 1, levels))
+    {
+      // Have a current level, maybe start the clock
+      switch (m_trigger.mode)
+      {
+      default: break;
+      case Trigger::Above:
+        if (current_level > m_trigger.level)
+          triggerNow(timestamp);
+        break;
+      case Trigger::Below:
+        if (current_level < m_trigger.level)
+          triggerNow(timestamp);
+        break;
+      case Trigger::LevelCross:
+        if ((m_trigger.last_level == m_trigger.level && current_level != m_trigger.level) // Was at, now not
+          || (m_trigger.last_level > m_trigger.level && current_level < m_trigger.level) // Was above, now below
+          || (m_trigger.last_level != -1 && m_trigger.last_level < m_trigger.level && current_level > m_trigger.level) // Was below, now above
+          )
+          triggerNow(timestamp);
+        break;
+      }
+      m_trigger.last_level = current_level;
     }
     return;
   }
