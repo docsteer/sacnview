@@ -65,6 +65,9 @@ public:
   static bool extractUniverseAddress(QStringView address_string, uint16_t& universe, uint16_t& address_hi, uint16_t& address_lo);
   static bool extractAddress(QStringView address_string, uint16_t& address_hi, uint16_t& address_lo);
 
+  static QString universeAddressString(uint16_t universe, uint16_t address_hi, uint16_t address_lo);
+  static QString addressString(uint16_t address_hi, uint16_t address_lo);
+
   QString universeAddressString() const;
   QString addressString() const;
 
@@ -309,9 +312,12 @@ private:
 
     int last_level = -1;
 
-    bool IsTrigger() const;
-    bool IsTriggerTrace(const ScopeTrace& trace) const;
-    void SetTrigger(const ScopeTrace& trace);
+    bool isTrigger() const;
+    bool isTriggerTrace(const ScopeTrace& trace) const;
+    void setTrigger(const ScopeTrace& trace);
+
+    QString configurationString() const;
+    void setConfiguration(const QString& configString);
   };
 
   TriggerConfig m_trigger; // Trigger configuration

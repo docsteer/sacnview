@@ -89,16 +89,26 @@ bool ScopeTrace::extractAddress(QStringView address_string, uint16_t& address_hi
   return ok;
 }
 
+QString ScopeTrace::universeAddressString(uint16_t universe, uint16_t address_hi, uint16_t address_lo)
+{
+  return QStringLiteral("U") + QString::number(universe) + QLatin1Char('.') + addressString(address_hi, address_lo);
+}
+
+QString ScopeTrace::addressString(uint16_t address_hi, uint16_t address_lo)
+{
+  if (address_lo > 0 && address_lo <= MAX_DMX_ADDRESS)
+    return QString::number(address_hi) + QLatin1Char('/') + QString::number(address_lo);
+  return QString::number(address_hi);
+}
+
 QString ScopeTrace::universeAddressString() const
 {
-  return QStringLiteral("U") + QString::number(universe()) + QLatin1Char('.') + addressString();
+  return universeAddressString(universe(), addressHi(), addressLo());
 }
 
 QString ScopeTrace::addressString() const
 {
-  return isSixteenBit() ?
-    QString::number(addressHi()) + QLatin1Char('/') + QString::number(addressLo())
-    : QString::number(addressHi());
+  return addressString(addressHi(), addressLo());
 }
 
 bool ScopeTrace::setUniverse(uint16_t new_universe, bool clear_values)
@@ -484,8 +494,8 @@ QVariant ScopeModel::data(const QModelIndex& index, int role) const
         break;
       case COL_TRIGGER:
         if (role == Qt::CheckStateRole)
-          return m_trigger.IsTriggerTrace(*trace) ? Qt::Checked : Qt::Unchecked;
-        if (role == DataSortRole) return m_trigger.IsTriggerTrace(*trace) ? 0 : 1;
+          return m_trigger.isTriggerTrace(*trace) ? Qt::Checked : Qt::Unchecked;
+        if (role == DataSortRole) return m_trigger.isTriggerTrace(*trace) ? 0 : 1;
         break;
       }
     }
@@ -519,11 +529,11 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
         if (role == Qt::EditRole)
         {
           // Maybe update the trigger
-          const bool isTrigger = m_trigger.IsTriggerTrace(*trace);
+          const bool isTrigger = m_trigger.isTriggerTrace(*trace);
           if (moveTrace(trace, value.toUInt()))
           {
             if (isTrigger)
-              m_trigger.SetTrigger(*trace);
+              m_trigger.setTrigger(*trace);
             emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
             return true;
           }
@@ -536,7 +546,7 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
           // If 16bit changed, recheck the vertical scale
           const bool was16bit = trace->isSixteenBit();
           // Maybe update the trigger
-          const bool isTrigger = m_trigger.IsTriggerTrace(*trace);
+          const bool isTrigger = m_trigger.isTriggerTrace(*trace);
           if (trace->setAddress(value.toString(), true))
           {
             if (was16bit != trace->isSixteenBit())
@@ -547,7 +557,7 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
                 updateMaxValue();
             }
             if (isTrigger)
-              m_trigger.SetTrigger(*trace);
+              m_trigger.setTrigger(*trace);
             emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
             return true;
           }
@@ -571,7 +581,7 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
         {
           if (trace->isValid())
           {
-            m_trigger.SetTrigger(*trace);
+            m_trigger.setTrigger(*trace);
             emit dataChanged(index(0, COL_TRIGGER), index(rowCount() - 1, COL_TRIGGER), { Qt::CheckStateRole, DataSortRole });
             return true;
           }
@@ -621,12 +631,9 @@ void ScopeModel::clearValues()
 QString ScopeModel::captureConfigurationString() const
 {
   QString result = (m_storeAllPoints ? QLatin1String("All Packets,") : QLatin1String("Level Changes,"));
-  if (m_trigger.mode != Trigger::FreeRun)
-  {
-    result.append(QStringLiteral("Trigger %1@%2,")
-      .arg(QMetaEnum::fromType<Trigger>().valueToKey(static_cast<int>(m_trigger.mode)))
-      .arg(m_trigger.level));
-  }
+
+  result.append(m_trigger.configurationString());
+  result.append(QLatin1Char(','));
 
   if (m_runTime > 0)
     result.append(QStringLiteral("Run For %1 sec,").arg(m_runTime));
@@ -641,34 +648,11 @@ void ScopeModel::setCaptureConfiguration(const QString& configString)
     return;
 
   m_storeAllPoints = configString.contains(QLatin1String("All Packets"), Qt::CaseInsensitive);
-  const int triggerPos = configString.indexOf(QLatin1String("Trigger"));
-  const int triggerLevelPos = configString.indexOf(QLatin1Char('@'), triggerPos);
-  if (triggerPos < 0)
-  {
-    m_trigger.mode = Trigger::FreeRun;
-  }
-  else
-  {
-    const auto metaEnum = QMetaEnum::fromType<Trigger>();
-    for (int i = 0; i < metaEnum.keyCount(); ++i)
-    {
-      if (configString.indexOf(QLatin1String(metaEnum.key(i)), triggerPos) > -1)
-      {
-        m_trigger.mode = static_cast<Trigger>(metaEnum.value(i));
-        break;
-      }
-    }
 
-    // Read trigger value
-    const int triggerLevelEnd = configString.indexOf(QLatin1Char(','), triggerLevelPos) - 1;
-    bool ok;
-    const int triggerLevel = configString.mid(triggerLevelPos + 1, triggerLevelEnd - triggerLevelPos).toInt(&ok);
-    if (ok)
-      m_trigger.level = triggerLevel;
-  }
+  m_trigger.setConfiguration(configString);
 
-  int runTimePos = configString.indexOf(QLatin1String("Run For"));
-  const int runTimeSecPos = configString.indexOf(QLatin1String("sec"), runTimePos);
+  qsizetype runTimePos = configString.indexOf(QLatin1String("Run For"));
+  const qsizetype runTimeSecPos = configString.indexOf(QLatin1String("sec"), runTimePos);
   if (runTimePos < 0 || runTimeSecPos < 0)
   {
     m_runTime = 0;
@@ -860,9 +844,6 @@ bool ScopeModel::loadTraces(QIODevice& file)
   beginResetModel();
   private_removeAllTraces();
 
-  // Get the config
-  setCaptureConfiguration(title_line.config);
-
   struct UnivSlots
   {
     uint16_t universe = 0;
@@ -935,6 +916,9 @@ bool ScopeModel::loadTraces(QIODevice& file)
 
   m_endTime = prev_timestamp;
 
+  // Finally, update the config
+  setCaptureConfiguration(title_line.config);
+
   endResetModel();
   // Force a re-render
   emit traceVisibilityChanged();
@@ -958,7 +942,7 @@ void ScopeModel::start()
   m_running = true;
 
   // Set up the Trigger or start immediately
-  if (m_trigger.IsTrigger())
+  if (m_trigger.isTrigger())
   {
     m_trigger.last_level = -1;
   }
@@ -1660,7 +1644,7 @@ std::vector<QVector2D> GlScopeWidget::makeTriggerLine(ScopeModel::Trigger type)
   };
 }
 
-bool ScopeModel::TriggerConfig::IsTrigger() const
+bool ScopeModel::TriggerConfig::isTrigger() const
 {
   // Free Run is not a trigger
   if (mode == Trigger::FreeRun)
@@ -1690,14 +1674,64 @@ bool ScopeModel::TriggerConfig::IsTrigger() const
   return false;
 }
 
-bool ScopeModel::TriggerConfig::IsTriggerTrace(const ScopeTrace& trace) const
+bool ScopeModel::TriggerConfig::isTriggerTrace(const ScopeTrace& trace) const
 {
   return trace.universe() == universe && trace.addressHi() == address_hi && trace.addressLo() == address_lo;
 }
 
-void ScopeModel::TriggerConfig::SetTrigger(const ScopeTrace& trace)
+void ScopeModel::TriggerConfig::setTrigger(const ScopeTrace& trace)
 {
   universe = trace.universe();
   address_hi = trace.addressHi();
   address_lo = trace.addressLo();
+}
+
+QString ScopeModel::TriggerConfig::configurationString() const
+{
+  if (isTrigger())
+  {
+    return QStringLiteral("Trigger %1 %2@%3")
+      .arg(QMetaEnum::fromType<ScopeModel::Trigger>().valueToKey(static_cast<int>(mode)))
+      .arg(ScopeTrace::universeAddressString(universe, address_hi, address_lo))
+      .arg(level);
+  }
+  return QString();
+}
+
+void ScopeModel::TriggerConfig::setConfiguration(const QString& configString)
+{
+  const qsizetype triggerPos = configString.indexOf(QLatin1String("Trigger"));
+  if (triggerPos < 0)
+  {
+    mode = Trigger::FreeRun;
+  }
+  else
+  {
+    const auto metaEnum = QMetaEnum::fromType<Trigger>();
+    for (int i = 0; i < metaEnum.keyCount(); ++i)
+    {
+      if (configString.indexOf(QLatin1String(metaEnum.key(i)), triggerPos) > -1)
+      {
+        mode = static_cast<Trigger>(metaEnum.value(i));
+        break;
+      }
+    }
+
+    // Read trigger value
+    const qsizetype triggerUnivPos = configString.indexOf(QLatin1Char(' '), triggerPos + 8);
+    const qsizetype triggerLevelPos = configString.indexOf(QLatin1Char('@'), triggerUnivPos);
+    uint16_t new_univ, new_addr_hi, new_addr_lo;
+    if (ScopeTrace::extractUniverseAddress(configString.mid(triggerUnivPos + 1, triggerLevelPos - triggerUnivPos - 1), new_univ, new_addr_hi, new_addr_lo))
+    {
+      universe = new_univ;
+      address_hi = new_addr_hi;
+      address_lo = new_addr_lo;
+    }
+
+    const qsizetype triggerLevelEnd = configString.indexOf(QLatin1Char(','), triggerLevelPos) - 1;
+    bool ok;
+    const qsizetype triggerLevel = configString.mid(triggerLevelPos + 1, triggerLevelEnd - triggerLevelPos).toInt(&ok);
+    if (ok)
+      level = triggerLevel;
+  }
 }

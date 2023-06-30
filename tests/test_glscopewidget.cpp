@@ -169,6 +169,7 @@ TEST(ScopeModel, CaptureConfigImportExport)
 {
   const ScopeModel defaultScope;
   ScopeModel scope;
+  scope.addTrace(Qt::red, 1, 2);
 
   const QString defaultConfig = scope.captureConfigurationString();
   scope.setCaptureConfiguration(defaultConfig);
