@@ -88,7 +88,7 @@ public:
   void clear() { QMutexLocker lock(&m_mutex); m_trace.clear(); }
   void reserve(size_t point_count) { QMutexLocker lock(&m_mutex); m_trace.reserve(point_count); }
 
-  void addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array);
+  void addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array, bool storeAllPoints);
   // For pretrigger
   void setFirstPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array);
   // Add an offset to all times (trigger has fired)
@@ -231,6 +231,10 @@ public:
   */
   bool listeningToUniverse(uint16_t universe) const;
 
+  /// Store all points, or only level changes
+  bool storeAllPoints() const { return m_storeAllPoints; }
+  void setStoreAllPoints(bool b) { m_storeAllPoints = b; }
+
   /// Start listening and storing trace info
   Q_SLOT void start();
   /// Stop adding data to the traces
@@ -304,6 +308,7 @@ private:
   TriggerConfig m_trigger; // Trigger configuration
 
   bool m_running = false;
+  bool m_storeAllPoints = true;
 
   size_t m_reservation = 12000; // Reserve space for this many samples. 300s @ 40Hz
 

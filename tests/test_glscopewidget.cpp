@@ -21,41 +21,62 @@
 
 TEST(ScopeTrace, AddPoint)
 {
+  // Storing all points, even if same level
+
   ScopeTrace trace(Qt::red, 1, 1, 0, 10);
   EXPECT_TRUE(trace.isValid());
   EXPECT_FALSE(trace.isSixteenBit());
   EXPECT_TRUE(trace.values().value().empty());
+
   const std::array<int, MAX_DMX_ADDRESS> levels = { 1, 2 };
-  trace.addPoint(0, levels);
+  float time = 0;
+  trace.addPoint(time, levels, true);
   ASSERT_EQ(1, trace.values().value().size());
-  EXPECT_EQ(QVector2D(0, 1), trace.values().value()[0]);
+  EXPECT_EQ(QVector2D(time, 1), trace.values().value().back());
+
+  trace.addPoint(++time, levels, true);
+  EXPECT_EQ(2, trace.values().value().size());
+  EXPECT_EQ(QVector2D(time, 1), trace.values().value().back());
+
+  trace.addPoint(++time, levels, true);
+  EXPECT_EQ(3, trace.values().value().size());
+  EXPECT_EQ(QVector2D(time, 1), trace.values().value().back());
+
+  trace.addPoint(++time, levels, true);
+  EXPECT_EQ(4, trace.values().value().size());
+  EXPECT_EQ(QVector2D(time, 1), trace.values().value().back());
+
+  trace.addPoint(++time, levels, true);
+  EXPECT_EQ(5, trace.values().value().size());
+  EXPECT_EQ(QVector2D(time, 1), trace.values().value().back());
 }
 
 TEST(ScopeTrace, CompressPoints)
 {
+  // Only storing level changes
+
   ScopeTrace trace(Qt::red, 1, 1, 0, 10);
-  
   // Add three identical levels
   std::array<int, MAX_DMX_ADDRESS> levels = { 1, 2 };
   float time = 0;
-  trace.addPoint(time, levels);
-  trace.addPoint(++time, levels);
-  trace.addPoint(++time, levels);
+  trace.addPoint(time, levels, false);
+  trace.addPoint(++time, levels, false);
+  trace.addPoint(++time, levels, false);
   EXPECT_EQ(3, trace.values().value().size());
   EXPECT_EQ(time, trace.values().value().back().x());
   // Should now start compressing points
-  trace.addPoint(++time, levels);
+  trace.addPoint(++time, levels, false);
   EXPECT_EQ(3, trace.values().value().size());
   EXPECT_EQ(time, trace.values().value().back().x());
   // Change level
   levels[0] = 3;
-  trace.addPoint(++time, levels);
+  trace.addPoint(++time, levels, false);
   EXPECT_EQ(4, trace.values().value().size());
-  trace.addPoint(++time, levels);
+  trace.addPoint(++time, levels, false);
   EXPECT_EQ(5, trace.values().value().size());
   EXPECT_EQ(time, trace.values().value().back().x());
   // Should now start compressing points
-  trace.addPoint(++time, levels);
+  trace.addPoint(++time, levels, false);
   EXPECT_EQ(5, trace.values().value().size());
   EXPECT_EQ(time, trace.values().value().back().x());
 }

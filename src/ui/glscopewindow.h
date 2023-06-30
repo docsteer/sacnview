@@ -41,6 +41,7 @@ private:
   Q_SLOT void onTimeSliderMoved(int value);
   Q_SLOT void onTimeDivisionsChanged(int value);
 
+  Q_SLOT void setRecordMode(int idx);
   Q_SLOT void setVerticalScaleMode(int idx);
   Q_SLOT void setTriggerType(int idx);
 

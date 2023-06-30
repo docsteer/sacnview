@@ -163,12 +163,17 @@ inline bool fillValue(T& value, uint16_t slot_hi, uint16_t slot_lo, const std::a
   return true;
 }
 
-void ScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array)
+void ScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array, bool storeAllPoints)
 {
   float value;
   if (fillValue(value, m_slot_hi, m_slot_lo, level_array))
   {
     QMutexLocker lock(&m_mutex);
+    if (storeAllPoints)
+    {
+      m_trace.emplace_back(timestamp, value);
+      return;
+    }
     // If level did not change in the last two, only update timestamp
     const size_t trace_size = m_trace.size();
     if (trace_size > 2 && m_trace[trace_size - 1].y() == value && m_trace[trace_size - 2].y() == value)
@@ -1105,7 +1110,7 @@ void ScopeModel::sACNListenerDmxReceived(qreal timestamp, int universe, const st
 
   for (ScopeTrace* trace : it->second)
   {
-    trace->addPoint(m_endTime, levels);
+    trace->addPoint(m_endTime, levels, m_storeAllPoints);
   }
 }
 

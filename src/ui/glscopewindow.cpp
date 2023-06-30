@@ -66,6 +66,7 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
   {
     QBoxLayout* layoutConf = new QHBoxLayout(confWidget);
     {
+      QLabel* lbl = nullptr;
       QGroupBox* grpScope = new QGroupBox(tr("Scope"), confWidget);
       QGridLayout* layoutGrp = new QGridLayout(grpScope);
 
@@ -82,7 +83,20 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
 
       ++row;
 
-      QLabel* lbl = new QLabel(tr("Run For:"), confWidget);
+      lbl = new QLabel(tr("Store:"), confWidget);
+      layoutGrp->addWidget(lbl, row, 0);
+      QComboBox* recordMode = new QComboBox(confWidget);
+      recordMode->addItems({ tr("All Packets"), tr("Level Changes") });
+      connect(recordMode, QOverload<int>::of(&QComboBox::activated), this, &GlScopeWindow::setRecordMode);
+      recordMode->setCurrentIndex(m_scope->model()->storeAllPoints() ? 0 : 1);
+      layoutGrp->addWidget(recordMode, row, 1);
+
+      m_disableWhenRunning.push_back(lbl);
+      m_disableWhenRunning.push_back(recordMode);
+
+      ++row;
+
+      lbl = new QLabel(tr("Run For:"), confWidget);
       layoutGrp->addWidget(lbl, row, 0);
       m_spinRunTime = new QSpinBox(confWidget);
       m_spinRunTime->setRange(0, 300); // Five minutes
@@ -255,8 +269,9 @@ void GlScopeWindow::onRunningChanged(bool running)
   m_btnStart->setChecked(running);
   m_btnStop->setChecked(!running);
 
-  // Enable/disable the start button
-  m_btnStart->setEnabled(m_scope->model()->rowCount() > 0);
+  // Enable/disable the start and stop buttons
+  m_btnStart->setEnabled(!running && m_scope->model()->rowCount() > 0);
+  m_btnStop->setEnabled(running);
 
   for (QWidget* w : m_disableWhenRunning)
     w->setEnabled(!running);
@@ -287,6 +302,11 @@ void GlScopeWindow::onTimeDivisionsChanged(int value)
 {
   m_scope->setTimeDivisions(value);
   updateTimeScrollBars();
+}
+
+void GlScopeWindow::setRecordMode(int idx)
+{
+  m_scope->model()->setStoreAllPoints(idx == 0);
 }
 
 void GlScopeWindow::setVerticalScaleMode(int idx)
