@@ -766,7 +766,7 @@ bool ScopeModel::loadTraces(QIODevice& file)
   while (titles.last().isEmpty())
     titles.pop_back();
 
-  if (colors.size() != titles.size() || titles.size() < 2)
+  if (colors.size() != titles.size() || titles.empty())
     return false; // No or invalid data
 
   // Fairly likely to be valid, stop and clear my data now
