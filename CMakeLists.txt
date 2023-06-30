@@ -65,7 +65,6 @@ set(SACNVIEW_HEADERS
     src/widgets/qpushbutton_rightclick.h
     src/widgets/qspinbox_resizetocontent.h
     src/ui/newversiondialog.h
-    src/ui/scopewindow.h
     src/ui/universeview.h
     src/sacn/sacnsynchronization.h
     src/models/sacnsynclistmodel.h
@@ -86,7 +85,6 @@ set(SACNVIEW_HEADERS
     src/sacn/sacnsender.h
     src/ui/configureperchanpriodlg.h
     src/widgets/gridwidget.h
-    src/widgets/scopewidget.h
     src/ui/aboutdialog.h
     src/sacn/sacneffectengine.h
     src/models/sacnuniverselistmodel.h
@@ -142,7 +140,6 @@ set(SACNVIEW_SOURCES
     src/ui/configureperchanpriodlg.cpp
     src/ui/newversiondialog.cpp
     src/ui/mdimainwindow.cpp
-    src/ui/scopewindow.cpp
     src/ui/universeview.cpp
     src/ui/nicselectdialog.cpp
     src/ui/preferencesdialog.cpp
@@ -160,7 +157,6 @@ set(SACNVIEW_SOURCES
     src/widgets/qspinbox_resizetocontent.cpp
     src/widgets/universedisplay.cpp
     src/widgets/gridwidget.cpp
-    src/widgets/scopewidget.cpp
     src/widgets/clssnapshot.cpp
     src/widgets/grideditwidget.cpp
     src/widgets/glscopewidget.cpp
@@ -173,7 +169,6 @@ LIST(TRANSFORM SACNVIEW_SOURCES PREPEND ${CMAKE_CURRENT_LIST_DIR}/)
 
 set(SACNVIEW_FORMS
     ui/mdimainwindow.ui
-    ui/scopewindow.ui
     ui/universeview.ui
     ui/nicselectdialog.ui
     ui/preferencesdialog.ui
