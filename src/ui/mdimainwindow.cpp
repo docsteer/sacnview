@@ -15,7 +15,6 @@
 
 #include "mdimainwindow.h"
 #include "ui_mdimainwindow.h"
-#include "scopewindow.h"
 #include "glscopewindow.h"
 #include "universeview.h"
 #include "transmitwindow.h"
@@ -253,7 +252,7 @@ void MDIMainWindow::restoreSubWindows()
   {
     if (window.name == "Scope")
     {
-      ScopeWindow* scopeWindow = new ScopeWindow(MIN_SACN_UNIVERSE, this);
+      GlScopeWindow* scopeWindow = new GlScopeWindow(MIN_SACN_UNIVERSE, this);
       showWidgetAsSubWindow(scopeWindow)->restoreGeometry(window.geometry);
     }
 
@@ -335,7 +334,7 @@ QWidget* MDIMainWindow::addFloatWidget(QWidget* w)
 
 void MDIMainWindow::StoreWidgetGeometry(const QWidget* window, const QWidget* widget, QList<SubWindowInfo>& result)
 {
-  if (qobject_cast<const ScopeWindow*>(widget) != Q_NULLPTR)
+  if (qobject_cast<const GlScopeWindow*>(widget) != Q_NULLPTR)
   {
     SubWindowInfo i;
     i.name = "Scope";
