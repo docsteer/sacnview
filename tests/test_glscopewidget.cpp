@@ -164,3 +164,45 @@ TEST(ScopeModel, CSVImportExport)
     VerifyRedGreenTrace(glscope, "round_trip");
   }
 }
+
+TEST(ScopeModel, CaptureConfigImportExport)
+{
+  const ScopeModel defaultScope;
+  ScopeModel scope;
+
+  const QString defaultConfig = scope.captureConfigurationString();
+  scope.setCaptureConfiguration(defaultConfig);
+  QString currentConfig = scope.captureConfigurationString();
+  EXPECT_STREQ(qUtf8Printable(defaultConfig), qUtf8Printable(currentConfig));
+
+  // Write and read trigger setting
+  scope.setTriggerType(ScopeModel::Trigger::Above);
+  scope.setTriggerLevel(120);
+  currentConfig = scope.captureConfigurationString();
+  EXPECT_STRNE(qUtf8Printable(defaultConfig), qUtf8Printable(currentConfig));
+
+  scope.setTriggerType(ScopeModel::Trigger::FreeRun);
+  scope.setTriggerLevel(0);
+  scope.setCaptureConfiguration(currentConfig);
+
+  EXPECT_EQ(ScopeModel::Trigger::Above, scope.triggerType());
+  EXPECT_EQ(120, scope.triggerLevel());
+
+  // Write and read run time
+  scope.setRunTime(10.0);
+  currentConfig = scope.captureConfigurationString();
+  EXPECT_STRNE(qUtf8Printable(defaultConfig), qUtf8Printable(currentConfig));
+
+  scope.setRunTime(0);
+  scope.setCaptureConfiguration(currentConfig);
+  EXPECT_EQ(10.0, scope.runTime());
+
+  // Clear and set trigger again
+  scope.setTriggerType(ScopeModel::Trigger::FreeRun);
+  scope.setTriggerLevel(0);
+  scope.setCaptureConfiguration(currentConfig);
+
+  EXPECT_EQ(ScopeModel::Trigger::Above, scope.triggerType());
+  EXPECT_EQ(120, scope.triggerLevel());
+
+}

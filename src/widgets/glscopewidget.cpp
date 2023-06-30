@@ -17,6 +17,7 @@
 #include <QPainter>
 #include <QScreen>
 #include <QOpenGLShaderProgram>
+#include <QMetaEnum>
 
 static constexpr qreal AXIS_LABEL_WIDTH = 45.0;
 static constexpr qreal AXIS_LABEL_HEIGHT = 20.0;
@@ -25,6 +26,7 @@ static constexpr qreal RIGHT_GAP = 15.0;
 static constexpr qreal AXIS_TO_WINDOW_GAP = 5.0;
 static constexpr qreal AXIS_TICK_SIZE = 10.0;
 
+static const QString CaptureOptionsTitle = QStringLiteral("Capture Options");
 static const QString RowTitleColor = QStringLiteral("Color");
 static const QString ColumnTitleTimestamp = QStringLiteral("Time (s)");
 
@@ -616,6 +618,71 @@ void ScopeModel::clearValues()
   m_endTime = 0;
 }
 
+QString ScopeModel::captureConfigurationString() const
+{
+  QString result = (m_storeAllPoints ? QLatin1String("All Packets,") : QLatin1String("Level Changes,"));
+  if (m_trigger.mode != Trigger::FreeRun)
+  {
+    result.append(QStringLiteral("Trigger %1@%2,")
+      .arg(QMetaEnum::fromType<Trigger>().valueToKey(static_cast<int>(m_trigger.mode)))
+      .arg(m_trigger.level));
+  }
+
+  if (m_runTime > 0)
+    result.append(QStringLiteral("Run For %1 sec,").arg(m_runTime));
+
+  result.chop(1);
+  return result;
+}
+
+void ScopeModel::setCaptureConfiguration(const QString& configString)
+{
+  if (configString.isEmpty())
+    return;
+
+  m_storeAllPoints = configString.contains(QLatin1String("All Packets"), Qt::CaseInsensitive);
+  const int triggerPos = configString.indexOf(QLatin1String("Trigger"));
+  const int triggerLevelPos = configString.indexOf(QLatin1Char('@'), triggerPos);
+  if (triggerPos < 0)
+  {
+    m_trigger.mode = Trigger::FreeRun;
+  }
+  else
+  {
+    const auto metaEnum = QMetaEnum::fromType<Trigger>();
+    for (int i = 0; i < metaEnum.keyCount(); ++i)
+    {
+      if (configString.indexOf(QLatin1String(metaEnum.key(i)), triggerPos) > -1)
+      {
+        m_trigger.mode = static_cast<Trigger>(metaEnum.value(i));
+        break;
+      }
+    }
+
+    // Read trigger value
+    const int triggerLevelEnd = configString.indexOf(QLatin1Char(','), triggerLevelPos) - 1;
+    bool ok;
+    const int triggerLevel = configString.mid(triggerLevelPos + 1, triggerLevelEnd - triggerLevelPos).toInt(&ok);
+    if (ok)
+      m_trigger.level = triggerLevel;
+  }
+
+  int runTimePos = configString.indexOf(QLatin1String("Run For"));
+  const int runTimeSecPos = configString.indexOf(QLatin1String("sec"), runTimePos);
+  if (runTimePos < 0 || runTimeSecPos < 0)
+  {
+    m_runTime = 0;
+  }
+  else
+  {
+    bool ok;
+    runTimePos += 8;
+    const qreal time = configString.mid(runTimePos, runTimeSecPos - runTimePos).toDouble(&ok);
+    if (ok)
+      m_runTime = time;
+  }
+}
+
 bool ScopeModel::saveTraces(QIODevice& file) const
 {
   if (!file.isWritable())
@@ -632,11 +699,17 @@ bool ScopeModel::saveTraces(QIODevice& file) const
   out.setRealNumberPrecision(3);
 
   // Table:
+  // Capture Options:,All Packets/Level Changes
+  // 
   // Color,     red, green, ...
   // Time (s), U1.1, U1.2/3, ... (Given as Universe.CoarseDMX/FineDmx (1-512)
   // 0.000,     255,    0, ...
   // 0.020,     128,  128, ...
   // 0.040,     127,  255, ...
+
+  // Export capture configuration line
+  out << CaptureOptionsTitle << QLatin1String(":,") << captureConfigurationString();
+  out << "\n\n";
 
   // First row time
   float this_row_time = std::numeric_limits<float>::max();
@@ -719,25 +792,35 @@ bool ScopeModel::saveTraces(QIODevice& file) const
   return true;
 }
 
-QPair<QString, QString> FindUniverseTitles(QTextStream& in)
-{
-  // Find start of data
-  QString top_line;
-  while (in.readLineInto(&top_line))
-  {
-    if (top_line.startsWith(RowTitleColor))
-    {
-      // Probably the title line, remove the timestamp title
-      top_line.remove(0, RowTitleColor.size() + 1);
-      QString next_line = in.readLine();
-      if (!next_line.startsWith(ColumnTitleTimestamp))
-        return QPair<QString, QString>();// Failed
+struct TitleRows {
+  QString config;
+  QString colors;
+  QString universes;
+};
 
-      next_line.remove(0, ColumnTitleTimestamp.size() + 1);
-      return { top_line, next_line };
+TitleRows FindUniverseTitles(QTextStream& in)
+{
+  TitleRows result;
+  // Find start of data
+  QString line;
+  while (in.readLineInto(&line))
+  {
+    if (line.startsWith(CaptureOptionsTitle))
+    {
+      result.config = line;
+    }
+    else if (line.startsWith(RowTitleColor))
+    {
+      // Probably the title line
+      result.colors = line;
+      result.universes = in.readLine();
+      if (!result.universes.startsWith(ColumnTitleTimestamp))
+        return TitleRows();  // Failed
+
+      return result;
     }
   }
-  return QPair<QString, QString>();
+  return TitleRows();
 }
 
 bool ScopeModel::loadTraces(QIODevice& file)
@@ -752,12 +835,16 @@ bool ScopeModel::loadTraces(QIODevice& file)
   in.setRealNumberPrecision(3);
 
   const auto title_line = FindUniverseTitles(in);
-  if (title_line.second.isEmpty())
+  if (title_line.universes.isEmpty())
     return false;
 
   // Split the title lines to find the trace colors and names
-  auto colors = title_line.first.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
-  auto titles = title_line.second.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
+  auto colors = title_line.colors.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
+  auto titles = title_line.universes.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
+
+  // Remove the first column as these are known titles
+  colors.pop_front();
+  titles.pop_front();
 
   // Remove empty colors from the end
   while (colors.last().isEmpty())
@@ -772,6 +859,9 @@ bool ScopeModel::loadTraces(QIODevice& file)
   // Fairly likely to be valid, stop and clear my data now
   beginResetModel();
   private_removeAllTraces();
+
+  // Get the config
+  setCaptureConfiguration(title_line.config);
 
   struct UnivSlots
   {

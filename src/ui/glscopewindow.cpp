@@ -85,14 +85,13 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
 
       lbl = new QLabel(tr("Store:"), confWidget);
       layoutGrp->addWidget(lbl, row, 0);
-      QComboBox* recordMode = new QComboBox(confWidget);
-      recordMode->addItems({ tr("All Packets"), tr("Level Changes") });
-      connect(recordMode, QOverload<int>::of(&QComboBox::activated), this, &GlScopeWindow::setRecordMode);
-      recordMode->setCurrentIndex(m_scope->model()->storeAllPoints() ? 0 : 1);
-      layoutGrp->addWidget(recordMode, row, 1);
+      m_recordMode = new QComboBox(confWidget);
+      m_recordMode->addItems({ tr("All Packets"), tr("Level Changes") });
+      connect(m_recordMode, QOverload<int>::of(&QComboBox::activated), this, &GlScopeWindow::setRecordMode);
+      layoutGrp->addWidget(m_recordMode, row, 1);
 
       m_disableWhenRunning.push_back(lbl);
-      m_disableWhenRunning.push_back(recordMode);
+      m_disableWhenRunning.push_back(m_recordMode);
 
       ++row;
 
@@ -104,7 +103,6 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       //! Seconds suffix
       m_spinRunTime->setSuffix(tr("s"));
       m_spinRunTime->setSpecialValueText(tr("Forever"));
-      m_spinRunTime->setValue(m_scope->model()->runTime());
       connect(m_spinRunTime, QOverload<int>::of(&QSpinBox::valueChanged), m_scope->model(), &ScopeModel::setRunTime);
       connect(m_scope->model(), &ScopeModel::runTimeChanged, m_spinRunTime, &QSpinBox::setValue);
       layoutGrp->addWidget(m_spinRunTime, row, 1);
@@ -255,6 +253,7 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
   m_splitter->setCollapsible(0, false);
 
   // Refresh
+  updateConfiguration();
   onRunningChanged(m_scope->model()->isRunning());
 }
 
@@ -450,6 +449,7 @@ void GlScopeWindow::loadTraces(bool)
 
   // Update
   updateTimeScrollBars();
+  updateConfiguration();
   m_btnStart->setEnabled(m_scope->model()->rowCount() > 0);
 }
 
@@ -481,6 +481,15 @@ void GlScopeWindow::updateTimeScrollBars()
 
   onTimeSliderMoved(m_scrollTime->value());
   m_scrollTime->setEnabled(true);
+}
+
+void GlScopeWindow::updateConfiguration()
+{
+  // Read values back from the scope model
+  m_recordMode->setCurrentIndex(m_scope->model()->storeAllPoints() ? 0 : 1);
+  m_spinRunTime->setValue(m_scope->model()->runTime());
+  m_triggerType->setCurrentIndex(static_cast<int>(m_scope->model()->triggerType()));
+  m_spinTriggerLevel->setValue(m_scope->model()->triggerLevel());
 }
 
 // QColorDialog doesn't autocentre when used as a delegate

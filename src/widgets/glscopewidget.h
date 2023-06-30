@@ -135,6 +135,7 @@ public:
     Below,
     LevelCross
   };
+  Q_ENUM(Trigger);
 
   enum class AddResult
   {
@@ -157,13 +158,13 @@ public:
   bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole) override;
 
   /**
- * @brief Add a new trace
- * @param color Color to use for the trace. Must be valid
- * @param universe Universe for the trace. (1 - Max sACN Universe)
- * @param address_hi DMX address of the Coarse byte. (1-512)
- * @param address_lo DMX address of the Fine byte. Out of range for 8bit.
- * @return Added if added the trace, Invalid for invalid parameters, Exists for already extant
-*/
+   * @brief Add a new trace
+   * @param color Color to use for the trace. Must be valid
+   * @param universe Universe for the trace. (1 - Max sACN Universe)
+   * @param address_hi DMX address of the Coarse byte. (1-512)
+   * @param address_lo DMX address of the Fine byte. Out of range for 8bit.
+   * @return Added if added the trace, Invalid for invalid parameters, Exists for already extant
+  */
   AddResult addTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo = 0);
 
   /**
@@ -231,10 +232,6 @@ public:
   */
   bool listeningToUniverse(uint16_t universe) const;
 
-  /// Store all points, or only level changes
-  bool storeAllPoints() const { return m_storeAllPoints; }
-  void setStoreAllPoints(bool b) { m_storeAllPoints = b; }
-
   /// Start listening and storing trace info
   Q_SLOT void start();
   /// Stop adding data to the traces
@@ -242,6 +239,18 @@ public:
   /// @return true if currently running
   bool isRunning() const { return m_running; }
   Q_SIGNAL void runningChanged(bool running);
+
+  /**
+  * @brief Get a string describing the capture configuration
+  * All Packets/Level Changes, Trigger setup etc
+  */
+  QString captureConfigurationString() const;
+  /// Set capture configuration from string
+  void setCaptureConfiguration(const QString& configString);
+
+  /// Store all points, or only level changes
+  bool storeAllPoints() const { return m_storeAllPoints; }
+  void setStoreAllPoints(bool b) { m_storeAllPoints = b; }
 
   /**
   * @brief Length of time in seconds to run after Start or Trigger
