@@ -29,6 +29,7 @@ public:
     COL_NAME,
     COL_ONLINE,
     COL_CID,
+    COL_UNIVERSE,
     COL_PRIO,
     COL_SYNC,
     COL_PREVIEW,
@@ -102,6 +103,7 @@ private:
     unsigned int jumps = 0;
     SourceState online = SourceState::Offline;
     SourceSecure security = SourceSecure::None;
+    uint16_t universe = 0;
     uint16_t sync_universe = 0;
     uint16_t slot_count = 0;
     uint8_t priority = 0;

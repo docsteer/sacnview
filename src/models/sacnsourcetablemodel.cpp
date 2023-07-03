@@ -67,6 +67,7 @@ QVariant SACNSourceTableModel::data(const QModelIndex& index, int role) const
     case COL_CID:
       return static_cast<Qt::Alignment::Int>(Qt::AlignVCenter | Qt::AlignLeft);
       // Numeric
+    case COL_UNIVERSE:
     case COL_PRIO:
     case COL_SYNC:
     case COL_FPS:
@@ -106,6 +107,7 @@ QVariant SACNSourceTableModel::getDisplayData(const RowData& rowData, int column
     return QStringLiteral("??");
   }
   case COL_CID: return rowData.cid;
+  case COL_UNIVERSE: return rowData.universe;
   case COL_PRIO: return rowData.per_address ? QStringLiteral("(*) ") + QString::number(rowData.priority) : QString::number(rowData.priority);
   case COL_SYNC:
     if (rowData.protocol_version == sACNProtocolDraft)
@@ -162,6 +164,7 @@ QVariant SACNSourceTableModel::getBackgroundData(const RowData& rowData, int col
     case SourceSecure::Yes: return Preferences::Instance().colorForStatus(Preferences::Status::Good);
     }
   case COL_CID:
+  case COL_UNIVERSE:
   case COL_PRIO:
   case COL_SYNC:
   case COL_PREVIEW:
@@ -192,6 +195,7 @@ QVariant SACNSourceTableModel::headerData(int section, Qt::Orientation orientati
       case COL_NAME: return tr("Name");
       case COL_ONLINE: return tr("Online");
       case COL_CID: return tr("CID");
+      case COL_UNIVERSE: return tr("Universe");
       case COL_PRIO: return tr("Priority");
       case COL_SYNC: return tr("Sync");
       case COL_PREVIEW: return tr("Preview");
@@ -211,7 +215,8 @@ QVariant SACNSourceTableModel::headerData(int section, Qt::Orientation orientati
       case COL_NAME: return tr("The human readable name the source has been given");
       case COL_ONLINE: return tr("Online status of the source");
       case COL_CID: return tr("The Component IDentifier of the source, a Universally Unique Identifier");
-      case COL_PRIO: return tr("Source priority 0 (ignore) to 200 (most important)");
+      case COL_UNIVERSE: return tr("sACN Universe number (%1-%1)").arg(MIN_SACN_UNIVERSE).arg(MAX_SACN_UNIVERSE);
+      case COL_PRIO: return tr("Source priority %1 (ignore) to %2 (most important). Default %1").arg(MIN_SACN_PRIORITY).arg(MAX_SACN_PRIORITY).arg(DEFAULT_SACN_PRIORITY);
       case COL_SYNC: return tr("Does the source support Universe Synchronization?");
       case COL_PREVIEW: return tr("Indicates that the data in this packet is intended for use in visualization or media server preview applications and shall not be used to generate live output.");
       case COL_IP: return tr("The IP address of the source");
@@ -265,8 +270,10 @@ void SACNSourceTableModel::clear()
   }
   m_listeners.clear();
 
+  // Clear the model
   beginResetModel();
   m_rows.clear();
+  m_sourceToTableRow.clear();
   endResetModel();
 }
 
@@ -275,6 +282,10 @@ void SACNSourceTableModel::resetSequenceCounters()
   for (auto it = m_sourceToTableRow.begin(); it != m_sourceToTableRow.end(); ++it)
   {
     it.key()->resetSeqErr();
+  }
+  for (auto& row : m_rows)
+  {
+    row.seq_err = 0;
   }
   emit dataChanged(index(0, COL_SEQ_ERR), index(rowCount() - 1, COL_SEQ_ERR));
 }
@@ -285,6 +296,10 @@ void SACNSourceTableModel::resetJumpsCounters()
   {
     it.key()->resetJumps();
   }
+  for (auto& row : m_rows)
+  {
+    row.jumps = 0;
+  }
   emit dataChanged(index(0, COL_JUMPS), index(rowCount() - 1, COL_JUMPS));
 }
 
@@ -294,6 +309,11 @@ void SACNSourceTableModel::resetCounters()
   {
     it.key()->resetSeqErr();
     it.key()->resetJumps();
+  }
+  for (auto& row : m_rows)
+  {
+    row.seq_err = 0;
+    row.jumps = 0;
   }
   emit dataChanged(index(0, COL_SEQ_ERR), index(rowCount() - 1, COL_JUMPS));
 }
@@ -339,6 +359,7 @@ void SACNSourceTableModel::RowData::Update(const sACNSource* source)
 
   name = source->name;
   cid = source->src_cid;
+  universe = source->universe;
   protocol_version = source->protocol_version;
   ip = source->ip;
   fps = source->fpscounter.FPS();

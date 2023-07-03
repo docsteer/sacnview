@@ -59,6 +59,8 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
     m_sourceTableModel = new SACNSourceTableModel(this);
     ui->tableView->setModel(m_sourceTableModel);
     ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    // Don't need to display the Universe column
+    ui->tableView->setColumnHidden(SACNSourceTableModel::COL_UNIVERSE, true);
 }
 
 UniverseView::~UniverseView()
