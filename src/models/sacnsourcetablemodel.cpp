@@ -197,11 +197,11 @@ QVariant SACNSourceTableModel::getTimingSummary(const RowData& rowData) const
   size_t staticCount = 0;
   for (const auto& item : histogram)
   {
-    if (item.first < m_shortInterval)
+    if (item.first <= m_shortInterval)
       shortCount += item.second;
-    else if (item.first > m_staticInterval)
+    if (item.first > m_staticInterval)
       staticCount += item.second;
-    else if (item.first > m_longInterval)
+    if (item.first > m_longInterval)
       longCount += item.second;
   }
 
@@ -261,6 +261,38 @@ QVariant SACNSourceTableModel::headerData(int section, Qt::Orientation orientati
     }
   }
   return QVariant();
+}
+
+void SACNSourceTableModel::setShortInterval(int millisec)
+{
+  if (millisec == shortInterval())
+    return;
+
+  m_shortInterval = std::chrono::milliseconds(millisec);
+
+  emit headerDataChanged(Qt::Horizontal, COL_TIME_SUMMARY, COL_TIME_SUMMARY);
+  emit dataChanged(index(0, COL_TIME_SUMMARY), index(rowCount() - 1, COL_TIME_SUMMARY));
+}
+
+void SACNSourceTableModel::setLongInterval(int millisec)
+{
+  if (millisec == longInterval())
+    return;
+
+  m_longInterval = std::chrono::milliseconds(millisec);
+
+  emit headerDataChanged(Qt::Horizontal, COL_TIME_SUMMARY, COL_TIME_SUMMARY);
+  emit dataChanged(index(0, COL_TIME_SUMMARY), index(rowCount() - 1, COL_TIME_SUMMARY));
+}
+
+void SACNSourceTableModel::setStaticInterval(int millisec)
+{
+  if (millisec == longInterval())
+    return;
+
+  m_staticInterval = std::chrono::milliseconds(millisec);
+
+  emit dataChanged(index(0, COL_TIME_SUMMARY), index(rowCount() - 1, COL_TIME_SUMMARY));
 }
 
 void SACNSourceTableModel::addListener(const sACNManager::tListener& listener)

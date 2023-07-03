@@ -63,6 +63,8 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
     ui->tableView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
     // Don't need to display the Universe column
     ui->tableView->setColumnHidden(SACNSourceTableModel::COL_UNIVERSE, true);
+    // Don't show the time summary column
+    ui->tableView->setColumnHidden(SACNSourceTableModel::COL_TIME_SUMMARY, true);
 }
 
 UniverseView::~UniverseView()

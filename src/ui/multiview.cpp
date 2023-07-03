@@ -26,6 +26,18 @@ MultiView::MultiView(QWidget* parent)
 
   ui->spinUniverseMax->setMinimum(MIN_SACN_UNIVERSE);
   ui->spinUniverseMax->setMaximum(MAX_SACN_UNIVERSE);
+
+  ui->spinShort->setMaximum(800);
+  ui->spinShort->setValue(m_sourceTableModel->shortInterval());
+  connect(ui->spinShort, QOverload<int>::of(&QSpinBox::valueChanged), m_sourceTableModel, &SACNSourceTableModel::setShortInterval);
+
+  ui->spinLong->setMaximum(ui->spinShort->maximum());
+  ui->spinLong->setValue(m_sourceTableModel->longInterval());
+  connect(ui->spinLong, QOverload<int>::of(&QSpinBox::valueChanged), m_sourceTableModel, &SACNSourceTableModel::setLongInterval);
+
+  ui->spinStatic->setMaximum(ui->spinShort->maximum());
+  ui->spinStatic->setValue(m_sourceTableModel->staticInterval());
+  connect(ui->spinStatic, QOverload<int>::of(&QSpinBox::valueChanged), m_sourceTableModel, &SACNSourceTableModel::setStaticInterval);
 }
 
 MultiView::~MultiView()
@@ -44,7 +56,7 @@ void MultiView::on_btnStartStop_clicked(bool checked)
     // Clear and restart listening for the large number of universes
     m_sourceTableModel->resetCounters();
     m_sourceTableModel->clear();
-    
+
     // Hold onto the old listeners so any overlaps will not be destructed
     std::map<uint16_t, sACNManager::tListener> old_listeners;
     old_listeners.swap(m_listeners);

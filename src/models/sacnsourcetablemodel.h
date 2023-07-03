@@ -56,6 +56,14 @@ public:
   QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
   QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
+  // Time interval summary
+  Q_SLOT void setShortInterval(int millisec);
+  int shortInterval() const { return m_shortInterval.count(); }
+  Q_SLOT void setLongInterval(int millisec);
+  int longInterval() const { return m_longInterval.count(); }
+  Q_SLOT void setStaticInterval(int millisec);
+  int staticInterval() const { return m_staticInterval.count(); }
+
   // Add a listener. Does not take ownership
   void addListener(const sACNManager::tListener& listener);
   // Stop updating
@@ -123,11 +131,11 @@ private:
   std::vector<sACNManager::wListener> m_listeners;
 
   // Interval shorter than expected
-  FpsCounter::HistogramBucket m_shortInterval{19};
+  FpsCounter::HistogramBucket m_shortInterval = std::chrono::milliseconds(19);
   // Interval longer than expected
-  FpsCounter::HistogramBucket m_longInterval{25};
+  FpsCounter::HistogramBucket m_longInterval = std::chrono::milliseconds(25);
   // Is either a static level or something has gone very wrong
-  FpsCounter::HistogramBucket m_staticInterval{500};
+  FpsCounter::HistogramBucket m_staticInterval = std::chrono::milliseconds(500);
 
   // Data
   QVariant getDisplayData(const RowData& rowData, int column) const;
