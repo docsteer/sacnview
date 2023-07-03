@@ -257,7 +257,9 @@ void SACNSourceTableModel::clear()
   // Stop listening for new sources
   for (size_t i = 0; i < m_listeners.size(); ++i)
   {
-    disconnect(m_listeners[i].data(), nullptr, this, nullptr);
+    sACNManager::tListener listener(m_listeners[i]);
+    if (listener)
+      disconnect(listener.data(), nullptr, this, nullptr);
   }
   m_listeners.clear();
 

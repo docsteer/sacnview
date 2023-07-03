@@ -42,8 +42,7 @@
 
 #include <QCoreApplication>
 #include <QThread>
-#include <QSharedPointer>
-#include <QWeakPointer>
+
 #ifdef QT_GUI_LIB
 #include <QMessageBox>
 #else

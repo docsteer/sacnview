@@ -55,6 +55,7 @@ public:
   QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
   QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
+  // Add a listener. Does not take ownership
   void addListener(const sACNManager::tListener& listener);
   // Remove all listeners and sources
   void clear();
@@ -113,7 +114,7 @@ private:
   };
 
   std::vector<RowData> m_rows;
-  std::vector<sACNManager::tListener> m_listeners;
+  std::vector<sACNManager::wListener> m_listeners;
 
   // Data
   QVariant getDisplayData(const RowData& rowData, int column) const;

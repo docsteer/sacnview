@@ -59,7 +59,10 @@ public:
   static sACNManager& Instance();
 
   typedef QSharedPointer<sACNListener> tListener;
+  typedef QWeakPointer<sACNListener> wListener;
+
   typedef QSharedPointer<sACNSentUniverse> tSender;
+  typedef QWeakPointer<sACNSentUniverse> wSender;
 
   ~sACNManager();
 
@@ -79,7 +82,7 @@ private:
   QHash<QObject*, quint16> m_objToUniverse;
   QHash<QObject*, CID> m_objToCid;
 
-  QHash<quint16, QWeakPointer<sACNListener>> m_listenerHash;
+  QHash<quint16, wListener> m_listenerHash;
 
   // The pool of threads to use for listener objects
   std::vector<QThread*> m_threadPool;
@@ -88,7 +91,7 @@ private:
   QThread* GetThread();
 
   tSender createSender(CID cid, quint16 universe);
-  QHash<CID, QHash<quint16, QWeakPointer<sACNSentUniverse>> > m_senderHash;
+  QHash<CID, QHash<quint16, wSender> > m_senderHash;
 
 public:
   tListener getListener(quint16 universe);
