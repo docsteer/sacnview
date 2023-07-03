@@ -3,6 +3,7 @@
 #include "ui_multiview.h"
 
 #include "consts.h"
+#include "preferences.h"
 #include "models/sacnsourcetablemodel.h"
 #include "models/csvmodelexport.h"
 
@@ -38,6 +39,9 @@ MultiView::MultiView(QWidget* parent)
   ui->spinStatic->setMaximum(ui->spinShort->maximum());
   ui->spinStatic->setValue(m_sourceTableModel->staticInterval());
   connect(ui->spinStatic, QOverload<int>::of(&QSpinBox::valueChanged), m_sourceTableModel, &SACNSourceTableModel::setStaticInterval);
+
+  // Maybe don't show the Secure column
+  ui->sourceTableView->setColumnHidden(SACNSourceTableModel::COL_PATHWAY_SECURE, !Preferences::Instance().GetPathwaySecureRx());
 }
 
 MultiView::~MultiView()
