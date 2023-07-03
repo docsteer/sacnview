@@ -58,12 +58,6 @@ void Tock_StopLib()
 
 tock::tock():v(0) {}
 
-template <typename Rep, typename Period>
-tock::tock(std::chrono::duration<Rep, Period> duration)
-{
-    v = duration;
-}
-
 tock::resolution_t tock::Get() const
 {
     return v;
