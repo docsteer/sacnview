@@ -218,7 +218,7 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
     return;
   };
 
-  const qreal timestamp = sACNManager::secsElapsed();
+  const tock packet_tock = sACNManager::GetTock();
 
   QMutexLocker locker(&m_processMutex);
 
@@ -566,7 +566,7 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
       ps->storeReceivedLevels(pdata, slot_count);
 
       // FPS Counter - we count only DMX frames
-      ps->fpscounter.newFrame();
+      ps->fpscounter.newFrame(packet_tock);
       if (ps->fpscounter.isNewFPS())
         ps->source_params_change = true;
     }
@@ -605,7 +605,7 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
       QMutexLocker locker(&m_monitoredChannelsMutex);
       for (IDmxReceivedCallback* callback : m_dmxReceivedCallbacks)
       {
-        callback->sACNListenerDmxReceived(timestamp, m_universe, m_current_levels);
+        callback->sACNListenerDmxReceived(packet_tock, m_universe, m_current_levels);
       }
     }
   }

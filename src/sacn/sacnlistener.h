@@ -59,11 +59,11 @@ public:
     virtual ~IDmxReceivedCallback() {}
     /**
     * @brief Called in the listener thread after a DMX packet has been received and merged
-    * @param timestamp seconds since this receiver started
+    * @param packet_tock global tock of this packet
     * @param universe number
     * @param mergedLevels array of merged levels
     */
-    virtual void sACNListenerDmxReceived(qreal timestamp, int universe, const std::array<int, MAX_DMX_ADDRESS> &mergedLevels) = 0;
+    virtual void sACNListenerDmxReceived(tock packet_tock, int universe, const std::array<int, MAX_DMX_ADDRESS> &mergedLevels) = 0;
   };
 
 public:

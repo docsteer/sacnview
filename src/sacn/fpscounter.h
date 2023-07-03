@@ -2,43 +2,44 @@
 #define FPSCounter_H
 
 #include <QObject>
-#include <QVector>
-#include <QElapsedTimer>
 #include <QMutexLocker>
+
+#include "tock.h"
+
+#include <vector>
 
 class FpsCounter : public QObject
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    explicit FpsCounter(QObject *parent = nullptr);
-    ~FpsCounter();
+  explicit FpsCounter(QObject* parent = nullptr);
+  ~FpsCounter();
 
-    // Return current FPS
-    float FPS() const { newFps = false; return currentFps;}
+  // Return current FPS
+  float FPS() const { m_newFps = false; return m_currentFps; }
 
-    // Returns true if FPS has changed since last checked
-    bool isNewFPS() const { return newFps; }
+  // Returns true if FPS has changed since last checked
+  bool isNewFPS() const { return m_newFps; }
 
-    // Log new frame
-    void newFrame();
+  // Log new frame
+  void newFrame(tock timePoint);
 
 signals:
-    void updatedFPS();
+  void updatedFPS();
 
 protected:
-    void timerEvent(QTimerEvent *e) final;
+  void timerEvent(QTimerEvent* ev) final;
 
 private:
-    QElapsedTimer elapsedTimer;
-    int timerId = 0;
+  int m_timerId = 0;
 
-    float currentFps = 0.0f;
-    float previousFps = 0.0f;
-    mutable bool newFps = false;
+  float m_currentFps = 0.0f;
+  float m_previousFps = 0.0f;
+  mutable bool m_newFps = false;
 
-    QMutex queueMutex;
-    QVector<qint64> frameTimes;
-    qint64 lastFrameTime = 0;
+  QMutex m_queueMutex;
+  std::vector<tock::resolution_t> m_frameTimes;
+  tock::resolution_t m_lastFrameTime{0};
 };
 
 #endif // FPSCounter_H

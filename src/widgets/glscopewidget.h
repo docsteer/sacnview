@@ -288,7 +288,7 @@ public:
   qreal endTime() const;
 
   /// sACNListener::IDmxReceivedCallback
-  void sACNListenerDmxReceived(qreal timestamp, int universe, const std::array<int, MAX_DMX_ADDRESS>& levels) final;
+  void sACNListenerDmxReceived(tock packet_tock, int universe, const std::array<int, MAX_DMX_ADDRESS>& levels) final;
 
 private:
   Q_SIGNAL void stopNow();

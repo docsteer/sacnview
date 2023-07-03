@@ -26,7 +26,6 @@
 #include <QHash>
 #include <QString>
 #include <QHostAddress>
-#include <QElapsedTimer>
 #include <QMutex>
 
 #include "CID.h"
