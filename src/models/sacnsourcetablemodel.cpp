@@ -351,7 +351,7 @@ void SACNSourceTableModel::sourceChanged(sACNSource* source)
 
   // Update and signal
   m_rows[row_num].Update(source);
-  emit dataChanged(index(row_num, 0), index(row_num, COL_END));
+  emit dataChanged(index(row_num, 0), index(row_num, COL_END - 1));
 }
 
 void SACNSourceTableModel::sourceOnline(sACNSource* source)
