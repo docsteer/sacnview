@@ -197,11 +197,12 @@ QVariant SACNSourceTableModel::getTimingSummary(const RowData& rowData) const
   size_t staticCount = 0;
   for (const auto& item : histogram)
   {
+    // Times are rounded up, don't count anything twice
     if (item.first <= m_shortInterval)
       shortCount += item.second;
-    if (item.first > m_staticInterval)
+    else if (item.first > m_staticInterval)
       staticCount += item.second;
-    if (item.first > m_longInterval)
+    else if (item.first > m_longInterval)
       longCount += item.second;
   }
 
@@ -229,7 +230,10 @@ QVariant SACNSourceTableModel::headerData(int section, Qt::Orientation orientati
       case COL_PREVIEW: return tr("Preview");
       case COL_IP: return tr("IP Address");
       case COL_FPS: return tr("FPS");
-      case COL_TIME_SUMMARY: return tr("Times (<%1 >%2 Static)").arg(std::chrono::milliseconds(m_shortInterval).count()).arg(std::chrono::milliseconds(m_longInterval).count());
+      case COL_TIME_SUMMARY: return tr("Times (<%1 >%2 >%3)")
+        .arg(std::chrono::milliseconds(m_shortInterval).count())
+        .arg(std::chrono::milliseconds(m_longInterval).count())
+        .arg(std::chrono::milliseconds(m_staticInterval).count());
       case COL_SEQ_ERR: return tr("SeqErr");
       case COL_JUMPS: return tr("Jumps");
       case COL_VER: return tr("Ver");
@@ -292,6 +296,7 @@ void SACNSourceTableModel::setStaticInterval(int millisec)
 
   m_staticInterval = std::chrono::milliseconds(millisec);
 
+  emit headerDataChanged(Qt::Horizontal, COL_TIME_SUMMARY, COL_TIME_SUMMARY);
   emit dataChanged(index(0, COL_TIME_SUMMARY), index(rowCount() - 1, COL_TIME_SUMMARY));
 }
 
