@@ -141,14 +141,15 @@ sACNManager::~sACNManager()
     delete thread;
   }
   m_threadPool.clear();
+
+  // Stop the Tock layer
+  Tock_StopLib();
 }
 
 sACNManager::sACNManager() : QObject()
 {
-    // Start Tock layer
-    Tock_StartLib();
-  // Start the global timer
-  m_elapsed.start();
+  // Start Tock layer
+  Tock_StartLib();
 
   // Start E1.31 Universe Discovery
   sACNDiscoveryTX::start();

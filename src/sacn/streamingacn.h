@@ -63,9 +63,10 @@ public:
 
   ~sACNManager();
 
-  static qint64 nsecsElapsed() { return Instance().m_elapsed.nsecsElapsed(); }
-  static qint64 elapsed() { return Instance().m_elapsed.elapsed(); }
-  static qreal secsElapsed() { return static_cast<qreal>(Instance().m_elapsed.elapsed()) / 1000.0; }
+  inline static tock GetTock() { return Tock_GetTock(); }
+  inline static qint64 nsecsElapsed() { return Tock_GetTock().Get().count(); }
+  inline static qint64 elapsed() { return std::chrono::duration_cast<std::chrono::milliseconds>(Tock_GetTock().Get()).count(); }
+  inline static qreal secsElapsed() { return std::chrono::duration<qreal>(Tock_GetTock().Get()).count(); }
 
 public slots:
   void listenerDelete(QObject* obj = Q_NULLPTR);
@@ -74,7 +75,6 @@ public slots:
 private:
   sACNManager();
   QMutex sACNManager_mutex;
-  QElapsedTimer m_elapsed;
 
   QHash<QObject*, quint16> m_objToUniverse;
   QHash<QObject*, CID> m_objToCid;
