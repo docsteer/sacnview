@@ -12,6 +12,11 @@ class FpsCounter : public QObject
 {
   Q_OBJECT
 public:
+  // Histogram bucket size
+  using HistogramBucket = std::chrono::milliseconds;
+  using Histogram = std::map<HistogramBucket, size_t>;
+
+public:
   explicit FpsCounter(QObject* parent = nullptr);
   ~FpsCounter();
 
@@ -20,6 +25,12 @@ public:
 
   // Returns true if FPS has changed since last checked
   bool isNewFPS() const { return m_newFps; }
+
+  // Get a copy of the frame time histogram
+  Histogram GetHistogram() const;
+  
+  // Clear the histogram
+  void ClearHistogram();
 
   // Log new frame
   void newFrame(tock timePoint);
@@ -37,9 +48,9 @@ private:
   float m_previousFps = 0.0f;
   mutable bool m_newFps = false;
 
-  QMutex m_queueMutex;
+  mutable QMutex m_queueMutex;
   std::vector<tock::resolution_t> m_frameTimes;
-  tock::resolution_t m_lastFrameTime{0};
+  Histogram m_frameDeltaHistogram;
 };
 
 #endif // FPSCounter_H

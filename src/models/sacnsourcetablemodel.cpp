@@ -65,6 +65,7 @@ QVariant SACNSourceTableModel::data(const QModelIndex& index, int role) const
       // Text
     case COL_NAME:
     case COL_CID:
+    case COL_TIME_SUMMARY:
       return static_cast<Qt::Alignment::Int>(Qt::AlignVCenter | Qt::AlignLeft);
       // Numeric
     case COL_UNIVERSE:
@@ -119,6 +120,7 @@ QVariant SACNSourceTableModel::getDisplayData(const RowData& rowData, int column
   case COL_PREVIEW: return (rowData.preview ? tr("Yes") : tr("No"));
   case COL_IP: return rowData.ip.toString();
   case COL_FPS: return QStringLiteral("%1Hz").arg(QString::number(rowData.fps, 'f', 2));
+  case COL_TIME_SUMMARY: return getTimingSummary(rowData);
   case COL_SEQ_ERR: return rowData.seq_err;
   case COL_JUMPS: return rowData.jumps;
   case COL_VER: return GetProtocolVersionString(rowData.protocol_version);
@@ -181,6 +183,32 @@ QVariant SACNSourceTableModel::getBackgroundData(const RowData& rowData, int col
   return QVariant();
 }
 
+QVariant SACNSourceTableModel::getTimingSummary(const RowData& rowData) const
+{
+  const FpsCounter::Histogram& histogram = rowData.histogram;
+  if (histogram.empty())
+    return tr("N/A");
+
+  // Min - max
+  QString result = QStringLiteral("%1-%2ms").arg(std::chrono::milliseconds(histogram.begin()->first).count()).arg(std::chrono::milliseconds(histogram.rbegin()->first).count());
+  // And count of interesting ranges
+  size_t shortCount = 0;
+  size_t longCount = 0;
+  size_t staticCount = 0;
+  for (const auto& item : histogram)
+  {
+    if (item.first < m_shortInterval)
+      shortCount += item.second;
+    else if (item.first > m_staticInterval)
+      staticCount += item.second;
+    else if (item.first > m_longInterval)
+      longCount += item.second;
+  }
+
+  result.append(QStringLiteral(" (%1 %2 %3)").arg(shortCount).arg(longCount).arg(staticCount));
+  return result;
+}
+
 
 QVariant SACNSourceTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
@@ -201,6 +229,7 @@ QVariant SACNSourceTableModel::headerData(int section, Qt::Orientation orientati
       case COL_PREVIEW: return tr("Preview");
       case COL_IP: return tr("IP Address");
       case COL_FPS: return tr("FPS");
+      case COL_TIME_SUMMARY: return tr("Times (<%1 >%2 Static)").arg(std::chrono::milliseconds(m_shortInterval).count()).arg(std::chrono::milliseconds(m_longInterval).count());
       case COL_SEQ_ERR: return tr("SeqErr");
       case COL_JUMPS: return tr("Jumps");
       case COL_VER: return tr("Ver");
@@ -418,4 +447,5 @@ void SACNSourceTableModel::RowData::Update(const sACNSource* source)
   priority = source->priority;
   preview = source->isPreview;
   per_address = source->doing_per_channel;
+  histogram = source->fpscounter.GetHistogram();
 }

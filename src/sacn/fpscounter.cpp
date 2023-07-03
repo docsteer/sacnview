@@ -2,13 +2,13 @@
 
 #include "streamingacn.h"
 
-constexpr int updateInterval = 1000;
+constexpr std::chrono::milliseconds updateInterval(1000);
 
 FpsCounter::FpsCounter(QObject* parent) : QObject(parent)
 {
   // Maximum fps permitted by standard is 44, so this should never reallocate
-  m_frameTimes.reserve(50);
-  m_timerId = startTimer(updateInterval);
+  m_frameTimes.reserve(127);
+  m_timerId = startTimer(updateInterval.count());
 }
 
 FpsCounter::~FpsCounter()
@@ -27,7 +27,7 @@ void FpsCounter::timerEvent(QTimerEvent* /*ev*/)
     // No frames, or very old single frame
     if (
       m_frameTimes.empty() ||
-      ((m_frameTimes.size() == 1) && (sACNManager::GetTock().Get() > (m_frameTimes.back() + std::chrono::milliseconds(updateInterval * 2))))
+      ((m_frameTimes.size() == 1) && (sACNManager::GetTock().Get() > (m_frameTimes.back() + (updateInterval * 2))))
       )
     {
       m_previousFps = m_currentFps;
@@ -40,30 +40,33 @@ void FpsCounter::timerEvent(QTimerEvent* /*ev*/)
     tock::resolution_t intervalTotal{0};
     int64_t intervalCount = 0;
 
-    size_t frameIndex = 0;
-    if (m_lastFrameTime == tock::resolution_t::zero())
-    {
-      m_lastFrameTime = m_frameTimes[0];
-      frameIndex = 1;
-    }
+    tock::resolution_t lastFrameTime = m_frameTimes.front();
 
-    for (/* init above */; frameIndex < m_frameTimes.size(); ++frameIndex)
+    for (size_t frameIndex = 1; frameIndex < m_frameTimes.size(); ++frameIndex)
     {
       const auto& time = m_frameTimes[frameIndex];
 
-      if (time > m_lastFrameTime)
+      if (time > lastFrameTime)
       {
-        const auto interval = time - m_lastFrameTime;
-        m_lastFrameTime = time;
-        intervalTotal += interval;
-        ++intervalCount;
+        const auto interval = time - lastFrameTime;
+        lastFrameTime = time;
+        // Ignore very long intervals
+        if (interval < (updateInterval * 2))
+        {
+          // Add to histogram
+          ++m_frameDeltaHistogram[std::chrono::ceil<HistogramBucket>(interval)];
+          // Add to total
+          intervalTotal += interval;
+          ++intervalCount;
+        }
       }
     }
 
-    m_frameTimes.clear();
-
     if (intervalCount == 0)
       return;
+
+    m_frameTimes.clear();
+    m_frameTimes.push_back(lastFrameTime);
 
     const auto intervalAvg = intervalTotal / intervalCount;
 
@@ -72,15 +75,27 @@ void FpsCounter::timerEvent(QTimerEvent* /*ev*/)
     m_currentFps = 1.0f / std::chrono::duration<float>(intervalAvg).count();
   }
 
-  queueLocker.unlock();
-
   // Flag if the FPS has changed
   m_newFps = (m_previousFps < m_currentFps) || (m_previousFps > m_currentFps);
+  
+  queueLocker.unlock();
 
   if (m_newFps)
   {
     emit updatedFPS();
   }
+}
+
+FpsCounter::Histogram FpsCounter::GetHistogram() const
+{
+  QMutexLocker queueLocker(&m_queueMutex);
+  return m_frameDeltaHistogram;
+}
+
+void FpsCounter::ClearHistogram()
+{
+  QMutexLocker queueLocker(&m_queueMutex);
+  m_frameDeltaHistogram.clear();
 }
 
 void FpsCounter::newFrame(tock timePoint)

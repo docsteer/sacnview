@@ -35,6 +35,7 @@ public:
     COL_PREVIEW,
     COL_IP,
     COL_FPS,
+    COL_TIME_SUMMARY,
     COL_SEQ_ERR,
     COL_JUMPS,
     COL_VER,
@@ -113,6 +114,7 @@ private:
     uint8_t priority = 0;
     bool preview = false;
     bool per_address = false;
+    FpsCounter::Histogram histogram;
 
     void Update(const sACNSource* source);
   };
@@ -120,7 +122,15 @@ private:
   std::vector<RowData> m_rows;
   std::vector<sACNManager::wListener> m_listeners;
 
+  // Interval shorter than expected
+  FpsCounter::HistogramBucket m_shortInterval{19};
+  // Interval longer than expected
+  FpsCounter::HistogramBucket m_longInterval{25};
+  // Is either a static level or something has gone very wrong
+  FpsCounter::HistogramBucket m_staticInterval{500};
+
   // Data
   QVariant getDisplayData(const RowData& rowData, int column) const;
   QVariant getBackgroundData(const RowData& rowData, int column) const;
+  QVariant getTimingSummary(const RowData& rowData) const;
 };
