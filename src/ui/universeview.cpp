@@ -346,11 +346,14 @@ void UniverseView::openBigDisplay(quint16 address)
 void UniverseView::on_btnPause_clicked()
 {
     ui->universeDisplay->pause();
+    m_sourceTableModel->pause();
+
     this->disconnect(m_listener.data());
     ui->btnGo->setEnabled(true);
     ui->btnPause->setEnabled(false);
     ui->sbUniverse->setEnabled(true);
     m_bindWarningShown = false;
+
 
     setWindowTitle(tr("Universe View"));
 }

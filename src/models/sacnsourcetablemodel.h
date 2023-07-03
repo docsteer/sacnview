@@ -57,7 +57,11 @@ public:
 
   // Add a listener. Does not take ownership
   void addListener(const sACNManager::tListener& listener);
-  // Remove all listeners and sources
+  // Stop updating
+  void pause();
+  // Restart updates of the existing list of sources and listeners
+  void restart();
+  // Clear all data and remove all listeners
   void clear();
 
   // Convenience

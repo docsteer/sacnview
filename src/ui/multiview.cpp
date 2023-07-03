@@ -60,8 +60,7 @@ void MultiView::on_btnStartStop_clicked(bool checked)
   {
     ui->spinUniverseMin->setEnabled(true);
     ui->spinUniverseMax->setEnabled(true);
-
-    // TODO: Actually pause
+    m_sourceTableModel->pause();
   }
 }
 

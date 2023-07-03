@@ -252,15 +252,41 @@ void SACNSourceTableModel::addListener(const sACNManager::tListener& listener)
   m_listeners.push_back(listener);
 }
 
-void SACNSourceTableModel::clear()
+void SACNSourceTableModel::pause()
 {
-  // Stop listening for new sources
+  // Stop listening (queued events will still happen)
   for (size_t i = 0; i < m_listeners.size(); ++i)
   {
     sACNManager::tListener listener(m_listeners[i]);
     if (listener)
       disconnect(listener.data(), nullptr, this, nullptr);
   }
+}
+
+void SACNSourceTableModel::restart()
+{
+  // Restart listening on all still extant universes
+  for (auto it = m_listeners.begin(); it != m_listeners.end(); /**/)
+  {
+    sACNManager::tListener listener(*it);
+    if (listener)
+    {
+      connect(listener.data(), &sACNListener::sourceFound, this, &SACNSourceTableModel::sourceOnline);
+      connect(listener.data(), &sACNListener::sourceLost, this, &SACNSourceTableModel::sourceChanged);
+      connect(listener.data(), &sACNListener::sourceChanged, this, &SACNSourceTableModel::sourceChanged);
+      ++it;
+    }
+    else
+    {
+      // Remove nulled weak pointers
+      it = m_listeners.erase(it);
+    }
+  }
+}
+
+void SACNSourceTableModel::clear()
+{
+  pause();
   m_listeners.clear();
 
   // Clear the model
