@@ -145,6 +145,8 @@ sACNManager::~sACNManager()
 
 sACNManager::sACNManager() : QObject()
 {
+    // Start Tock layer
+    Tock_StartLib();
   // Start the global timer
   m_elapsed.start();
 
