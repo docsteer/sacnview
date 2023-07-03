@@ -56,7 +56,6 @@ public:
   QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
   void addListener(const sACNManager::tListener& listener);
-  void removeListener(const sACNManager::tListener& listener);
   // Remove all listeners and sources
   void clear();
 

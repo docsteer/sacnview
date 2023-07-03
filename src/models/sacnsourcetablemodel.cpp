@@ -252,15 +252,6 @@ void SACNSourceTableModel::addListener(const sACNManager::tListener& listener)
   m_listeners.push_back(listener);
 }
 
-void SACNSourceTableModel::removeListener(const sACNManager::tListener& listener)
-{
-  if (!listener)
-    return;
-  disconnect(listener.data(), nullptr, this, nullptr);
-
-  // TODO: Remove sources from this listener
-}
-
 void SACNSourceTableModel::clear()
 {
   // Stop listening for new sources
