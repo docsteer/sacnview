@@ -8,6 +8,7 @@
 
 #include <QFileDialog>
 #include <QStandardPaths>
+#include <QSortFilterProxyModel>
 
 MultiView::MultiView(QWidget* parent)
   : QWidget(parent)
@@ -15,8 +16,10 @@ MultiView::MultiView(QWidget* parent)
   , m_sourceTableModel(new SACNSourceTableModel(this))
 {
   ui->setupUi(this);
-  ui->sourceTableView->setModel(m_sourceTableModel);
-  ui->sourceTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+  QSortFilterProxyModel* sortProxy = new QSortFilterProxyModel(this);
+  sortProxy->setSourceModel(m_sourceTableModel);
+  ui->sourceTableView->setModel(sortProxy);
+  ui->sourceTableView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
 
   ui->spinUniverseMin->setMinimum(MIN_SACN_UNIVERSE);
   ui->spinUniverseMin->setMaximum(MAX_SACN_UNIVERSE);
@@ -34,6 +37,7 @@ void MultiView::on_btnStartStop_clicked(bool checked)
 {
   if (checked)
   {
+    ui->btnStartStop->setText(tr("Stop"));
     ui->spinUniverseMin->setEnabled(false);
     ui->spinUniverseMax->setEnabled(false);
 
@@ -58,6 +62,7 @@ void MultiView::on_btnStartStop_clicked(bool checked)
   }
   else
   {
+    ui->btnStartStop->setText(tr("Start"));
     ui->spinUniverseMin->setEnabled(true);
     ui->spinUniverseMax->setEnabled(true);
     m_sourceTableModel->pause();

@@ -57,8 +57,10 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
     ui->sbUniverse->setValue(universe);
 
     m_sourceTableModel = new SACNSourceTableModel(this);
-    ui->tableView->setModel(m_sourceTableModel);
-    ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    QSortFilterProxyModel* sortProxy = new QSortFilterProxyModel(this);
+    sortProxy->setSourceModel(m_sourceTableModel);
+    ui->tableView->setModel(sortProxy);
+    ui->tableView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
     // Don't need to display the Universe column
     ui->tableView->setColumnHidden(SACNSourceTableModel::COL_UNIVERSE, true);
 }
