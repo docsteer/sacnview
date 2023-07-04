@@ -291,7 +291,8 @@ public:
   void sACNListenerDmxReceived(tock packet_tock, int universe, const std::array<int, MAX_DMX_ADDRESS>& levels) final;
 
 private:
-  Q_SIGNAL void stopNow();
+  Q_SIGNAL void queueStop();
+  Q_SIGNAL void queueTriggered();
 
 private:
   std::vector<ScopeTrace*> m_traceTable;

@@ -40,6 +40,11 @@ public:
   explicit MDIMainWindow(QWidget* parent = 0);
   ~MDIMainWindow();
 
+  /// Start all receiver views
+  Q_SIGNAL void startReceiverViews();
+  /// Stop all receiver views
+  Q_SIGNAL void stopReceiverViews();
+
 protected:
   void showEvent(QShowEvent* ev) override;
 

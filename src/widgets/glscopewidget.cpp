@@ -421,7 +421,8 @@ ScopeModel::ScopeModel(QObject* parent)
   : QAbstractTableModel(parent)
 {
   private_removeAllTraces();
-  connect(this, &ScopeModel::stopNow, this, &ScopeModel::stop, Qt::QueuedConnection);
+  connect(this, &ScopeModel::queueStop, this, &ScopeModel::stop, Qt::QueuedConnection);
+  connect(this, &ScopeModel::queueTriggered, this, &ScopeModel::triggered, Qt::QueuedConnection);
 }
 
 ScopeModel::~ScopeModel()
@@ -1103,13 +1104,24 @@ void ScopeModel::setMaxValue(qreal maxValue)
 void ScopeModel::triggerNow(qreal offset)
 {
   m_startOffset = offset;
-  // And update the offsets of all traces
+  // Update the offsets of all traces
   for (ScopeTrace* trace : m_traceTable)
   {
     trace->applyOffset(offset);
   }
+  // Reset the counters
+  for (sACNManager::tListener& listener : m_listeners)
+  {
+    auto sources = listener->getSourceList();
+    for (sACNSource* source : sources)
+    {
+      source->resetSeqErr();
+      source->resetJumps();
+      source->fpscounter.ClearHistogram();
+    }
+  }
 
-  emit triggered();
+  emit queueTriggered();
 }
 
 QRectF ScopeModel::traceExtents() const
@@ -1179,7 +1191,7 @@ void ScopeModel::sACNListenerDmxReceived(tock packet_tock, int universe, const s
     qDebug() << m_endTime;
     if (m_runTime > 0 && m_endTime >= m_runTime)
     {
-      emit stopNow();
+      emit queueStop();
       return;
     }
   }
