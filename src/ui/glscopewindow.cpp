@@ -20,6 +20,7 @@
 #include <QGridLayout>
 #include <QSplitter>
 
+#include <QCheckBox>
 #include <QComboBox>
 #include <QGroupBox>
 #include <QHeaderView>
@@ -53,6 +54,7 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
 
     m_scope = new GlScopeWidget(scopeWidget);
     connect(m_scope->model(), &ScopeModel::runningChanged, this, &GlScopeWindow::onRunningChanged);
+    connect(m_scope->model(), &ScopeModel::triggered, this, &GlScopeWindow::onTriggered);
     layout->addWidget(m_scope);
 
     m_scrollTime = new QScrollBar(Qt::Horizontal, scopeWidget);
@@ -122,7 +124,6 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       layoutGrp->addWidget(verticalScale, row, 1);
 
       ++row;
-
       lbl = new QLabel(tr("Time Scale:"), confWidget);
       layoutGrp->addWidget(lbl, row, 0);
 
@@ -173,6 +174,11 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       // Set initial trigger type and values
       m_triggerType->setCurrentIndex(0);
       m_spinTriggerLevel->setValue(127);
+
+      ++row;
+      m_chkSyncViews = new QCheckBox(tr("Trigger Receive Views"), confWidget);
+      layoutGrp->addWidget(m_chkSyncViews, row, 0, 1, 2, Qt::AlignHCenter);
+      m_disableWhenRunning.push_back(m_chkSyncViews);
 
       // Spacer at the bottom
       ++row;
@@ -255,6 +261,10 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
   // Refresh
   updateConfiguration();
   onRunningChanged(m_scope->model()->isRunning());
+
+  // Now connect signals for other receiver views
+  connect(this, SIGNAL(startOtherViews()), parent, SIGNAL(startReceiverViews()));
+  connect(this, SIGNAL(stopOtherViews()), parent, SIGNAL(stopReceiverViews()));
 }
 
 GlScopeWindow::~GlScopeWindow()
@@ -265,6 +275,9 @@ GlScopeWindow::~GlScopeWindow()
 
 void GlScopeWindow::onRunningChanged(bool running)
 {
+  if (m_chkSyncViews->isChecked() && !running)
+    emit stopOtherViews();
+
   m_btnStart->setChecked(running);
   m_btnStop->setChecked(!running);
 
@@ -282,6 +295,7 @@ void GlScopeWindow::onRunningChanged(bool running)
   // Reset to start
   if (running)
     m_scope->setScopeView();
+
   // Force to follow now when running
   m_scope->setFollowNow(running);
 
@@ -451,6 +465,12 @@ void GlScopeWindow::loadTraces(bool)
   updateTimeScrollBars();
   updateConfiguration();
   m_btnStart->setEnabled(m_scope->model()->rowCount() > 0);
+}
+
+void GlScopeWindow::onTriggered()
+{
+  if (m_chkSyncViews->isChecked())
+    emit startOtherViews();
 }
 
 void GlScopeWindow::updateTimeScrollBars()

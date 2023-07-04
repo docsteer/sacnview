@@ -22,6 +22,7 @@
 
 class GlScopeWidget;
 
+class QCheckBox;
 class QComboBox;
 class QPushButton;
 class QScrollBar;
@@ -52,6 +53,12 @@ private:
   Q_SLOT void saveTraces(bool);
   Q_SLOT void loadTraces(bool);
 
+  Q_SLOT void onTriggered();
+
+  // Signals to start/stop other open rx views
+  Q_SIGNAL void startOtherViews();
+  Q_SIGNAL void stopOtherViews();
+
 private:
   QSplitter* m_splitter = nullptr;
   GlScopeWidget* m_scope = nullptr;
@@ -63,6 +70,7 @@ private:
   QSpinBox* m_spinTriggerLevel = nullptr;
   QPushButton* m_btnStart = nullptr;
   QPushButton* m_btnStop = nullptr;
+  QCheckBox* m_chkSyncViews = nullptr;
   QTableView* m_tableView = nullptr;
 
   // Widgets to disable when running and enable when stopped

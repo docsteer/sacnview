@@ -58,7 +58,6 @@ void MultiView::on_btnStartStop_clicked(bool checked)
     ui->spinUniverseMax->setEnabled(false);
 
     // Clear and restart listening for the large number of universes
-    m_sourceTableModel->resetCounters();
     m_sourceTableModel->clear();
 
     // Hold onto the old listeners so any overlaps will not be destructed

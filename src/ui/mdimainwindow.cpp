@@ -179,9 +179,9 @@ void MDIMainWindow::universeDoubleClick(const QModelIndex& index)
 
   if (universe > 0)
   {
-    UniverseView* uniView = new UniverseView(1, this);
+    UniverseView* uniView = new UniverseView(universe, this);
     showWidgetAsSubWindow(uniView);
-    uniView->startListening(universe);
+    uniView->startRx();
   }
 
 }
@@ -202,6 +202,16 @@ void MDIMainWindow::on_actionMultiUniverse_triggered()
 
 QWidget* MDIMainWindow::showWidgetAsSubWindow(QWidget* w)
 {
+  // Connect cross-window triggering signals
+  // Check if extant
+  const QMetaObject* meta = w->metaObject();
+  if (meta->indexOfSlot("startRx()") != -1)
+  {
+    // Classes should support both or neither
+    connect(this, SIGNAL(startReceiverViews()), w, SLOT(startRx()));
+    connect(this, SIGNAL(stopReceiverViews()), w, SLOT(stopRx()));
+  }
+
   switch (Preferences::Instance().GetWindowMode())
   {
   default:
