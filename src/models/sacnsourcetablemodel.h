@@ -74,6 +74,7 @@ public:
   void clear();
 
   // Convenience
+  void resetTimeSummaryCounters();
   void resetSequenceCounters();
   void resetJumpsCounters();
   void resetCounters();

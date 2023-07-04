@@ -362,6 +362,15 @@ void SACNSourceTableModel::clear()
   endResetModel();
 }
 
+void SACNSourceTableModel::resetTimeSummaryCounters()
+{
+  for (auto it = m_sourceToTableRow.begin(); it != m_sourceToTableRow.end(); ++it)
+  {
+    it.key()->fpscounter.ClearHistogram();
+  }
+  emit dataChanged(index(0, COL_TIME_SUMMARY), index(rowCount() - 1, COL_TIME_SUMMARY));
+}
+
 void SACNSourceTableModel::resetSequenceCounters()
 {
   for (auto it = m_sourceToTableRow.begin(); it != m_sourceToTableRow.end(); ++it)
@@ -394,13 +403,14 @@ void SACNSourceTableModel::resetCounters()
   {
     it.key()->resetSeqErr();
     it.key()->resetJumps();
+    it.key()->fpscounter.ClearHistogram();
   }
   for (auto& row : m_rows)
   {
     row.seq_err = 0;
     row.jumps = 0;
   }
-  emit dataChanged(index(0, COL_SEQ_ERR), index(rowCount() - 1, COL_JUMPS));
+  emit dataChanged(index(0, COL_TIME_SUMMARY), index(rowCount() - 1, COL_JUMPS));
 }
 
 void SACNSourceTableModel::sourceChanged(sACNSource* source)
