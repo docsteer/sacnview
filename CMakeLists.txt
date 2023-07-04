@@ -61,7 +61,6 @@ set(SACNVIEW_HEADER_PATHS
 set(SACNVIEW_HEADERS
     src/ui/mdimainwindow.h
     src/sacn/securesacn.h
-    src/widgets/monitorspinbox.h
     src/widgets/qpushbutton_rightclick.h
     src/widgets/qspinbox_resizetocontent.h
     src/ui/newversiondialog.h
@@ -152,7 +151,6 @@ set(SACNVIEW_SOURCES
     src/ui/addmultidialog.cpp
     src/ui/multiview.cpp
     src/ui/glscopewindow.cpp
-    src/widgets/monitorspinbox.cpp
     src/widgets/qpushbutton_rightclick.cpp
     src/widgets/qspinbox_resizetocontent.cpp
     src/widgets/universedisplay.cpp

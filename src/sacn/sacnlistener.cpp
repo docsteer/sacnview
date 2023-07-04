@@ -602,7 +602,7 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
     // Inform everyone who cares that a DMX packet has been received
     if (start_code == STARTCODE_DMX)
     {
-      QMutexLocker locker(&m_monitoredChannelsMutex);
+      QMutexLocker locker(&m_directCallbacksMutex);
       for (IDmxReceivedCallback* callback : m_dmxReceivedCallbacks)
       {
         callback->sACNListenerDmxReceived(packet_tock, m_universe, m_current_levels);
@@ -613,7 +613,7 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
 
 void sACNListener::addDirectCallback(IDmxReceivedCallback* callback)
 {
-  QMutexLocker locker(&m_monitoredChannelsMutex);
+  QMutexLocker locker(&m_directCallbacksMutex);
   for (const IDmxReceivedCallback* existing : m_dmxReceivedCallbacks)
   {
     if (existing == callback)
@@ -624,7 +624,7 @@ void sACNListener::addDirectCallback(IDmxReceivedCallback* callback)
 
 void sACNListener::removeDirectCallback(IDmxReceivedCallback* callback)
 {
-  QMutexLocker locker(&m_monitoredChannelsMutex);
+  QMutexLocker locker(&m_directCallbacksMutex);
   for (auto it = m_dmxReceivedCallbacks.begin(); it != m_dmxReceivedCallbacks.end(); /**/)
   {
     if (callback == (*it))
@@ -646,17 +646,6 @@ inline bool isPatched(const sACNSource& source, uint16_t address)
 
 void sACNListener::performMerge()
 {
-  {
-    QMutexLocker locker(&m_monitoredChannelsMutex);
-    for (auto const& chan : qAsConst(m_monitoredChannels))
-    {
-      QPointF data;
-      data.setX(sACNManager::nsecsElapsed() / 1000000.0);
-      data.setY(mergedLevels().at(chan).level);
-      emit dataReady(chan, data);
-    }
-  }
-
   if (m_mergesPerSecondTimer.hasExpired(1000))
   {
     m_mergesPerSecond = m_mergeCounter;
