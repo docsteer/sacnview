@@ -42,8 +42,7 @@
 
 #include <QCoreApplication>
 #include <QThread>
-#include <QSharedPointer>
-#include <QWeakPointer>
+
 #ifdef QT_GUI_LIB
 #include <QMessageBox>
 #else
@@ -141,12 +140,15 @@ sACNManager::~sACNManager()
     delete thread;
   }
   m_threadPool.clear();
+
+  // Stop the Tock layer
+  Tock_StopLib();
 }
 
 sACNManager::sACNManager() : QObject()
 {
-  // Start the global timer
-  m_elapsed.start();
+  // Start Tock layer
+  Tock_StartLib();
 
   // Start E1.31 Universe Discovery
   sACNDiscoveryTX::start();

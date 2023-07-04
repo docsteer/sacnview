@@ -26,7 +26,6 @@
 #include <QHash>
 #include <QString>
 #include <QHostAddress>
-#include <QElapsedTimer>
 #include <QMutex>
 
 #include "CID.h"
@@ -59,13 +58,17 @@ public:
   static sACNManager& Instance();
 
   typedef QSharedPointer<sACNListener> tListener;
+  typedef QWeakPointer<sACNListener> wListener;
+
   typedef QSharedPointer<sACNSentUniverse> tSender;
+  typedef QWeakPointer<sACNSentUniverse> wSender;
 
   ~sACNManager();
 
-  static qint64 nsecsElapsed() { return Instance().m_elapsed.nsecsElapsed(); }
-  static qint64 elapsed() { return Instance().m_elapsed.elapsed(); }
-  static qreal secsElapsed() { return static_cast<qreal>(Instance().m_elapsed.elapsed()) / 1000.0; }
+  inline static tock GetTock() { return Tock_GetTock(); }
+  inline static qint64 nsecsElapsed() { return Tock_GetTock().Get().count(); }
+  inline static qint64 elapsed() { return std::chrono::duration_cast<std::chrono::milliseconds>(Tock_GetTock().Get()).count(); }
+  inline static qreal secsElapsed() { return std::chrono::duration<qreal>(Tock_GetTock().Get()).count(); }
 
 public slots:
   void listenerDelete(QObject* obj = Q_NULLPTR);
@@ -74,12 +77,11 @@ public slots:
 private:
   sACNManager();
   QMutex sACNManager_mutex;
-  QElapsedTimer m_elapsed;
 
   QHash<QObject*, quint16> m_objToUniverse;
   QHash<QObject*, CID> m_objToCid;
 
-  QHash<quint16, QWeakPointer<sACNListener>> m_listenerHash;
+  QHash<quint16, wListener> m_listenerHash;
 
   // The pool of threads to use for listener objects
   std::vector<QThread*> m_threadPool;
@@ -88,7 +90,7 @@ private:
   QThread* GetThread();
 
   tSender createSender(CID cid, quint16 universe);
-  QHash<CID, QHash<quint16, QWeakPointer<sACNSentUniverse>> > m_senderHash;
+  QHash<CID, QHash<quint16, wSender> > m_senderHash;
 
 public:
   tListener getListener(quint16 universe);

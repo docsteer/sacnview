@@ -29,11 +29,13 @@ public:
     COL_NAME,
     COL_ONLINE,
     COL_CID,
+    COL_UNIVERSE,
     COL_PRIO,
     COL_SYNC,
     COL_PREVIEW,
     COL_IP,
     COL_FPS,
+    COL_TIME_SUMMARY,
     COL_SEQ_ERR,
     COL_JUMPS,
     COL_VER,
@@ -54,12 +56,25 @@ public:
   QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
   QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
+  // Time interval summary
+  Q_SLOT void setShortInterval(int millisec);
+  int shortInterval() const { return m_shortInterval.count(); }
+  Q_SLOT void setLongInterval(int millisec);
+  int longInterval() const { return m_longInterval.count(); }
+  Q_SLOT void setStaticInterval(int millisec);
+  int staticInterval() const { return m_staticInterval.count(); }
+
+  // Add a listener. Does not take ownership
   void addListener(const sACNManager::tListener& listener);
-  void removeListener(const sACNManager::tListener& listener);
-  // Remove all listeners and sources
+  // Stop updating
+  void pause();
+  // Restart updates of the existing list of sources and listeners
+  void restart();
+  // Clear all data and remove all listeners
   void clear();
 
   // Convenience
+  void resetTimeSummaryCounters();
   void resetSequenceCounters();
   void resetJumpsCounters();
   void resetCounters();
@@ -102,19 +117,29 @@ private:
     unsigned int jumps = 0;
     SourceState online = SourceState::Offline;
     SourceSecure security = SourceSecure::None;
+    uint16_t universe = 0;
     uint16_t sync_universe = 0;
     uint16_t slot_count = 0;
     uint8_t priority = 0;
     bool preview = false;
     bool per_address = false;
+    FpsCounter::Histogram histogram;
 
     void Update(const sACNSource* source);
   };
 
   std::vector<RowData> m_rows;
-  std::vector<sACNManager::tListener> m_listeners;
+  std::vector<sACNManager::wListener> m_listeners;
+
+  // Interval shorter than expected
+  FpsCounter::HistogramBucket m_shortInterval = std::chrono::milliseconds(19);
+  // Interval longer than expected
+  FpsCounter::HistogramBucket m_longInterval = std::chrono::milliseconds(25);
+  // Is either a static level or something has gone very wrong
+  FpsCounter::HistogramBucket m_staticInterval = std::chrono::milliseconds(500);
 
   // Data
   QVariant getDisplayData(const RowData& rowData, int column) const;
   QVariant getBackgroundData(const RowData& rowData, int column) const;
+  QVariant getTimingSummary(const RowData& rowData) const;
 };

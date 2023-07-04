@@ -1125,7 +1125,7 @@ qreal ScopeModel::endTime() const
   return m_endTime;
 }
 
-void ScopeModel::sACNListenerDmxReceived(qreal timestamp, int universe, const std::array<int, MAX_DMX_ADDRESS>& levels)
+void ScopeModel::sACNListenerDmxReceived(tock packet_tock, int universe, const std::array<int, MAX_DMX_ADDRESS>& levels)
 {
   if (!m_running)
     return;
@@ -1134,6 +1134,8 @@ void ScopeModel::sACNListenerDmxReceived(qreal timestamp, int universe, const st
   auto it = m_traceLookup.find(universe);
   if (it == m_traceLookup.end())
     return;
+
+  const qreal timestamp = std::chrono::duration<qreal>(packet_tock.Get()).count();
 
   if (!isTriggered())
   {
