@@ -137,28 +137,17 @@ public:
   sACNRxSocket::sBindStatus getBindStatus() const { return m_bindStatus; }
 
   /**
-   * @brief Force the listener to performa a full merge
+   * @brief Force the listener to perform a full merge
    */
   void doFullMerge() { m_mergeAll = true; }
 
-  // Objects that want a direct, in-thread callback for levels
+  // Objects that want a direct callback for levels in the listener thread
   void addDirectCallback(IDmxReceivedCallback* callback);
   void removeDirectCallback(IDmxReceivedCallback* callback);
 
 public slots:
   void startReception();
-  void monitorAddress(int address, const QObject* owner) {
-    QMutexLocker locker(&m_monitoredChannelsMutex);
-    m_monitoredChannels.insert(owner, address);
-    connect(owner, &QObject::destroyed, this, [this](const QObject* owner) {
-      QMutexLocker locker(&m_monitoredChannelsMutex);
-      m_monitoredChannels.remove(owner);
-      });
-  }
-  void unMonitorAddress(int address, const QObject* owner) {
-    QMutexLocker locker(&m_monitoredChannelsMutex);
-    m_monitoredChannels.remove(owner, address);
-  }
+
 signals:
   void listenerStarted(int universe);
   void sourceFound(sACNSource* source);
@@ -166,7 +155,6 @@ signals:
   void sourceResumed(sACNSource* source);
   void sourceChanged(sACNSource* source);
   void levelsChanged();
-  void dataReady(int address, QPointF data);  // Used by ScopeWidget
 
 private slots:
   void readPendingDatagrams();
@@ -193,9 +181,8 @@ private:
   QTimer* m_initalSampleTimer = nullptr;
   QTimer* m_mergeTimer = nullptr;
   int m_predictableTimerValue;
-  QMutex m_monitoredChannelsMutex;
+  QMutex m_directCallbacksMutex;
   std::vector<IDmxReceivedCallback*> m_dmxReceivedCallbacks;
-  QMultiMap<const QObject*, int> m_monitoredChannels;
   bool m_mergeAll = true; // A flag to initiate a complete remerge of everything
   unsigned int m_mergesPerSecond = 0;
   int m_mergeCounter = 0;
