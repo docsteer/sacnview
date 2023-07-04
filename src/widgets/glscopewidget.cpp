@@ -1104,10 +1104,21 @@ void ScopeModel::setMaxValue(qreal maxValue)
 void ScopeModel::triggerNow(qreal offset)
 {
   m_startOffset = offset;
-  // And update the offsets of all traces
+  // Update the offsets of all traces
   for (ScopeTrace* trace : m_traceTable)
   {
     trace->applyOffset(offset);
+  }
+  // Reset the counters
+  for (sACNManager::tListener& listener : m_listeners)
+  {
+    auto sources = listener->getSourceList();
+    for (sACNSource* source : sources)
+    {
+      source->resetSeqErr();
+      source->resetJumps();
+      source->fpscounter.ClearHistogram();
+    }
   }
 
   emit queueTriggered();
