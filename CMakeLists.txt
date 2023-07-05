@@ -108,6 +108,7 @@ set(SACNVIEW_HEADERS
     src/models/sacnsourcetablemodel.h
     src/models/csvmodelexport.h
     src/widgets/glscopewidget.h
+    src/widgets/steppedspinbox.h
 )
 
 set(SACNVIEW_SOURCES
@@ -153,6 +154,7 @@ set(SACNVIEW_SOURCES
     src/ui/glscopewindow.cpp
     src/widgets/qpushbutton_rightclick.cpp
     src/widgets/qspinbox_resizetocontent.cpp
+    src/widgets/steppedspinbox.cpp
     src/widgets/universedisplay.cpp
     src/widgets/gridwidget.cpp
     src/widgets/clssnapshot.cpp

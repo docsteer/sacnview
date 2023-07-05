@@ -15,6 +15,7 @@
 #include "glscopewindow.h"
 
 #include "widgets/glscopewidget.h"
+#include "widgets/steppedspinbox.h"
 
 #include <QBoxLayout>
 #include <QGridLayout>
@@ -127,9 +128,8 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       lbl = new QLabel(tr("Time Scale:"), confWidget);
       layoutGrp->addWidget(lbl, row, 0);
 
-      m_spinTimeScale = new QSpinBox(confWidget);
-      m_spinTimeScale->setRange(5, 2000); // Milliseconds
-      m_spinTimeScale->setSingleStep(5);
+      m_spinTimeScale = new SteppedSpinBox(confWidget);
+      m_spinTimeScale->setStepList({ 5,10,20,50,100,200,500,1000,2000 }); // Milliseconds
       //! Milliseconds suffix
       m_spinTimeScale->setSuffix(tr("ms"));
       m_spinTimeScale->setValue(m_scope->timeDivisions());

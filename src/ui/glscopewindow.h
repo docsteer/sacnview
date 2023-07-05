@@ -21,6 +21,7 @@
 #include <QStyledItemDelegate>
 
 class GlScopeWidget;
+class SteppedSpinBox;
 
 class QCheckBox;
 class QComboBox;
@@ -65,7 +66,7 @@ private:
   QScrollBar* m_scrollTime = nullptr;
   QComboBox* m_recordMode = nullptr;
   QSpinBox* m_spinRunTime = nullptr;
-  QSpinBox* m_spinTimeScale = nullptr;
+  SteppedSpinBox* m_spinTimeScale = nullptr;
   QComboBox* m_triggerType = nullptr;
   QSpinBox* m_spinTriggerLevel = nullptr;
   QPushButton* m_btnStart = nullptr;
