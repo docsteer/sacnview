@@ -28,11 +28,20 @@
 
 static QElapsedTimer timer;
 
-//Initializes the tock layer.  Only needs to be called once per application
+// Gadget to enforce a single start
+struct TockStarter
+{
+    TockStarter()
+    {
+        timer.start();
+    }
+};
+
+// Initializes the tock layer. Only needs to be called once per application
 bool Tock_StartLib()
 {
-    timer.start();
-    return true;
+    static const TockStarter gadget;
+    return timer.isValid();
 }
 
 //Gets a tock representing the current time
@@ -41,7 +50,7 @@ tock Tock_GetTock()
     return tock(std::chrono::nanoseconds(timer.nsecsElapsed()));
 }
 
-//Shuts down the tock layer.
+// Shuts down the tock layer. No-Op on desktop platforms
 void Tock_StopLib()
 {
 

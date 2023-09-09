@@ -75,6 +75,9 @@ sACNManager &sACNManager::Instance()
 
 sACNManager::sACNManager() : QObject()
 {
+    // Start Tock layer
+    Tock_StartLib();
+
     // Start E1.31 Universe Discovery
     sACNDiscoveryTX::start();
     sACNDiscoveryRX::start();
