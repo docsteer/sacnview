@@ -47,6 +47,7 @@ public:
 
 protected:
   void showEvent(QShowEvent* ev) override;
+  void closeEvent(QCloseEvent* ev) override;
 
 public:
   QWidget* showWidgetAsSubWindow(QWidget* w);
