@@ -490,19 +490,23 @@ QVariant ScopeModel::data(const QModelIndex& index, int role) const
       case COL_UNIVERSE:
         if (role == Qt::DisplayRole || role == Qt::EditRole || role == DataSortRole) return trace->universe();
         if (role == Qt::CheckStateRole) return trace->enabled() ? Qt::Checked : Qt::Unchecked;
+        if (role == Qt::ToolTipRole) return tr("sACN Universe");
         break;
       case COL_ADDRESS:
-        if (role == Qt::DisplayRole || role == Qt::EditRole) return trace->addressString();
         if (role == DataSortRole) return uint32_t(trace->addressHi()) << 16 | trace->addressLo();
+        if (role == Qt::DisplayRole || role == Qt::EditRole) return trace->addressString();
+        if (role == Qt::ToolTipRole) return tr("DMX Address. MSB/LSB for 16bit");
         break;
       case COL_COLOUR:
         if (role == Qt::BackgroundRole || role == Qt::DisplayRole || role == Qt::EditRole) return trace->color();
         if (role == DataSortRole) return static_cast<uint32_t>(trace->color().rgba());
+        if (role == Qt::ToolTipRole) return tr("Trace color (#RRGGBB)");
         break;
       case COL_TRIGGER:
         if (role == Qt::CheckStateRole)
           return m_trigger.isTriggerTrace(*trace) ? Qt::Checked : Qt::Unchecked;
         if (role == DataSortRole) return m_trigger.isTriggerTrace(*trace) ? 0 : 1;
+        if (role == Qt::ToolTipRole) return tr("Trigger on this trace");
         break;
       }
     }
@@ -1256,7 +1260,6 @@ void ScopeModel::sACNListenerDmxReceived(tock packet_tock, int universe, const s
   // Time in seconds
   {
     m_endTime = timestamp - m_startOffset;
-    qDebug() << m_endTime;
     if (m_runTime > 0 && m_endTime >= m_runTime)
     {
       emit queueStop();
@@ -1447,7 +1450,7 @@ void GlScopeWidget::cleanupGL()
 
 inline void DrawLevelAxisText(QPainter& painter, const QFontMetricsF& metrics, const QRectF& scopeWindow, int level, qreal y_scale, const QString& postfix)
 {
-  qreal y = scopeWindow.height() - (level * y_scale);
+  const qreal y = scopeWindow.height() - (level * y_scale);
 
   // TODO: use QStaticText to optimise the text layout
   const QString text = QString::number(level) + postfix;
