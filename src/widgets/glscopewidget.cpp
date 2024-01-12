@@ -1814,6 +1814,8 @@ void GlScopeWidget::updateCursor(const QPoint& widgetPos)
     // Convert to trace space
     const QMatrix4x4 invModelMatrix = m_modelMatrix.inverted();
     m_cursorPoint = invModelMatrix * pos;
+    // Round the level to nearest whole DMX
+    m_cursorPoint.setY(std::round(m_cursorPoint.y()));
   }
 
   update();
