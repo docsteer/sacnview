@@ -85,6 +85,16 @@ void MDIMainWindow::showEvent(QShowEvent* ev)
   applyPrefs();
 }
 
+void MDIMainWindow::closeEvent(QCloseEvent* ev)
+{
+  saveSubWindows();
+
+  qDeleteAll(m_subWindows);
+  m_subWindows.clear();
+
+  QMainWindow::closeEvent(ev);
+}
+
 void MDIMainWindow::on_actionScopeView_triggered(bool checked)
 {
   Q_UNUSED(checked);
