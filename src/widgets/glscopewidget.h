@@ -398,6 +398,18 @@ public:
   const QRectF& scopeView() const { return m_scopeView; }
 
   /**
+   * @brief Check if time of point is in the current scope view
+   * @return true if visible
+  */
+  bool timeInView(const QPointF& point) const { return point.x() >= m_scopeView.left() && point.x() <= m_scopeView.right(); }
+
+  /**
+   * @brief Check if DMX level of point is in the current scope view
+   * @return true if visible
+  */
+  bool levelInView(const QPointF &point) const;
+
+  /**
    * @brief Set the scope view
    * @param rect new range rectangle. Null to reset to default extents
   */
@@ -421,6 +433,9 @@ protected:
 
   void timerEvent(QTimerEvent* ev) override;
 
+  void mousePressEvent(QMouseEvent* ev) override;
+  void mouseMoveEvent(QMouseEvent* ev) override;
+
   Q_SLOT void onRunningChanged(bool running);
 
 private:
@@ -434,6 +449,7 @@ private:
   TimeFormat m_timeFormat = TimeFormat::Elapsed; // Time display format
 
   QRectF m_scopeView; // Current scope view range in DMX
+  QPointF m_cursorPoint; // An additional cursor to draw in scope units
   bool m_followNow = true;
 
   // Rendering configuration
@@ -443,10 +459,13 @@ private:
   int m_matrixUniform = -1;
   int m_colorUniform = -1;
 
+  QMatrix4x4 m_modelMatrix;
   QMatrix4x4 m_viewMatrix;
   QMatrix4x4 m_mvpMatrix;
   QMatrix4x4 m_mvpMatrix16;
 
   void updateMVPMatrix();
   std::vector<QVector2D> makeTriggerLine(ScopeModel::Trigger type);
+
+  void updateCursor(const QPoint& widgetPos);
 };

@@ -18,6 +18,7 @@
 #include <QScreen>
 #include <QOpenGLShaderProgram>
 #include <QMetaEnum>
+#include <QMouseEvent>
 
 static constexpr qreal AXIS_LABEL_WIDTH = 45.0;
 static constexpr qreal AXIS_LABEL_HEIGHT = 20.0;
@@ -1317,6 +1318,12 @@ void GlScopeWidget::setVerticalScaleMode(VerticalScale scaleMode)
   update();
 }
 
+
+bool GlScopeWidget::levelInView(const QPointF& point) const
+{
+  return qFuzzyIsNull(point.y()) || (point.y() > 0.0 && point.y() <= (m_verticalScaleMode == VerticalScale::Dmx16 ? kMaxDmx16 : kMaxDmx8));
+}
+
 void GlScopeWidget::setScopeView(const QRectF& rect)
 {
   if (rect.isEmpty())
@@ -1469,15 +1476,38 @@ void GlScopeWidget::paintGL()
   std::vector<QVector2D> gridLines;
   gridLines.reserve((11 + 14) * 2); // 10 ticks across, 13 up for 0-255
 
+  // Cursor lines
+  std::vector<QVector2D> cursorLines;
+  cursorLines.reserve(4);
+
   // Colors
   static const QColor gridColor(0x43, 0x43, 0x43);
   static const QColor textColor(Qt::white);
   static const QColor timeCursorColor(Qt::white);
+  static const QColor cursorColor(Qt::gray);
+  static const QColor cursorTextColor(Qt::white);
   static const QColor triggerCursorColor(Qt::gray);
 
-  // Draw the axes using QPainter as is easiest way to get the text
-  // It's ok if the labels aren't pixel perfect
+  // Origin is the bottom left of the scope window
+  QPointF origin(rect().bottomLeft().x() + AXIS_LABEL_WIDTH, rect().bottomLeft().y() - AXIS_LABEL_HEIGHT);
+
+  QRectF scopeWindow;
+  scopeWindow.setBottomLeft(origin);
+  scopeWindow.setTop(rect().top() + TOP_GAP);
+  scopeWindow.setRight(rect().right() - RIGHT_GAP);
+
+  // Draw nothing if tiny
+  if (scopeWindow.width() < AXIS_TICK_SIZE)
+    return;
+
+  const qreal x_scale = scopeWindow.width() / m_scopeView.width();
+
+  QFont font;
+  QFontMetricsF metrics(font);
   {
+    // Draw the labels using QPainter as is easiest way to get the text
+    // It's ok if the labels aren't pixel perfect
+
     QPen textPen;
     textPen.setColor(textColor);
 
@@ -1486,27 +1516,30 @@ void GlScopeWidget::paintGL()
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setPen(textPen);
 
-    // Origin is the bottom left of the scope window
-    QPointF origin(rect().bottomLeft().x() + AXIS_LABEL_WIDTH, rect().bottomLeft().y() - AXIS_LABEL_HEIGHT);
-
-    QRectF scopeWindow;
-    scopeWindow.setBottomLeft(origin);
-    scopeWindow.setTop(rect().top() + TOP_GAP);
-    scopeWindow.setRight(rect().right() - RIGHT_GAP);
-
-    // Draw nothing if tiny
-    if (scopeWindow.width() < AXIS_TICK_SIZE)
-      return;
-
-    QFont font;
-    QFontMetricsF metrics(font);
-
     painter.translate(scopeWindow.topLeft().x(), scopeWindow.topLeft().y());
 
     // Draw vertical (level) axis
     {
       const float lineLeft = m_scopeView.left();
       const float lineRight = std::fmaxf(m_scopeView.right(), endTime);
+
+      // Cursor if active
+      if (!m_cursorPoint.isNull())
+      {
+        // Time cursor
+        if (timeInView(m_cursorPoint))
+        {
+          cursorLines.emplace_back(static_cast<float>(m_cursorPoint.x()), 0.0f);
+          cursorLines.emplace_back(static_cast<float>(m_cursorPoint.x()), m_scopeView.bottom());
+        }
+
+        // Level cursor
+        if (levelInView(m_cursorPoint))
+        {
+          cursorLines.emplace_back(lineLeft, static_cast<float>(m_cursorPoint.y()));
+          cursorLines.emplace_back(lineRight, static_cast<float>(m_cursorPoint.y()));
+        }
+      }
 
       if (m_verticalScaleMode == VerticalScale::Percent)
       {
@@ -1556,8 +1589,6 @@ void GlScopeWidget::paintGL()
     // Draw horizontal (time) axis
     painter.resetTransform();
     painter.translate(scopeWindow.bottomLeft().x(), scopeWindow.bottomLeft().y());
-
-    const qreal x_scale = scopeWindow.width() / m_scopeView.width();
 
     if (m_timeFormat == TimeFormat::Elapsed)
     {
@@ -1619,6 +1650,14 @@ void GlScopeWidget::paintGL()
     glDrawArrays(GL_LINES, 0, gridLines.size());
   }
 
+  // Draw the cursorLines
+  if (!cursorLines.empty())
+  {
+    m_program->setUniformValue(m_colorUniform, cursorColor);
+    glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, cursorLines.data());
+    glDrawArrays(GL_LINES, 0, cursorLines.size());
+  }
+
   if (m_model->isTriggered())
   {
     // Draw the current time
@@ -1661,6 +1700,68 @@ void GlScopeWidget::paintGL()
 
   glDisableVertexAttribArray(m_vertexLocation);
   m_program->release();
+
+  // Cursor labels if active
+  // Draw these last so the gridlines aren't on top
+  if (!m_cursorPoint.isNull())
+  {
+    QPen textPen;
+    textPen.setColor(cursorTextColor);
+
+    QPainter painter(this);
+
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setPen(textPen);
+
+    painter.translate(scopeWindow.topLeft().x(), scopeWindow.topLeft().y());
+
+    bool timeAtTop = true;
+
+    // Cursor level as percent and DMX if inside grid
+    if (levelInView(m_cursorPoint))
+    {
+      const qreal percent_value = m_cursorPoint.y() * (m_verticalScaleMode == VerticalScale::Dmx16 ? 100.0f / kMaxDmx16 : 100.0f / kMaxDmx8);
+      const QString text = QString::number(m_cursorPoint.y(), 'f', 0) + QStringLiteral(" (") //
+        + QString::number(percent_value, 'f', 2) //
+        + QStringLiteral("%)");
+
+      // Draw it above/below the line
+      const qreal y_scale = scopeWindow.height() / m_scopeView.bottom();
+      qreal y = scopeWindow.height() - (m_cursorPoint.y() * y_scale);
+      if (percent_value > 90.0)
+      {
+        y += metrics.ascent();
+        timeAtTop = false;  // Draw the time at the bottom
+      }
+      else
+      {
+        y -= metrics.descent();
+      }
+      painter.drawText(QPointF(AXIS_TO_WINDOW_GAP, y), text);
+    }
+
+    // Cursor time as elapsed and wallclock (if available)
+    if (timeInView(m_cursorPoint))
+    {
+      const bool milliseconds = (m_timeInterval < 1.0);
+      QString text = milliseconds //
+        ? QString::number(m_cursorPoint.x() * 1000.0, 'f', 0) + QStringLiteral("ms")
+        : QString::number(m_cursorPoint.x(), 'f', 3) + QStringLiteral("s");
+      QDateTime datetime = QDateTime::currentDateTime();
+      if (m_model->asWallclockTime(datetime, m_cursorPoint.x()))
+      {
+        text += QStringLiteral(", ") + datetime.toString(TimeFormatString);
+      }
+
+      // Determine left/right of cursor
+      qreal x = AXIS_TO_WINDOW_GAP + (m_cursorPoint.x() - m_scopeView.left()) * x_scale;
+      const qreal textWidth = metrics.width(text);
+      if (x + textWidth > scopeWindow.width())
+        x -= (textWidth + 2.0 * AXIS_TO_WINDOW_GAP);
+
+      painter.drawText(QPointF(x, timeAtTop ? metrics.height() : scopeWindow.height() - AXIS_TO_WINDOW_GAP), text);
+    }
+  }
 }
 
 void GlScopeWidget::resizeGL(int w, int h)
@@ -1675,6 +1776,46 @@ void GlScopeWidget::resizeGL(int w, int h)
 void GlScopeWidget::timerEvent(QTimerEvent* /*ev*/)
 {
   // Schedule an update
+  update();
+}
+
+void GlScopeWidget::mousePressEvent(QMouseEvent* ev)
+{
+  if (ev->buttons() & Qt::LeftButton)
+    updateCursor(ev->pos());
+
+  QOpenGLWidget::mousePressEvent(ev);
+}
+
+void GlScopeWidget::mouseMoveEvent(QMouseEvent* ev)
+{
+  if (ev->buttons() & Qt::LeftButton)
+  {
+    updateCursor(ev->pos());
+  }
+  QOpenGLWidget::mouseMoveEvent(ev);
+}
+
+void GlScopeWidget::updateCursor(const QPoint& widgetPos)
+{
+  QPointF pos(widgetPos.x(), height() - widgetPos.y());
+
+  // Be a little forgiving about pixel perfection to make it easier to get a line at the far left
+  if (pos.x() < AXIS_LABEL_WIDTH && pos.x() > AXIS_LABEL_WIDTH - AXIS_TICK_SIZE)
+    pos.setX(AXIS_LABEL_WIDTH);
+
+  // Disable cursor when clicking out-of-bounds bottom-left
+  if (pos.x() < AXIS_LABEL_WIDTH && pos.y() < AXIS_LABEL_HEIGHT)
+  {
+    m_cursorPoint = QPointF();
+  }
+  else
+  {
+    // Convert to trace space
+    const QMatrix4x4 invModelMatrix = m_modelMatrix.inverted();
+    m_cursorPoint = invModelMatrix * pos;
+  }
+
   update();
 }
 
@@ -1699,10 +1840,10 @@ void GlScopeWidget::onRunningChanged(bool running)
 
 void GlScopeWidget::updateMVPMatrix()
 {
-  QMatrix4x4 modelMatrix;
+  m_modelMatrix = QMatrix4x4();
 
   // Translate to origin
-  modelMatrix.translate(AXIS_LABEL_WIDTH, AXIS_LABEL_HEIGHT);
+  m_modelMatrix.translate(AXIS_LABEL_WIDTH, AXIS_LABEL_HEIGHT);
 
   // Horizontal scale
   const qreal pix_width = rect().width() - AXIS_LABEL_WIDTH - RIGHT_GAP;
@@ -1712,12 +1853,12 @@ void GlScopeWidget::updateMVPMatrix()
   const qreal pix_height = rect().height() - AXIS_LABEL_HEIGHT - TOP_GAP;
   const qreal y_scale = pix_height / m_scopeView.height();
 
-  modelMatrix.scale(x_scale, y_scale, 1);
+  m_modelMatrix.scale(x_scale, y_scale, 1);
 
   // Translate to current time and vertical offset
-  modelMatrix.translate(-m_scopeView.left(), -m_scopeView.top(), 0);
+  m_modelMatrix.translate(-m_scopeView.left(), -m_scopeView.top(), 0);
 
-  m_mvpMatrix = m_viewMatrix * modelMatrix;
+  m_mvpMatrix = m_viewMatrix * m_modelMatrix;
 
   if (m_verticalScaleMode == VerticalScale::Percent)
   {
