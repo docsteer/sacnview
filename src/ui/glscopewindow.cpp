@@ -137,6 +137,18 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       connect(m_scope, &GlScopeWidget::timeDivisionsChanged, m_spinTimeScale, &QSpinBox::setValue);
       layoutGrp->addWidget(m_spinTimeScale, row, 1);
 
+      ++row;
+      m_timeFormat = new QComboBox(confWidget);
+      m_timeFormat->addItems({
+        //! Elapsed time
+        tr("Elapsed"),
+        //! Wallclock time
+        tr("Wallclock")
+        });
+
+      connect(m_timeFormat, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &GlScopeWindow::setTimeFormat);
+      layoutGrp->addWidget(m_timeFormat, row, 0, 1, 2);
+
       // Divider
       ++row;
       QFrame* line = new QFrame(confWidget);
@@ -154,7 +166,8 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
         //! Triggers when below the target level
         tr("Below"),
         //! Triggers when passes through or leaves the target level
-        tr("Crossed Level") });
+        tr("Crossed Level")
+        });
       connect(m_triggerType, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &GlScopeWindow::setTriggerType);
       layoutGrp->addWidget(m_triggerType, row, 0, 1, 2);
 
@@ -315,6 +328,11 @@ void GlScopeWindow::onTimeDivisionsChanged(int value)
 {
   m_scope->setTimeDivisions(value);
   updateTimeScrollBars();
+}
+
+void GlScopeWindow::setTimeFormat(int value)
+{
+  m_scope->setTimeFormat(static_cast<GlScopeWidget::TimeFormat>(value));
 }
 
 void GlScopeWindow::setRecordMode(int idx)

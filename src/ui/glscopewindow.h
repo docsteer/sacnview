@@ -42,6 +42,7 @@ private:
   Q_SLOT void onRunningChanged(bool running);
   Q_SLOT void onTimeSliderMoved(int value);
   Q_SLOT void onTimeDivisionsChanged(int value);
+  Q_SLOT void setTimeFormat(int value);
 
   Q_SLOT void setRecordMode(int idx);
   Q_SLOT void setVerticalScaleMode(int idx);
@@ -67,6 +68,7 @@ private:
   QComboBox* m_recordMode = nullptr;
   QSpinBox* m_spinRunTime = nullptr;
   SteppedSpinBox* m_spinTimeScale = nullptr;
+  QComboBox* m_timeFormat = nullptr;
   QComboBox* m_triggerType = nullptr;
   QSpinBox* m_spinTriggerLevel = nullptr;
   QPushButton* m_btnStart = nullptr;
