@@ -172,7 +172,7 @@ public:
   bool GetRestartPending() const { return m_restartPending; }
   void SetRestartPending() { m_restartPending = true; }
 
-  QString GetFormattedValue(unsigned int nLevelInDecimal, bool decorated = false) const;
+  QString GetFormattedValue(int nLevelInDecimal, bool decorated = false) const;
 
   void savePreferences() const;
 

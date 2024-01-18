@@ -291,8 +291,12 @@ QString Preferences::GetUpdateIgnore() const
   return settings.value(S_UPDATE_IGNORE, QString()).toString();
 }
 
-QString Preferences::GetFormattedValue(unsigned int nLevelInDecimal, bool decorated) const
+QString Preferences::GetFormattedValue(int nLevelInDecimal, bool decorated) const
 {
+  // Negative means "none"
+  if (nLevelInDecimal < 0)
+    return QStringLiteral("---");
+
   Q_ASSERT(nLevelInDecimal <= 255);
 
   switch (m_nDisplayFormat)
