@@ -29,6 +29,7 @@ class GridWidget : public QWidget
 public:
     explicit GridWidget(QWidget *parent = Q_NULLPTR);
 
+    void setAllCellColor(const QColor& color);
     void setCellColor(int cell, const QColor &color);
     /**
      * @brief setCellValue - sets the value for a cell

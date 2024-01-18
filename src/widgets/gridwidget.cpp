@@ -335,6 +335,11 @@ void GridWidget::mouseDoubleClickEvent(QMouseEvent *event)
     }
 }
 
+void GridWidget::setAllCellColor(const QColor& color)
+{
+  m_colors.fill(color);
+}
+
 void GridWidget::setCellColor(int cell, const QColor &color)
 {
     m_colors[cell] = color;
