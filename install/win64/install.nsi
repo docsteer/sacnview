@@ -17,6 +17,7 @@
 Unicode true
 
 SetCompressor /SOLID lzma
+RequestExecutionLevel admin
 
 !define PRODUCT_NAME "sACNView64"
 !define PRODUCT_PUBLISHER "Tom Steer"
@@ -58,26 +59,16 @@ ShowUninstDetails show
 InstallDir "$PROGRAMFILES64\${PRODUCT_NAME}"
 InstallDirRegKey ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "InstallDir"
 
+; Create this file if you wish to sign the installer and uninstaller
+; Example content (NSIS 3.08):
+; !finalize 'C:\sign.bat "%1" "${PRODUCT_NAME} Installer" http://example.com' = 0
+; !uninstfinalize 'C:\sign.bat "%1" "${PRODUCT_NAME} Installer" http://example.com' = 0
+
+!include /NONFATAL ..\signing\sign_installer.nsh
+
 !insertmacro INTERACTIVE_UNINSTALL
 
 !insertmacro MUI_PAGE_WELCOME
-
-; Check for Admin rights
-Section CheckAdmin
-	DetailPrint "Checking Admin Rights"
-	System::Call "kernel32::GetModuleHandle(t 'shell32.dll') i .s"
-	System::Call "kernel32::GetProcAddress(i s, i 680) i .r0"
-	System::Call "::$0() i .r0"
-
-	IntCmp $0 0 isNotAdmin isNotAdmin isAdmin
-isNotAdmin:
-	DetailPrint "Missing Administrator Rights !!!"
-	messageBox MB_OK "You do not have Administrator rights on this computer.$\r$\r\
-Please log in as an administrator to install sACNView."
-	quit
-isAdmin:
-	DetailPrint "Administrator Rights granted"
-SectionEnd
 
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
@@ -125,8 +116,13 @@ Section "Main Application" sec01
 	;Same as create shortcut you need to use ${UNINST_EXE} instead of anything else.
 	WriteRegStr ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "UninstallString" "${UNINST_EXE}"
 
-	; Add firewall exception
-	SimpleFC::AddApplication ${PRODUCT_NAME} "$INSTDIR\sACNView.exe" 0 2 "" 1
+	DetailPrint "Adding Firewall Exception"
+	; rule_name, description, protocol, direction,
+	; status, profiles, action, application,
+	; service_name, icmp_types_and_codes, group, local_ports, remote_ports, local_address, remote_address
+	SimpleFC::AdvAddRule ${PRODUCT_NAME} "${PRODUCT_NAME} UDP Multicast Receive" "17" \
+		"1" "1" "2147483647" "1" "$INSTDIR\sACNView.exe" \
+		"" "" "@$INSTDIR\sACNView.exe,-10000" "" "" "" ""
 	Pop $0
 	
 	IntCmp $0 0 fw_ok
@@ -169,22 +165,26 @@ Section UnInstall
     ; Use the 64bit registry
     SetRegView 64
 
-         ;begin uninstall, especially for MUI could be added in UN.onInit function instead
-         ;!insertmacro UNINSTALL.LOG_BEGIN_UNINSTALL
+    ;uninstall from path, must be repeated for every install logged path individual
+    !insertmacro UNINSTALL.LOG_UNINSTALL "$INSTDIR"
 
-         ;uninstall from path, must be repeated for every install logged path individual
-         !insertmacro UNINSTALL.LOG_UNINSTALL "$INSTDIR"
+    ;end uninstall, after uninstall from all logged paths has been performed
+    !insertmacro UNINSTALL.LOG_END_UNINSTALL
 
-         ;end uninstall, after uninstall from all logged paths has been performed
-         !insertmacro UNINSTALL.LOG_END_UNINSTALL
+    Delete "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk"
+    RmDir "$SMPROGRAMS\${PRODUCT_NAME}"
 
-        Delete "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk"
-        RmDir "$SMPROGRAMS\${PRODUCT_NAME}"
-		
-		; Remove firewall exception
-		SimpleFC::RemoveApplication "$INSTDIR\sACNView.exe"
+	; Remove firewall exception
+	SimpleFC::AdvRemoveRule ${PRODUCT_NAME}
 
-        DeleteRegKey /ifempty ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}"
+	DeleteRegValue ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "InstallDir"
+	DeleteRegValue ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "DisplayIcon"
+	DeleteRegValue ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "DisplayName"
+	DeleteRegValue ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "DisplayVersion"
+	DeleteRegValue ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "Publisher"
+	DeleteRegValue ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "UninstallString"
+
+	DeleteRegKey /ifempty ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}"
 
 SectionEnd
 
@@ -193,7 +193,7 @@ Function UN.onInit
     ; Use the 64bit registry
     SetRegView 64
 
-         ;begin uninstall, could be added on top of uninstall section instead
-         !insertmacro UNINSTALL.LOG_BEGIN_UNINSTALL
+    ;begin uninstall, could be added on top of uninstall section instead
+    !insertmacro UNINSTALL.LOG_BEGIN_UNINSTALL
 
 FunctionEnd

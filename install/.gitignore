@@ -1,0 +1,14 @@
+# Folder for developer-specific installer signing, eg NSIS include
+
+signing/
+
+# Installer creation log files and intermediate deployment
+deploy/
+
+*.log
+*.tmp
+
+# Windows signtool steps: digest, signed digest, unsigned PKCS7
+*.dig
+*.dig.signed
+*.p7u
