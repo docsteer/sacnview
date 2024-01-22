@@ -1,0 +1,3 @@
+# Folder for developer-specific installer signing, eg NSIS include
+
+signing/
