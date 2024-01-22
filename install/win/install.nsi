@@ -55,6 +55,13 @@ ShowUninstDetails show
 InstallDir "$PROGRAMFILES\${PRODUCT_NAME}"
 InstallDirRegKey ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "InstallDir"
 
+; Create this file if you wish to sign the installer and uninstaller
+; Example content (NSIS 3.08):
+; !finalize 'C:\sign.bat "%1" "${PRODUCT_NAME} Installer" http://example.com' = 0
+; !uninstfinalize 'C:\sign.bat "%1" "${PRODUCT_NAME} Installer" http://example.com' = 0
+
+!include /NONFATAL ..\signing\sign_installer.nsh
+
 !insertmacro INTERACTIVE_UNINSTALL
 
 !insertmacro MUI_PAGE_WELCOME
