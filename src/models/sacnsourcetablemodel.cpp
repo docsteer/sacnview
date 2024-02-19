@@ -65,13 +65,16 @@ QVariant SACNSourceTableModel::data(const QModelIndex& index, int role) const
       // Text
     case COL_NAME:
     case COL_CID:
-    case COL_TIME_SUMMARY:
+    case COL_TIME_RANGE:
       return static_cast<Qt::Alignment::Int>(Qt::AlignVCenter | Qt::AlignLeft);
       // Numeric
     case COL_UNIVERSE:
     case COL_PRIO:
     case COL_SYNC:
     case COL_FPS:
+    case COL_TIME_SHORT:
+    case COL_TIME_LONG:
+    case COL_TIME_STATIC:
     case COL_SEQ_ERR:
     case COL_JUMPS:
     case COL_SLOTS:
@@ -120,7 +123,11 @@ QVariant SACNSourceTableModel::getDisplayData(const RowData& rowData, int column
   case COL_PREVIEW: return (rowData.preview ? tr("Yes") : tr("No"));
   case COL_IP: return rowData.ip.toString();
   case COL_FPS: return QStringLiteral("%1Hz").arg(QString::number(rowData.fps, 'f', 2));
-  case COL_TIME_SUMMARY: return getTimingSummary(rowData);
+  case COL_TIME_RANGE:
+  case COL_TIME_SHORT:
+  case COL_TIME_LONG:
+  case COL_TIME_STATIC:
+    return getTimingSummary(rowData, column);
   case COL_SEQ_ERR: return rowData.seq_err;
   case COL_JUMPS: return rowData.jumps;
   case COL_VER: return GetProtocolVersionString(rowData.protocol_version);
@@ -183,33 +190,53 @@ QVariant SACNSourceTableModel::getBackgroundData(const RowData& rowData, int col
   return QVariant();
 }
 
-QVariant SACNSourceTableModel::getTimingSummary(const RowData& rowData) const
+QVariant SACNSourceTableModel::getTimingSummary(const RowData& rowData, int column) const
 {
   const FpsCounter::Histogram& histogram = rowData.histogram;
   if (histogram.empty())
-    return tr("N/A");
+    return QStringLiteral("-");
 
-  // Min - max
-  QString result = QStringLiteral("%1-%2ms").arg(std::chrono::milliseconds(histogram.begin()->first).count()).arg(std::chrono::milliseconds(histogram.rbegin()->first).count());
-  // And count of interesting ranges
-  size_t shortCount = 0;
-  size_t longCount = 0;
-  size_t staticCount = 0;
-  for (const auto& item : histogram)
+  if (column == COL_TIME_RANGE)
   {
-    // Times are rounded up, don't count anything twice
-    if (item.first <= m_shortInterval)
-      shortCount += item.second;
-    else if (item.first > m_staticInterval)
-      staticCount += item.second;
-    else if (item.first > m_longInterval)
-      longCount += item.second;
+    // Min - max
+    return QStringLiteral("%1-%2").arg(std::chrono::milliseconds(histogram.begin()->first).count()).arg(std::chrono::milliseconds(histogram.rbegin()->first).count());
   }
 
-  result.append(QStringLiteral(" (%1 %2 %3)").arg(shortCount).arg(longCount).arg(staticCount));
-  return result;
+  if (!rowData.countValid)
+  {
+    // And count of interesting ranges
+    rowData.shortCount = 0;
+    rowData.longCount = 0;
+    rowData.staticCount = 0;
+    for (const auto& item : histogram)
+    {
+      // Times are rounded up, don't count anything twice
+      if (item.first <= m_shortInterval)
+        rowData.shortCount += item.second;
+      else if (item.first > m_staticInterval)
+        rowData.staticCount += item.second;
+      else if (item.first > m_longInterval)
+        rowData.longCount += item.second;
+    }
+    // It is now valid
+    rowData.countValid = true;
+  }
+
+  switch (column)
+  {
+  default: break;
+  case COL_TIME_SHORT: return rowData.shortCount;
+  case COL_TIME_LONG:return rowData.longCount;
+  case COL_TIME_STATIC:return rowData.staticCount;
+  }
+  return QVariant();
 }
 
+void SACNSourceTableModel::RefreshAllTimingData()
+{
+  emit headerDataChanged(Qt::Horizontal, TimingDetailColumns.front(), TimingDetailColumns.back());
+  emit dataChanged(index(0, TimingDetailColumns.front()), index(rowCount() - 1, TimingDetailColumns.back()));
+}
 
 QVariant SACNSourceTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
@@ -230,9 +257,12 @@ QVariant SACNSourceTableModel::headerData(int section, Qt::Orientation orientati
       case COL_PREVIEW: return tr("Preview");
       case COL_IP: return tr("IP Address");
       case COL_FPS: return tr("FPS");
-      case COL_TIME_SUMMARY: return tr("Times (<%1 >%2 >%3)")
-        .arg(std::chrono::milliseconds(m_shortInterval).count())
-        .arg(std::chrono::milliseconds(m_longInterval).count())
+      case COL_TIME_RANGE: return tr("Times (ms)");
+      case COL_TIME_SHORT: return QStringLiteral("<%1ms")
+        .arg(std::chrono::milliseconds(m_shortInterval).count());
+      case COL_TIME_LONG: return QStringLiteral(">%1ms")
+        .arg(std::chrono::milliseconds(m_longInterval).count());
+      case COL_TIME_STATIC: return QStringLiteral(">%1ms")
         .arg(std::chrono::milliseconds(m_staticInterval).count());
       case COL_SEQ_ERR: return tr("SeqErr");
       case COL_JUMPS: return tr("Jumps");
@@ -254,6 +284,13 @@ QVariant SACNSourceTableModel::headerData(int section, Qt::Orientation orientati
       case COL_PREVIEW: return tr("Indicates that the data in this packet is intended for use in visualization or media server preview applications and shall not be used to generate live output.");
       case COL_IP: return tr("The IP address of the source");
       case COL_FPS: return tr("Frames per Second, aka refresh rate of the DMX source");
+      case COL_TIME_RANGE: return tr("Range of packet intervals");
+      case COL_TIME_SHORT: return tr("Count of packet intervals <%1ms")
+        .arg(std::chrono::milliseconds(m_shortInterval).count());
+      case COL_TIME_LONG: return tr("Count of packet intervals >%1ms")
+        .arg(std::chrono::milliseconds(m_longInterval).count());
+      case COL_TIME_STATIC: return tr("Count of static packet intervals (<%1ms)")
+        .arg(std::chrono::milliseconds(m_staticInterval).count());
       case COL_SEQ_ERR: return tr("Number of packets which have received out of order");
       case COL_JUMPS: return tr("Number of packets which have been missed");
       case COL_VER: return tr("Protocol version");
@@ -274,8 +311,7 @@ void SACNSourceTableModel::setShortInterval(int millisec)
 
   m_shortInterval = std::chrono::milliseconds(millisec);
 
-  emit headerDataChanged(Qt::Horizontal, COL_TIME_SUMMARY, COL_TIME_SUMMARY);
-  emit dataChanged(index(0, COL_TIME_SUMMARY), index(rowCount() - 1, COL_TIME_SUMMARY));
+  RefreshAllTimingData();
 }
 
 void SACNSourceTableModel::setLongInterval(int millisec)
@@ -285,8 +321,7 @@ void SACNSourceTableModel::setLongInterval(int millisec)
 
   m_longInterval = std::chrono::milliseconds(millisec);
 
-  emit headerDataChanged(Qt::Horizontal, COL_TIME_SUMMARY, COL_TIME_SUMMARY);
-  emit dataChanged(index(0, COL_TIME_SUMMARY), index(rowCount() - 1, COL_TIME_SUMMARY));
+  RefreshAllTimingData();
 }
 
 void SACNSourceTableModel::setStaticInterval(int millisec)
@@ -296,8 +331,7 @@ void SACNSourceTableModel::setStaticInterval(int millisec)
 
   m_staticInterval = std::chrono::milliseconds(millisec);
 
-  emit headerDataChanged(Qt::Horizontal, COL_TIME_SUMMARY, COL_TIME_SUMMARY);
-  emit dataChanged(index(0, COL_TIME_SUMMARY), index(rowCount() - 1, COL_TIME_SUMMARY));
+  RefreshAllTimingData();
 }
 
 void SACNSourceTableModel::addListener(const sACNManager::tListener& listener)
@@ -406,7 +440,7 @@ void SACNSourceTableModel::resetTimeSummaryCounters()
   {
     it.key()->fpscounter.ClearHistogram();
   }
-  emit dataChanged(index(0, COL_TIME_SUMMARY), index(rowCount() - 1, COL_TIME_SUMMARY));
+  emit dataChanged(index(0, TimingDetailColumns.front()), index(rowCount() - 1, TimingDetailColumns.back()));
 }
 
 void SACNSourceTableModel::resetSequenceCounters()
@@ -448,7 +482,7 @@ void SACNSourceTableModel::resetCounters()
     row.seq_err = 0;
     row.jumps = 0;
   }
-  emit dataChanged(index(0, COL_TIME_SUMMARY), index(rowCount() - 1, COL_JUMPS));
+  emit dataChanged(index(0, TimingDetailColumns.front()), index(rowCount() - 1, COL_JUMPS));
 }
 
 void SACNSourceTableModel::sourceChanged(sACNSource* source)
@@ -533,4 +567,5 @@ void SACNSourceTableModel::RowData::Update(const sACNSource* source)
   preview = source->isPreview;
   per_address = source->doing_per_channel;
   histogram = source->fpscounter.GetHistogram();
+  countValid = false;
 }

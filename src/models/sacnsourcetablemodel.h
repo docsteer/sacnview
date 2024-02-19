@@ -24,7 +24,7 @@ class SACNSourceTableModel : public QAbstractTableModel
   Q_OBJECT
 public:
   // The column order in the source table
-  enum SC_ROWS
+  enum SC_COLS
   {
     COL_NAME,
     COL_ONLINE,
@@ -35,7 +35,10 @@ public:
     COL_PREVIEW,
     COL_IP,
     COL_FPS,
-    COL_TIME_SUMMARY,
+    COL_TIME_RANGE,
+    COL_TIME_SHORT,
+    COL_TIME_LONG,
+    COL_TIME_STATIC,
     COL_SEQ_ERR,
     COL_JUMPS,
     COL_VER,
@@ -44,6 +47,8 @@ public:
     COL_PATHWAY_SECURE,
     COL_END
   };
+
+  static constexpr std::array<int, 4> TimingDetailColumns = { COL_TIME_RANGE, COL_TIME_SHORT, COL_TIME_LONG, COL_TIME_STATIC };
 
 public:
   SACNSourceTableModel(QObject* parent = nullptr);
@@ -127,6 +132,12 @@ private:
     bool per_address = false;
     FpsCounter::Histogram histogram;
 
+    // Cache
+    mutable size_t shortCount = 0;
+    mutable size_t longCount = 0;
+    mutable size_t staticCount = 0;
+    mutable bool countValid = false;
+
     void Update(const sACNSource* source);
   };
 
@@ -143,5 +154,7 @@ private:
   // Data
   QVariant getDisplayData(const RowData& rowData, int column) const;
   QVariant getBackgroundData(const RowData& rowData, int column) const;
-  QVariant getTimingSummary(const RowData& rowData) const;
+  QVariant getTimingSummary(const RowData& rowData, int column) const;
+
+  void RefreshAllTimingData();
 };
