@@ -362,6 +362,44 @@ void SACNSourceTableModel::clear()
   endResetModel();
 }
 
+void SACNSourceTableModel::clearOffline()
+{
+  if (m_listeners.empty())
+  {
+    clear();
+    return;
+  }
+
+  // Clear the model and repopulate with the valid sources
+  beginResetModel();
+  m_rows.clear();
+  m_sourceToTableRow.clear();
+
+  // Now re-add pre-existing list sources and remove dead listeners
+  for (auto it = m_listeners.begin(); it != m_listeners.end(); /*iterate below*/)
+  {
+    const sACNManager::tListener listener = it->toStrongRef();
+    if (listener)
+    {
+      for (int i = 0; i < listener->sourceCount(); i++)
+      {
+        sACNSource* source = listener->source(i);
+        if (source->src_valid)
+        {
+          m_sourceToTableRow[source] = m_rows.size();
+          m_rows.emplace_back(source);
+        }
+      }
+      ++it;
+    }
+    else
+    {
+      it = m_listeners.erase(it);
+    }
+  }
+  endResetModel();
+}
+
 void SACNSourceTableModel::resetTimeSummaryCounters()
 {
   for (auto it = m_sourceToTableRow.begin(); it != m_sourceToTableRow.end(); ++it)
@@ -432,7 +470,7 @@ void SACNSourceTableModel::sourceChanged(sACNSource* source)
 
 void SACNSourceTableModel::sourceOnline(sACNSource* source)
 {
-  if (!source)
+  if (!source || !source->src_valid)
     return;
 
   const int row = m_rows.size();
