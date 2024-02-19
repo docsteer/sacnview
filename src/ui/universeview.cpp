@@ -453,6 +453,12 @@ void UniverseView::on_sbCompareUniverse_editingFinished()
     }
 }
 
+void UniverseView::on_btnClearOffline_clicked()
+{
+  if (m_sourceTableModel)
+    m_sourceTableModel->clearOffline();
+}
+
 void UniverseView::on_btnLogWindow_clicked()
 {
     MDIMainWindow *mainWindow = qobject_cast<MDIMainWindow *>(m_parentWindow);

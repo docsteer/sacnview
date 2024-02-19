@@ -53,6 +53,7 @@ protected slots:
     void on_btnStartFlickerFinder_clicked();
     void on_btnCompareUniverse_clicked();
     void on_sbCompareUniverse_editingFinished();
+    void on_btnClearOffline_clicked();
     void on_btnLogWindow_clicked();
     void on_btnExportSourceList_clicked();
     void listenerStarted(int universe);
