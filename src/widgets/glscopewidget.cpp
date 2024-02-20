@@ -1695,7 +1695,7 @@ void GlScopeWidget::paintGL()
     glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, nowLine.data());
     glDrawArrays(GL_LINE_STRIP, 0, 2);
   }
-  else if (m_model->triggerType() != ScopeModel::Trigger::FreeRun)
+  else if (!m_model->triggerIsFreeRun())
   {
     // Draw the trigger level marker
     m_program->setUniformValue(m_colorUniform, triggerCursorColor);

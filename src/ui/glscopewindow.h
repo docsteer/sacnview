@@ -56,6 +56,7 @@ private:
   Q_SLOT void loadTraces(bool);
 
   Q_SLOT void onTriggered();
+  Q_SLOT void onChkSyncViewsToggled(bool checked);
 
   // Signals to start/stop other open rx views
   Q_SIGNAL void startOtherViews();
@@ -88,6 +89,7 @@ private:
 
   void updateTimeScrollBars();
   void updateConfiguration();
+  void refreshButtons();
 };
 
 class ColorDialog : public QColorDialog

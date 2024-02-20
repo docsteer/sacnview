@@ -270,6 +270,7 @@ public:
   // Triggers
   void setTriggerType(Trigger mode);
   Trigger triggerType() const { return m_trigger.mode; }
+  bool triggerIsFreeRun() const { return m_trigger.mode == Trigger::FreeRun; }
 
   Q_SLOT void setTriggerLevel(uint16_t level);
   uint16_t triggerLevel() const { return m_trigger.level; }
