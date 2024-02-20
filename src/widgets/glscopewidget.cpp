@@ -632,6 +632,7 @@ void ScopeModel::clearValues()
   }
 
   // Reset time extents
+  m_startOffset = 0;
   m_endTime = 0;
   m_wallclockTrigger_ms = 0;
 }
@@ -1041,7 +1042,6 @@ void ScopeModel::stop()
   }
   // And clear/shutdown
   m_listeners.clear();
-  m_startOffset = 0;
   emit runningChanged(false);
 }
 
