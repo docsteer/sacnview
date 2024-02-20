@@ -85,6 +85,12 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       layoutGrp->addWidget(m_btnStart, row, 1);
 
       ++row;
+      m_chkSyncViews = new QCheckBox(tr("Trigger Receive Views"), confWidget);
+      connect(m_chkSyncViews, &QPushButton::toggled, this, &GlScopeWindow::onChkSyncViewsToggled);
+      layoutGrp->addWidget(m_chkSyncViews, row, 0, 1, 2, Qt::AlignHCenter);
+      m_disableWhenRunning.push_back(m_chkSyncViews);
+
+      ++row;
 
       lbl = new QLabel(tr("Store:"), confWidget);
       layoutGrp->addWidget(lbl, row, 0);
@@ -188,11 +194,6 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       m_triggerType->setCurrentIndex(0);
       m_spinTriggerLevel->setValue(127);
 
-      ++row;
-      m_chkSyncViews = new QCheckBox(tr("Trigger Receive Views"), confWidget);
-      layoutGrp->addWidget(m_chkSyncViews, row, 0, 1, 2, Qt::AlignHCenter);
-      m_disableWhenRunning.push_back(m_chkSyncViews);
-
       // Spacer at the bottom
       ++row;
       layoutGrp->setRowStretch(row, 1);
@@ -291,19 +292,7 @@ void GlScopeWindow::onRunningChanged(bool running)
   if (m_chkSyncViews->isChecked() && !running)
     emit stopOtherViews();
 
-  m_btnStart->setChecked(running);
-  m_btnStop->setChecked(!running);
-
-  // Enable/disable the start and stop buttons
-  m_btnStart->setEnabled(!running && m_scope->model()->rowCount() > 0);
-  m_btnStop->setEnabled(running);
-
-  for (QWidget* w : m_disableWhenRunning)
-    w->setEnabled(!running);
-
-  // Disable invalid trigger setup
-  for (QWidget* w : m_triggerSetup)
-    w->setEnabled(!running && m_triggerType->currentIndex() != static_cast<int>(ScopeModel::Trigger::FreeRun));
+  refreshButtons();
 
   // Reset to start
   if (running)
@@ -347,10 +336,8 @@ void GlScopeWindow::setVerticalScaleMode(int idx)
 
 void GlScopeWindow::setTriggerType(int idx)
 {
-  m_scope->model()->setTriggerType(static_cast<ScopeModel::Trigger>(idx));
-  // Enable/disable trigger settings
-  for (QWidget* w : m_triggerSetup)
-    w->setEnabled(idx != static_cast<int>(ScopeModel::Trigger::FreeRun));
+  m_scope->model()->setTriggerType(static_cast<ScopeModel::Trigger>(idx)); 
+  refreshButtons();
 }
 
 void GlScopeWindow::addTrace(bool)
@@ -369,7 +356,7 @@ void GlScopeWindow::addTrace(bool)
   if (m_scope->model()->rowCount() == 0)
   {
     m_scope->model()->addTrace(traceColor, m_defaultUniverse, MIN_DMX_ADDRESS);
-    m_btnStart->setEnabled(true);
+    refreshButtons();
     return;
   }
 
@@ -446,12 +433,13 @@ void GlScopeWindow::removeTrace(bool)
   // Get the items to delete
   QModelIndexList selected = selection->selectedIndexes();
   m_scope->model()->removeTraces(selected);
+  refreshButtons();
 }
 
 void GlScopeWindow::removeAllTraces(bool)
 {
   m_scope->model()->removeAllTraces();
-  m_btnStart->setEnabled(false);
+  refreshButtons();
 }
 
 void GlScopeWindow::saveTraces(bool)
@@ -482,13 +470,18 @@ void GlScopeWindow::loadTraces(bool)
   // Update
   updateTimeScrollBars();
   updateConfiguration();
-  m_btnStart->setEnabled(m_scope->model()->rowCount() > 0);
+  refreshButtons();
 }
 
 void GlScopeWindow::onTriggered()
 {
   if (m_chkSyncViews->isChecked())
     emit startOtherViews();
+}
+
+void GlScopeWindow::onChkSyncViewsToggled(bool /*checked*/)
+{
+  refreshButtons();
 }
 
 void GlScopeWindow::updateTimeScrollBars()
@@ -528,6 +521,44 @@ void GlScopeWindow::updateConfiguration()
   m_spinRunTime->setValue(m_scope->model()->runTime());
   m_triggerType->setCurrentIndex(static_cast<int>(m_scope->model()->triggerType()));
   m_spinTriggerLevel->setValue(m_scope->model()->triggerLevel());
+}
+
+void GlScopeWindow::refreshButtons()
+{
+  const bool running = m_scope->model()->isRunning();
+
+  m_btnStart->setChecked(running);
+  m_btnStop->setChecked(!running);
+
+  // Enable/disable the stop button
+  m_btnStop->setEnabled(running);
+
+  for (QWidget* w : m_disableWhenRunning)
+    w->setEnabled(!running);
+
+  // Disable invalid trigger setup
+  for (QWidget* w : m_triggerSetup)
+    w->setEnabled(!running && m_scope->model()->triggerIsFreeRun());
+
+  if (!running)
+  {
+    // Can start if any traces exist
+    if (m_scope->model()->rowCount() > 0)
+    {
+      m_btnStart->setEnabled(true);
+      return;
+    }
+
+    // Can also run on empty if Trigger type is Free Run and synced
+    if (m_chkSyncViews->isChecked() && m_scope->model()->triggerIsFreeRun())
+    {
+      m_btnStart->setEnabled(true);
+      return;
+    }
+  }
+
+  // Cannot start. Either running or nothing to do
+  m_btnStart->setEnabled(false);
 }
 
 // QColorDialog doesn't autocentre when used as a delegate

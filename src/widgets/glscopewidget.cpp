@@ -429,6 +429,7 @@ ScopeModel::ScopeModel(QObject* parent)
   private_removeAllTraces();
   connect(this, &ScopeModel::queueStop, this, &ScopeModel::stop, Qt::QueuedConnection);
   connect(this, &ScopeModel::queueTriggered, this, &ScopeModel::triggered, Qt::QueuedConnection);
+  connect(this, &ScopeModel::queueTriggered, this, &ScopeModel::onQueueTriggered, Qt::QueuedConnection);
 }
 
 ScopeModel::~ScopeModel()
@@ -1022,6 +1023,12 @@ void ScopeModel::stop()
     return;
 
   m_running = false;
+  if (m_timerId != 0)
+  {
+    killTimer(m_timerId);
+    m_timerId = 0;
+  }
+
 
   // Disconnect all
   for (auto& listener : m_listeners)
@@ -1271,6 +1278,22 @@ void ScopeModel::sACNListenerDmxReceived(tock packet_tock, int universe, const s
   {
     trace->addPoint(m_endTime, levels, m_storeAllPoints);
   }
+}
+
+void ScopeModel::onQueueTriggered()
+{
+  if (m_runTime > 0)
+  {
+    // Stop myself 10ms after the end of the runtime to ensure queued packets get processed
+    // May create a 1 packet jitter in counts but this is acceptable
+    m_timerId = startTimer(int(m_runTime * 1000.0) + 10, Qt::PreciseTimer);
+  }
+}
+
+void ScopeModel::timerEvent(QTimerEvent* ev)
+{
+  if (ev->timerId() == m_timerId)
+    stop();
 }
 
 GlScopeWidget::GlScopeWidget(QWidget* parent)
@@ -1672,7 +1695,7 @@ void GlScopeWidget::paintGL()
     glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, nowLine.data());
     glDrawArrays(GL_LINE_STRIP, 0, 2);
   }
-  else if (m_model->triggerType() != ScopeModel::Trigger::FreeRun)
+  else if (!m_model->triggerIsFreeRun())
   {
     // Draw the trigger level marker
     m_program->setUniformValue(m_colorUniform, triggerCursorColor);

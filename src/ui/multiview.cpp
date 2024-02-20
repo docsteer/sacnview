@@ -65,7 +65,7 @@ void MultiView::on_btnStartStop_clicked(bool checked)
     old_listeners.swap(m_listeners);
 
     const uint16_t minUniverse = static_cast<uint16_t>(ui->spinUniverseMin->value());
-    const uint16_t maxUniverse = static_cast<uint16_t>(ui->spinUniverseMax->value());
+    const uint16_t maxUniverse = static_cast<uint16_t>(ui->spinUniverseMax->value()) + 1;
     for (uint16_t universe = minUniverse; universe < maxUniverse; ++universe)
     {
       auto listener = sACNManager::Instance().getListener(universe);

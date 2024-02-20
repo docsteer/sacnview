@@ -66,8 +66,9 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
     ui->tableView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
     // Don't need to display the Universe column
     ui->tableView->setColumnHidden(SACNSourceTableModel::COL_UNIVERSE, true);
-    // Don't show the time summary column
-    ui->tableView->setColumnHidden(SACNSourceTableModel::COL_TIME_SUMMARY, true);
+    // Don't show the timing detail columns
+    for (int col : SACNSourceTableModel::TimingDetailColumns)
+        ui->tableView->setColumnHidden(col, true);
     // Maybe don't show the Secure column
     ui->tableView->setColumnHidden(SACNSourceTableModel::COL_PATHWAY_SECURE, !Preferences::Instance().GetPathwaySecureRx());
 

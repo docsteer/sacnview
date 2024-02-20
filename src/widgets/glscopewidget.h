@@ -270,6 +270,7 @@ public:
   // Triggers
   void setTriggerType(Trigger mode);
   Trigger triggerType() const { return m_trigger.mode; }
+  bool triggerIsFreeRun() const { return m_trigger.mode == Trigger::FreeRun; }
 
   Q_SLOT void setTriggerLevel(uint16_t level);
   uint16_t triggerLevel() const { return m_trigger.level; }
@@ -303,6 +304,10 @@ public:
 private:
   Q_SIGNAL void queueStop();
   Q_SIGNAL void queueTriggered();
+  Q_SLOT void onQueueTriggered();
+
+protected:
+  void timerEvent(QTimerEvent* ev) override;
 
 private:
   std::vector<ScopeTrace*> m_traceTable;
@@ -313,6 +318,7 @@ private:
   qreal m_maxValue = 0; // Max. possible value in DMX
   qreal m_runTime = 0;
   qint64 m_wallclockTrigger_ms = 0; // Wallclock time of trigger in milliseconds since epoch
+  int m_timerId = 0;
 
   struct TriggerConfig
   {
@@ -407,7 +413,7 @@ public:
    * @brief Check if DMX level of point is in the current scope view
    * @return true if visible
   */
-  bool levelInView(const QPointF &point) const;
+  bool levelInView(const QPointF& point) const;
 
   /**
    * @brief Set the scope view
