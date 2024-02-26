@@ -39,9 +39,9 @@
       </size>
      </property>
      <property name="title">
-      <string>Recieve Options</string>
+      <string>Receive Options</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
+     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0">
       <item>
        <widget class="QCheckBox" name="cbDisplayBlind">
         <property name="sizePolicy">
@@ -61,6 +61,16 @@
         </property>
         <property name="text">
          <string>Display Blind/Visualizer Data</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="cbRxIllegalPriorities">
+        <property name="toolTip">
+         <string>Accept sources sending illegal priorities (&gt;200)</string>
+        </property>
+        <property name="text">
+         <string>Merge out-of-range Priorities</string>
         </property>
        </widget>
       </item>

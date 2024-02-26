@@ -581,16 +581,8 @@ void SACNSourceTableModel::RowData::Update(const sACNSource* source)
   preview = source->isPreview;
   if (source->doing_per_channel)
   {
-    per_address = SourcePriority::PerAddress;
     // Validate the priorities
-    for (uint8_t priority : source->priority_array)
-    {
-      if (priority > MAX_SACN_PRIORITY)
-      {
-        per_address = SourcePriority::PerAddressInvalid;
-        break;
-      }
-    }
+    per_address = source->HasInvalidPriority() ? SourcePriority::PerAddressInvalid : SourcePriority::PerAddress;
   }
   else
   {

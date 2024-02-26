@@ -145,6 +145,8 @@ void PreferencesDialog::on_buttonBox_accepted()
   // Display Blind
   p.SetBlindVisualizer(ui->cbDisplayBlind->isChecked());
 
+  p.SetMergeIllegalPriorities(ui->cbRxIllegalPriorities->isChecked());
+
   // Enable ETC DD?
   p.SetETCDD(ui->gbETCDD->isChecked());
 

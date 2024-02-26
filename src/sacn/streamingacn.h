@@ -145,7 +145,8 @@ public:
   std::array<bool, DMX_SLOT_MAX> dirty_array = {}; // Set if an individual level or priority has changed
   quint16 slot_count = 0; // Number of slots actually received
   bool source_params_change = false; // Set if any parameter of the source changes between packets
-  bool source_levels_change = false; // Set if any leveles
+  bool source_levels_change = false; // Set if any levels
+  bool priority_array_bad = false;
 
   uint8_t priority = 0;
   uint16_t synchronization = 0;
@@ -175,6 +176,9 @@ public:
   void storeReceivedLevels(const uint8_t* pdata, uint16_t rx_slot_count);
   // Have received new priority array, store and check for changes
   void storeReceivedPriorities(const uint8_t* pdata, uint16_t rx_slot_count);
+
+  // Any priority value is invalid
+  bool HasInvalidPriority() const;
 };
 
 #endif // STREAMINGACN_H
