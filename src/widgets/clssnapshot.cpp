@@ -1,4 +1,7 @@
 #include "clssnapshot.h"
+
+#include "preferences.h"
+
 #include <QPainter>
 #include <QHBoxLayout>
 
@@ -22,7 +25,7 @@ clsSnapshot::clsSnapshot(quint16 universe, CID cid, QString name, QWidget *paren
     connect(m_sbUniverse, (void(QSpinBox::*)(int))&QSpinBox::valueChanged, [this](int value) { setUniverse(value); } );
 
     m_sbPriority->setMinimum(MIN_SACN_PRIORITY);
-    m_sbPriority->setMaximum(MAX_SACN_PRIORITY);
+    m_sbPriority->setMaximum(Preferences::GetTxMaxUiPriority());
     m_sbPriority->setValue(m_priority);
     connect(m_sbPriority, (void(QSpinBox::*)(int))&QSpinBox::valueChanged, [this](int value) { setPriority(value); } );
 

@@ -50,7 +50,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     ui->sbUniverse->setWrapping(true);
 
     ui->sbPriority->setMinimum(MIN_SACN_PRIORITY);
-    ui->sbPriority->setMaximum(MAX_SACN_PRIORITY);
+    ui->sbPriority->setMaximum(Preferences::GetTxMaxUiPriority());
     ui->sbPriority->setValue(DEFAULT_SACN_PRIORITY);
     ui->sbPriority->setWrapping(true);
 

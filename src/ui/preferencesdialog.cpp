@@ -119,6 +119,7 @@ void PreferencesDialog::showEvent(QShowEvent* e)
   }
 
   ui->cbTxRateOverride->setChecked(Preferences::Instance().GetTXRateOverride());
+  ui->cbTxBadPriority->setChecked(Preferences::Instance().GetTXBadPriority());
 
   ui->cmbTheme->clear();
   ui->cmbTheme->addItems(Themes::getDescriptions());
@@ -195,6 +196,10 @@ void PreferencesDialog::on_buttonBox_accepted()
   if (ui->cbTxRateOverride->isChecked() != p.GetTXRateOverride())
     requiresRestart = true;
   p.SetTXRateOverride(ui->cbTxRateOverride->isChecked());
+
+  if (ui->cbTxBadPriority->isChecked() != p.GetTXBadPriority())
+    requiresRestart = true;
+  p.SetTXBadPriority(ui->cbTxBadPriority->isChecked());
 
   // Interfaces
   {
