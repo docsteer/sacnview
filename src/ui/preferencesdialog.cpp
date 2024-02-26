@@ -31,6 +31,14 @@ PreferencesDialog::PreferencesDialog(QWidget* parent) :
 
   // Populate lang
   m_translation = new TranslationDialog(Preferences::Instance().GetLocale(), ui->vlLanguage, this);
+  // Add language spacer
+  ui->vlLanguage->addStretch();
+
+  // Pathway TX sequence type
+  ui->cmbPathwayTxSequenceType->addItem(tr("Time"));
+  ui->cmbPathwayTxSequenceType->addItem(tr("Volatile"));
+  ui->cmbPathwayTxSequenceType->addItem(tr("Non-Volatile"));
+  ui->cmbPathwayTxSequenceType->setCurrentIndex(0); // Default Time
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -43,30 +51,27 @@ void PreferencesDialog::showEvent(QShowEvent* e)
 {
   // Network interfaces
   m_interfaceList.clear();
-  qDeleteAll(m_interfaceButtons);
-  m_interfaceButtons.clear();
+  ui->cmbNetInterface->clear();
 
   QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
-  for (const QNetworkInterface& interface : interfaces)
+  for (const QNetworkInterface& iface : interfaces)
   {
     // If the interface is ok for use...
-    if (Preferences::Instance().interfaceSuitable(interface))
+    if (Preferences::Instance().interfaceSuitable(iface))
     {
       // List IPv4 Addresses
-      const QString ipString = Preferences::GetIPv4AddressString(interface);
+      const QString ipString = Preferences::GetIPv4AddressString(iface);
 
-      QRadioButton* radio = new QRadioButton(ui->gbNetworkInterface);
-      radio->setText(QString("%1 (%2)")
-        .arg(interface.humanReadableName())
+      ui->cmbNetInterface->addItem(QStringLiteral("%1 (%2)")
+        .arg(iface.humanReadableName())
         .arg(ipString));
 
-      radio->setChecked(
-        Preferences::Instance().networkInterface().hardwareAddress() == interface.hardwareAddress() &&
-        Preferences::Instance().networkInterface().name() == interface.name());
+      // Assign by MAC or Name
+      if (Preferences::Instance().networkInterface().hardwareAddress() == iface.hardwareAddress() ||
+        Preferences::Instance().networkInterface().name() == iface.name())
+        ui->cmbNetInterface->setCurrentIndex(ui->cmbNetInterface->count() - 1);
 
-      ui->verticalLayout_NetworkInterfaces->addWidget(radio);
-      m_interfaceList << interface;
-      m_interfaceButtons << radio;
+      m_interfaceList << iface;
     }
   }
   ui->cbListenAll->setChecked(Preferences::Instance().GetNetworkListenAll());
@@ -89,12 +94,7 @@ void PreferencesDialog::showEvent(QShowEvent* e)
   ui->lePathwaySecureTxPassword->setText(Preferences::Instance().GetPathwaySecureTxPassword());
   ui->cbPathwaySecureRxDataOnly->setChecked(Preferences::Instance().GetPathwaySecureRxDataOnly());
   ui->sbPathwaySecureRxSequenceTimeWindow->setValue(Preferences::Instance().GetPathwaySecureRxSequenceTimeWindow());
-  ui->rbPathwayTxSequenceTypeTime->setChecked(
-    Preferences::Instance().GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_time);
-  ui->rbPathwayTxSequenceTypeVolatile->setChecked(
-    Preferences::Instance().GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_volatile);
-  ui->rbPathwayTxSequenceTypeNonVolatile->setChecked(
-    Preferences::Instance().GetPathwaySecureTxSequenceType() == PathwaySecure::Sequence::type_nonvolatile);
+  ui->cmbPathwayTxSequenceType->setCurrentIndex(Preferences::Instance().GetPathwaySecureTxSequenceType());
 
   ui->cbRestoreWindows->setChecked(Preferences::Instance().GetSaveWindowLayout());
 
@@ -120,9 +120,9 @@ void PreferencesDialog::showEvent(QShowEvent* e)
 
   ui->cbTxRateOverride->setChecked(Preferences::Instance().GetTXRateOverride());
 
-  ui->cbTheme->clear();
-  ui->cbTheme->addItems(Themes::getDescriptions());
-  ui->cbTheme->setCurrentIndex(static_cast<int>(Preferences::Instance().GetTheme()));
+  ui->cmbTheme->clear();
+  ui->cmbTheme->addItems(Themes::getDescriptions());
+  ui->cmbTheme->setCurrentIndex(static_cast<int>(Preferences::Instance().GetTheme()));
 
   ui->sbMulticastTtl->setValue(Preferences::Instance().GetMulticastTtl());
 }
@@ -157,12 +157,22 @@ void PreferencesDialog::on_buttonBox_accepted()
   p.SetPathwaySecureTxPassword(ui->lePathwaySecureTxPassword->text());
   p.SetPathwaySecureRxDataOnly(ui->cbPathwaySecureRxDataOnly->isChecked());
   p.SetPathwaySecureRxSequenceTimeWindow(ui->sbPathwaySecureRxSequenceTimeWindow->value());
-  if (ui->rbPathwayTxSequenceTypeTime->isChecked())
+
+  switch (ui->cmbPathwayTxSequenceType->currentIndex())
+  {
+  default:
+  case PathwaySecure::Sequence::type_time:
     p.SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_time);
-  else if (ui->rbPathwayTxSequenceTypeVolatile->isChecked())
+    break;
+
+  case PathwaySecure::Sequence::type_volatile:
     p.SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_volatile);
-  else
+    break;
+
+  case PathwaySecure::Sequence::type_nonvolatile:
     p.SetPathwaySecureTxSequenceType(PathwaySecure::Sequence::type_nonvolatile);
+    break;
+  }
 
   // Windowing mode
   if (ui->cbFloatingWindows->isChecked())
@@ -187,9 +197,9 @@ void PreferencesDialog::on_buttonBox_accepted()
   p.SetTXRateOverride(ui->cbTxRateOverride->isChecked());
 
   // Interfaces
-  for (int i = 0; i < m_interfaceButtons.count(); i++)
   {
-    if (m_interfaceButtons[i]->isChecked())
+    const int i = ui->cmbNetInterface->currentIndex();
+    if (i >= 0 && i < m_interfaceList.size())
     {
       QNetworkInterface interface = m_interfaceList[i];
       if (interface.index() != p.networkInterface().index())
@@ -197,16 +207,15 @@ void PreferencesDialog::on_buttonBox_accepted()
         p.setNetworkInterface(m_interfaceList[i]);
 
         requiresRestart = true;
-
-        break;
       }
     }
   }
+
   requiresRestart |= ui->cbListenAll->isChecked() != p.GetNetworkListenAll();
   p.SetNetworkListenAll(ui->cbListenAll->isChecked());
 
   // Theme
-  auto theme = static_cast<Themes::theme_e>(ui->cbTheme->currentIndex());
+  auto theme = static_cast<Themes::theme_e>(ui->cmbTheme->currentIndex());
   if (p.GetTheme() != theme)
   {
     p.SetTheme(theme);
