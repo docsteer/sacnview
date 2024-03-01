@@ -105,7 +105,7 @@ QVariant SACNSourceTableModel::getDisplayData(const RowData& rowData, int column
     }
     return QStringLiteral("??");
   }
-  case COL_CID: return rowData.cid;
+  case COL_CID: return rowData.cid.operator QString();
   case COL_PRIO: return rowData.per_address ? QStringLiteral("(*) ") + QString::number(rowData.priority) : QString::number(rowData.priority);
   case COL_SYNC:
     if (rowData.protocol_version == sACNProtocolDraft)

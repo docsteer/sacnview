@@ -1,6 +1,7 @@
 #include "csvmodelexport.h"
 
 #include <QFile>
+#include <QLocale>
 #include <QTextStream>
 
 CsvModelExporter::CsvModelExporter(const QAbstractItemModel* model)
@@ -18,7 +19,11 @@ bool CsvModelExporter::saveAs(const QString& filename) const
     return false;
 
   QTextStream out(&csvFile);
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
   out.setCodec("UTF-8");
+#else
+  out.setEncoding(QStringConverter::Utf8);
+#endif
   out.setLocale(QLocale::c());
 
   // Get column and row count for this tabular section
@@ -48,8 +53,10 @@ bool CsvModelExporter::saveAs(const QString& filename) const
       switch (field.type())
       {
       default:
-        out << formatField(field.toString());
-        break;
+      {
+        QString fieldString = field.toString();
+        out << formatField(fieldString);
+      } break;
       case QMetaType::Bool:
         out << (field.toBool() ? QLatin1String("Yes") : QLatin1String("No"));
         break;
