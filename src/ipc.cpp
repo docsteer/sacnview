@@ -24,7 +24,7 @@ IPC::IPC(MDIMainWindow *w, QObject* parent):
         m_pipe->removeServer(APP_NAME);
         m_pipe->listen(APP_NAME);
 
-        connect(m_pipe, SIGNAL(newConnection()), this, SLOT(newConnection()));
+        connect(m_pipe, &QLocalServer::newConnection, this, &IPC::newConnection);
     }
 }
 
@@ -37,7 +37,7 @@ IPC::~IPC()
 void IPC::newConnection()
 {
     IPC_Client *ipcClient = new IPC_Client(m_pipe->nextPendingConnection());
-    connect(ipcClient, SIGNAL(foreground()), this, SLOT(foreground()));
+    connect(ipcClient, &IPC_Client::foreground, this, &IPC::foreground);
 }
 
 void IPC::foreground()
@@ -55,8 +55,8 @@ IPC_Client::IPC_Client(QLocalSocket *client, QObject *parent):
     m_client(client),
     m_sender()
 {
-    connect(m_client, SIGNAL(disconnected()), this, SLOT(deleteLater()));
-    connect(m_client, SIGNAL(readyRead()), this, SLOT(readyRead()));
+    connect(m_client, &QLocalSocket::disconnected, this, &IPC_Client::deleteLater);
+    connect(m_client, &QLocalSocket::readyRead, this, &IPC_Client::readyRead);
 
     QString sVersion = QString("VERSION,%1 %2").arg(APP_NAME).arg(VERSION);
     m_client->write(sVersion.toUtf8());
@@ -107,7 +107,7 @@ void IPC_Client::readyRead()
         int universe = l_data[1].toInt();
         if (m_listener) m_listener->disconnect(this);
         m_listener = sACNManager::Instance().getListener(universe);
-        connect(m_listener.data(), SIGNAL(levelsChanged()), this, SLOT(levelsChanged()));
+        connect(m_listener.data(), &sACNListener::levelsChanged, this, &IPC_Client::levelsChanged);
         levelsChanged();
 
         qDebug() << "IPC" << qint64(m_client) << ": Listening to universe" << universe;

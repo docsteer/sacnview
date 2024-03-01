@@ -23,6 +23,7 @@
         <file>clear.png</file>
         <file>ledgreen.png</file>
         <file>ledred.png</file>
+        <file>multi_universe_view.png</file>
     </qresource>
     <qresource prefix="/">
         <file>Logo.png</file>

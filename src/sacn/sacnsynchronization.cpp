@@ -80,13 +80,13 @@ sACNSynchronizationRX::sACNSynchronizationRX() : QObject(),
 {
     qDebug() << "SynchronizationRX : Starting RX";
     m_thread->setObjectName("sACNSynchronizationRX");
-    connect(m_thread, SIGNAL(finished()), m_thread, SLOT(deleteLater()));
+    connect(m_thread, &QThread::finished, m_thread, &QObject::deleteLater);
     m_thread->start();
 
     m_expiredTimer->setInterval(E131_NETWORK_DATA_LOSS_TIMEOUT + (E131_NETWORK_DATA_LOSS_TIMEOUT / 4)); // Expire after 125% of time
     m_expiredTimer->setObjectName("sACNSynchronizationRX Expired Timer");
     m_expiredTimer->setSingleShot(false);
-    connect(m_expiredTimer, SIGNAL(timeout()), this, SLOT(timeoutSyncAddresses()));
+    connect(m_expiredTimer, &QTimer::timeout, this, &sACNSynchronizationRX::timeoutSyncAddresses);
     m_expiredTimer->start();
 }
 

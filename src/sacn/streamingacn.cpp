@@ -50,6 +50,22 @@
 #include <QDebug>
 #endif
 
+
+QString GetProtocolVersionString(StreamingACNProtocolVersion value)
+{
+  switch (value)
+  {
+  case sACNProtocolDraft:
+    return QObject::tr("Draft");
+  case sACNProtocolRelease:
+    return QObject::tr("Release");
+  case sACNProtocolPathwaySecure:
+    return QObject::tr("Pathway Secure");
+  default:
+    return QObject::tr("Unknown");
+  }
+}
+
 sACNSource::sACNSource() :
     src_valid(false),
     lastseq(0),
@@ -114,9 +130,9 @@ sACNManager::tListener sACNManager::getListener(quint16 universe)
 
         sACNListener *listener = new sACNListener(universe);
         listener->moveToThread(thread);
-        connect(thread, SIGNAL(started()), listener, SLOT(startReception()));
-        connect(thread, SIGNAL(finished()), listener, SLOT(deleteLater()));
-        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+        connect(thread, &QThread::started, listener, &sACNListener::startReception);
+        connect(thread, &QThread::finished, listener, &sACNListener::deleteLater);
+        connect(thread, &QThread::finished, thread, &sACNListener::deleteLater);
         thread->start(QThread::HighPriority);
 
         // Emit sources from all, known, universes
@@ -194,8 +210,8 @@ sACNManager::tSender sACNManager::createSender(CID cid, quint16 universe)
 
     sACNSentUniverse *sender = new sACNSentUniverse(universe);
     sender->setCID(cid);
-    connect(sender, SIGNAL(universeChange()), this, SLOT(senderUniverseChanged()));
-    connect(sender, SIGNAL(cidChange()), this, SLOT(senderCIDChanged()));
+    connect(sender, &sACNSentUniverse::universeChange, this, &sACNManager::senderUniverseChanged);
+    connect(sender, &sACNSentUniverse::cidChange, this, &sACNManager::senderCIDChanged);
 
     // Create strong pointer to return
     QSharedPointer<sACNSentUniverse> strongPointer = QSharedPointer<sACNSentUniverse>(sender, strongPointerDeleteSender);
@@ -300,3 +316,4 @@ void sACNManager::senderCIDChanged()
 
     qDebug() << "Sender CID" << CID::CIDIntoQString(oldCID) << "now CID" << CID::CIDIntoQString(newCID);
 }
+

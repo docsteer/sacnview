@@ -276,7 +276,7 @@ void ScopeWidget::dataReady(int address, const QPointF data)
     if(!m_running) return;
 
 
-    sACNListener *listener = static_cast<sACNListener *>(sender());
+    sACNListener *listener = qobject_cast<sACNListener *>(sender());
 
     if(!listener) return; // Check for deletion
 
@@ -348,7 +348,7 @@ void ScopeWidget::start()
     {
         ch->clear();
         auto listener = sACNManager::Instance().getListener(ch->universe());
-        connect(listener.data(), SIGNAL(dataReady(int, QPointF)), this, SLOT(dataReady(int, QPointF)));
+        connect(listener.data(), &sACNListener::dataReady, this, &ScopeWidget::dataReady);
     }
     update();
 

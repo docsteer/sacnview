@@ -48,7 +48,7 @@ sACNSentUniverse::sACNSentUniverse(int universe) :
     m_priority(100),
     m_name("New Source"),
     m_universe(universe),
-    m_priorityMode(pmPER_SOURCE_PRIORITY),
+    m_priorityMode(PriorityMode::PER_SOURCE),
     m_version(sACNProtocolRelease),
     m_checkTimeoutTimer(Q_NULLPTR),
     m_synchronization(NOT_SYNCHRONIZED_VALUE),
@@ -99,7 +99,7 @@ void sACNSentUniverse::startSending(bool preview)
     streamServer->SetUniverseDirty(m_handle);
 
     // Per-Address (0xdd) server
-    if(m_priorityMode == pmPER_ADDRESS_PRIORITY)
+    if(m_priorityMode == PriorityMode::PER_ADDRESS)
     {
         quint8 *pslots;
         streamServer->CreateUniverse(
@@ -118,7 +118,7 @@ void sACNSentUniverse::startSending(bool preview)
     if(seconds>0)
     {
         m_checkTimeoutTimer = new QTimer(this);
-        connect(m_checkTimeoutTimer, SIGNAL(timeout()), this, SLOT(doTimeout()));
+        connect(m_checkTimeoutTimer, &QTimer::timeout, this, &sACNSentUniverse::doTimeout);
         m_checkTimeoutTimer->setSingleShot(true);
         m_checkTimeoutTimer->setInterval(1000 * seconds);
         m_checkTimeoutTimer->start();
@@ -132,7 +132,7 @@ void sACNSentUniverse::stopSending()
     m_handle = 0;
     m_isSending = false;
 
-    if(m_priorityMode == pmPER_ADDRESS_PRIORITY)
+    if(m_priorityMode == PriorityMode::PER_ADDRESS)
     {
         CStreamServer::getInstance()->DestroyUniverse(m_priorityHandle);
         m_priorityHandle = 0;
@@ -370,7 +370,7 @@ CStreamServer::CStreamServer() :
     m_sendsock->bind();
 
     m_thread = new QThread();
-    connect(m_thread, SIGNAL(started()), this, SLOT(TickLoop()));
+    connect(m_thread, &QThread::started, this, &CStreamServer::TickLoop);
     connect(m_thread, &QThread::finished, this, &QThread::deleteLater);
     this->moveToThread(m_thread);
     m_thread->setObjectName(QString("Interface %1 TX").arg(m_sendsock->multicastInterface().name()));

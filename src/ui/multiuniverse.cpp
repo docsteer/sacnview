@@ -34,7 +34,7 @@ MultiUniverse::MultiUniverse(int firstUniverse, QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(m_timeoutMapper, SIGNAL(mappedInt(int)), this, SLOT(senderTimedout(int)));
+    connect(m_timeoutMapper, &QSignalMapper::mappedInt, this, &MultiUniverse::senderTimedout);
 }
 
 MultiUniverse::~MultiUniverse()
@@ -60,8 +60,9 @@ void MultiUniverse::addSource(int universe, int min_address, int max_address,
     ui->tableWidget->setRowCount(row+1);
 
     CID newCid = CID::CreateCid();
-    m_senders.append(sACNManager::Instance().getSender(universe, newCid));
-    connect(m_senders.last().data(), &sACNSentUniverse::destroyed, [this](QObject *obj)
+    sACNManager::tSender sender = sACNManager::Instance().getSender(universe, newCid);
+    m_senders.append(sender);
+    connect(sender.data(), &sACNSentUniverse::destroyed, [this](QObject* obj)
         { QMutableListIterator<sACNManager::tSender>i(m_senders);
 
           while(i.hasNext())
@@ -71,42 +72,45 @@ void MultiUniverse::addSource(int universe, int min_address, int max_address,
                   i.remove();
           }
         }); // Remove sender from List when destroyed
-    m_senders.last()->setPerSourcePriority(priority);
-    connect(m_senders.last().data(), SIGNAL(sendingTimeout()), m_timeoutMapper, SLOT(map()));
-    m_timeoutMapper->setMapping(m_senders.last().data(), row);
-    m_fxEngines.append(new sACNEffectEngine(m_senders.last()));
-    connect(m_fxEngines.last(), &sACNEffectEngine::destroyed, [this](QObject *obj)
+    sender->setPerSourcePriority(priority);
+    connect(sender.data(), &sACNSentUniverse::sendingTimeout, m_timeoutMapper, QOverload<>::of(&QSignalMapper::map));
+    m_timeoutMapper->setMapping(sender.data(), row);
+    
+    sACNEffectEngine* fxEngine = new sACNEffectEngine(sender);
+    m_fxEngines.append(fxEngine);
+    connect(fxEngine, &sACNEffectEngine::destroyed, [this](QObject *obj)
         { this->m_fxEngines.removeAll(static_cast<sACNEffectEngine*>(obj)); }); // Remove fxEngine from List when destroyed
-    m_fxEngines.last()->setEndAddress(max_address-1);
-    m_fxEngines.last()->setStartAddress(min_address-1);
-    m_fxEngines.last()->setMode(mode);
-    m_fxEngines.last()->setRate(rate);
-    m_fxEngines.last()->setManualLevel(level);
-    m_fxEngines.last()->run();
-    m_senders.last()->setName(name);
+
+    fxEngine->setEndAddress(max_address-1);
+    fxEngine->setStartAddress(min_address-1);
+    fxEngine->setMode(mode);
+    fxEngine->setRate(rate);
+    fxEngine->setManualLevel(level);
+    fxEngine->run();
+    sender->setName(name);
     if(startSending)
-        m_senders.last()->startSending();
+        sender->startSending();
 
     QCheckBox *enableBox = new QCheckBox(this);
     enableBox->setStyleSheet("margin-left:50%; margin-right:50%;");
-    enableBox->setChecked(m_senders.last()->isSending());
+    enableBox->setChecked(sender->isSending());
     ui->tableWidget->setCellWidget(row, COL_ENABLED, enableBox);
-    m_widgetToFxEngine[enableBox] = m_fxEngines.last();
-    m_widgetToSender[enableBox] = m_senders.last().data();
-    connect(enableBox, SIGNAL(toggled(bool)), this, SLOT(enableChanged(bool)));
-    connect(enableBox, SIGNAL(destroyed(QObject*)), this, SLOT(removeWidgetFromIndex(QObject*)));
+    m_widgetToFxEngine[enableBox] = fxEngine;
+    m_widgetToSender[enableBox] = sender.data();
+    connect(enableBox, &QCheckBox::toggled, this, &MultiUniverse::enableChanged);
+    connect(enableBox, &QObject::destroyed, this, &MultiUniverse::removeWidgetFromIndex);
 
 
     QSpinBox *sb = new QSpinBox(this);
     sb->setMinimum(MIN_SACN_UNIVERSE);
     sb->setMaximum(MAX_SACN_UNIVERSE);
-    sb->setValue(m_senders.last()->universe());
+    sb->setValue(sender->universe());
     sb->setWrapping(true);
     ui->tableWidget->setCellWidget(row, COL_UNIVERSE, sb);
-    m_widgetToFxEngine[sb] = m_fxEngines.last();
-    m_widgetToSender[sb] = m_senders.last().data();
-    connect(sb, SIGNAL(valueChanged(int)), this, SLOT(universeChanged(int)));
-    connect(sb, SIGNAL(destroyed(QObject*)), this, SLOT(removeWidgetFromIndex(QObject*)));
+    m_widgetToFxEngine[sb] = fxEngine;
+    m_widgetToSender[sb] = sender.data();
+    connect(sb, QOverload<int>::of(&QSpinBox::valueChanged), this, &MultiUniverse::universeChanged);
+    connect(sb, &QObject::destroyed, this, &MultiUniverse::removeWidgetFromIndex);
 
     sb = new QSpinBox(this);
     sb->setMinimum(MIN_DMX_ADDRESS);
@@ -114,10 +118,10 @@ void MultiUniverse::addSource(int universe, int min_address, int max_address,
     sb->setValue(min_address);
     sb->setWrapping(true);
     ui->tableWidget->setCellWidget(row, COL_STARTADDR, sb);
-    m_widgetToFxEngine[sb] = m_fxEngines.last();
-    m_widgetToSender[sb] = m_senders.last().data();
-    connect(sb, SIGNAL(valueChanged(int)), this, SLOT(startChanged(int)));
-    connect(sb, SIGNAL(destroyed(QObject*)), this, SLOT(removeWidgetFromIndex(QObject*)));
+    m_widgetToFxEngine[sb] = fxEngine;
+    m_widgetToSender[sb] = sender.data();
+    connect(sb, QOverload<int>::of(&QSpinBox::valueChanged), this, &MultiUniverse::startChanged);
+    connect(sb, &QObject::destroyed, this, &MultiUniverse::removeWidgetFromIndex);
 
     sb = new QSpinBox(this);
     sb->setMinimum(MIN_DMX_ADDRESS);
@@ -125,22 +129,22 @@ void MultiUniverse::addSource(int universe, int min_address, int max_address,
     sb->setValue(max_address);
     sb->setWrapping(true);
     ui->tableWidget->setCellWidget(row, COL_ENDADDR, sb);
-    m_widgetToFxEngine[sb] = m_fxEngines.last();
-    m_widgetToSender[sb] = m_senders.last().data();
-    connect(sb, SIGNAL(valueChanged(int)), this, SLOT(endChanged(int)));
-    connect(sb, SIGNAL(destroyed(QObject*)), this, SLOT(removeWidgetFromIndex(QObject*)));
+    m_widgetToFxEngine[sb] = fxEngine;
+    m_widgetToSender[sb] = sender.data();
+    connect(sb, QOverload<int>::of(&QSpinBox::valueChanged), this, &MultiUniverse::endChanged);
+    connect(sb, &QObject::destroyed, this, &MultiUniverse::removeWidgetFromIndex);
 
 
     sb = new QSpinBox(this);
     sb->setMinimum(MIN_SACN_PRIORITY);
     sb->setMaximum(MAX_SACN_PRIORITY);
     sb->setValue(priority);
-    sb->setValue(m_senders.last()->perSourcePriority());
+    sb->setValue(sender->perSourcePriority());
     sb->setWrapping(true);
     ui->tableWidget->setCellWidget(row, COL_PRIORITY, sb);
-    connect(sb, SIGNAL(valueChanged(int)), this, SLOT(priorityChanged(int)));
-    m_widgetToFxEngine[sb] = m_fxEngines.last();
-    m_widgetToSender[sb] = m_senders.last().data();
+    connect(sb, QOverload<int>::of(&QSpinBox::valueChanged), this, &MultiUniverse::priorityChanged);
+    m_widgetToFxEngine[sb] = fxEngine;
+    m_widgetToSender[sb] = sender.data();
 
     QComboBox *cb = new QComboBox(this);
     cb->addItems(sACNEffectEngine::FxModeDescriptions());
@@ -149,18 +153,18 @@ void MultiUniverse::addSource(int universe, int min_address, int max_address,
     ui->tableWidget->setColumnWidth(
                 COL_EFFECT,
                 std::max(ui->tableWidget->columnWidth(COL_EFFECT), cb->width()));
-    m_widgetToFxEngine[cb] = m_fxEngines.last();
-    m_widgetToSender[cb] = m_senders.last().data();
+    m_widgetToFxEngine[cb] = fxEngine;
+    m_widgetToSender[cb] = sender.data();
 
-    connect(cb, SIGNAL(currentIndexChanged(int)), this, SLOT(fxChanged(int)));
-    connect(cb, SIGNAL(destroyed(QObject*)), this, SLOT(removeWidgetFromIndex(QObject*)));
+    connect(cb, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MultiUniverse::fxChanged);
+    connect(cb, &QObject::destroyed, this, &MultiUniverse::removeWidgetFromIndex);
 
     if(mode==sACNEffectEngine::FxManual)
         setupControl(row, mode, level);
     else
         setupControl(row, mode, rate);
 
-    QTableWidgetItem *item = new QTableWidgetItem(m_senders.last()->name());
+    QTableWidgetItem *item = new QTableWidgetItem(sender->name());
     ui->tableWidget->setItem(row, COL_NAME, item);
 }
 
@@ -292,9 +296,9 @@ void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode, int val
         ui->tableWidget->setCellWidget(row, COL_CONTROL, controlWidget);
         m_widgetToFxEngine[slider] = m_fxEngines[row];
         m_widgetToSender[slider] = m_senders[row].data();
-        connect(slider, SIGNAL(destroyed(QObject*)), this, SLOT(removeWidgetFromIndex(QObject*)));
-        connect(slider, SIGNAL(valueChanged(int)), this, SLOT(controlSliderMoved(int)));
-        }
+        connect(slider, &QSlider::valueChanged, this, &MultiUniverse::controlSliderMoved);
+        connect(slider, &QObject::destroyed, this, &MultiUniverse::removeWidgetFromIndex);
+    }
         break;
     case sACNEffectEngine::FxChaseSnap:
         {
@@ -330,8 +334,8 @@ void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode, int val
         ui->tableWidget->setCellWidget(row, COL_CONTROL, controlWidget);
         m_widgetToFxEngine[slider] = m_fxEngines[row];
         m_widgetToSender[slider] = m_senders[row].data();
-        connect(controlWidget, SIGNAL(destroyed(QObject*)), this, SLOT(removeWidgetFromIndex(QObject*)));
-        connect(slider, SIGNAL(valueChanged(int)), this, SLOT(controlSliderMoved(int)));
+        connect(slider, &QSlider::valueChanged, this, &MultiUniverse::controlSliderMoved);
+        connect(controlWidget, &QObject::destroyed, this, &MultiUniverse::removeWidgetFromIndex);
         }
         break;
     case sACNEffectEngine::FxDate:
@@ -342,8 +346,8 @@ void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode, int val
         ui->tableWidget->setCellWidget(row, COL_CONTROL, cb);
         m_widgetToFxEngine[cb] = m_fxEngines[row];
         m_widgetToSender[cb] = m_senders[row].data();
-        connect(cb, SIGNAL(destroyed(QObject*)), this, SLOT(removeWidgetFromIndex(QObject*)));
-        connect(cb, SIGNAL(currentIndexChanged(int)), this, SLOT(controlComboChanged(int)));
+        connect(cb, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MultiUniverse::controlComboChanged);
+        connect(cb, &QObject::destroyed, this, &MultiUniverse::removeWidgetFromIndex);
         }
         break;
     case sACNEffectEngine::FxText:
