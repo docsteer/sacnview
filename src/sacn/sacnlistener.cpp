@@ -655,6 +655,8 @@ void sACNListener::performMerge()
 
   ++m_mergeCounter;
 
+  const bool discardOutOfRange = !Preferences::Instance().GetMergeIllegalPriorities();
+
   //array of addresses to merge. to prevent duplicates and because you can have
   //an odd collection of addresses, addresses[n] would be 'n' for the value in question
   // and -1 if not required
@@ -727,6 +729,10 @@ void sACNListener::performMerge()
   for (std::vector<sACNSource*>::iterator it = m_sources.begin(); it != m_sources.end(); ++it)
   {
     sACNSource* ps = *it;
+
+    // Don't merge sources with bad universe priorities
+    if (discardOutOfRange && ps->HasInvalidPriority())
+      continue;
 
     if (ps->src_valid && !ps->active.Expired() && !ps->doing_per_channel)
     {

@@ -44,6 +44,7 @@ constexpr int PRIORITYPRESET_COUNT = 5;
 
 constexpr uint8_t MIN_SACN_PRIORITY = 0;
 constexpr uint8_t MAX_SACN_PRIORITY = 200;
+constexpr uint8_t MAX_SACN_BAD_PRIORITY = 255;  // Max possible illegal value
 constexpr uint8_t DEFAULT_SACN_PRIORITY = 100;
 
 constexpr uint8_t MIN_SACN_LEVEL = 0;

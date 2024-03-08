@@ -26,8 +26,8 @@ public:
   // The column order in the source table
   enum SC_COLS
   {
-    COL_NAME,
     COL_ONLINE,
+    COL_NAME,
     COL_CID,
     COL_UNIVERSE,
     COL_PRIO,
@@ -110,6 +110,13 @@ private:
     Yes
   };
 
+  enum class SourcePriority
+  {
+    PerUniverse,
+    PerAddress,
+    PerAddressInvalid
+  };
+
   struct RowData
   {
     RowData() = default;
@@ -129,7 +136,7 @@ private:
     uint16_t slot_count = 0;
     uint8_t priority = 0;
     bool preview = false;
-    bool per_address = false;
+    SourcePriority per_address = SourcePriority::PerUniverse;
     FpsCounter::Histogram histogram;
 
     // Cache

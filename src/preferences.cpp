@@ -51,6 +51,8 @@ static const QString S_SUBWINDOWGEOM = QStringLiteral("SubWindow Geometry");
 static const QString S_LISTEN_ALL = QStringLiteral("Listen All");
 static const QString S_THEME = QStringLiteral("Theme");
 static const QString S_TX_RATE_OVERRIDE = QStringLiteral("TX Rate Override");
+static const QString S_TX_BAD_PRIORITY = QStringLiteral("TX Bad Priority");
+static const QString S_RX_BAD_PRIORITY = QStringLiteral("Merge Bad Priority");
 static const QString S_LOCALE = QStringLiteral("LOCALE");
 static const QString S_UNIVERSESLISTED = QStringLiteral("Universe List Count");
 static const QString S_PRIORITYPRESET = QStringLiteral("PriorityPreset %1");
@@ -340,6 +342,8 @@ void Preferences::savePreferences() const
   settings.setValue(S_LISTEN_ALL, m_interfaceListenAll);
   settings.setValue(S_THEME, m_theme);
   settings.setValue(S_TX_RATE_OVERRIDE, m_txrateoverride);
+  settings.setValue(S_TX_BAD_PRIORITY, m_txbadpriority);
+  settings.setValue(S_RX_BAD_PRIORITY, m_rxbadpriority);
   settings.setValue(S_LOCALE, m_locale);
   settings.setValue(S_UNIVERSESLISTED, m_universesListed);
 
@@ -401,6 +405,8 @@ void Preferences::loadPreferences()
   m_saveWindowLayout = settings.value(S_SAVEWINDOWLAYOUT, m_saveWindowLayout).toBool();
   m_theme = static_cast<Themes::theme_e>(settings.value(S_THEME, static_cast<int>(m_theme)).toInt());
   m_txrateoverride = settings.value(S_TX_RATE_OVERRIDE, m_txrateoverride).toBool();
+  m_txbadpriority = settings.value(S_TX_BAD_PRIORITY, m_txbadpriority).toBool();
+  m_rxbadpriority = settings.value(S_RX_BAD_PRIORITY, m_rxbadpriority).toBool();
   m_locale = settings.value(S_LOCALE, m_locale).toLocale();
   m_universesListed = settings.value(S_UNIVERSESLISTED, m_universesListed).toUInt();
   m_multicastTtl = settings.value(S_MULTICASTTTL, m_multicastTtl).toUInt();

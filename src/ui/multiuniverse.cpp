@@ -137,7 +137,7 @@ void MultiUniverse::addSource(int universe, int min_address, int max_address,
 
     sb = new QSpinBox(this);
     sb->setMinimum(MIN_SACN_PRIORITY);
-    sb->setMaximum(MAX_SACN_PRIORITY);
+    sb->setMaximum(Preferences::GetTxMaxUiPriority());
     sb->setValue(priority);
     sb->setValue(sender->perSourcePriority());
     sb->setWrapping(true);

@@ -127,8 +127,18 @@ public:
   void SetTheme(Themes::theme_e theme) { m_theme = theme; }
   Themes::theme_e GetTheme() const { return m_theme; }
 
+  // Permit illegal TX rate
   void SetTXRateOverride(bool override) { m_txrateoverride = override; }
   bool GetTXRateOverride() const { return m_txrateoverride; }
+
+  // Permit illegal TX priority
+  void SetTXBadPriority(bool b) {m_txbadpriority = b;}
+  bool GetTXBadPriority() const { return m_txbadpriority; }
+  static int GetTxMaxUiPriority() { return Instance().m_txbadpriority ? MAX_SACN_BAD_PRIORITY : MAX_SACN_PRIORITY; }
+
+  // Permit reception of illegal Priority
+  void SetMergeIllegalPriorities(bool b) { m_rxbadpriority = b; }
+  bool GetMergeIllegalPriorities() const { return m_rxbadpriority; }
 
   void SetLocale(const QLocale& locale) { m_locale = locale; }
   const QLocale& GetLocale() const { return m_locale; }
@@ -214,6 +224,8 @@ private:
   bool m_bETCDisplayDDOnly = true;
   bool m_bETCDD = true;
   bool m_txrateoverride = false;
+  bool m_txbadpriority = false;
+  bool m_rxbadpriority = false;
 
   bool m_pathwaySecureRx = true;
   bool m_pathwaySecureRxDataOnly = false;

@@ -112,7 +112,7 @@ QVariant SACNSourceTableModel::getDisplayData(const RowData& rowData, int column
   }
   case COL_CID: return rowData.cid;
   case COL_UNIVERSE: return rowData.universe;
-  case COL_PRIO: return rowData.per_address ? QStringLiteral("(*) ") + QString::number(rowData.priority) : QString::number(rowData.priority);
+  case COL_PRIO: return rowData.per_address == SourcePriority::PerUniverse ?  QString::number(rowData.priority) : QStringLiteral("(%1)").arg(rowData.priority);
   case COL_SYNC:
     if (rowData.protocol_version == sACNProtocolDraft)
       return tr("N/A");
@@ -131,9 +131,15 @@ QVariant SACNSourceTableModel::getDisplayData(const RowData& rowData, int column
   case COL_SEQ_ERR: return rowData.seq_err;
   case COL_JUMPS: return rowData.jumps;
   case COL_VER: return GetProtocolVersionString(rowData.protocol_version);
-  case COL_DD: return (rowData.per_address ?
-    (Preferences::Instance().GetETCDD() ? tr("Yes") : tr("Ignored"))
-    : tr("No"));
+  case COL_DD: 
+    switch (rowData.per_address)
+    {
+    case SourcePriority::PerUniverse: return tr("No");
+    case SourcePriority::PerAddress:
+      return (Preferences::Instance().GetETCDD() ? tr("Yes") : tr("Ignored"));
+    case SourcePriority::PerAddressInvalid:
+      return (Preferences::Instance().GetETCDD() ? tr("Invalid") : tr("Ignored (Invalid)"));
+    }
   case COL_SLOTS: return rowData.slot_count;
   case COL_PATHWAY_SECURE:
     switch (rowData.security)
@@ -153,7 +159,9 @@ QVariant SACNSourceTableModel::getBackgroundData(const RowData& rowData, int col
   switch (column)
   {
   default: break;
-  case COL_NAME: return Preferences::Instance().colorForCID(rowData.cid);
+  case COL_NAME:
+  case COL_CID:
+    return Preferences::Instance().colorForCID(rowData.cid);
   case COL_ONLINE: switch (rowData.online)
   {
   default:
@@ -172,9 +180,16 @@ QVariant SACNSourceTableModel::getBackgroundData(const RowData& rowData, int col
     case SourceSecure::BadPassword: return Preferences::Instance().colorForStatus(Preferences::Status::Warning);
     case SourceSecure::Yes: return Preferences::Instance().colorForStatus(Preferences::Status::Good);
     }
-  case COL_CID:
-  case COL_UNIVERSE:
+    break;
   case COL_PRIO:
+    if (rowData.priority > MAX_SACN_PRIORITY || rowData.per_address == SourcePriority::PerAddressInvalid)
+      return Preferences::Instance().colorForStatus(Preferences::Status::Bad);
+    break;
+  case COL_DD:
+    if (rowData.per_address == SourcePriority::PerAddressInvalid)
+      return Preferences::Instance().colorForStatus(Preferences::Status::Bad);
+
+  case COL_UNIVERSE:
   case COL_SYNC:
   case COL_PREVIEW:
   case COL_IP:
@@ -182,7 +197,6 @@ QVariant SACNSourceTableModel::getBackgroundData(const RowData& rowData, int col
   case COL_SEQ_ERR:
   case COL_JUMPS:
   case COL_VER:
-  case COL_DD:
   case COL_SLOTS:
     break;
   }
@@ -570,7 +584,15 @@ void SACNSourceTableModel::RowData::Update(const sACNSource* source)
   slot_count = source->slot_count;
   priority = source->priority;
   preview = source->isPreview;
-  per_address = source->doing_per_channel;
+  if (source->doing_per_channel)
+  {
+    // Validate the priorities
+    per_address = source->HasInvalidPriority() ? SourcePriority::PerAddressInvalid : SourcePriority::PerAddress;
+  }
+  else
+  {
+    per_address = SourcePriority::PerUniverse;
+  }
   histogram = source->fpscounter.GetHistogram();
   countValid = false;
 }
