@@ -440,6 +440,10 @@ void SACNSourceTableModel::resetTimeSummaryCounters()
   {
     it.key()->fpscounter.ClearHistogram();
   }
+  for (auto& row : m_rows)
+  {
+    row.histogram.clear();
+  }
   emit dataChanged(index(0, TimingDetailColumns.front()), index(rowCount() - 1, TimingDetailColumns.back()));
 }
 
@@ -481,6 +485,7 @@ void SACNSourceTableModel::resetCounters()
   {
     row.seq_err = 0;
     row.jumps = 0;
+    row.histogram.clear();
   }
   emit dataChanged(index(0, TimingDetailColumns.front()), index(rowCount() - 1, COL_JUMPS));
 }
