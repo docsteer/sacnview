@@ -39,6 +39,13 @@
 
 int main(int argc, char *argv[])
 {
+    qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", QByteArray());
+    qputenv("QT_SCALE_FACTOR", QByteArray());
+
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+
     QApplication a(argc, argv);
 
     a.setApplicationName(APP_NAME);
@@ -102,8 +109,9 @@ int main(int argc, char *argv[])
     // Changed to heap rather than stack,
     // so that we can destroy before cleaning up the singletons
     MDIMainWindow *w = new MDIMainWindow();
-    w->restoreMdiWindows();
+    w->restoreSubWindows();
 
+#ifdef NDEBUG
     // Setup IPC
     IPC ipc(w);
     if (!ipc.isListening())
@@ -112,9 +120,10 @@ int main(int argc, char *argv[])
         delete w;
         return -1;
     }
+#endif
 
     // Show window
-    if(Preferences::Instance().GetSaveWindowLayout())
+    if(Preferences::Instance().GetSaveWindowLayout() || Preferences::Instance().GetWindowMode() == WindowMode::Floating)
         w->show();
     else
         w->showMaximized();
@@ -156,14 +165,13 @@ int main(int argc, char *argv[])
 
     int result = a.exec();
 
-    w->saveMdiWindows();
     delete w;
 
     Preferences::Instance().savePreferences();
 
     CStreamServer::shutdown();
 
-    if(Preferences::Instance().RESTART_APP)
+    if(Preferences::Instance().GetRestartPending())
         QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
     return result;
 }

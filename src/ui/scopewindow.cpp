@@ -58,33 +58,23 @@ ScopeWindow::ScopeWindow(int universe, QWidget *parent) :
     ui->setupUi(this);
     ui->dlTimebase->setMinimum(0);
     ui->dlTimebase->setMaximum(TIMEBASES.count() - 1);
-    connect(ui->dlTimebase, SIGNAL(valueChanged(int)), this, SLOT(timebaseChanged(int)));
+    connect(ui->dlTimebase, &QAbstractSlider::valueChanged, this, &ScopeWindow::timebaseChanged);
     ui->tableWidget->setRowCount(0);
     ui->btnStart->setEnabled(false);
     ui->btnStop->setEnabled(false);
 
     m_radioGroup = new QButtonGroup(this);
-    connect(m_radioGroup, SIGNAL(buttonPressed(int)), this, SLOT(on_buttonGroup_buttonPressed(int)));
-    connect(ui->sbTriggerDelay, SIGNAL(valueChanged(int)), ui->widget, SLOT(setTriggerDelay(int)));
-    connect(ui->widget, SIGNAL(stopped()), this, SLOT(on_scopeWidget_stopped()));
+    connect(m_radioGroup, &QButtonGroup::idPressed, this, &ScopeWindow::on_buttonGroup_buttonPressed);
+    connect(ui->sbTriggerDelay, QOverload<int>::of(&QSpinBox::valueChanged), ui->widget, &ScopeWidget::setTriggerDelay);
+    connect(ui->widget, &ScopeWidget::stopped, this, &ScopeWindow::on_scopeWidget_stopped);
 
     // Set initial value
     ui->dlTimebase->setValue(2);
 
     // Setup trigger spinbox
-    if(Preferences::Instance().GetDisplayFormat() == Preferences::PERCENT)
-    {
-        ui->sbTriggerLevel->setMinimum(0);
-        ui->sbTriggerLevel->setMaximum(100);
-        ui->sbTriggerLevel->setValue(50);
-    }
-    else
-    {
-        ui->sbTriggerLevel->setMinimum(0);
-        ui->sbTriggerLevel->setMaximum(MAX_SACN_LEVEL);
-        ui->sbTriggerLevel->setValue(MAX_SACN_LEVEL/2);
-    }
-
+    ui->sbTriggerLevel->setMinimum(0);
+    ui->sbTriggerLevel->setMaximum(Preferences::Instance().GetMaxLevel());
+    ui->sbTriggerLevel->setValue(Preferences::Instance().GetMaxLevel()/2);
 }
 
 ScopeWindow::~ScopeWindow()
@@ -244,7 +234,7 @@ void ScopeWindow::on_tableWidget_itemChanged(QTableWidgetItem * item)
 
             ch->setUniverse(universe);
             disconnect(listener.data(), 0, this->ui->widget, 0);
-            connect(listener.data(), SIGNAL(dataReady(int, QPointF)), this->ui->widget, SLOT(dataReady(int, QPointF)));
+            connect(listener.data(), &sACNListener::dataReady, this->ui->widget, &ScopeWidget::dataReady);
             listener->monitorAddress(ch->address(), this);
             ch->clear();
         }

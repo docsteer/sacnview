@@ -247,7 +247,7 @@ bool PathwaySecure::VerifyStreamSecurity(const quint8* pbuf, uint buflen, passwo
        return false;
 
     source.pathway_secure.passwordOk = false;
-    source.pathway_secure.digetOk = false;
+    source.pathway_secure.digestOk = false;
     source.pathway_secure.sequenceOk = false;
 
     const quint8* post_amble_buf = nullptr;
@@ -283,8 +283,8 @@ bool PathwaySecure::VerifyStreamSecurity(const quint8* pbuf, uint buflen, passwo
         expected_message_digest.data(), expected_message_digest.size(), // Resultant Message Digest
         pbuf, buflen - RootLayer::PostAmble::MESSAGE_DIGEST_SIZE, // Payload, sans Message Digest
         password.getPassword().toUtf8().constData(), password.getPassword().size()); // Password
-    source.pathway_secure.digetOk = (expected_message_digest == message_digest);
-    if (!source.pathway_secure.digetOk)
+    source.pathway_secure.digestOk = (expected_message_digest == message_digest);
+    if (!source.pathway_secure.digestOk)
         return false;
 
     return source.pathway_secure.isSecure();

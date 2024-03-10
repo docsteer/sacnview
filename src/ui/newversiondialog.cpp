@@ -31,7 +31,7 @@ NewVersionDialog::NewVersionDialog(QWidget *parent) : QDialog(parent), ui(new Ui
     #if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
         setWindowFlag(Qt::WindowContextHelpButtonHint, false);
     #endif
-    connect(ui->btnLater, SIGNAL(pressed()), this, SLOT(reject()));
+    connect(ui->btnLater, &QAbstractButton::pressed, this, &NewVersionDialog::reject);
     m_manager = new QNetworkAccessManager(this);
 
     ui->btnInstall->setDefault(true);
@@ -82,9 +82,9 @@ void NewVersionDialog::doDownload(const QUrl &url)
     }
 
     QNetworkReply *reply = m_manager->get(QNetworkRequest(url));
-    connect(reply, SIGNAL(finished()), this, SLOT(finished()));
-    connect(reply, SIGNAL(readyRead()), this, SLOT(dataReadyRead()));
-    connect(reply, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(progress(qint64,qint64)));
+    connect(reply, &QNetworkReply::finished, this, &NewVersionDialog::finished);
+    connect(reply, &QNetworkReply::readyRead, this, &NewVersionDialog::dataReadyRead);
+    connect(reply, &QNetworkReply::downloadProgress, this, &NewVersionDialog::progress);
 }
 
 void NewVersionDialog::progress(qint64 bytes, qint64 total)
@@ -186,8 +186,7 @@ VersionCheck::VersionCheck(QObject *parent):
     manager = new QNetworkAccessManager(this);
     QNetworkRequest request;
 
-    connect(manager, SIGNAL(finished(QNetworkReply*)),
-            this, SLOT(replyFinished(QNetworkReply*)));
+    connect(manager, &QNetworkAccessManager::finished, this, &VersionCheck::replyFinished);
 
     request.setRawHeader("User-Agent", QString("%1 %2").arg(APP_NAME, VERSION).toUtf8());
     request.setRawHeader("Accept", "application/vnd.github.v3.raw+json");

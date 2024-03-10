@@ -30,14 +30,14 @@ void PcapPlayback::openThread()
 
     /* Create sender thread */
     sender = new pcapplaybacksender(ui->lblFilename->text());
-    connect(sender, SIGNAL(packetSent()), this, SLOT(increaseProgress()));
-    connect(sender, SIGNAL(sendingFinished()), this, SLOT(playbackFinished()));
-    connect(sender, SIGNAL(sendingClosed()), this, SLOT(playbackClosed()));
-    connect(sender, SIGNAL(error(QString)), this, SLOT(error(QString)));
+    connect(sender, &pcapplaybacksender::packetSent, this, &PcapPlayback::increaseProgress);
+    connect(sender, &pcapplaybacksender::sendingFinished, this, &PcapPlayback::playbackFinished);
+    connect(sender, &pcapplaybacksender::sendingClosed, this, &PcapPlayback::playbackClosed);
+    connect(sender, &pcapplaybacksender::error, this, &PcapPlayback::error);
     connect(sender, &QThread::finished, [this]() {
         sender->deleteLater();
         sender = Q_NULLPTR; });
-    connect(sender, SIGNAL(finished()), this, SLOT(playbackThreadClosed()));
+    connect(sender, &pcapplaybacksender::finished, this, &PcapPlayback::playbackThreadClosed);
     ui->progressBar->reset();
     sender->start();
     sender->setPriority(QThread::HighPriority);

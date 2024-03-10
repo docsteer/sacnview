@@ -94,7 +94,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
         button->setFocusPolicy(Qt::FocusPolicy::NoFocus);
         layout->addWidget(button);
         m_presetButtons << button;
-        connect(button, SIGNAL(pressed()), this, SLOT(presetButtonPressed()));
+        connect(button, &QAbstractButton::pressed, this, &transmitwindow::presetButtonPressed);
     }
     QToolButton *recordButton = new QToolButton(this);
     m_presetButtons << recordButton;
@@ -103,7 +103,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     recordButton->setFocusPolicy(Qt::FocusPolicy::NoFocus);
     layout->addWidget(recordButton);
     ui->gbPresets->setLayout(layout);
-    connect(recordButton, SIGNAL(toggled(bool)), this, SLOT(recordButtonPressed(bool)));
+    connect(recordButton, &QAbstractButton::toggled, this, &transmitwindow::recordButtonPressed);
 
     // Create faders
     uint16_t sliderAddress = 0;
@@ -119,7 +119,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
             slider->setProperty(FADERADDRESSPROP, sliderAddress);
             slider->setMinimum(MIN_SACN_LEVEL);
             slider->setMaximum(MAX_SACN_LEVEL);
-            connect(slider, SIGNAL(valueChanged(int)), this, SLOT(on_sliderMoved(int)));
+            connect(slider, &QSlider::valueChanged, this, &transmitwindow::on_sliderMoved);
             QLabel *label = new QLabel(this);
             slider->setProperty(FADERLABELPROP, QVariant::fromValue(label));
             label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
@@ -166,13 +166,13 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     m_blink = false;
     m_blinkTimer = new QTimer(this);
     m_blinkTimer->setInterval(BLINK_TIME);
-    connect(m_blinkTimer, SIGNAL(timeout()), this, SLOT(doBlink()));
+    connect(m_blinkTimer, &QTimer::timeout, this, &transmitwindow::doBlink);
 
-    QTimer::singleShot(30, Qt::CoarseTimer, this, SLOT(fixSize()));
+    QTimer::singleShot(30, Qt::CoarseTimer, this, &transmitwindow::fixSize);
 
     // Set up effect radio buttons
     QButtonGroup *effectGroup = new QButtonGroup(this);
-    connect(effectGroup, SIGNAL(buttonToggled(QAbstractButton*, bool)), this, SLOT(radioFadeMode_toggled(QAbstractButton*, bool)));
+    connect(effectGroup, QOverload<QAbstractButton*, bool>::of(&QButtonGroup::buttonToggled), this, &transmitwindow::radioFadeMode_toggled);
     effectGroup->addButton(ui->rbFadeManual);
     effectGroup->addButton(ui->rbFadeRamp);
     effectGroup->addButton(ui->rbFadeSine);
@@ -183,12 +183,12 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     effectGroup->addButton(ui->rbChase);
 
     QButtonGroup *effectDateGroup = new QButtonGroup(this);
-    connect(effectDateGroup, SIGNAL(buttonToggled(QAbstractButton*, bool)), this, SLOT(dateMode_toggled(QAbstractButton*, bool)));
+    connect(effectDateGroup, QOverload<QAbstractButton*, bool>::of(&QButtonGroup::buttonToggled), this, &transmitwindow::dateMode_toggled);
     effectDateGroup->addButton(ui->rbEuDate);
     effectDateGroup->addButton(ui->rbUsDate);
 
     QButtonGroup *effectChaseGroup = new QButtonGroup(this);
-    connect(effectChaseGroup, SIGNAL(buttonToggled(QAbstractButton*, bool)), this, SLOT(radioFadeMode_toggled(QAbstractButton*, bool)));
+    connect(effectChaseGroup, QOverload<QAbstractButton*, bool>::of(&QButtonGroup::buttonToggled), this, &transmitwindow::radioFadeMode_toggled);
     effectChaseGroup->addButton(ui->rbChaseRamp);
     effectChaseGroup->addButton(ui->rbChaseSine);
     effectChaseGroup->addButton(ui->rbChaseSnap);
@@ -215,47 +215,44 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     setUniverseOptsEnabled(true);
 
     // Set up keypad
-    connect(ui->k0,     SIGNAL(pressed()),  ui->teCommandline,  SLOT(key0()));
-    connect(ui->k1,     SIGNAL(pressed()),  ui->teCommandline,  SLOT(key1()));
-    connect(ui->k2,     SIGNAL(pressed()),  ui->teCommandline,  SLOT(key2()));
-    connect(ui->k3,     SIGNAL(pressed()),  ui->teCommandline,  SLOT(key3()));
-    connect(ui->k4,     SIGNAL(pressed()),  ui->teCommandline,  SLOT(key4()));
-    connect(ui->k5,     SIGNAL(pressed()),  ui->teCommandline,  SLOT(key5()));
-    connect(ui->k6,     SIGNAL(pressed()),  ui->teCommandline,  SLOT(key6()));
-    connect(ui->k7,     SIGNAL(pressed()),  ui->teCommandline,  SLOT(key7()));
-    connect(ui->k8,     SIGNAL(pressed()),  ui->teCommandline,  SLOT(key8()));
-    connect(ui->k9,     SIGNAL(pressed()),  ui->teCommandline,  SLOT(key9()));
-    connect(ui->kAnd,   SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyAnd()));
-    connect(ui->kMinus, SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyMinus()));
-    connect(ui->kAt,    SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyAt()));
-    connect(ui->kClear, SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyClear()));
-    connect(ui->kFull,  SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyFull()));
-    connect(ui->kThru,  SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyThru()));
-    connect(ui->kOffset,SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyOffset()));
-    connect(ui->kEnter, SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyEnter()));
-    connect(ui->kAllOff,SIGNAL(pressed()),  ui->teCommandline,  SLOT(keyAllOff()));
+    connect(ui->k0, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::key0);
+    connect(ui->k1, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::key1);
+    connect(ui->k2, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::key2);
+    connect(ui->k3, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::key3);
+    connect(ui->k4, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::key4);
+    connect(ui->k5, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::key5);
+    connect(ui->k6, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::key6);
+    connect(ui->k7, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::key7);
+    connect(ui->k8, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::key8);
+    connect(ui->k9, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::key9);
+    connect(ui->kAnd, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::keyAnd);
+    connect(ui->kMinus, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::keyMinus);
+    connect(ui->kAt, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::keyAt);
+    connect(ui->kClear, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::keyClear);
+    connect(ui->kFull, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::keyFull);
+    connect(ui->kThru, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::keyThru);
+    connect(ui->kOffset, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::keyOffset);
+    connect(ui->kEnter, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::keyEnter);
+    connect(ui->kAllOff, &QAbstractButton::pressed, ui->teCommandline, &CommandLineWidget::keyAllOff);
 
-    connect(ui->teCommandline, SIGNAL(setLevels(QSet<int>,int)), this, SLOT(setLevels(QSet<int>,int)));
+    connect(ui->teCommandline, &CommandLineWidget::setLevels, this, &transmitwindow::setLevels);
 
     ui->gridControl->setMinimum(0);
-    if(Preferences::Instance().GetDisplayFormat()==Preferences::PERCENT)
-        ui->gridControl->setMaximum(100);
-    else
-        ui->gridControl->setMaximum(255);
+    ui->gridControl->setMaximum(Preferences::Instance().GetMaxLevel());
     ui->gridControl->setAllValues(0);
 
-    connect(ui->gridControl, SIGNAL(levelsSet(QList<QPair<int,int>>)), this, SLOT(setLevelList(QList<QPair<int,int>>)));
+    connect(ui->gridControl, &GridEditWidget::levelsSet, this, &transmitwindow::setLevelList);
 
     if(!m_sender)
     {
         m_sender = sACNManager::Instance().getSender(ui->sbUniverse->value());
-        connect(m_sender.data(), SIGNAL(sendingTimeout()), this, SLOT(sourceTimeout()));
+        connect(m_sender.data(), &sACNSentUniverse::sendingTimeout, this, &transmitwindow::sourceTimeout);
     }
     if(!m_fxEngine)
     {
         m_fxEngine = new sACNEffectEngine(m_sender);
-        connect(m_fxEngine, SIGNAL(fxLevelChange(int)), ui->slFadeLevel, SLOT(setValue(int)));
-        connect(m_fxEngine, SIGNAL(textImageChanged(QPixmap)), ui->lblTextImage, SLOT(setPixmap(QPixmap)));
+        connect(m_fxEngine, &sACNEffectEngine::fxLevelChange, ui->slFadeLevel, &QSlider::setValue);
+        connect(m_fxEngine, &sACNEffectEngine::textImageChanged, ui->lblTextImage, &QLabel::setPixmap);
         connect(m_fxEngine, &sACNEffectEngine::running, this, [this]() { ui->btnFxStart->setEnabled(false); ui->btnFxPause->setEnabled(true); }, Qt::QueuedConnection);
         connect(m_fxEngine, &sACNEffectEngine::paused, this, [this]() { ui->btnFxStart->setEnabled(true); ui->btnFxPause->setEnabled(false); } , Qt::QueuedConnection);
         m_fxEngine->setRange(ui->sbFadeRangeStart->value()-1, ui->sbFadeRangeEnd->value()-1);
@@ -412,14 +409,14 @@ void transmitwindow::on_btnStart_pressed()
         m_sender->setSlotCount(ui->sbSlotCount->value());
         m_sender->setName(ui->leSourceName->text());
         m_sender->setUniverse(ui->sbUniverse->value());
-        if(ui->cbPriorityMode->currentIndex() == pmPER_ADDRESS_PRIORITY)
+        if(ui->cbPriorityMode->currentIndex() == static_cast<int>(PriorityMode::PER_ADDRESS))
         {
-            m_sender->setPriorityMode(pmPER_ADDRESS_PRIORITY);
+            m_sender->setPriorityMode(PriorityMode::PER_ADDRESS);
             m_sender->setPerChannelPriorities(m_perAddressPriorities.data());
         }
         else
         {
-            m_sender->setPriorityMode(pmPER_SOURCE_PRIORITY);
+            m_sender->setPriorityMode(PriorityMode::PER_SOURCE);
             m_sender->setPerSourcePriority(ui->sbPriority->value());
         }
         using namespace std::chrono_literals;
@@ -473,7 +470,7 @@ void transmitwindow::on_btnEditPerChan_pressed()
 
 void transmitwindow::on_cbPriorityMode_currentIndexChanged(int index)
 {
-    if(index==pmPER_ADDRESS_PRIORITY)
+    if (index == static_cast<int>(PriorityMode::PER_ADDRESS))
     {
         ui->sbPriority->setEnabled(false);
         ui->btnEditPerChan->setEnabled(true);
@@ -874,9 +871,9 @@ void transmitwindow::setLevel(int address, int value)
 void transmitwindow::setLevelList(QList<QPair<int, int>> levelList)
 {
     // Levels are in localized format, need to convert
-    for(auto i: levelList)
+    for (const auto& i : levelList)
     {
-        if(Preferences::Instance().GetDisplayFormat()==Preferences::PERCENT)
+        if(Preferences::Instance().GetDisplayFormat() == DisplayFormat::PERCENT)
             setLevel(i.first, PTOHT[i.second]);
         else
             setLevel(i.first, i.second);

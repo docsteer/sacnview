@@ -86,7 +86,7 @@ void sACNListener::startReception()
     m_initalSampleTimer = new QTimer(this);
     m_initalSampleTimer->setSingleShot(true);
     m_initalSampleTimer->setInterval(SAMPLE_TIME);
-    connect(m_initalSampleTimer, SIGNAL(timeout()), this, SLOT(sampleExpiration()), Qt::DirectConnection);
+    connect(m_initalSampleTimer, &QTimer::timeout, this, &sACNListener::sampleExpiration, Qt::DirectConnection);
     m_initalSampleTimer->start();
 
     // Merge is performed whenever a packet arrives and every BACKGROUND_MERGE interval
@@ -94,8 +94,8 @@ void sACNListener::startReception()
     m_mergesPerSecondTimer.start();
     m_mergeTimer = new QTimer(this);
     m_mergeTimer->setInterval(BACKGROUND_MERGE);
-    connect(m_mergeTimer, SIGNAL(timeout()), this, SLOT(performMerge()), Qt::DirectConnection);
-    connect(m_mergeTimer, SIGNAL(timeout()), this, SLOT(checkSourceExpiration()), Qt::DirectConnection);
+    connect(m_mergeTimer, &QTimer::timeout, this, &sACNListener::performMerge, Qt::DirectConnection);
+    connect(m_mergeTimer, &QTimer::timeout, this, &sACNListener::checkSourceExpiration, Qt::DirectConnection);
     m_mergeTimer->start();
 
     // Everything is set
@@ -107,7 +107,7 @@ void sACNListener::startInterface(const QNetworkInterface &iface)
     m_sockets.push_back(new sACNRxSocket(iface));
     sACNRxSocket::sBindStatus status = m_sockets.back()->bind(m_universe);
     if (status.unicast == sACNRxSocket::BIND_OK || status.multicast == sACNRxSocket::BIND_OK) {
-        connect(m_sockets.back(), SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()), Qt::DirectConnection);
+        connect(m_sockets.back(), &QUdpSocket::readyRead, this, &sACNListener::readPendingDatagrams, Qt::DirectConnection);
     } else {
         // Failed to bind
         m_sockets.pop_back();
@@ -327,7 +327,7 @@ void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &d
             } else {
                 ps->pathway_secure.passwordOk = false;
                 ps->pathway_secure.sequenceOk = false;
-                ps->pathway_secure.digetOk = false;
+                ps->pathway_secure.digestOk = false;
             }
 
             if(!ps->src_valid)

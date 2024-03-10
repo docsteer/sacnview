@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>749</width>
-    <height>528</height>
+    <width>760</width>
+    <height>537</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -54,20 +54,7 @@ background-color:grey;
   <property name="unifiedTitleAndToolBarOnMac">
    <bool>false</bool>
   </property>
-  <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout_2">
-    <item>
-     <widget class="QMdiArea" name="mdiArea">
-      <property name="verticalScrollBarPolicy">
-       <enum>Qt::ScrollBarAsNeeded</enum>
-      </property>
-      <property name="horizontalScrollBarPolicy">
-       <enum>Qt::ScrollBarAsNeeded</enum>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
+  <widget class="QWidget" name="centralWidget"/>
   <widget class="QToolBar" name="mainToolBar">
    <property name="iconSize">
     <size>
@@ -76,13 +63,14 @@ background-color:grey;
     </size>
    </property>
    <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
+    <enum>LeftToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
    <addaction name="actionScopeView"/>
    <addaction name="actionRecieve"/>
+   <addaction name="actionMultiView"/>
    <addaction name="separator"/>
    <addaction name="actionTranmsit"/>
    <addaction name="actionSnapshot"/>
@@ -127,8 +115,20 @@ background-color:grey;
      </sizepolicy>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
      <item>
-      <widget class="QTabWidget" name="tabWidget">
+      <widget class="QTabWidget" name="widgetUniverseList">
        <property name="currentIndex">
         <number>0</number>
        </property>
@@ -461,6 +461,18 @@ background-color:grey;
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Playback data captured with Wireshark (or other tools that produce a PCAP file format). sACN Data will be played back with the same timing as when it was captured, allowing precise recreation of fades.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="actionMultiView">
+   <property name="icon">
+    <iconset resource="../res/resources.qrc">
+     <normaloff>:/icons/multi_universe_view.png</normaloff>:/icons/multi_universe_view.png</iconset>
+   </property>
+   <property name="text">
+    <string>MultiView</string>
+   </property>
+   <property name="toolTip">
+    <string>View Multiple Universes of received sACN</string>
    </property>
   </action>
  </widget>
