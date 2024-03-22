@@ -37,14 +37,6 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     add_compile_definitions(UNICODE _UNICODE)
   endif()
   
-  # Docs only available if this is the main app
-  find_package(Doxygen)
-  if(Doxygen_FOUND)
-    add_subdirectory(docs)
-  else()
-    message(STATUS "Doxygen not found, not building docs")
-  endif()
-  
 endif()
 
 set(SACNVIEW_HEADER_PATHS

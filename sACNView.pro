@@ -96,6 +96,7 @@ SOURCES += src/main.cpp\
     src/ui/mdimainwindow.cpp \
     src/ui/scopewindow.cpp \
     src/ui/universeview.cpp \
+    src/ui/multiview.cpp \
     src/sacn/sacnsynchronization.cpp \
     src/models/sacnsynclistmodel.cpp \
     src/sacn/ACNShare/CID.cpp \
@@ -129,6 +130,8 @@ SOURCES += src/main.cpp\
     src/ipc.cpp \
     src/sacn/sacndiscovery.cpp \
     src/models/sacndiscoveredsourcelistmodel.cpp \
+    src/models/sacnsourcetablemodel.cpp \
+    src/models/csvmodelexport.cpp \
     src/widgets/clssnapshot.cpp \
     src/sacn/fpscounter.cpp \
     src/widgets/grideditwidget.cpp
@@ -141,6 +144,7 @@ HEADERS += src/ui/mdimainwindow.h \
     src/ui/newversiondialog.h \
     src/ui/scopewindow.h \
     src/ui/universeview.h \
+    src/ui/multiview.h \
     src/sacn/sacnsynchronization.h \
     src/models/sacnsynclistmodel.h \
     src/sacn/ACNShare/CID.h \
@@ -178,6 +182,8 @@ HEADERS += src/ui/mdimainwindow.h \
     src/ipc.h \
     src/sacn/sacndiscovery.h \
     src/models/sacndiscoveredsourcelistmodel.h \
+    src/models/sacnsourcetablemodel.h \
+    src/models/csvmodelexport.h \
     src/widgets/clssnapshot.h \
     src/sacn/fpscounter.h \
     src/widgets/grideditwidget.h
@@ -185,6 +191,7 @@ HEADERS += src/ui/mdimainwindow.h \
 FORMS += ui/mdimainwindow.ui \
     ui/scopewindow.ui \
     ui/universeview.ui \
+    ui/multiview.ui \
     ui/nicselectdialog.ui \
     ui/preferencesdialog.ui \
     ui/transmitwindow.ui \
