@@ -89,12 +89,12 @@ INCLUDEPATH += src \
 
 SOURCES += src/main.cpp\
     src/sacn/securesacn.cpp \
-    src/widgets/monitorspinbox.cpp \
+    src/widgets/steppedspinbox.cpp \
     src/widgets/qpushbutton_rightclick.cpp \
     src/widgets/qspinbox_resizetocontent.cpp \
     src/ui/newversiondialog.cpp \
     src/ui/mdimainwindow.cpp \
-    src/ui/scopewindow.cpp \
+    src/ui/glscopewindow.cpp \
     src/ui/universeview.cpp \
     src/ui/multiview.cpp \
     src/sacn/sacnsynchronization.cpp \
@@ -138,11 +138,11 @@ SOURCES += src/main.cpp\
 
 HEADERS += src/ui/mdimainwindow.h \
     src/sacn/securesacn.h \
-    src/widgets/monitorspinbox.h \
+    src/widgets/steppedspinbox.h \
     src/widgets/qpushbutton_rightclick.h \
     src/widgets/qspinbox_resizetocontent.h \
     src/ui/newversiondialog.h \
-    src/ui/scopewindow.h \
+    src/ui/glscopewindow.h \
     src/ui/universeview.h \
     src/ui/multiview.h \
     src/sacn/sacnsynchronization.h \
@@ -164,7 +164,7 @@ HEADERS += src/ui/mdimainwindow.h \
     src/sacn/sacnsender.h \
     src/ui/configureperchanpriodlg.h \
     src/widgets/gridwidget.h \
-    src/widgets/scopewidget.h \
+    src/widgets/glscopewidget.h \
     src/ui/aboutdialog.h \
     src/sacn/sacneffectengine.h \
     src/models/sacnuniverselistmodel.h \
@@ -189,7 +189,6 @@ HEADERS += src/ui/mdimainwindow.h \
     src/widgets/grideditwidget.h
 
 FORMS += ui/mdimainwindow.ui \
-    ui/scopewindow.ui \
     ui/universeview.ui \
     ui/multiview.ui \
     ui/nicselectdialog.ui \
