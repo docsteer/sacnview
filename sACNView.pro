@@ -118,7 +118,7 @@ SOURCES += src/main.cpp\
     src/sacn/sacnsender.cpp \
     src/ui/configureperchanpriodlg.cpp \
     src/widgets/gridwidget.cpp \
-    src/widgets/scopewidget.cpp \
+    src/widgets/glscopewidget.cpp \
     src/ui/aboutdialog.cpp \
     src/sacn/sacneffectengine.cpp \
     src/models/sacnuniverselistmodel.cpp \
