@@ -1225,7 +1225,7 @@ GlScopeWidget::GlScopeWidget(QWidget* parent)
 
   m_model = new ScopeModel(this);
   connect(m_model, &ScopeModel::runningChanged, this, &GlScopeWidget::onRunningChanged);
-  connect(m_model, &ScopeModel::traceVisibilityChanged, this, QOverload<void>::of(&QOpenGLWidget::update));
+  connect(m_model, &ScopeModel::traceVisibilityChanged, this, qOverload<>(&QOpenGLWidget::update));
 
   setMinimumSize(200, 200);
   setVerticalScaleMode(VerticalScale::Percent);
