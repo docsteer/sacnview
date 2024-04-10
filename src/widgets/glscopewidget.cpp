@@ -17,6 +17,7 @@
 #include <QPainter>
 #include <QScreen>
 #include <QOpenGLShaderProgram>
+#include <QLocale>
 #include <QMetaEnum>
 
 static constexpr qreal AXIS_LABEL_WIDTH = 45.0;
@@ -668,6 +669,18 @@ void ScopeModel::setCaptureConfiguration(const QString& configString)
   }
 }
 
+inline void ConfigureTextStream(QTextStream& stream)
+{
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
+  stream.setCodec("UTF-8");
+#else
+  stream.setEncoding(QStringConverter::Utf8);
+#endif
+  stream.setLocale(QLocale::c());
+  stream.setRealNumberNotation(QTextStream::FixedNotation);
+  stream.setRealNumberPrecision(3);
+}
+
 bool ScopeModel::saveTraces(QIODevice& file) const
 {
   if (!file.isWritable())
@@ -678,10 +691,7 @@ bool ScopeModel::saveTraces(QIODevice& file) const
     return false;
 
   QTextStream out(&file);
-  out.setCodec("UTF-8");
-  out.setLocale(QLocale::c());
-  out.setRealNumberNotation(QTextStream::FixedNotation);
-  out.setRealNumberPrecision(3);
+  ConfigureTextStream(out);
 
   // Table:
   // Capture Options:,All Packets/Level Changes
@@ -814,18 +824,20 @@ bool ScopeModel::loadTraces(QIODevice& file)
     return false;
 
   QTextStream in(&file);
-  in.setCodec("UTF-8");
-  in.setLocale(QLocale::c());
-  in.setRealNumberNotation(QTextStream::FixedNotation);
-  in.setRealNumberPrecision(3);
+  ConfigureTextStream(in);
 
   const auto title_line = FindUniverseTitles(in);
   if (title_line.universes.isEmpty())
     return false;
 
   // Split the title lines to find the trace colors and names
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
   auto colors = title_line.colors.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
   auto titles = title_line.universes.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
+#else
+  auto colors = QStringView{ title_line.colors }.split(QLatin1Char(','), Qt::KeepEmptyParts);
+  auto titles = QStringView{ title_line.universes }.split(QLatin1Char(','), Qt::KeepEmptyParts);
+#endif
 
   // Remove the first column as these are known titles
   colors.pop_front();
@@ -889,7 +901,11 @@ bool ScopeModel::loadTraces(QIODevice& file)
     if (data_line.isEmpty())
       continue;
 
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
     const auto data = data_line.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
+#else
+    const auto data = QStringView{ data_line }.split(QLatin1Char(','), Qt::KeepEmptyParts);
+#endif
     // Ignore any lines that do not have a column for all traces
     if (data.size() < traces.size() + 1)
       continue;
