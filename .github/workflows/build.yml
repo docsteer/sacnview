@@ -41,10 +41,10 @@ jobs:
             installer_setup: |
               Invoke-WebRequest -Uri "https://nsis.sourceforge.io/mediawiki/images/e/e0/NSIS_Simple_Firewall_Plugin_Unicode_1.21.zip" -OutFile "NSIS_Simple_Firewall_Plugin_Unicode.zip"
               7z e NSIS_Simple_Firewall_Plugin_Unicode.zip -o"C:\Program Files (x86)\NSIS\Plugins\x86-unicode"
-            arch: win32_msvc2019
+            arch: win64_msvc2019
             make_cmd: nmake
             artifact: |
-              install/win/sACNView*.exe
+              install/win64/sACNView*.exe
               release/*.pdb 
 
           - os: macos-latest
