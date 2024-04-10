@@ -15,7 +15,7 @@
 
 #include "mdimainwindow.h"
 #include "ui_mdimainwindow.h"
-#include "scopewindow.h"
+#include "glscopewindow.h"
 #include "universeview.h"
 #include "transmitwindow.h"
 #include "preferences.h"
@@ -98,7 +98,7 @@ void MDIMainWindow::closeEvent(QCloseEvent* ev)
 void MDIMainWindow::on_actionScopeView_triggered(bool checked)
 {
   Q_UNUSED(checked);
-  ScopeWindow* scopeWindow = new ScopeWindow(ui->sbUniverseList->value(), this);
+  GlScopeWindow* scopeWindow = new GlScopeWindow(ui->sbUniverseList->value(), this);
   showWidgetAsSubWindow(scopeWindow);
 }
 
@@ -212,6 +212,16 @@ void MDIMainWindow::on_actionMultiUniverse_triggered()
 
 QWidget* MDIMainWindow::showWidgetAsSubWindow(QWidget* w)
 {
+  // Connect cross-window triggering signals
+  // Check if extant
+  const QMetaObject* meta = w->metaObject();
+  if (meta->indexOfSlot("startRx()") != -1)
+  {
+    // Classes should support both or neither
+    connect(this, SIGNAL(startReceiverViews()), w, SLOT(startRx()));
+    connect(this, SIGNAL(stopReceiverViews()), w, SLOT(stopRx()));
+  }
+
   switch (Preferences::Instance().GetWindowMode())
   {
   default:
@@ -262,7 +272,7 @@ void MDIMainWindow::restoreSubWindows()
   {
     if (window.name == "Scope")
     {
-      ScopeWindow* scopeWindow = new ScopeWindow(MIN_SACN_UNIVERSE, this);
+      GlScopeWindow* scopeWindow = new GlScopeWindow(MIN_SACN_UNIVERSE, this);
       showWidgetAsSubWindow(scopeWindow)->restoreGeometry(window.geometry);
     }
 
@@ -344,7 +354,7 @@ QWidget* MDIMainWindow::addFloatWidget(QWidget* w)
 
 void MDIMainWindow::StoreWidgetGeometry(const QWidget* window, const QWidget* widget, QList<SubWindowInfo>& result)
 {
-  if (qobject_cast<const ScopeWindow*>(widget) != Q_NULLPTR)
+  if (qobject_cast<const GlScopeWindow*>(widget) != Q_NULLPTR)
   {
     SubWindowInfo i;
     i.name = "Scope";

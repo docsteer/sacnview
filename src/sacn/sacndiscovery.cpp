@@ -221,7 +221,7 @@ void sACNDiscoveryRX::timeoutUniverses()
     }
 }
 
-void sACNDiscoveryRX::processPacket(quint8* pbuf, uint buflen)
+void sACNDiscoveryRX::processPacket(const quint8* pbuf, uint buflen)
 {
     bool flag1, flag2, flag3;
     quint32 length;
