@@ -15,6 +15,10 @@
 
 QT       += core gui network multimedia widgets
 
+greaterThan(QT_MAJOR_VERSION, 5) {
+    QT   += openglwidgets
+}
+
 TARGET = sACNView
 TEMPLATE = app
 DESCRIPTION = $$shell_quote("A tool for sending and receiving the Streaming ACN control protocol")
