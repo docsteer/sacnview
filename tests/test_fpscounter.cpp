@@ -159,3 +159,51 @@ TEST(FpsCounter, ExpectedPacketRefresh)
   // And two interval values
   EXPECT_EQ(2u, fps.GetHistogram().size());
 }
+
+#if 0
+// Temporary test used to verify sequence error behavior
+// Only valid if gcc/clang -fwrapv or equivalent is set
+TEST(SequenceNumber, Jumps)
+{
+  for (size_t seq = 0; seq < 256; ++seq)
+  {
+    for (size_t prev = 0; prev < 256; ++prev)
+    {
+      const uint8_t sequence = static_cast<uint8_t>(seq);
+      const uint8_t lastseq = static_cast<uint8_t>(prev);
+      bool jump_signed = false;
+      bool seqerr_signed = false;
+      // gcc/clang -fwrapv implementation
+      // Invokes undefined behavior on other toolchains
+      const qint8 wrapresult = reinterpret_cast<const qint8&>(sequence) - reinterpret_cast<const qint8&>(lastseq);
+      if (wrapresult != 1)
+      {
+        jump_signed = true;
+        if ((wrapresult <= 0) && (wrapresult > -20))
+        {
+          seqerr_signed = true;
+        }
+      }
+
+      bool jump_unsigned = false;
+      bool seqerr_unsigned = false;
+
+      // MSVC 2015 onwards cannot rely on signed overflow wrapping
+      // https://devblogs.microsoft.com/cppblog/new-code-optimizer/
+      // (The switches mentioned in the blog post were temporary and no longer available)
+      const uint8_t result = sequence - lastseq;
+      if (result != 1)
+      {
+        jump_unsigned = true;
+        if (result == 0 || result > 236) // Unsigned representation of two's complement "-20"
+        {
+          seqerr_unsigned = true;
+        }
+      }
+
+      EXPECT_EQ(jump_signed, jump_unsigned) << prev << '>' << seq;
+      EXPECT_EQ(seqerr_signed, seqerr_unsigned) << prev << '>' << seq;
+    }
+  }
+}
+#endif
