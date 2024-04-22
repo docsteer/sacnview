@@ -398,7 +398,21 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
       //doing assignment to force the type sizes.  A negative number means
       //we got an "old" one, but we assume that anything really old is possibly
       //due the device having rebooted and starting the sequence over.
-      const qint16 result = reinterpret_cast<qint8&>(sequence) - reinterpret_cast<qint8&>(ps->lastseq);
+
+      // E1.31:2018's algorithm requires two's-complement overflow caused by computation to wrap:
+      // "-128" minus "+127" must equal "+1"
+      // 
+      // However, wrapping is Undefined Behavior in the C++ standard.
+      // C++20 considered changing this, it was rejected
+      // See https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0907r4.html for more detail of this discussion
+      // 
+      // Signed overflow wrapping can still be explictly enabled in some toolchains (eg gcc and clang's -fwrapv)
+      // See test_fpscounter.cpp for verification test
+
+#ifdef SACNVIEW_HAS_SIGNED_WRAPPING
+      // gcc/clang -fwrapv implementation (nonstandard)
+      // This can cause optimization issues in VS2015 and newer
+      const qint8 result = reinterpret_cast<qint8&>(sequence) - reinterpret_cast<qint8&>(ps->lastseq);
       if (result != 1)
       {
         ps->jumps++;
@@ -408,6 +422,19 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
           ps->seqErr++;
         }
       }
+#else
+      // Use unsigned overflow
+      const uint8_t result = sequence - ps->lastseq;
+      if (result != 1)
+      {
+        ps->jumps++;
+        if (result == 0 || result > 236) // unsigned uint8_t representation of -20
+        {
+          validpacket = false;
+          ps->seqErr++;
+        }
+      }
+#endif
 
       ps->lastseq = sequence;
 
