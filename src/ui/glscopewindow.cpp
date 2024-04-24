@@ -104,6 +104,15 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
 
       ++row;
 
+      lbl = new QLabel(tr("Trace Style:"), confWidget);
+      layoutGrp->addWidget(lbl, row, 0);
+      m_traceStyle = new QComboBox(confWidget);
+      m_traceStyle->addItems({ tr("Line"), tr("Small Dots"), tr("Large Dots") });
+      connect(m_traceStyle, QOverload<int>::of(&QComboBox::activated), this, &GlScopeWindow::setTraceStyle);
+      layoutGrp->addWidget(m_traceStyle, row, 1);
+
+      ++row;
+
       lbl = new QLabel(tr("Run For:"), confWidget);
       layoutGrp->addWidget(lbl, row, 0);
       m_spinRunTime = new QSpinBox(confWidget);
@@ -329,6 +338,16 @@ void GlScopeWindow::setRecordMode(int idx)
   m_scope->model()->setStoreAllPoints(idx == 0);
 }
 
+void GlScopeWindow::setTraceStyle(int idx)
+{
+  switch (idx)
+  {
+  case 0: m_scope->setDotSize(0.0f); return; // Line only
+  case 1: m_scope->setDotSize(3.0f); return; // Small dots
+  case 2: m_scope->setDotSize(5.0f); return; // Large dots
+  }
+}
+
 void GlScopeWindow::setVerticalScaleMode(int idx)
 {
   m_scope->setVerticalScaleMode(static_cast<GlScopeWidget::VerticalScale>(idx));
@@ -336,7 +355,7 @@ void GlScopeWindow::setVerticalScaleMode(int idx)
 
 void GlScopeWindow::setTriggerType(int idx)
 {
-  m_scope->model()->setTriggerType(static_cast<ScopeModel::Trigger>(idx)); 
+  m_scope->model()->setTriggerType(static_cast<ScopeModel::Trigger>(idx));
   refreshButtons();
 }
 

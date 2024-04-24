@@ -45,6 +45,7 @@ private:
   Q_SLOT void setTimeFormat(int value);
 
   Q_SLOT void setRecordMode(int idx);
+  Q_SLOT void setTraceStyle(int idx);
   Q_SLOT void setVerticalScaleMode(int idx);
   Q_SLOT void setTriggerType(int idx);
 
@@ -67,6 +68,7 @@ private:
   GlScopeWidget* m_scope = nullptr;
   QScrollBar* m_scrollTime = nullptr;
   QComboBox* m_recordMode = nullptr;
+  QComboBox* m_traceStyle = nullptr;
   QSpinBox* m_spinRunTime = nullptr;
   SteppedSpinBox* m_spinTimeScale = nullptr;
   QComboBox* m_timeFormat = nullptr;
