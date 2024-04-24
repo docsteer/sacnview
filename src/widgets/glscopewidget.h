@@ -89,6 +89,9 @@ public:
   const QColor& color() const { return m_color; };
   void setColor(const QColor& color) { m_color = color; };
 
+  const QString& label() const { return m_label; }
+  void setLabel(const QString& label) { m_label = label; }
+
   void clear() { QMutexLocker lock(&m_mutex); m_trace.clear(); }
   void reserve(size_t point_count) { QMutexLocker lock(&m_mutex); m_trace.reserve(point_count); }
 
@@ -111,6 +114,7 @@ private:
   uint16_t m_universe = 0;
   uint16_t m_slot_hi = 0;
   uint16_t m_slot_lo = 0xFFFF;
+  QString m_label;
   bool m_enabled = true;
 };
 
@@ -124,6 +128,7 @@ public:
     COL_ADDRESS,
     COL_COLOUR,
     COL_TRIGGER,
+    COL_LABEL,
     COL_COUNT
   };
 
@@ -170,6 +175,7 @@ public:
    * @return Added if added the trace, Invalid for invalid parameters, Exists for already extant
   */
   AddResult addTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo = 0);
+  AddResult addTrace(const QString& label, const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo = 0);
 
   /**
    * @brief Remove a trace

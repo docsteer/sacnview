@@ -28,6 +28,7 @@ static constexpr qreal AXIS_TO_WINDOW_GAP = 5.0;
 static constexpr qreal AXIS_TICK_SIZE = 10.0;
 
 static const QString CaptureOptionsTitle = QStringLiteral("Capture Options");
+static const QString RowTitleLabel = QStringLiteral("Label");
 static const QString RowTitleColor = QStringLiteral("Color");
 static const QString ColumnTitleWallclockTime = QStringLiteral("Wallclock");
 static const QString ColumnTitleTimestamp = QStringLiteral("Time (s)");
@@ -296,6 +297,18 @@ ScopeModel::AddResult ScopeModel::addTrace(const QColor& color, uint16_t univers
   return AddResult::Added;
 }
 
+ScopeModel::AddResult ScopeModel::addTrace(const QString& label, const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo)
+{
+  const AddResult result = addTrace(color, universe, address_hi, address_lo);
+  if (result == AddResult::Added && !label.isEmpty())
+  {
+    ScopeTrace* trace = findTrace(universe, address_hi, address_lo);
+    if (trace)
+      trace->setLabel(label);
+  }
+  return result;
+}
+
 // Removes all traces that match this
 void ScopeModel::removeTrace(uint16_t universe, uint16_t address_hi, uint16_t address_lo)
 {
@@ -447,6 +460,7 @@ QVariant ScopeModel::headerData(int section, Qt::Orientation orientation, int ro
     case COL_ADDRESS: return tr("Address");
     case COL_COLOUR: return tr("Colour");
     case COL_TRIGGER: return tr("Trigger");
+    case COL_LABEL: return tr("Label");
     }
   }
   return QVariant();
@@ -472,6 +486,7 @@ Qt::ItemFlags ScopeModel::flags(const QModelIndex& index) const
   case  COL_ADDRESS: return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
   case  COL_COLOUR: return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
   case  COL_TRIGGER: return Qt::ItemIsEnabled | Qt::ItemIsUserCheckable;
+  case  COL_LABEL: return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
   }
 }
 
@@ -509,6 +524,9 @@ QVariant ScopeModel::data(const QModelIndex& index, int role) const
         if (role == DataSortRole) return m_trigger.isTriggerTrace(*trace) ? 0 : 1;
         if (role == Qt::ToolTipRole) return tr("Trigger on this trace");
         break;
+      case COL_LABEL:
+        if (role == Qt::DisplayRole || role == Qt::EditRole || role == DataSortRole) return trace->label();
+        break;
       }
     }
   }
@@ -521,85 +539,93 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
   if (!idx.isValid())
     return false;
 
-  if (idx.column() < COL_COUNT && idx.row() < rowCount())
+  if (idx.column() >= COL_COUNT || idx.row() >= rowCount())
+    return false;
+
+  ScopeTrace* trace = m_traceTable.at(idx.row());
+  if (!trace)
+    return false;
+
+  switch (idx.column())
   {
-    ScopeTrace* trace = m_traceTable.at(idx.row());
-    if (trace)
+  default: break;
+
+  case COL_UNIVERSE:
+    if (role == Qt::CheckStateRole)
     {
-      switch (idx.column())
+      trace->setEnabled(value.toBool());
+      emit dataChanged(idx, idx, { Qt::CheckStateRole });
+      emit traceVisibilityChanged();
+      return true;
+    }
+    if (role == Qt::EditRole)
+    {
+      // Maybe update the trigger
+      const bool isTrigger = m_trigger.isTriggerTrace(*trace);
+      if (moveTrace(trace, value.toUInt()))
       {
-      default: break;
-
-      case COL_UNIVERSE:
-        if (role == Qt::CheckStateRole)
-        {
-          trace->setEnabled(value.toBool());
-          emit dataChanged(idx, idx, { Qt::CheckStateRole });
-          emit traceVisibilityChanged();
-          return true;
-        }
-        if (role == Qt::EditRole)
-        {
-          // Maybe update the trigger
-          const bool isTrigger = m_trigger.isTriggerTrace(*trace);
-          if (moveTrace(trace, value.toUInt()))
-          {
-            if (isTrigger)
-              m_trigger.setTrigger(*trace);
-            emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
-            return true;
-          }
-        }
-        break;
-
-      case COL_ADDRESS:
-        if (role == Qt::EditRole)
-        {
-          // If 16bit changed, recheck the vertical scale
-          const bool was16bit = trace->isSixteenBit();
-          // Maybe update the trigger
-          const bool isTrigger = m_trigger.isTriggerTrace(*trace);
-          if (trace->setAddress(value.toString(), true))
-          {
-            if (was16bit != trace->isSixteenBit())
-            {
-              if (trace->isSixteenBit())
-                setMaxValue(kMaxDmx16);
-              else
-                updateMaxValue();
-            }
-            if (isTrigger)
-              m_trigger.setTrigger(*trace);
-            emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
-            return true;
-          }
-        }
-        break;
-      case COL_COLOUR:
-        if (role == Qt::EditRole)
-        {
-          QColor color = value.value<QColor>();
-          if (color.isValid())
-          {
-            trace->setColor(color);
-            emit dataChanged(idx, idx, { Qt::BackgroundRole, Qt::DisplayRole, Qt::EditRole, DataSortRole });
-            return true;
-          }
-        }
-        break;
-
-      case COL_TRIGGER:
-        if (role == Qt::CheckStateRole)
-        {
-          if (trace->isValid())
-          {
-            m_trigger.setTrigger(*trace);
-            emit dataChanged(index(0, COL_TRIGGER), index(rowCount() - 1, COL_TRIGGER), { Qt::CheckStateRole, DataSortRole });
-            return true;
-          }
-        }
-        break;
+        if (isTrigger)
+          m_trigger.setTrigger(*trace);
+        emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
+        return true;
       }
+    }
+    break;
+
+  case COL_ADDRESS:
+    if (role == Qt::EditRole)
+    {
+      // If 16bit changed, recheck the vertical scale
+      const bool was16bit = trace->isSixteenBit();
+      // Maybe update the trigger
+      const bool isTrigger = m_trigger.isTriggerTrace(*trace);
+      if (trace->setAddress(value.toString(), true))
+      {
+        if (was16bit != trace->isSixteenBit())
+        {
+          if (trace->isSixteenBit())
+            setMaxValue(kMaxDmx16);
+          else
+            updateMaxValue();
+        }
+        if (isTrigger)
+          m_trigger.setTrigger(*trace);
+        emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
+        return true;
+      }
+    }
+    break;
+  case COL_COLOUR:
+    if (role == Qt::EditRole)
+    {
+      QColor color = value.value<QColor>();
+      if (color.isValid())
+      {
+        trace->setColor(color);
+        emit dataChanged(idx, idx, { Qt::BackgroundRole, Qt::DisplayRole, Qt::EditRole, DataSortRole });
+        return true;
+      }
+    }
+    break;
+
+  case COL_TRIGGER:
+    if (role == Qt::CheckStateRole)
+    {
+      if (trace->isValid())
+      {
+        m_trigger.setTrigger(*trace);
+        emit dataChanged(index(0, COL_TRIGGER), index(rowCount() - 1, COL_TRIGGER), { Qt::CheckStateRole, DataSortRole });
+        return true;
+      }
+    }
+    break;
+
+  case COL_LABEL:
+    if (role == Qt::EditRole)
+    {
+      trace->setLabel(value.toString());
+      emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
+      return true;
     }
   }
 
@@ -699,6 +725,7 @@ bool ScopeModel::saveTraces(QIODevice& file) const
   // Table:
   // Capture Options:,All Packets/Level Changes
   // 
+  //              Labels, bob, jim, ...
   // 2024-01-15,   Color, red, green, ...
   // Wallclock,   Time (s),U1.1, U1.2/3, ... (Given as Universe.CoarseDMX/FineDmx (1-512)
   // 12:00:00.000, 0.000, 255,    0, ...
@@ -729,6 +756,8 @@ bool ScopeModel::saveTraces(QIODevice& file) const
 
   QDateTime datetime = QDateTime::currentDateTime();
 
+  QString label_header = QStringLiteral(",") + RowTitleLabel;
+
   QString color_header;
   if (asWallclockTime(datetime, 0.0))
   {
@@ -746,6 +775,10 @@ bool ScopeModel::saveTraces(QIODevice& file) const
       // Get the values for this column
       traces_values.emplace_back(trace);
 
+      // Assemble the label header string
+      label_header.append(QLatin1Char(','));
+      label_header.append(trace->label());
+
       // Assemble the color header string
       color_header.append(QLatin1Char(','));
       color_header.append(trace->color().name());
@@ -762,7 +795,9 @@ bool ScopeModel::saveTraces(QIODevice& file) const
       }
     }
   }
-  out << color_header << '\n' << name_header;
+  out << label_header << '\n'
+    << color_header << '\n'
+    << name_header;
 
   // Value rows
   while (this_row_time < std::numeric_limits<float>::max())
@@ -805,6 +840,7 @@ bool ScopeModel::saveTraces(QIODevice& file) const
 
 struct TitleRows {
   QString config;
+  QString labels;
   QString colors;
   QString universes;
 };
@@ -819,6 +855,11 @@ TitleRows FindUniverseTitles(QTextStream& in)
     if (line.startsWith(CaptureOptionsTitle))
     {
       result.config = line;
+    }
+    else if (line.contains(RowTitleLabel))
+    {
+      // The last label line
+      result.labels = line;
     }
     else if (line.contains(RowTitleColor))
     {
@@ -852,6 +893,7 @@ bool ScopeModel::loadTraces(QIODevice& file)
     return false;
 
   // Split the title lines to find the trace colors and names
+  auto labels = title_line.labels.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
   auto colors = title_line.colors.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
   auto titles = title_line.universes.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
 
@@ -875,6 +917,10 @@ bool ScopeModel::loadTraces(QIODevice& file)
     // Remove the row header titles
     colors.pop_front();
     titles.pop_front();
+
+    // Labels are optional
+    if (!labels.isEmpty())
+      labels.pop_front();
   }
 
   // Time is required
@@ -926,8 +972,11 @@ bool ScopeModel::loadTraces(QIODevice& file)
       continue;
     }
 
-    if (addTrace(color, univ_slots.universe, univ_slots.address_hi, univ_slots.address_lo) == AddResult::Added)
+    const QString label = labels.size() > i ? labels.at(i).toString() : QString();
+    if (addTrace(label, color, univ_slots.universe, univ_slots.address_hi, univ_slots.address_lo) == AddResult::Added)
+    {
       trace_idents.push_back(univ_slots);
+    }
     else
       trace_idents.push_back(UnivSlots());
   }
@@ -1738,7 +1787,7 @@ void GlScopeWidget::paintGL()
     const auto levels = trace->values();
     glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, levels.value().data());
     glDrawArrays(GL_LINE_STRIP, 0, levels.value().size());
-    
+
     // Draw the points if enabled
     if (m_levelDotSize > 0.5f)
     {
