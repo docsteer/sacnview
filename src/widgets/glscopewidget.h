@@ -430,6 +430,10 @@ public:
   TimeFormat timeFormat() const { return m_timeFormat; }
   Q_SIGNAL void timeFormatChanged();
 
+  Q_SLOT void setDotSize(float width);
+  float dotSize() const { return m_levelDotSize; }
+  Q_SIGNAL void dotSizeChanged(float width);
+
 protected:
   void initializeGL() override;
   Q_SLOT void cleanupGL();
@@ -450,6 +454,7 @@ private:
   // View configuration
   VerticalScale m_verticalScaleMode = VerticalScale::Invalid;
   int m_levelInterval = 20; // Level axis label interval
+  float m_levelDotSize = 0; // Size of dots on the trace
   qreal m_timeInterval = 1.0; // Time axis label interval
   qreal m_defaultIntervalCount = 10.0; // Time axis intervals to show when view is reset
   TimeFormat m_timeFormat = TimeFormat::Elapsed; // Time display format
@@ -464,6 +469,7 @@ private:
   int m_vertexLocation = -1;
   int m_matrixUniform = -1;
   int m_colorUniform = -1;
+  int m_pointSizeUniform = -1;
 
   QMatrix4x4 m_modelMatrix;
   QMatrix4x4 m_viewMatrix;

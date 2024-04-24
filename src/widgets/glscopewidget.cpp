@@ -1401,6 +1401,17 @@ void GlScopeWidget::setTimeFormat(TimeFormat format)
   emit timeFormatChanged();
 }
 
+void GlScopeWidget::setDotSize(float width)
+{
+  if (width == m_levelDotSize)
+    return;
+
+  m_levelDotSize = width;
+  update();
+
+  emit dotSizeChanged(m_levelDotSize);
+}
+
 void GlScopeWidget::initializeGL()
 {
   // Reparenting to a different top-level window causes the OpenGL Context to be destroyed and recreated
@@ -1415,9 +1426,11 @@ void GlScopeWidget::initializeGL()
   const char* vertexShaderSource =
     "in vec2 vertex;\n"
     "uniform mat4 mvp;\n"
+    "uniform float pointsize;\n"
     "void main()\n"
     "{\n"
     "  gl_Position = mvp * vec4(vertex.x, vertex.y, 0, 1.0);\n"
+    "  gl_PointSize = pointsize;"
     "}\n";
 
   const char* fragmentShaderSource =
@@ -1455,6 +1468,8 @@ void GlScopeWidget::initializeGL()
   Q_ASSERT(m_matrixUniform != -1);
   m_colorUniform = m_program->uniformLocation("color");
   Q_ASSERT(m_colorUniform != -1);
+  m_pointSizeUniform = m_program->uniformLocation("pointsize");
+  Q_ASSERT(m_pointSizeUniform != -1);
 }
 
 void GlScopeWidget::cleanupGL()
@@ -1706,7 +1721,8 @@ void GlScopeWidget::paintGL()
     glDrawArrays(GL_TRIANGLES, 0, triggerLine.size());
   }
 
-
+  glEnable(GL_PROGRAM_POINT_SIZE);
+  m_program->setUniformValue(m_pointSizeUniform, m_levelDotSize * float(devicePixelRatioF()));
   for (ScopeTrace* trace : m_model->traces())
   {
     if (!trace->enabled())
@@ -1722,7 +1738,14 @@ void GlScopeWidget::paintGL()
     const auto levels = trace->values();
     glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, levels.value().data());
     glDrawArrays(GL_LINE_STRIP, 0, levels.value().size());
+    
+    // Draw the points if enabled
+    if (m_levelDotSize > 0.5f)
+    {
+      glDrawArrays(GL_POINTS, 0, levels.value().size());
+    }
   }
+  glDisable(GL_PROGRAM_POINT_SIZE);
 
   glDisableVertexAttribArray(m_vertexLocation);
   m_program->release();
