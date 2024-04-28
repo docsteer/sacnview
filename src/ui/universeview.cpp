@@ -57,8 +57,16 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
     ui->sbUniverse->setValue(universe);
 
     m_sourceTableModel = new SACNSourceTableModel(this);
-    ui->tableView->setModel(m_sourceTableModel);
-    ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    QSortFilterProxyModel* sortProxy = new QSortFilterProxyModel(this);
+    sortProxy->setSourceModel(m_sourceTableModel);
+    ui->tableView->setModel(sortProxy);
+    ui->tableView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
+    // Don't need to display the Universe column
+    ui->tableView->setColumnHidden(SACNSourceTableModel::COL_UNIVERSE, true);
+    // Don't show the time summary column
+    ui->tableView->setColumnHidden(SACNSourceTableModel::COL_TIME_SUMMARY, true);
+    // Maybe don't show the Secure column
+    ui->tableView->setColumnHidden(SACNSourceTableModel::COL_PATHWAY_SECURE, !Preferences::Instance().GetPathwaySecureRx());
 }
 
 UniverseView::~UniverseView()
@@ -260,11 +268,14 @@ void UniverseView::openBigDisplay(quint16 address)
 void UniverseView::on_btnPause_clicked()
 {
     ui->universeDisplay->pause();
+    m_sourceTableModel->pause();
+
     this->disconnect(m_listener.data());
     ui->btnGo->setEnabled(true);
     ui->btnPause->setEnabled(false);
     ui->sbUniverse->setEnabled(true);
     m_bindWarningShown = false;
+
 
     setWindowTitle(tr("Universe View"));
 }

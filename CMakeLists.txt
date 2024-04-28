@@ -53,11 +53,9 @@ set(SACNVIEW_HEADER_PATHS
 set(SACNVIEW_HEADERS
     src/ui/mdimainwindow.h
     src/sacn/securesacn.h
-    src/widgets/monitorspinbox.h
     src/widgets/qpushbutton_rightclick.h
     src/widgets/qspinbox_resizetocontent.h
     src/ui/newversiondialog.h
-    src/ui/scopewindow.h
     src/ui/universeview.h
     src/sacn/sacnsynchronization.h
     src/models/sacnsynclistmodel.h
@@ -78,7 +76,6 @@ set(SACNVIEW_HEADERS
     src/sacn/sacnsender.h
     src/ui/configureperchanpriodlg.h
     src/widgets/gridwidget.h
-    src/widgets/scopewidget.h
     src/ui/aboutdialog.h
     src/sacn/sacneffectengine.h
     src/models/sacnuniverselistmodel.h
@@ -102,13 +99,15 @@ set(SACNVIEW_HEADERS
     src/ui/multiview.h
     src/models/sacnsourcetablemodel.h
     src/models/csvmodelexport.h
+    src/widgets/glscopewidget.h
+    src/widgets/steppedspinbox.h
 )
 
 set(SACNVIEW_SOURCES
+    sacnview.natvis
     src/commandline.cpp
     src/firewallcheck.cpp
     src/ipc.cpp
-    src/main.cpp
     src/preferences.cpp
     src/models/sacnsynclistmodel.cpp
     src/models/sacndiscoveredsourcelistmodel.cpp
@@ -133,7 +132,6 @@ set(SACNVIEW_SOURCES
     src/ui/configureperchanpriodlg.cpp
     src/ui/newversiondialog.cpp
     src/ui/mdimainwindow.cpp
-    src/ui/scopewindow.cpp
     src/ui/universeview.cpp
     src/ui/nicselectdialog.cpp
     src/ui/preferencesdialog.cpp
@@ -145,21 +143,24 @@ set(SACNVIEW_SOURCES
     src/ui/bigdisplay.cpp
     src/ui/addmultidialog.cpp
     src/ui/multiview.cpp
-    src/widgets/monitorspinbox.cpp
+    src/ui/glscopewindow.cpp
     src/widgets/qpushbutton_rightclick.cpp
     src/widgets/qspinbox_resizetocontent.cpp
+    src/widgets/steppedspinbox.cpp
     src/widgets/universedisplay.cpp
     src/widgets/gridwidget.cpp
-    src/widgets/scopewidget.cpp
     src/widgets/clssnapshot.cpp
     src/widgets/grideditwidget.cpp
+    src/widgets/glscopewidget.cpp
     src/models/sacnsourcetablemodel.cpp
     src/models/csvmodelexport.cpp
 )
 
+# Prepend the path to all sources
+LIST(TRANSFORM SACNVIEW_SOURCES PREPEND ${CMAKE_CURRENT_LIST_DIR}/)
+
 set(SACNVIEW_FORMS
     ui/mdimainwindow.ui
-    ui/scopewindow.ui
     ui/universeview.ui
     ui/nicselectdialog.ui
     ui/preferencesdialog.ui
@@ -199,8 +200,18 @@ set(CMAKE_AUTORCC ON)
 # Find Qt 5.15 or Qt 6
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui Network Multimedia Widgets REQUIRED)
+set(SACNVIEW_QT_LIBRARIES
+   Qt::Core Qt::Gui Qt::Network Qt::Multimedia Qt::Widgets
+)
+
+# Qt 6 moved some components
+if (Qt6_FOUND)
+    find_package(Qt6 COMPONENTS OpenGLWidgets REQUIRED)
+    list(APPEND SACNVIEW_QT_LIBRARIES Qt::OpenGLWidgets)
+endif()
 
 add_executable(sACNView WIN32
+    src/main.cpp
     ${SACNVIEW_HEADERS}
     ${SACNVIEW_SOURCES}
     ${SACNVIEW_FORMS}
@@ -219,7 +230,7 @@ set_target_properties(sACNView PROPERTIES
 )
 
 # Link Qt libraries
-target_link_libraries(sACNView PRIVATE Qt::Core Qt::Gui Qt::Network Qt::Multimedia Qt::Widgets)
+target_link_libraries(sACNView PRIVATE ${SACNVIEW_QT_LIBRARIES})
 
 # Link PCap/WinPCap libraries
 target_link_libraries(sACNView PRIVATE ${PCAP_LIBS})

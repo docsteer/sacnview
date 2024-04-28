@@ -93,7 +93,7 @@ aboutDialog::aboutDialog(QWidget* parent) :
 
   // Sort list
   struct {
-    bool operator()(const QWeakPointer<sACNListener>& a, const QWeakPointer<sACNListener>& b) const
+    bool operator()(const sACNManager::wListener& a, const sACNManager::wListener& b) const
     {
       auto aStrong = a.toStrongRef();
       auto bStrong = b.toStrongRef();

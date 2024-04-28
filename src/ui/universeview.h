@@ -37,6 +37,11 @@ public:
     explicit UniverseView(int universe = MIN_SACN_UNIVERSE, QWidget *parent = 0);
     ~UniverseView();
     void startListening(int universe);
+
+    // Trigger API
+    Q_SLOT void startRx() { on_btnGo_clicked(); }
+    Q_SLOT void stopRx() { on_btnPause_clicked(); }
+
 protected slots:
     void refreshTitle();
     void on_btnGo_clicked();
@@ -54,6 +59,7 @@ protected slots:
 protected:
     virtual void resizeEvent(QResizeEvent *event);
     virtual void showEvent(QShowEvent *event);
+
 private:
     void resizeColumns();
     bool m_bindWarningShown = false;

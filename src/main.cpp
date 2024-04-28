@@ -26,12 +26,15 @@
 #include <QStatusBar>
 #include <QStyleFactory>
 #include <QStandardPaths>
+#include <QSurfaceFormat>
+
 #include "themes.h"
 #include "sacnsender.h"
 #include "newversiondialog.h"
 #include "firewallcheck.h"
 #include "ipc.h"
 #include "translations/translationdialog.h"
+
 #ifdef USE_BREAKPAD
     #include "crash_handler.h"
     #include "crash_test.h"
@@ -45,6 +48,13 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+
+    // Share the OpenGL Contexts
+    QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+    {
+      QSurfaceFormat format;
+      QSurfaceFormat::setDefaultFormat(format);
+    }
 
     QApplication a(argc, argv);
 
@@ -165,6 +175,7 @@ int main(int argc, char *argv[])
 
     int result = a.exec();
 
+    w->saveSubWindows();
     delete w;
 
     Preferences::Instance().savePreferences();

@@ -34,6 +34,11 @@ public:
   explicit MultiView(QWidget* parent = 0);
   ~MultiView();
 
+  // Trigger API
+  Q_SLOT void startRx() { on_btnStartStop_clicked(true); }
+  Q_SLOT void stopRx() { on_btnStartStop_clicked(false); }
+
+
 protected slots:
   void on_btnStartStop_clicked(bool checked);
   void on_btnResetCounters_clicked();

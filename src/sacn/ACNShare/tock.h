@@ -68,7 +68,7 @@ public:
     tock& operator=(tock&&) = default;
 
     template <typename Rep, typename Period>
-    tock(std::chrono::duration<Rep, Period> duration);
+    tock(std::chrono::duration<Rep, Period> duration) { v = duration; }
 
     //Returns the number of nanoseconds that this tock represents
     resolution_t Get() const;

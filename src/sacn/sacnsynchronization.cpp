@@ -107,11 +107,13 @@ void sACNSynchronizationRX::timeoutSyncAddresses() {
     }
 }
 
-void sACNSynchronizationRX::processPacket(quint8* pbuf, uint buflen, QHostAddress destination, QHostAddress sender)
+void sACNSynchronizationRX::processPacket(const quint8* pbuf, uint buflen, QHostAddress destination, QHostAddress sender)
 {
     bool flag1, flag2, flag3;
     quint32 length;
     CID cid;
+
+    const tock packet_tock = sACNManager::GetTock();
 
     QMutexLocker locker(&m_mutex);
 
@@ -157,7 +159,7 @@ void sACNSynchronizationRX::processPacket(quint8* pbuf, uint buflen, QHostAddres
 
     m_synchronizationSources[syncAddress][cid].sender = sender;
     m_synchronizationSources[syncAddress][cid].dataLoss.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT));
-    m_synchronizationSources[syncAddress][cid].fps->newFrame();
+    m_synchronizationSources[syncAddress][cid].fps->newFrame(packet_tock);
 
     emit synchronize(syncAddress);
 }

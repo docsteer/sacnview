@@ -181,12 +181,12 @@ PathwaySecure::Sequence::value_t PathwaySecure::Sequence::next(const CID &cid, t
 }
 
 bool PathwaySecure::VerifyStreamHeader(
-        quint8* pbuf, uint buflen,
+        const quint8* pbuf, uint buflen,
         CID &source_cid, char* source_name,
         quint8 &priority, quint8 &start_code,
         quint16 &synchronization, quint8 &sequence,
         quint8 &options, quint16 &universe,
-        quint16 &slot_count, quint8* &pdata)
+        quint16 &slot_count, const quint8* &pdata)
 {
     if(!pbuf)
         return false;
@@ -201,22 +201,14 @@ bool PathwaySecure::VerifyStreamHeader(
     if (UpackBUint32(pbuf + ROOT_VECTOR_ADDR) != RootLayer::VECTOR)
         return false;
 
-    /* Verify header as if release version
-     * Temporarily replacing root vector to fake release version, so that the stock VerifyStreamHeader works ok
-     */
-    PackBUint32(pbuf + ROOT_VECTOR_ADDR, VECTOR_ROOT_E131_DATA);
-    bool verify = ::VerifyStreamHeader(
+    /* Verify header as if release version. The stock VerifyStreamHeader assumes root vector is VECTOR_ROOT_E131_DATA */
+    return ::VerifyStreamHeader(
                 pbuf, buflen,
                 source_cid, source_name,
                 priority, start_code,
                 synchronization, sequence,
                 options, universe,
                 slot_count, pdata);
-    PackBUint32(pbuf + ROOT_VECTOR_ADDR, RootLayer::VECTOR);
-    if (!verify)
-        return false;
-
-    return true;
 }
 
 void PathwaySecure::InitStreamHeader(

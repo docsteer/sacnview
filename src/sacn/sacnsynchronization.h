@@ -59,8 +59,8 @@ public:
         sourceSequence(quint8 sequence) : lastNum(sequence) {}
 
         quint8 lastNum = 0;
-        quint16 jumps = 0;
-        quint16 seqErr = 0;
+        unsigned int jumps = 0;
+        unsigned int seqErr = 0;
 
         // Check sequence number
         bool checkSeq(quint8 newNum) {
@@ -103,7 +103,7 @@ public:
     tCIDDetails getSynchronizationSources(tsyncAddress syncAddress) const { return m_synchronizationSources.value(syncAddress); }
     QList<quint16> getSynchronizationAddresses() const { return m_synchronizationSources.keys(); }
 
-    void processPacket(quint8* pbuf, uint buflen, QHostAddress destination, QHostAddress sender);
+    void processPacket(const quint8* pbuf, uint buflen, QHostAddress destination, QHostAddress sender);
 
 signals:
     void newSyncAddress(tsyncAddress syncAddress);
