@@ -29,7 +29,12 @@ static constexpr qreal AXIS_TICK_SIZE = 10.0;
 
 static const QString CaptureOptionsTitle = QStringLiteral("Capture Options");
 static const QString RowTitleColor = QStringLiteral("Color");
+static const QString ColumnTitleWallclockTime = QStringLiteral("Wallclock");
 static const QString ColumnTitleTimestamp = QStringLiteral("Time (s)");
+
+static const QString ShortTimeFormatString = QStringLiteral("hh:mm:ss");
+static const QString TimeFormatString = QStringLiteral("hh:mm:ss.zzz");
+static const QString DateTimeFormatString = QStringLiteral("yyyy-MM-dd ") + TimeFormatString;
 
 static constexpr qreal kMaxDmx16 = 65535;
 static constexpr qreal kMaxDmx8 = 255;
@@ -627,7 +632,9 @@ void ScopeModel::clearValues()
   }
 
   // Reset time extents
+  m_startOffset = 0;
   m_endTime = 0;
+  m_wallclockTrigger_ms = 0;
 }
 
 QString ScopeModel::captureConfigurationString() const
@@ -696,14 +703,14 @@ bool ScopeModel::saveTraces(QIODevice& file) const
   // Table:
   // Capture Options:,All Packets/Level Changes
   // 
-  // Color,     red, green, ...
-  // Time (s), U1.1, U1.2/3, ... (Given as Universe.CoarseDMX/FineDmx (1-512)
-  // 0.000,     255,    0, ...
-  // 0.020,     128,  128, ...
-  // 0.040,     127,  255, ...
+  // 2024-01-15,   Color, red, green, ...
+  // Wallclock,   Time (s),U1.1, U1.2/3, ... (Given as Universe.CoarseDMX/FineDmx (1-512)
+  // 12:00:00.000, 0.000, 255,    0, ...
+  // 12:00:00.020, 0.020, 128,  128, ...
+  // 12:00:00.040, 0.040, 127,  255, ...
 
   // Export capture configuration line
-  out << CaptureOptionsTitle << QLatin1String(":,") << captureConfigurationString();
+  out << CaptureOptionsTitle << QLatin1String(":,") << captureConfigurationString() << QStringLiteral(",hh:mm:ss.000");
   out << "\n\n";
 
   // First row time
@@ -724,8 +731,16 @@ bool ScopeModel::saveTraces(QIODevice& file) const
   std::vector<ValueItem> traces_values;
   traces_values.reserve(rowCount());
 
-  QString color_header = RowTitleColor;
-  QString name_header = ColumnTitleTimestamp;
+  QDateTime datetime = QDateTime::currentDateTime();
+
+  QString color_header;
+  if (asWallclockTime(datetime, 0.0))
+  {
+    color_header = datetime.toString(DateTimeFormatString);
+  }
+  color_header = color_header + QStringLiteral(",") + RowTitleColor;
+
+  QString name_header = ColumnTitleWallclockTime + QStringLiteral(",") + ColumnTitleTimestamp;
 
   // Header rows sorted by universe
   for (const auto& universe : m_traceLookup)
@@ -757,7 +772,12 @@ bool ScopeModel::saveTraces(QIODevice& file) const
   while (this_row_time < std::numeric_limits<float>::max())
   {
     // Start new row and output timestamp
-    out << '\n' << this_row_time;
+    QString wallclock;
+    if (asWallclockTime(datetime, this_row_time))
+    {
+      wallclock = datetime.toString(TimeFormatString);
+    }
+    out << '\n' << wallclock << ',' << this_row_time;
     float next_row_time = std::numeric_limits<float>::max();
 
     for (auto& value_its : traces_values)
@@ -804,15 +824,17 @@ TitleRows FindUniverseTitles(QTextStream& in)
     {
       result.config = line;
     }
-    else if (line.startsWith(RowTitleColor))
+    else if (line.contains(RowTitleColor))
     {
       // Probably the title line
       result.colors = line;
       result.universes = in.readLine();
-      if (!result.universes.startsWith(ColumnTitleTimestamp))
-        return TitleRows();  // Failed
+      if (result.universes.startsWith(ColumnTitleTimestamp) || result.universes.startsWith(ColumnTitleWallclockTime))
+      {
+        return result;
+      }
+      return TitleRows();  // Failed
 
-      return result;
     }
   }
   return TitleRows();
@@ -839,9 +861,33 @@ bool ScopeModel::loadTraces(QIODevice& file)
   auto titles = QStringView{ title_line.universes }.split(QLatin1Char(','), Qt::KeepEmptyParts);
 #endif
 
-  // Remove the first column as these are known titles
-  colors.pop_front();
-  titles.pop_front();
+  // Find data columns
+  int timeColumn = -1; // Column index for time offset
+  QDateTime wallclockTrigger;
+  // Data is always in the column after time offset
+  for (int i = 0; timeColumn == -1 && i < colors.size(); ++i)
+  {
+    if (colors.isEmpty())
+      return false;
+    if (titles.isEmpty())
+      return false;
+
+    // Grab the zero datetime from Colors
+    if (titles.front() == ColumnTitleWallclockTime)
+      wallclockTrigger = QDateTime::fromString(colors.front().toString(), DateTimeFormatString);
+    else if (titles.front() == ColumnTitleTimestamp)
+      timeColumn = i;
+
+    // Remove the row header titles
+    colors.pop_front();
+    titles.pop_front();
+  }
+
+  // Time is required
+  if (timeColumn < 0)
+    return false;
+
+  const int firstTraceColumn = timeColumn + 1; // Column index of first trace
 
   // Remove empty colors from the end
   while (colors.last().isEmpty())
@@ -856,6 +902,12 @@ bool ScopeModel::loadTraces(QIODevice& file)
   // Fairly likely to be valid, stop and clear my data now
   beginResetModel();
   private_removeAllTraces();
+
+  // Read the wallclock trigger datetime
+  if (wallclockTrigger.isValid())
+    m_wallclockTrigger_ms = wallclockTrigger.toMSecsSinceEpoch();
+  else // Or set it to a midnight
+    m_wallclockTrigger_ms = QDateTime::fromString(QStringLiteral("1975-01-01 00:00:00.000"), DateTimeFormatString).toMSecsSinceEpoch();
 
   struct UnivSlots
   {
@@ -907,24 +959,24 @@ bool ScopeModel::loadTraces(QIODevice& file)
     const auto data = QStringView{ data_line }.split(QLatin1Char(','), Qt::KeepEmptyParts);
 #endif
     // Ignore any lines that do not have a column for all traces
-    if (data.size() < traces.size() + 1)
+    if (data.size() < traces.size() + firstTraceColumn)
       continue;
 
     // Time moves ever forward. Ignore any lines in the past
     bool ok = false;
-    const float timestamp = data[0].toFloat(&ok);
+    const float timestamp = data[timeColumn].toFloat(&ok);
     if (!ok || prev_timestamp > timestamp)
       continue;
 
     prev_timestamp = timestamp;
 
-    for (size_t i = 1; i <= traces.size(); ++i)
+    for (size_t i = 0; i < traces.size(); ++i)
     {
-      ScopeTrace* trace = traces[i - 1];
+      ScopeTrace* trace = traces[i];
       if (trace)
       {
         bool ok = false;
-        const float level = data[i].toFloat(&ok);
+        const float level = data[i + firstTraceColumn].toFloat(&ok);
         if (ok)
           trace->addValue({ timestamp, level });
       }
@@ -990,7 +1042,6 @@ void ScopeModel::stop()
   }
   // And clear/shutdown
   m_listeners.clear();
-  m_startOffset = 0;
   emit runningChanged(false);
 }
 
@@ -1119,6 +1170,13 @@ void ScopeModel::setMaxValue(qreal maxValue)
 
 void ScopeModel::triggerNow(qreal offset)
 {
+  {
+    // Determine approximate offset to wallclock time by grabbing both
+    const qint64 now_ms = sACNManager::nsecsElapsed() / 1000000;
+    const qint64 nowWallclock_ms = QDateTime::currentMSecsSinceEpoch();
+    m_wallclockTrigger_ms = (nowWallclock_ms - now_ms) + (offset / 1000.0);
+  }
+
   m_startOffset = offset;
   // Update the offsets of all traces
   for (ScopeTrace* trace : m_traceTable)
@@ -1151,6 +1209,15 @@ qreal ScopeModel::endTime() const
     return (qreal(sACNManager::elapsed()) / 1000) - m_startOffset;
 
   return m_endTime;
+}
+
+bool ScopeModel::asWallclockTime(QDateTime& datetime, qreal time) const
+{
+  if (m_wallclockTrigger_ms == 0)
+    return false;
+
+  datetime.setMSecsSinceEpoch(m_wallclockTrigger_ms + ((time + m_startOffset) * 1000));
+  return true;
 }
 
 void ScopeModel::sACNListenerDmxReceived(tock packet_tock, int universe, const std::array<int, MAX_DMX_ADDRESS>& levels)
@@ -1302,6 +1369,19 @@ void GlScopeWidget::setTimeDivisions(int milliseconds)
   update();
 
   emit timeDivisionsChanged(milliseconds);
+}
+
+void GlScopeWidget::setTimeFormat(TimeFormat format)
+{
+  if (format == m_timeFormat)
+    return;
+
+  m_timeFormat = format;
+  update();
+
+  onRunningChanged(m_model->isRunning());
+
+  emit timeFormatChanged();
 }
 
 void GlScopeWidget::initializeGL()
@@ -1494,21 +1574,48 @@ void GlScopeWidget::paintGL()
     painter.translate(scopeWindow.bottomLeft().x(), scopeWindow.bottomLeft().y());
 
     const qreal x_scale = scopeWindow.width() / m_scopeView.width();
-    const bool milliseconds = (m_timeInterval < 1.0);
 
-    for (qreal time = roundCeilMultiple(m_scopeView.left(), m_timeInterval); time < m_scopeView.right() + 0.001; time += m_timeInterval)
+    if (m_timeFormat == TimeFormat::Elapsed)
     {
-      // Grid lines in trace space
-      gridLines.emplace_back(static_cast<float>(time), 0.0f);
-      gridLines.emplace_back(static_cast<float>(time), m_scopeView.bottom());
+      const bool milliseconds = (m_timeInterval < 1.0);
+      for (qreal time = roundCeilMultiple(m_scopeView.left(), m_timeInterval); time < m_scopeView.right() + 0.001; time += m_timeInterval)
+      {
+        // Grid lines in trace space
+        gridLines.emplace_back(static_cast<float>(time), 0.0f);
+        gridLines.emplace_back(static_cast<float>(time), m_scopeView.bottom());
 
-      const qreal x = (time - m_scopeView.left()) * x_scale;
+        const qreal x = (time - m_scopeView.left()) * x_scale;
 
-      // TODO: use QStaticText to optimise the text layout
-      const QString text = milliseconds ? QStringLiteral("%1ms").arg(time * 1000.0) : QStringLiteral("%1s").arg(time);
-      QRectF fontRect = metrics.boundingRect(text);
-      fontRect.moveCenter(QPointF(x, AXIS_LABEL_HEIGHT / 2.0));
-      painter.drawText(fontRect, text, QTextOption(Qt::AlignLeft));
+        const QString text = milliseconds ? QStringLiteral("%1ms").arg(time * 1000.0) : QStringLiteral("%1s").arg(time);
+        QRectF fontRect = metrics.boundingRect(text);
+        fontRect.moveCenter(QPointF(x, AXIS_LABEL_HEIGHT / 2.0));
+        painter.drawText(fontRect, text, QTextOption(Qt::AlignLeft));
+      }
+    }
+    else
+    {
+      QDateTime datetime = QDateTime::currentDateTime();
+
+      for (qreal time = roundCeilMultiple(m_scopeView.left(), m_timeInterval); time < m_scopeView.right() + 0.001; time += m_timeInterval)
+      {
+        // Grid lines in trace space
+        gridLines.emplace_back(static_cast<float>(time), 0.0f);
+        gridLines.emplace_back(static_cast<float>(time), m_scopeView.bottom());
+
+        const qreal x = (time - m_scopeView.left()) * x_scale;
+
+        if (!m_model->asWallclockTime(datetime, time))
+        {
+          // Add time interval
+          datetime = datetime.addMSecs(m_timeInterval * 1000);
+        }
+
+        const QString text = x_scale > 80.0 ? datetime.toString(TimeFormatString) : datetime.toString(ShortTimeFormatString);
+
+        QRectF fontRect = metrics.boundingRect(text);
+        fontRect.moveCenter(QPointF(x, AXIS_LABEL_HEIGHT / 2.0));
+        painter.drawText(fontRect, text, QTextOption(Qt::AlignLeft));
+      }
     }
   }
 
@@ -1589,7 +1696,8 @@ void GlScopeWidget::timerEvent(QTimerEvent* /*ev*/)
 
 void GlScopeWidget::onRunningChanged(bool running)
 {
-  if (running)
+  // Must update the timescale when displaying wallclock time
+  if (running || (m_timeFormat == TimeFormat::Wallclock && !m_model->isTriggered()))
   {
     if (m_renderTimer == 0)
     {

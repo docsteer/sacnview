@@ -14,8 +14,9 @@
 
 #pragma once
 
-#include <QVector2D>
 #include <QAbstractTableModel>
+#include <QDateTime>
+#include <QVector2D>
 
 #include "sacn/sacnlistener.h"
 
@@ -287,6 +288,15 @@ public:
   /// @brief Get current end time in seconds
   qreal endTime() const;
 
+  /**
+   * @brief Get the datetime for a given sample timestamp
+   * Valid after Triggering. Note that wallclock time changes during the capture are not considered
+   * @param datetime out parameter QDateTime object to fill. Configure this with required timezone.
+   * @param time seconds since capture triggered
+   * @return true if valid
+  */
+  bool asWallclockTime(QDateTime& datetime, qreal time) const;
+
   /// sACNListener::IDmxReceivedCallback
   void sACNListenerDmxReceived(tock packet_tock, int universe, const std::array<int, MAX_DMX_ADDRESS>& levels) final;
 
@@ -298,10 +308,11 @@ private:
   std::vector<ScopeTrace*> m_traceTable;
   std::map<uint16_t, std::vector<ScopeTrace*>> m_traceLookup;
   std::vector<sACNManager::tListener> m_listeners; // Keep the listeners alive
-  qreal m_startOffset = 0; // Offset between this scope and global timeframe
+  qreal m_startOffset = 0; // Offset in seconds between this scope and global timeframe
   qreal m_endTime = 0;  // Max. time extents of the scope measurements
   qreal m_maxValue = 0; // Max. possible value in DMX
   qreal m_runTime = 0;
+  qint64 m_wallclockTrigger_ms = 0; // Wallclock time of trigger in milliseconds since epoch
 
   struct TriggerConfig
   {
@@ -354,6 +365,12 @@ public:
     Invalid,
   };
 
+  enum class TimeFormat
+  {
+    Elapsed,
+    Wallclock,
+  };
+
 public:
   explicit GlScopeWidget(QWidget* parent = nullptr);
   ~GlScopeWidget();
@@ -390,6 +407,11 @@ public:
   Q_SLOT void setTimeDivisions(int milliseconds);
   Q_SIGNAL void timeDivisionsChanged(int milliseconds);
 
+
+  Q_SLOT void setTimeFormat(TimeFormat format);
+  TimeFormat timeFormat() const { return m_timeFormat; }
+  Q_SIGNAL void timeFormatChanged();
+
 protected:
   void initializeGL() override;
   Q_SLOT void cleanupGL();
@@ -409,6 +431,7 @@ private:
   int m_levelInterval = 20; // Level axis label interval
   qreal m_timeInterval = 1.0; // Time axis label interval
   qreal m_defaultIntervalCount = 10.0; // Time axis intervals to show when view is reset
+  TimeFormat m_timeFormat = TimeFormat::Elapsed; // Time display format
 
   QRectF m_scopeView; // Current scope view range in DMX
   bool m_followNow = true;
