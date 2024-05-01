@@ -2,7 +2,7 @@
 #define SECURESACN_H
 
 #include "CID.h"
-#include "src/sacn/streamingacn.h"
+#include "sacn/streamingacn.h"
 #include <QString>
 
 #define VECTOR_ROOT_E131_DATA_PATHWAY_SECURE 0x50430001
