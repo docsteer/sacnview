@@ -48,7 +48,7 @@ RequestExecutionLevel admin
 
 ; MSVC RunTime
 !define MSVC_EXE "vc_redist.x64.exe"
-!define MSVC_OPT "/install /passive /norestart" 
+!define MSVC_OPT "/install /passive /norestart"
 
 Name "${PRODUCT_NAME}"
 !define OUTFILE "${PRODUCT_NAME}_${PRODUCT_VERSION}.exe"
@@ -64,7 +64,7 @@ InstallDirRegKey ${INSTDIR_REG_ROOT} "${INSTDIR_REG_KEY}" "InstallDir"
 ; !finalize 'C:\sign.bat "%1" "${PRODUCT_NAME} Installer" http://example.com' = 0
 ; !uninstfinalize 'C:\sign.bat "%1" "${PRODUCT_NAME} Installer" http://example.com' = 0
 
-!include /NONFATAL ..\signing\sign_installer.nsh
+; !include /NONFATAL ..\signing\sign_installer.nsh
 
 !insertmacro INTERACTIVE_UNINSTALL
 
@@ -103,7 +103,7 @@ Section "Main Application" sec01
 	;Visual Studio runtime requirements
 	DetailPrint "Installing MSVC Redistributables"
 	ExecWait '"$INSTDIR\${MSVC_EXE}" ${MSVC_OPT}'
-	
+
 	;Shortcuts
 	CreateDirectory '$SMPROGRAMS\${PRODUCT_NAME}'
 	CreateShortcut '$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk' '$INSTDIR\sACNView.exe'
@@ -124,7 +124,7 @@ Section "Main Application" sec01
 		"1" "1" "2147483647" "1" "$INSTDIR\sACNView.exe" \
 		"" "" "@$INSTDIR\sACNView.exe,-10000" "" "" "" ""
 	Pop $0
-	
+
 	IntCmp $0 0 fw_ok
 		DetailPrint "Error adding Firewall Exception"
 		Goto done
