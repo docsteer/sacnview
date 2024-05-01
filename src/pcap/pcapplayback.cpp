@@ -8,6 +8,20 @@
 #include <QThread>
 #include <QDebug>
 
+#ifdef Q_OS_WIN
+#include <QLibrary>
+#endif
+bool PcapPlayback::foundLib()
+{
+#ifdef Q_OS_WIN
+    QLibrary lib("wpcap");
+    return lib.load();
+#else
+    // It's statically linked!
+    return true;
+    #endif
+}
+
 PcapPlayback::PcapPlayback(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::PcapPlayback),
@@ -22,6 +36,32 @@ PcapPlayback::~PcapPlayback()
     delete ui;
 }
 
+void PcapPlayback::show()
+{
+    if (foundLib())
+    {
+        QWidget::show();
+    } else {
+        #ifdef Q_OS_WIN
+        const auto npcap = QStringLiteral("<a href='https://npcap.com/'>npcap</a>");
+        const auto winpcap = QStringLiteral("<a href='https://www.winpcap.org/'>winpcap</a>");
+        const auto pcap = QString("%1 or %2").arg(npcap, winpcap);
+        #else
+        const auto pcap = QStringLiteral("<a href='https://www.tcpdump.org/'>libpcap</a>");
+        #endif
+
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.setTextFormat(Qt::RichText);
+        msgBox.setText(QString("pcap not found!<br>Please install: %1").arg(pcap));
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.exec();
+
+        this->close();
+        this->deleteLater();
+    }
+}
+
 void PcapPlayback::openThread()
 {
     if (sender) {
@@ -30,14 +70,14 @@ void PcapPlayback::openThread()
 
     /* Create sender thread */
     sender = new pcapplaybacksender(ui->lblFilename->text());
-    connect(sender, &pcapplaybacksender::packetSent, this, &PcapPlayback::increaseProgress);
-    connect(sender, &pcapplaybacksender::sendingFinished, this, &PcapPlayback::playbackFinished);
-    connect(sender, &pcapplaybacksender::sendingClosed, this, &PcapPlayback::playbackClosed);
-    connect(sender, &pcapplaybacksender::error, this, &PcapPlayback::error);
+    connect(sender, SIGNAL(packetSent()), this, SLOT(increaseProgress()));
+    connect(sender, SIGNAL(sendingFinished()), this, SLOT(playbackFinished()));
+    connect(sender, SIGNAL(sendingClosed()), this, SLOT(playbackClosed()));
+    connect(sender, SIGNAL(error(QString)), this, SLOT(error(QString)));
     connect(sender, &QThread::finished, [this]() {
         sender->deleteLater();
         sender = Q_NULLPTR; });
-    connect(sender, &pcapplaybacksender::finished, this, &PcapPlayback::playbackThreadClosed);
+    connect(sender, SIGNAL(finished()), this, SLOT(playbackThreadClosed()));
     ui->progressBar->reset();
     sender->start();
     sender->setPriority(QThread::HighPriority);
