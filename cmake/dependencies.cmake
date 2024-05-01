@@ -31,12 +31,9 @@ endif()
 include(openssl)
 target_link_libraries(${PROJECT_NAME} PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 if (WIN32)
-    message(SSL_DLLS_IS="${OPENSSL_RUNTIME_DLLS}")
-    add_custom_command (
-        TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E copy -t "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
-                "${OPENSSL_RUNTIME_DLLS}" USES_TERMINAL COMMAND_EXPAND_LISTS
-        )
+    foreach(dll IN LISTS OPENSSL_RUNTIME_DLLS)
+        install(FILES "${dll}" DESTINATION bin)
+    endforeach()
 endif ()
 
 # Windows Libs
