@@ -1,0 +1,131 @@
+cmake_minimum_required(VERSION 3.14)
+
+# Icon
+set(${PROJECT_NAME}_ICON_PNG "${PROJECT_SOURCE_DIR}/res/logo.png" CACHE FILEPATH "${PROJECT_NAME} Icon (PNG Format)")
+set(${PROJECT_NAME}_ICON_SVG "${PROJECT_SOURCE_DIR}/res/logo.svg" CACHE FILEPATH "${PROJECT_NAME} Icon (SVG Format)")
+set(${PROJECT_NAME}_ICON_ICNS "${PROJECT_SOURCE_DIR}/res/logo.icns" CACHE FILEPATH "${PROJECT_NAME} Icon (macOS ICNS Format)")
+set(${PROJECT_NAME}_ICON_ICO "${PROJECT_SOURCE_DIR}/res/icon.ico" CACHE FILEPATH "${PROJECT_NAME} Icon (Windows ICO Format)")
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(APP_RESOURCE "${PROJECT_SOURCE_DIR}/res/${PROJECT_NAME}.rc")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(APP_RESOURCE ${${PROJECT_NAME}_ICON_ICNS})
+    get_filename_component(MACOSX_BUNDLE_ICON_FILE ${${PROJECT_NAME}_ICON_ICNS} NAME)
+    set_source_files_properties(${${PROJECT_NAME}_ICON_ICNS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+endif()
+
+# Source files
+file(GLOB_RECURSE PROJECT_HEADERS CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*.h")
+file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*.cpp")
+list(APPEND PROJECT_INCLUDE_DIRS
+    "${PROJECT_SOURCE_DIR}/src"
+    "${PROJECT_SOURCE_DIR}/src/sacn" "${PROJECT_SOURCE_DIR}/src/sacn/ACNShare"
+    "${PROJECT_SOURCE_DIR}/src/widgets"
+    "${PROJECT_SOURCE_DIR}/src/models"
+    "${PROJECT_SOURCE_DIR}/src/themes"
+    "${PROJECT_SOURCE_DIR}/src/translations"
+    "${PROJECT_SOURCE_DIR}/src/pcap")
+
+# Qt UI and Resources
+file(GLOB_RECURSE PROJECT_UIS CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/ui/*.ui")
+file(GLOB_RECURSE PROJECT_QRCS CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/res/*.qrc")
+list(APPEND PROJECT_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src/ui")
+list(APPEND CMAKE_AUTOUIC_SEARCH_PATHS "${PROJECT_SOURCE_DIR}/ui")
+
+if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+    cmake_minimum_required(VERSION 3.19)
+    qt_add_executable(${PROJECT_NAME}
+        ${PROJECT_SOURCES}
+        ${PROJECT_HEADERS}
+        ${PROJECT_UIS}
+        ${PROJECT_QRCS}
+        ${APP_RESOURCE}
+    )
+else()
+    add_executable(${PROJECT_NAME}
+        ${PROJECT_SOURCES}
+        ${PROJECT_HEADERS}
+        ${PROJECT_UIS}
+        ${PROJECT_QRCS}
+        ${APP_RESOURCE}
+    )
+endif()
+target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDE_DIRS})
+
+# Installable items
+install(TARGETS ${PROJECT_NAME} COMPONENT ${PROJECT_NAME})
+
+# Create PDB files for Release
+include(mscv_pdb)
+
+# Dependencies and 3rd party libs
+include(dependencies)
+
+# Themes
+include(darkstyle)
+
+# Translations
+find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
+FILE(GLOB TS_FILES "${PROJECT_SOURCE_DIR}/translations/*.ts")
+qt_add_translations(${PROJECT_NAME}
+    TS_FILES ${TS_FILES})
+
+# Version numbering
+string(TIMESTAMP YEAR "%Y")
+string(TIMESTAMP ISO_DATETIME "%Y-%m-%dT%H:%M:%SZ")
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    VER_FILEVERSION=${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},${PROJECT_VERSION_TWEAK}
+    VER_FILEVERSION_STR="${PROJECT_VERSION}"
+    VER_PRODUCTVERSION=${PROJECT_VERSION}
+    VER_PRODUCTVERSION_STR="${PROJECT_VERSION}"
+    VER_COMPANYNAME_STR="Tom Steer"
+    VER_FILEDESCRIPTION_STR="${PROJECT_NAME}"
+    VER_INTERNALNAME_STR="${PROJECT_NAME}"
+    VER_LEGALCOPYRIGHT_STR="2015 - ${YEAR} Tom Steer and others"
+    VER_ORIGINALFILENAME_STR="${PROJECT_NAME}.exe"
+    VER_PRODUCTNAME_STR="${PROJECT_NAME}"
+    VER_PRODUCTVERSION_DATETIME="${ISO_DATETIME}"
+    VER_PRODUCTVERSION_GITTAG_STR="${PROJECT_VERSION_GITTAG}"
+)
+
+# Binary properties
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        WIN32_EXECUTABLE TRUE
+    )
+    if(MSVC)
+        # Set the project as startup for Visual Studio
+        set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
+
+        # Add the Qt DLLs for debugging under VS
+        find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
+        get_target_property(QT_QMAKE_EXE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
+        get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXE}" DIRECTORY)
+
+        set_target_properties(${PROJECT_NAME} PROPERTIES
+            VS_DEBUGGER_ENVIRONMENT
+            "PATH=${QT_BIN_DIR}")
+
+        # Disable CRT secure warnings
+        target_compile_definitions(${PROJECT_NAME} PRIVATE -D_CRT_SECURE_NO_WARNINGS)
+    endif()
+
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    string(TOLOWER "" PROJECT_NAME_LOWER)
+    set(MACOSX_BUNDLE_GUI_IDENTIFIER "com.${VER_COMPANYNAME_STR}.${PROJECT_NAME}")
+    string(TOLOWER "${MACOSX_BUNDLE_GUI_IDENTIFIER}" MACOSX_BUNDLE_GUI_IDENTIFIER) # All lower case
+    string(REPLACE " " "" MACOSX_BUNDLE_GUI_IDENTIFIER "${MACOSX_BUNDLE_GUI_IDENTIFIER}") # Remove spaces
+
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        MACOSX_BUNDLE_GUI_IDENTIFIER ${MACOSX_BUNDLE_GUI_IDENTIFIER}
+        MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+        MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+        MACOSX_BUNDLE TRUE
+        INSTALL_RPATH "@executable_path/../Frameworks"
+    )
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    # Runtime search path
+    include(GNUInstallDirs)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
+endif()

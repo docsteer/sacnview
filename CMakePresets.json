@@ -36,22 +36,22 @@
       "name": "windows-base",
       "description": "Target Windows with the Visual Studio development environment.",
       "hidden": true,
-      "generator": "Ninja",
+      "generator": "Visual Studio 16 2019",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "cl.exe",
-        "CMAKE_CXX_COMPILER": "cl.exe",
-        "Qt5_DIR": "$env{QTROOT}/5.15.14/msvc2019_64/lib/cmake/Qt5"
-      },
-      "environment": {
-        "PATH": "$penv{QTROOT}/5.15.14/msvc2019_64/bin/;$penv{PATH}"
-      },
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
       }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-release",
+      "displayName": "Windows Release Build",
+      "configurePreset": "windows-x64-release",
+      "configuration": "Release"
     }
   ]
 }
