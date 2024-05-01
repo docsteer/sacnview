@@ -5,7 +5,7 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QStyleOptionComplex>
-#include "Qt-Frameless-Window-DarkStyle/DarkStyle.h"
+#include "DarkStyle.h"
 
 /*
  * DarkStyle theme with

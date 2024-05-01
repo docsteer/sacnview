@@ -1,7 +1,5 @@
 #include "themes.h"
 #include "darktheme.h"
-#include "Qt-Frameless-Window-DarkStyle/DarkStyle.h"
-
 
 void Themes::apply(theme_e theme)
 {
