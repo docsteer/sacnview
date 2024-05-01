@@ -21,40 +21,31 @@ jobs:
       fail-fast: false
       matrix:
         # https://github.com/actions/virtual-environments#available-environments
-        os: [ubuntu-20.04, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        qt: ['6.2.4']
         include:
-          - os: ubuntu-20.04 # Oldest LTS for appimage support
-            qt: '6.2.4' # Qt6 LTS
-            qt_modules: 'qtmultimedia'
+          - os: ubuntu-latest
+            qt_modules: 'qtmultimedia qtcharts'
             dependencies: |
-              sudo apt-get install mesa-common-dev libgl1-mesa-dev libpcap-dev libgstreamer-gl1.0-0 libgstreamer-plugins-base1.0-0 libxkbcommon-x11-0 -y
-            installer_setup: |
-              sudo gem install --no-document fpm
-            make_cmd: make
+              sudo apt-get install mesa-common-dev libgl1-mesa-dev libpcap-dev libgstreamer-gl1.0-0 libgstreamer-plugins-base1.0-0 libxkbcommon-x11-0 libfuse2 -y
             artifact: |
-              install/linux/sACNView*.AppImage
-              install/linux/*.deb
+              out/build/sacnview*.deb
+              out/build/sACNView*.AppImage
 
           - os: windows-latest
-            qt: '6.2.4' # Qt6 LTS
-            qt_modules: 'qtmultimedia'
-            installer_setup: |
-              Invoke-WebRequest -Uri "https://nsis.sourceforge.io/mediawiki/images/e/e0/NSIS_Simple_Firewall_Plugin_Unicode_1.21.zip" -OutFile "NSIS_Simple_Firewall_Plugin_Unicode.zip"
-              7z e NSIS_Simple_Firewall_Plugin_Unicode.zip -o"C:\Program Files (x86)\NSIS\Plugins\x86-unicode"
-            arch: win64_msvc2019
-            make_cmd: nmake
+            qt_modules: 'qtmultimedia qtcharts'
+            dependencies : |
+              choco install -y winflexbison3
+            arch: amd64
             artifact: |
-              install/win64/sACNView*.exe
-              release/*.pdb 
+              out/build/sACNView*.exe
+              out/build/src/Release/sACNView*.pdb
 
           - os: macos-latest
-            qt: '6.2.4' # Qt6 LTS
-            qt_modules: 'qtmultimedia'
-            installer_setup: |
-              brew install create-dmg
+            qt_modules: 'qtmultimedia qtcharts'
             xcode: latest-stable
-            make_cmd: make
-            artifact: install/mac/sACNView*.dmg 
+            artifact:
+              out/build/src/sACNView
 
     steps:
     - name: Checkout
@@ -71,14 +62,13 @@ jobs:
         aqtversion: '==2.0.0'
 
     - name: Dependencies
-      run: ${{ matrix.dependencies }} 
-
-    - name: Setup Installer
-      run: ${{ matrix.installer_setup }}
+      run: ${{ matrix.dependencies }}
 
     - name: Environment Setup (MSVC)
       if: runner.os == 'Windows'
       uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.arch }}
 
     - name: Environment Setup (Xcode)
       if: runner.os == 'macOS'
@@ -86,18 +76,23 @@ jobs:
       with:
         xcode-version: ${{ matrix.xcode }}
 
-    - name: Run qmake
+    - name: Configure Build (MSVC)
+      if: runner.os == 'Windows'
       shell: bash
       run: |
-        if [[ -n "${Qt5_DIR}" ]]; then export QTDIR=${Qt5_DIR}; fi
-        if [[ -n "${Qt6_DIR}" ]]; then export QTDIR=${Qt6_DIR}; fi
-        qmake sACNView.pro
+        if [[ -n "${Qt6_DIR}" ]]; then export CMAKE_PREFIX_PATH=${Qt6_DIR}; fi
+        cmake --preset windows-x64-release
 
-    - name: Run make
-      run: ${{ matrix.make_cmd }}
+    - name: Build (MSVC)
+      if: runner.os == 'Windows'
+      run: cmake --build --preset windows-release
+
+    - name: Pack (Windows)
+      if: runner.os == 'Windows'
+      run: cpack --preset windows-installer
 
     - name: Upload Artifact(s)
       uses: actions/upload-artifact@v3
       with:
         name: ${{ runner.os }}
-        path: ${{ matrix.artifact }} 
+        path: ${{ matrix.artifact }}
