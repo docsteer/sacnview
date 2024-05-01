@@ -45,8 +45,6 @@ int main(int argc, char *argv[])
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", QByteArray());
     qputenv("QT_SCALE_FACTOR", QByteArray());
 
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
     // Share the OpenGL Contexts
@@ -59,7 +57,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     a.setApplicationName(APP_NAME);
-    a.setApplicationVersion(VERSION);
+    a.setApplicationVersion(VER_PRODUCTVERSION_STR);
     a.setOrganizationName("sACNView");
     a.setOrganizationDomain("tomsteer.net");
 
