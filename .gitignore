@@ -13,6 +13,7 @@
 # Qt-es
 /.qmake.cache
 /.qmake.stash
+.qtc_clangd/*
 *.pro.user
 *.pro.user.*
 *.qbs.user
