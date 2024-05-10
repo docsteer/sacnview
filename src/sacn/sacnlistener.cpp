@@ -717,7 +717,7 @@ void sACNListener::performMerge()
         if (ps->dirty_array[i])
         {
           addresses_to_merge[i] = i;
-          number_of_addresses_to_merge++;
+          ++number_of_addresses_to_merge;
         }
       }
       // Clear the flags
@@ -739,8 +739,7 @@ void sACNListener::performMerge()
       ++skipCounter;
       continue;
     }
-    sACNMergedAddress* pAddr = &m_merged_levels[addresses_to_merge[i]];
-    pAddr->otherSources.clear();
+    m_merged_levels[addresses_to_merge[i]].otherSources.clear();
   }
 
   // Find the highest priority source for each address we need to work on
@@ -812,30 +811,32 @@ void sACNListener::performMerge()
       ++skipCounter;
       continue;
     }
-    int address = addresses_to_merge[i];
+    const int address = addresses_to_merge[i];
     QList<sACNSource*> sourceList = addressToSourceMap.values(address);
+    sACNMergedAddress& merged_level = m_merged_levels[address];
 
     if (sourceList.empty())
     {
-      m_merged_levels[address].level = -1;
-      m_merged_levels[address].winningSource = nullptr;
-      m_merged_levels[address].otherSources.clear();
-      m_merged_levels[address].winningPriority = m_last_priorities[address];
+      merged_level.level = -1;
+      merged_level.winningSource = nullptr;
+      merged_level.otherSources.clear();
+      merged_level.winningPriority = m_last_priorities[address];
     }
+
     for (sACNSource* s : sourceList)
     {
       if (s->level_array[address] > m_last_levels[address])
       {
         m_last_levels[address] = s->level_array[address];
-        m_merged_levels[address].changedSinceLastMerge = (m_merged_levels[address].level != m_last_levels[address]);
-        m_merged_levels[address].level = m_last_levels[address];
-        m_merged_levels[address].winningSource = s;
-        m_merged_levels[address].winningPriority = m_last_priorities[address];
+        merged_level.changedSinceLastMerge = (merged_level.level != m_last_levels[address]);
+        merged_level.level = m_last_levels[address];
+        merged_level.winningSource = s;
+        merged_level.winningPriority = m_last_priorities[address];
       }
     }
     // Remove the winning source from the list of others
-    if (m_merged_levels[address].winningSource)
-      m_merged_levels[address].otherSources.remove(m_merged_levels[address].winningSource);
+    if (merged_level.winningSource)
+      merged_level.otherSources.remove(merged_level.winningSource);
 
     // Update current final merge
     m_current_levels[address] = m_last_levels[address];
