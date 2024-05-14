@@ -815,6 +815,11 @@ void sACNListener::performMerge()
     QList<sACNSource*> sourceList = addressToSourceMap.values(address);
     sACNMergedAddress& merged_level = m_merged_levels[address];
 
+    // Store previous winning values
+    sACNSource* prev_winner = merged_level.winningSource;
+    int prev_level = merged_level.level;
+    int prev_priority = merged_level.winningPriority;
+
     if (sourceList.empty())
     {
       merged_level.level = -1;
@@ -828,15 +833,20 @@ void sACNListener::performMerge()
       if (s->level_array[address] > m_last_levels[address])
       {
         m_last_levels[address] = s->level_array[address];
-        merged_level.changedSinceLastMerge = (merged_level.level != m_last_levels[address]);
         merged_level.level = m_last_levels[address];
         merged_level.winningSource = s;
         merged_level.winningPriority = m_last_priorities[address];
       }
     }
+
     // Remove the winning source from the list of others
     if (merged_level.winningSource)
       merged_level.otherSources.remove(merged_level.winningSource);
+
+    // Has it changed level, priority or winner?
+    merged_level.changedSinceLastMerge = (prev_level != merged_level.level)
+      || (prev_priority != merged_level.winningPriority)
+      || (prev_winner != merged_level.winningSource);
 
     // Update current final merge
     m_current_levels[address] = m_last_levels[address];
