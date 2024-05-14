@@ -471,11 +471,29 @@ private:
 
   // Rendering configuration
   int m_renderTimer = 0;
-  QOpenGLShaderProgram* m_program = nullptr;
-  int m_vertexLocation = -1;
-  int m_matrixUniform = -1;
-  int m_colorUniform = -1;
-  int m_pointSizeUniform = -1;
+
+  struct ShaderProgram
+  {
+    QOpenGLShaderProgram* program = nullptr;
+    int vertexLocation = -1;
+    int matrixUniform = -1;
+    int colorUniform = -1;
+    int pointSizeUniform = -1;
+
+    void BuildProgram(const char* shaderName, const char* vertexShaderSource, const char* fragmentShaderSource);
+    void UnloadProgram();
+    bool IsValid() const;
+
+    // Convenience
+    bool bind();
+    void release();
+
+    void setMatrix(const QMatrix4x4& matrix);
+    void setColor(const QColor& color);
+    void setPointSize(float size);
+  };
+
+  ShaderProgram m_xyProgram;
 
   QMatrix4x4 m_modelMatrix;
   QMatrix4x4 m_viewMatrix;
