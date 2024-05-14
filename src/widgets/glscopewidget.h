@@ -95,9 +95,9 @@ public:
   void clear() { QMutexLocker lock(&m_mutex); m_trace.clear(); }
   void reserve(size_t point_count) { QMutexLocker lock(&m_mutex); m_trace.reserve(point_count); }
 
-  void addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array, bool storeAllPoints);
+  void addPoint(float timestamp, const sACNMergedSourceList& level_array, const sACNSource* source, bool storeAllPoints);
   // For pretrigger
-  void setFirstPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array);
+  void setFirstPoint(float timestamp, const sACNMergedSourceList& level_array, const sACNSource* source);
   // Add an offset to all times (trigger has fired)
   void applyOffset(float offset);
 
@@ -305,7 +305,7 @@ public:
   bool asWallclockTime(QDateTime& datetime, qreal time) const;
 
   /// sACNListener::IDmxReceivedCallback
-  void sACNListenerDmxReceived(tock packet_tock, int universe, const std::array<int, MAX_DMX_ADDRESS>& levels) final;
+  void sACNListenerDmxReceived(tock packet_tock, int universe, const sACNMergedSourceList& levels, const sACNSource* source) final;
 
 private:
   Q_SIGNAL void queueStop();

@@ -632,7 +632,7 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
       QMutexLocker locker(&m_directCallbacksMutex);
       for (IDmxReceivedCallback* callback : m_dmxReceivedCallbacks)
       {
-        callback->sACNListenerDmxReceived(packet_tock, m_universe, m_current_levels);
+        callback->sACNListenerDmxReceived(packet_tock, m_universe, m_merged_levels, ps);
       }
     }
   }

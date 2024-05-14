@@ -160,32 +160,40 @@ bool ScopeTrace::setAddress(QStringView addressString, bool clear_values)
 }
 
 template<typename T, std::enable_if_t<std::is_arithmetic<T>::value, bool> = true>
-inline bool fillValue(T& value, uint16_t slot_hi, uint16_t slot_lo, const std::array<int, MAX_DMX_ADDRESS>& level_array)
+inline bool fillValue(T& value, uint16_t slot_hi, uint16_t slot_lo, const sACNMergedSourceList& level_array, const sACNSource* source)
 {
   // Assumes slot numbers are valid
-  if (slot_lo < MAX_DMX_ADDRESS)
+  if (slot_lo < level_array.size())
   {
     // 16 bit
-    // Do nothing if no level yet
-    if (level_array[slot_hi] < 0 || level_array[slot_lo] < 0)
+    // Do nothing if not the winning source
+    if (level_array[slot_hi].winningSource != source && level_array[slot_lo].winningSource != source)
       return false;
 
-    value = static_cast<uint16_t>(level_array[slot_hi] << 8) | static_cast<uint16_t>(level_array[slot_lo]);
+    // Do nothing if no level yet
+    if (level_array[slot_hi].level < 0 || level_array[slot_lo].level < 0)
+      return false;
+
+    value = static_cast<uint16_t>(level_array[slot_hi].level) << 8 | static_cast<uint16_t>(level_array[slot_lo].level);
     return true;
   }
   // 8 bit
-  // Do nothing if no level
-  if (level_array[slot_hi] < 0)
+  // Do nothing if not the winning source
+  if (level_array[slot_hi].winningSource != source)
     return false;
 
-  value = static_cast<T>(level_array[slot_hi]);
+  // Do nothing if no level
+  if (level_array[slot_hi].level < 0)
+    return false;
+
+  value = static_cast<T>(level_array[slot_hi].level);
   return true;
 }
 
-void ScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array, bool storeAllPoints)
+void ScopeTrace::addPoint(float timestamp, const sACNMergedSourceList& level_array, const sACNSource* source, bool storeAllPoints)
 {
   float value;
-  if (fillValue(value, m_slot_hi, m_slot_lo, level_array))
+  if (fillValue(value, m_slot_hi, m_slot_lo, level_array, source))
   {
     QMutexLocker lock(&m_mutex);
     if (storeAllPoints)
@@ -206,10 +214,10 @@ void ScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS
   }
 }
 
-void ScopeTrace::setFirstPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array)
+void ScopeTrace::setFirstPoint(float timestamp, const sACNMergedSourceList& level_array, const sACNSource* source)
 {
   float value;
-  if (fillValue(value, m_slot_hi, m_slot_lo, level_array))
+  if (fillValue(value, m_slot_hi, m_slot_lo, level_array, source))
   {
     QMutexLocker lock(&m_mutex);
     if (m_trace.empty())
@@ -1265,7 +1273,7 @@ bool ScopeModel::asWallclockTime(QDateTime& datetime, qreal time) const
   return true;
 }
 
-void ScopeModel::sACNListenerDmxReceived(tock packet_tock, int universe, const std::array<int, MAX_DMX_ADDRESS>& levels)
+void ScopeModel::sACNListenerDmxReceived(tock packet_tock, int universe, const sACNMergedSourceList& levels, const sACNSource* source)
 {
   if (!m_running)
     return;
@@ -1282,11 +1290,11 @@ void ScopeModel::sACNListenerDmxReceived(tock packet_tock, int universe, const s
     // Only store one level for each trace until the trigger is fired
     for (ScopeTrace* trace : it->second)
     {
-      trace->setFirstPoint(timestamp, levels);
+      trace->setFirstPoint(timestamp, levels, source);
     }
 
     uint16_t current_level;
-    if (universe == m_trigger.universe && fillValue(current_level, m_trigger.address_hi - 1, m_trigger.address_lo - 1, levels))
+    if (universe == m_trigger.universe && fillValue(current_level, m_trigger.address_hi - 1, m_trigger.address_lo - 1, levels, source))
     {
       // Have a current level, maybe start the clock
       switch (m_trigger.mode)
@@ -1325,7 +1333,7 @@ void ScopeModel::sACNListenerDmxReceived(tock packet_tock, int universe, const s
 
   for (ScopeTrace* trace : it->second)
   {
-    trace->addPoint(m_endTime, levels, m_storeAllPoints);
+    trace->addPoint(m_endTime, levels, source, m_storeAllPoints);
   }
 }
 
