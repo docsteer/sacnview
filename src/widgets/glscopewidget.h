@@ -374,6 +374,7 @@ public:
     Percent,
     Dmx8,
     Dmx16,
+    DeltaTime,
     Invalid,
   };
 
@@ -494,6 +495,7 @@ private:
   };
 
   ShaderProgram m_xyProgram;
+  ShaderProgram m_deltaProgram;
 
   QMatrix4x4 m_modelMatrix;
   QMatrix4x4 m_viewMatrix;

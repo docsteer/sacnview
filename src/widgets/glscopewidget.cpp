@@ -1393,6 +1393,11 @@ void GlScopeWidget::setVerticalScaleMode(VerticalScale scaleMode)
     m_levelInterval = 10000;
     m_scopeView.setBottom(kMaxDmx16);
   } break;
+  case VerticalScale::DeltaTime:
+  {
+    m_levelInterval = 100;
+    m_scopeView.setBottom(900);
+  } break;
   }
 
   m_verticalScaleMode = scaleMode;
@@ -1563,6 +1568,18 @@ void GlScopeWidget::initializeGL()
     "  gl_PointSize = pointsize;"
     "}\n";
 
+  // Delta Time shader
+  const char* vertexDeltaTimeShaderSource =
+    "in vec4 vertex;\n" // { x prev_timestamp, y prev_level, z timestamp, w level }
+    "uniform mat4 mvp;\n"
+    "uniform float pointsize;\n"
+    "void main()\n"
+    "{\n"
+    //"  gl_Position = mvp * vec4(vertex.z, 127, 0, 1.0);\n"
+    "  gl_Position = mvp * vec4(vertex.z, (vertex.z - vertex.x) * 1000, 0, 1.0);\n"
+    "  gl_PointSize = pointsize;"
+    "}\n";
+
   const char* fragmentShaderSource =
     "uniform vec4 color;\n"
     "void main()\n"
@@ -1571,6 +1588,7 @@ void GlScopeWidget::initializeGL()
     "}\n";
 
   m_xyProgram.BuildProgram("xy", vertexShaderSource, fragmentShaderSource);
+  m_deltaProgram.BuildProgram("deltaTime", vertexDeltaTimeShaderSource, fragmentShaderSource);
 }
 
 void GlScopeWidget::cleanupGL()
@@ -1582,6 +1600,7 @@ void GlScopeWidget::cleanupGL()
   makeCurrent();
 
   m_xyProgram.UnloadProgram();
+  m_deltaProgram.UnloadProgram();
 
   doneCurrent();
 }
@@ -1682,11 +1701,12 @@ void GlScopeWidget::paintGL()
         }
       }
 
+      QString postfix;
       switch (m_verticalScaleMode)
       {
       case VerticalScale::Percent:
       {
-        const QString postfix = QStringLiteral("%");
+        postfix = QStringLiteral("%");
         const qreal max_value = 100.0;
         const qreal y_scale = scopeWindow.height() / 100.0; // Percent
         const float value_scale = kMaxDmx8 / 100.0f;
@@ -1707,10 +1727,12 @@ void GlScopeWidget::paintGL()
         DrawLevelAxisText(painter, metrics, scopeWindow, max_value, y_scale, postfix);
       } break;
 
+      case VerticalScale::DeltaTime:
+        postfix = QStringLiteral("ms");
+        [[fallthrough]];
       case VerticalScale::Dmx8:
       case VerticalScale::Dmx16:
       {
-        const QString postfix;
         const int max_value = m_scopeView.bottom();
         const qreal y_scale = scopeWindow.height() / m_scopeView.bottom();
 
@@ -1826,34 +1848,79 @@ void GlScopeWidget::paintGL()
     glDrawArrays(GL_TRIANGLES, 0, triggerLine.size());
   }
 
-  glEnable(GL_PROGRAM_POINT_SIZE);
-  m_xyProgram.setPointSize(m_levelDotSize * float(devicePixelRatioF()));
-  for (ScopeTrace* trace : m_model->traces())
-  {
-    if (!trace->enabled())
-      continue;
-
-    // Change the scale as needed
-    if (m_verticalScaleMode == VerticalScale::Percent)
-    {
-      m_xyProgram.setMatrix(trace->isSixteenBit() ? m_mvpMatrix16 : m_mvpMatrix);
-    }
-
-    m_xyProgram.setColor(trace->color());
-    const auto levels = trace->values();
-    glVertexAttribPointer(m_xyProgram.vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, levels.value().data());
-    glDrawArrays(GL_LINE_STRIP, 0, levels.value().size());
-
-    // Draw the points if enabled
-    if (m_levelDotSize > 0.5f)
-    {
-      glDrawArrays(GL_POINTS, 0, levels.value().size());
-    }
-  }
-  glDisable(GL_PROGRAM_POINT_SIZE);
-
   glDisableVertexAttribArray(m_xyProgram.vertexLocation);
   m_xyProgram.release();
+
+  if (m_verticalScaleMode == VerticalScale::DeltaTime)
+  {
+    // Draw the trace using the deltatime program
+    m_deltaProgram.bind();
+    glEnableVertexAttribArray(m_deltaProgram.vertexLocation);
+
+    m_deltaProgram.setMatrix(m_mvpMatrix);
+
+    glEnable(GL_PROGRAM_POINT_SIZE);
+    m_deltaProgram.setPointSize(m_levelDotSize * float(devicePixelRatioF()));
+    for (ScopeTrace* trace : m_model->traces())
+    {
+      if (!trace->enabled())
+        continue;
+
+      m_deltaProgram.setColor(trace->color());
+      const auto levels = trace->values();
+      if (levels.value().size() > 1)
+      {
+        glVertexAttribPointer(m_deltaProgram.vertexLocation, 4, GL_FLOAT, GL_FALSE, sizeof(QVector2D), levels.value().data());
+        glDrawArrays(GL_LINE_STRIP, 0, levels.value().size() - 1);
+
+        // Draw the points if enabled
+        if (m_levelDotSize > 0.5f)
+        {
+          glDrawArrays(GL_POINTS, 0, levels.value().size() - 1);
+        }
+      }
+    }
+    glDisable(GL_PROGRAM_POINT_SIZE);
+
+    glDisableVertexAttribArray(m_deltaProgram.vertexLocation);
+    m_deltaProgram.release();
+  }
+  else
+  {
+    m_xyProgram.bind();
+    glEnableVertexAttribArray(m_xyProgram.vertexLocation);
+
+    m_xyProgram.setMatrix(m_mvpMatrix);
+
+    glEnable(GL_PROGRAM_POINT_SIZE);
+    m_xyProgram.setPointSize(m_levelDotSize * float(devicePixelRatioF()));
+    for (ScopeTrace* trace : m_model->traces())
+    {
+      if (!trace->enabled())
+        continue;
+
+      // Change the scale as needed
+      if (m_verticalScaleMode == VerticalScale::Percent)
+      {
+        m_xyProgram.setMatrix(trace->isSixteenBit() ? m_mvpMatrix16 : m_mvpMatrix);
+      }
+
+      m_xyProgram.setColor(trace->color());
+      const auto levels = trace->values();
+      glVertexAttribPointer(m_xyProgram.vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, levels.value().data());
+      glDrawArrays(GL_LINE_STRIP, 0, levels.value().size());
+
+      // Draw the points if enabled
+      if (m_levelDotSize > 0.5f)
+      {
+        glDrawArrays(GL_POINTS, 0, levels.value().size());
+      }
+    }
+    glDisable(GL_PROGRAM_POINT_SIZE);
+
+    glDisableVertexAttribArray(m_xyProgram.vertexLocation);
+    m_xyProgram.release();
+  }
 
   // Cursor labels if active
   // Draw these last so the gridlines aren't on top

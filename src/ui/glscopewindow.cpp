@@ -134,7 +134,7 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       lbl = new QLabel(tr("Vertical Scale:"), confWidget);
       layoutGrp->addWidget(lbl, row, 0);
       QComboBox* verticalScale = new QComboBox(confWidget);
-      verticalScale->addItems({ tr("Percent"), tr("DMX8"), tr("DMX16") });
+      verticalScale->addItems({ tr("Percent"), tr("DMX8"), tr("DMX16"), tr("Delta Time")});
       connect(verticalScale, QOverload<int>::of(&QComboBox::activated), this, &GlScopeWindow::setVerticalScaleMode);
       verticalScale->setCurrentIndex(static_cast<int>(m_scope->verticalScaleMode()));
       layoutGrp->addWidget(verticalScale, row, 1);
