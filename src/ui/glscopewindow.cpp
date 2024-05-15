@@ -557,7 +557,7 @@ void GlScopeWindow::refreshButtons()
 
   // Disable invalid trigger setup
   for (QWidget* w : m_triggerSetup)
-    w->setEnabled(!running && m_scope->model()->triggerIsFreeRun());
+    w->setEnabled(!running && !m_scope->model()->triggerIsFreeRun());
 
   if (!running)
   {
