@@ -1396,7 +1396,7 @@ void GlScopeWidget::setVerticalScaleMode(VerticalScale scaleMode)
   case VerticalScale::DeltaTime:
   {
     m_levelInterval = 100;
-    m_scopeView.setBottom(900);
+    m_scopeView.setBottom(E131_DATA_KEEP_ALIVE_INTERVAL_MAX);
   } break;
   }
 
