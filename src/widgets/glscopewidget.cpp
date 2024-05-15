@@ -1409,7 +1409,7 @@ void GlScopeWidget::setVerticalScaleMode(VerticalScale scaleMode)
 
 bool GlScopeWidget::levelInView(const QPointF& point) const
 {
-  return qFuzzyIsNull(point.y()) || (point.y() > 0.0 && point.y() <= (m_verticalScaleMode == VerticalScale::Dmx16 ? kMaxDmx16 : kMaxDmx8));
+  return (point.y() <= m_scopeView.bottom() && point.y() >= m_scopeView.top());
 }
 
 void GlScopeWidget::setScopeView(const QRectF& rect)
@@ -1938,18 +1938,26 @@ void GlScopeWidget::paintGL()
 
     bool timeAtTop = true;
 
-    // Cursor level as percent and DMX if inside grid
+    // Cursor level as actual and percent if inside grid
     if (levelInView(m_cursorPoint))
     {
-      const qreal percent_value = m_cursorPoint.y() * (m_verticalScaleMode == VerticalScale::Dmx16 ? 100.0f / kMaxDmx16 : 100.0f / kMaxDmx8);
-      const QString text = QString::number(m_cursorPoint.y(), 'f', 0) + QStringLiteral(" (") //
-        + QString::number(percent_value, 'f', 2) //
-        + QStringLiteral("%)");
+      // Actual value
+      QString text = QString::number(m_cursorPoint.y(), 'f', 0);
+      if (m_verticalScaleMode != VerticalScale::DeltaTime)
+      {
+        // Append the percentage
+        const qreal percent_value = m_cursorPoint.y() * (m_verticalScaleMode == VerticalScale::Dmx16 ? 100.0f / kMaxDmx16 : 100.0f / kMaxDmx8);
+        text.append(QStringLiteral(" (") + QString::number(percent_value, 'f', 2) + QStringLiteral("%)"));
+      }
+      else
+      {
+        text.append(QStringLiteral("ms"));
+      }
 
       // Draw it above/below the line
       const qreal y_scale = scopeWindow.height() / m_scopeView.bottom();
       qreal y = scopeWindow.height() - (m_cursorPoint.y() * y_scale);
-      if (percent_value > 90.0)
+      if (m_cursorPoint.y() > m_scopeView.height() * 0.9)
       {
         y += metrics.ascent();
         timeAtTop = false;  // Draw the time at the bottom
