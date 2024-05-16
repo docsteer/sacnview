@@ -122,6 +122,9 @@ class ScopeModel : public QAbstractTableModel, public sACNListener::IDmxReceived
 {
   Q_OBJECT
 public:
+  static constexpr qreal kMaxDmx16 = 65535;
+  static constexpr qreal kMaxDmx8 = 255;
+
   enum Columns
   {
     COL_UNIVERSE,
@@ -402,13 +405,26 @@ public:
   /**
    * @brief Get the current scope view
    * x is time axis in seconds (0 to ...)
-   * y is scale axis in raw DMX values (0-255 or 65535)
+   * y is scale axis in raw DMX/Millisecond values (0-255 or 65535)
    * Note: Y axis is flipped compared to Qt: (0,0) is bottom-left.
    * QRectF::top() is the bottom
    * QRectF::bottom() is the top
    * @return current viewport
   */
   const QRectF& scopeView() const { return m_scopeView; }
+
+  /// @brief Get default maximum vertical scale value for mode
+  static constexpr qreal scopeVerticalMaxDefault(VerticalScale scaleMode)
+  {
+    switch (scaleMode)
+    {
+    default:      return 0;
+    case VerticalScale::Percent: return ScopeModel::kMaxDmx8; // The 16 bit matrix downscales to 8bit
+    case VerticalScale::Dmx8: return ScopeModel::kMaxDmx8;
+    case VerticalScale::Dmx16: return ScopeModel::kMaxDmx16;
+    case VerticalScale::DeltaTime: return E131_DATA_KEEP_ALIVE_INTERVAL_MAX;
+    }
+  }
 
   /**
    * @brief Check if time of point is in the current scope view

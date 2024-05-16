@@ -192,7 +192,7 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       lbl = new QLabel(tr("Trigger Level:"), confWidget);
       layoutGrp->addWidget(lbl, row, 0);
       m_spinTriggerLevel = new QSpinBox(this);
-      m_spinTriggerLevel->setRange(0, 65535);
+      m_spinTriggerLevel->setRange(0, ScopeModel::kMaxDmx16);
       connect(m_spinTriggerLevel, QOverload<int>::of(&QSpinBox::valueChanged), m_scope->model(), &ScopeModel::setTriggerLevel);
       layoutGrp->addWidget(m_spinTriggerLevel, row, 1);
 

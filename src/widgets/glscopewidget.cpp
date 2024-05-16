@@ -37,9 +37,6 @@ static const QString ShortTimeFormatString = QStringLiteral("hh:mm:ss");
 static const QString TimeFormatString = QStringLiteral("hh:mm:ss.zzz");
 static const QString DateTimeFormatString = QStringLiteral("yyyy-MM-dd ") + TimeFormatString;
 
-static constexpr qreal kMaxDmx16 = 65535;
-static constexpr qreal kMaxDmx8 = 255;
-
 template<typename T>
 T roundCeilMultiple(T value, T multiple)
 {
@@ -1381,26 +1378,23 @@ void GlScopeWidget::setVerticalScaleMode(VerticalScale scaleMode)
   case VerticalScale::Percent:
   {
     m_levelInterval = 10;
-    m_scopeView.setBottom(kMaxDmx8);  // The 16 bit matrix downscales to 8bit
   } break;
   case VerticalScale::Dmx8:
   {
     m_levelInterval = 20;
-    m_scopeView.setBottom(kMaxDmx8);
   } break;
   case VerticalScale::Dmx16:
   {
     m_levelInterval = 10000;
-    m_scopeView.setBottom(kMaxDmx16);
   } break;
   case VerticalScale::DeltaTime:
   {
     m_levelInterval = 100;
-    m_scopeView.setBottom(E131_DATA_KEEP_ALIVE_INTERVAL_MAX);
   } break;
   }
 
   m_verticalScaleMode = scaleMode;
+  m_scopeView.setBottom(scopeVerticalMaxDefault(scaleMode));
 
   updateMVPMatrix();
   update();
@@ -1709,7 +1703,7 @@ void GlScopeWidget::paintGL()
         postfix = QStringLiteral("%");
         const qreal max_value = 100.0;
         const qreal y_scale = scopeWindow.height() / 100.0; // Percent
-        const float value_scale = kMaxDmx8 / 100.0f;
+        const float value_scale = ScopeModel::kMaxDmx8 / 100.0f;
 
         // From bottom to top
         for (qreal value = m_scopeView.top(); value < max_value; value += m_levelInterval)
@@ -1946,7 +1940,7 @@ void GlScopeWidget::paintGL()
       if (m_verticalScaleMode != VerticalScale::DeltaTime)
       {
         // Append the percentage
-        const qreal percent_value = m_cursorPoint.y() * (m_verticalScaleMode == VerticalScale::Dmx16 ? 100.0f / kMaxDmx16 : 100.0f / kMaxDmx8);
+        const qreal percent_value = m_cursorPoint.y() * (m_verticalScaleMode == VerticalScale::Dmx16 ? 100.0f / ScopeModel::kMaxDmx16 : 100.0f / ScopeModel::kMaxDmx8);
         text.append(QStringLiteral(" (") + QString::number(percent_value, 'f', 2) + QStringLiteral("%)"));
       }
       else
