@@ -74,20 +74,26 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       QGridLayout* layoutGrp = new QGridLayout(grpScope);
 
       int row = 0;
-      m_btnStop = new QPushButton(tr("Stop"), confWidget);
-      m_btnStop->setCheckable(true);
-      connect(m_btnStop, &QPushButton::clicked, m_scope->model(), &ScopeModel::stop);
-      layoutGrp->addWidget(m_btnStop, row, 0);
+      {
+        QBoxLayout* startStopBox = new QHBoxLayout();
 
-      m_btnStart = new QPushButton(tr("Start"), confWidget);
-      m_btnStart->setCheckable(true);
-      connect(m_btnStart, &QPushButton::clicked, m_scope->model(), &ScopeModel::start);
-      layoutGrp->addWidget(m_btnStart, row, 1);
+        m_btnStop = new QPushButton(tr("Stop"), confWidget);
+        m_btnStop->setCheckable(true);
+        connect(m_btnStop, &QPushButton::clicked, m_scope->model(), &ScopeModel::stop);
+        startStopBox->addWidget(m_btnStop);
+
+        m_btnStart = new QPushButton(tr("Start"), confWidget);
+        m_btnStart->setCheckable(true);
+        connect(m_btnStart, &QPushButton::clicked, m_scope->model(), &ScopeModel::start);
+        startStopBox->addWidget(m_btnStart);
+
+        layoutGrp->addLayout(startStopBox, row, 0, 1, 3);
+      }
 
       ++row;
       m_chkSyncViews = new QCheckBox(tr("Trigger Receive Views"), confWidget);
       connect(m_chkSyncViews, &QPushButton::toggled, this, &GlScopeWindow::onChkSyncViewsToggled);
-      layoutGrp->addWidget(m_chkSyncViews, row, 0, 1, 2, Qt::AlignHCenter);
+      layoutGrp->addWidget(m_chkSyncViews, row, 0, 1, 3, Qt::AlignHCenter);
       m_disableWhenRunning.push_back(m_chkSyncViews);
 
       ++row;
@@ -97,7 +103,7 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       m_recordMode = new QComboBox(confWidget);
       m_recordMode->addItems({ tr("All Packets"), tr("Level Changes") });
       connect(m_recordMode, QOverload<int>::of(&QComboBox::activated), this, &GlScopeWindow::setRecordMode);
-      layoutGrp->addWidget(m_recordMode, row, 1);
+      layoutGrp->addWidget(m_recordMode, row, 1, 1, 2);
 
       m_disableWhenRunning.push_back(lbl);
       m_disableWhenRunning.push_back(m_recordMode);
@@ -109,7 +115,7 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       m_traceStyle = new QComboBox(confWidget);
       m_traceStyle->addItems({ tr("Line"), tr("Small Dots"), tr("Large Dots") });
       connect(m_traceStyle, QOverload<int>::of(&QComboBox::activated), this, &GlScopeWindow::setTraceStyle);
-      layoutGrp->addWidget(m_traceStyle, row, 1);
+      layoutGrp->addWidget(m_traceStyle, row, 1, 1, 2);
 
       ++row;
 
@@ -123,36 +129,35 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       m_spinRunTime->setSpecialValueText(tr("Forever"));
       connect(m_spinRunTime, QOverload<int>::of(&QSpinBox::valueChanged), m_scope->model(), &ScopeModel::setRunTime);
       connect(m_scope->model(), &ScopeModel::runTimeChanged, m_spinRunTime, &QSpinBox::setValue);
-      layoutGrp->addWidget(m_spinRunTime, row, 1);
+      layoutGrp->addWidget(m_spinRunTime, row, 1, 1, 2);
 
       m_disableWhenRunning.push_back(lbl);
       m_disableWhenRunning.push_back(m_spinRunTime);
 
       ++row;
-
-      // Scope scale configuration
+      //! Scope vertical scale configuration
       lbl = new QLabel(tr("Vertical Scale:"), confWidget);
       layoutGrp->addWidget(lbl, row, 0);
+
       QComboBox* verticalScale = new QComboBox(confWidget);
-      verticalScale->addItems({ tr("Percent"), tr("DMX8"), tr("DMX16"), tr("Delta Time")});
+      verticalScale->addItems({ tr("Percent"), tr("DMX8"), tr("DMX16"), tr("Delta Time") });
       connect(verticalScale, QOverload<int>::of(&QComboBox::activated), this, &GlScopeWindow::setVerticalScaleMode);
       verticalScale->setCurrentIndex(static_cast<int>(m_scope->verticalScaleMode()));
       layoutGrp->addWidget(verticalScale, row, 1);
 
+      m_spinVertScale = new SteppedSpinBox(confWidget);
+      m_spinVertScale->setStepList({ 50,100,250,E131_DATA_KEEP_ALIVE_INTERVAL_MAX,E131_NETWORK_DATA_LOSS_TIMEOUT }); // Milliseconds
+      //! Milliseconds suffix
+      m_spinVertScale->setSuffix(tr("ms"));
+      m_spinVertScale->setValue(GlScopeWidget::scopeVerticalMaxDefault(GlScopeWidget::VerticalScale::DeltaTime));
+      connect(m_spinVertScale, QOverload<int>::of(&QSpinBox::valueChanged), this, &GlScopeWindow::onVerticalScaleChanged);
+      layoutGrp->addWidget(m_spinVertScale, row, 2);
+
       ++row;
+
       lbl = new QLabel(tr("Time Scale:"), confWidget);
       layoutGrp->addWidget(lbl, row, 0);
 
-      m_spinTimeScale = new SteppedSpinBox(confWidget);
-      m_spinTimeScale->setStepList({ 5,10,20,50,100,200,500,1000,2000 }); // Milliseconds
-      //! Milliseconds suffix
-      m_spinTimeScale->setSuffix(tr("ms"));
-      m_spinTimeScale->setValue(m_scope->timeDivisions());
-      connect(m_spinTimeScale, QOverload<int>::of(&QSpinBox::valueChanged), this, &GlScopeWindow::onTimeDivisionsChanged);
-      connect(m_scope, &GlScopeWidget::timeDivisionsChanged, m_spinTimeScale, &QSpinBox::setValue);
-      layoutGrp->addWidget(m_spinTimeScale, row, 1);
-
-      ++row;
       m_timeFormat = new QComboBox(confWidget);
       m_timeFormat->addItems({
         //! Elapsed time
@@ -162,15 +167,28 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
         });
 
       connect(m_timeFormat, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &GlScopeWindow::setTimeFormat);
-      layoutGrp->addWidget(m_timeFormat, row, 0, 1, 2);
+      layoutGrp->addWidget(m_timeFormat, row, 1);
+
+      m_spinTimeScale = new SteppedSpinBox(confWidget);
+      m_spinTimeScale->setStepList({ 5,10,20,50,100,200,500,1000,2000 }); // Milliseconds
+      //! Milliseconds suffix
+      m_spinTimeScale->setSuffix(tr("ms"));
+      m_spinTimeScale->setValue(m_scope->timeDivisions());
+      connect(m_spinTimeScale, QOverload<int>::of(&QSpinBox::valueChanged), this, &GlScopeWindow::onTimeDivisionsChanged);
+      connect(m_scope, &GlScopeWidget::timeDivisionsChanged, m_spinTimeScale, &QSpinBox::setValue);
+      layoutGrp->addWidget(m_spinTimeScale, row, 2);
+
 
       // Divider
       ++row;
       QFrame* line = new QFrame(confWidget);
       line->setFrameShape(QFrame::HLine);
-      layoutGrp->addWidget(line, row, 0, 1, 2);
+      layoutGrp->addWidget(line, row, 0, 1, 3);
 
       ++row;
+      lbl = new QLabel(tr("Trigger:"), confWidget);
+      layoutGrp->addWidget(lbl, row, 0);
+
       // Trigger setup
       m_triggerType = new QComboBox(confWidget);
       m_triggerType->addItems({
@@ -184,19 +202,15 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
         tr("Crossed Level")
         });
       connect(m_triggerType, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &GlScopeWindow::setTriggerType);
-      layoutGrp->addWidget(m_triggerType, row, 0, 1, 2);
+      layoutGrp->addWidget(m_triggerType, row, 1);
 
       m_disableWhenRunning.push_back(m_triggerType);
 
-      ++row;
-      lbl = new QLabel(tr("Trigger Level:"), confWidget);
-      layoutGrp->addWidget(lbl, row, 0);
       m_spinTriggerLevel = new QSpinBox(this);
       m_spinTriggerLevel->setRange(0, ScopeModel::kMaxDmx16);
       connect(m_spinTriggerLevel, QOverload<int>::of(&QSpinBox::valueChanged), m_scope->model(), &ScopeModel::setTriggerLevel);
-      layoutGrp->addWidget(m_spinTriggerLevel, row, 1);
+      layoutGrp->addWidget(m_spinTriggerLevel, row, 2);
 
-      m_triggerSetup.push_back(lbl);
       m_triggerSetup.push_back(m_spinTriggerLevel);
 
       // Set initial trigger type and values
@@ -350,7 +364,26 @@ void GlScopeWindow::setTraceStyle(int idx)
 
 void GlScopeWindow::setVerticalScaleMode(int idx)
 {
-  m_scope->setVerticalScaleMode(static_cast<GlScopeWidget::VerticalScale>(idx));
+  GlScopeWidget::VerticalScale scaleMode = static_cast<GlScopeWidget::VerticalScale>(idx);
+  m_scope->setVerticalScaleMode(scaleMode);
+  if (scaleMode == GlScopeWidget::VerticalScale::DeltaTime)
+  {
+    m_spinVertScale->setEnabled(true);
+    // Reapply the current setting
+    onVerticalScaleChanged(-1);
+  }
+  else
+  {
+    m_spinVertScale->setEnabled(false);
+  }
+}
+
+void GlScopeWindow::onVerticalScaleChanged(int value)
+{
+  if (value <= 0)
+    value = m_spinVertScale->value();
+
+  m_scope->setScopeViewVerticalRange(0, value);
 }
 
 void GlScopeWindow::setTriggerType(int idx)
@@ -554,6 +587,9 @@ void GlScopeWindow::refreshButtons()
 
   for (QWidget* w : m_disableWhenRunning)
     w->setEnabled(!running);
+
+  // Vertical scale is only adjustable in DeltaTime mode
+  m_spinVertScale->setEnabled(m_scope->verticalScaleMode() == GlScopeWidget::VerticalScale::DeltaTime);
 
   // Disable invalid trigger setup
   for (QWidget* w : m_triggerSetup)

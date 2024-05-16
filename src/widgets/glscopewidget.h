@@ -444,6 +444,9 @@ public:
   */
   Q_SLOT void setScopeView(const QRectF& rect = QRectF());
 
+  /// @brief Set the scope view vertical scale
+  Q_SLOT void setScopeViewVerticalRange(qreal min, qreal max);
+
   int timeDivisions() const { return m_timeInterval * 1000.0; }
   Q_SLOT void setTimeDivisions(int milliseconds);
   Q_SIGNAL void timeDivisionsChanged(int milliseconds);

@@ -1427,6 +1427,27 @@ void GlScopeWidget::setScopeView(const QRectF& rect)
   update();
 }
 
+void GlScopeWidget::setScopeViewVerticalRange(qreal min, qreal max)
+{
+  // Reset to defaults if invalid or equal
+  if (max < min || max < 0 || min < 0 || qFuzzyCompare(min, max))
+  {
+    setScopeView();
+    return;
+  }
+
+  // Set vertical range
+  m_scopeView.setTop(min);
+  m_scopeView.setBottom(max);
+
+  // Set vaguely sane interval ticks
+  qreal rangeInterval = (max - min) / 10.0;
+  m_levelInterval = std::ceil(rangeInterval);
+
+  updateMVPMatrix();
+  update();
+}
+
 void GlScopeWidget::setTimeDivisions(int milliseconds)
 {
   if (timeDivisions() == milliseconds)
