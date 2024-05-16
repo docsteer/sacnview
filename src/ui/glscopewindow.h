@@ -47,6 +47,7 @@ private:
   Q_SLOT void setRecordMode(int idx);
   Q_SLOT void setTraceStyle(int idx);
   Q_SLOT void setVerticalScaleMode(int idx);
+  Q_SLOT void onVerticalScaleChanged(int value);
   Q_SLOT void setTriggerType(int idx);
 
   Q_SLOT void addTrace(bool);
@@ -70,6 +71,7 @@ private:
   QComboBox* m_recordMode = nullptr;
   QComboBox* m_traceStyle = nullptr;
   QSpinBox* m_spinRunTime = nullptr;
+  SteppedSpinBox* m_spinVertScale = nullptr;
   SteppedSpinBox* m_spinTimeScale = nullptr;
   QComboBox* m_timeFormat = nullptr;
   QComboBox* m_triggerType = nullptr;

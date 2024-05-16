@@ -122,6 +122,9 @@ class ScopeModel : public QAbstractTableModel, public sACNListener::IDmxReceived
 {
   Q_OBJECT
 public:
+  static constexpr qreal kMaxDmx16 = 65535;
+  static constexpr qreal kMaxDmx8 = 255;
+
   enum Columns
   {
     COL_UNIVERSE,
@@ -374,6 +377,7 @@ public:
     Percent,
     Dmx8,
     Dmx16,
+    DeltaTime,
     Invalid,
   };
 
@@ -401,13 +405,26 @@ public:
   /**
    * @brief Get the current scope view
    * x is time axis in seconds (0 to ...)
-   * y is scale axis in raw DMX values (0-255 or 65535)
+   * y is scale axis in raw DMX/Millisecond values (0-255 or 65535)
    * Note: Y axis is flipped compared to Qt: (0,0) is bottom-left.
    * QRectF::top() is the bottom
    * QRectF::bottom() is the top
    * @return current viewport
   */
   const QRectF& scopeView() const { return m_scopeView; }
+
+  /// @brief Get default maximum vertical scale value for mode
+  static constexpr qreal scopeVerticalMaxDefault(VerticalScale scaleMode)
+  {
+    switch (scaleMode)
+    {
+    default:      return 0;
+    case VerticalScale::Percent: return ScopeModel::kMaxDmx8; // The 16 bit matrix downscales to 8bit
+    case VerticalScale::Dmx8: return ScopeModel::kMaxDmx8;
+    case VerticalScale::Dmx16: return ScopeModel::kMaxDmx16;
+    case VerticalScale::DeltaTime: return E131_DATA_KEEP_ALIVE_INTERVAL_MAX;
+    }
+  }
 
   /**
    * @brief Check if time of point is in the current scope view
@@ -426,6 +443,9 @@ public:
    * @param rect new range rectangle. Null to reset to default extents
   */
   Q_SLOT void setScopeView(const QRectF& rect = QRectF());
+
+  /// @brief Set the scope view vertical scale
+  Q_SLOT void setScopeViewVerticalRange(qreal min, qreal max);
 
   int timeDivisions() const { return m_timeInterval * 1000.0; }
   Q_SLOT void setTimeDivisions(int milliseconds);
@@ -471,11 +491,30 @@ private:
 
   // Rendering configuration
   int m_renderTimer = 0;
-  QOpenGLShaderProgram* m_program = nullptr;
-  int m_vertexLocation = -1;
-  int m_matrixUniform = -1;
-  int m_colorUniform = -1;
-  int m_pointSizeUniform = -1;
+
+  struct ShaderProgram
+  {
+    QOpenGLShaderProgram* program = nullptr;
+    int vertexLocation = -1;
+    int matrixUniform = -1;
+    int colorUniform = -1;
+    int pointSizeUniform = -1;
+
+    void BuildProgram(const char* shaderName, const char* vertexShaderSource, const char* fragmentShaderSource);
+    void UnloadProgram();
+    bool IsValid() const;
+
+    // Convenience
+    bool bind();
+    void release();
+
+    void setMatrix(const QMatrix4x4& matrix);
+    void setColor(const QColor& color);
+    void setPointSize(float size);
+  };
+
+  ShaderProgram m_xyProgram;
+  ShaderProgram m_deltaProgram;
 
   QMatrix4x4 m_modelMatrix;
   QMatrix4x4 m_viewMatrix;

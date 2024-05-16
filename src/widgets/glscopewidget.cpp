@@ -37,9 +37,6 @@ static const QString ShortTimeFormatString = QStringLiteral("hh:mm:ss");
 static const QString TimeFormatString = QStringLiteral("hh:mm:ss.zzz");
 static const QString DateTimeFormatString = QStringLiteral("yyyy-MM-dd ") + TimeFormatString;
 
-static constexpr qreal kMaxDmx16 = 65535;
-static constexpr qreal kMaxDmx8 = 255;
-
 template<typename T>
 T roundCeilMultiple(T value, T multiple)
 {
@@ -1381,21 +1378,23 @@ void GlScopeWidget::setVerticalScaleMode(VerticalScale scaleMode)
   case VerticalScale::Percent:
   {
     m_levelInterval = 10;
-    m_scopeView.setBottom(kMaxDmx8);  // The 16 bit matrix downscales to 8bit
   } break;
   case VerticalScale::Dmx8:
   {
     m_levelInterval = 20;
-    m_scopeView.setBottom(kMaxDmx8);
   } break;
   case VerticalScale::Dmx16:
   {
     m_levelInterval = 10000;
-    m_scopeView.setBottom(kMaxDmx16);
+  } break;
+  case VerticalScale::DeltaTime:
+  {
+    m_levelInterval = 100;
   } break;
   }
 
   m_verticalScaleMode = scaleMode;
+  m_scopeView.setBottom(scopeVerticalMaxDefault(scaleMode));
 
   updateMVPMatrix();
   update();
@@ -1404,7 +1403,7 @@ void GlScopeWidget::setVerticalScaleMode(VerticalScale scaleMode)
 
 bool GlScopeWidget::levelInView(const QPointF& point) const
 {
-  return qFuzzyIsNull(point.y()) || (point.y() > 0.0 && point.y() <= (m_verticalScaleMode == VerticalScale::Dmx16 ? kMaxDmx16 : kMaxDmx8));
+  return (point.y() <= m_scopeView.bottom() && point.y() >= m_scopeView.top());
 }
 
 void GlScopeWidget::setScopeView(const QRectF& rect)
@@ -1423,6 +1422,27 @@ void GlScopeWidget::setScopeView(const QRectF& rect)
   {
     m_scopeView = rect;
   }
+
+  updateMVPMatrix();
+  update();
+}
+
+void GlScopeWidget::setScopeViewVerticalRange(qreal min, qreal max)
+{
+  // Reset to defaults if invalid or equal
+  if (max < min || max < 0 || min < 0 || qFuzzyCompare(min, max))
+  {
+    setScopeView();
+    return;
+  }
+
+  // Set vertical range
+  m_scopeView.setTop(min);
+  m_scopeView.setBottom(max);
+
+  // Set vaguely sane interval ticks
+  qreal rangeInterval = (max - min) / 10.0;
+  m_levelInterval = std::ceil(rangeInterval);
 
   updateMVPMatrix();
   update();
@@ -1469,6 +1489,79 @@ void GlScopeWidget::setDotSize(float width)
   emit dotSizeChanged(m_levelDotSize);
 }
 
+void GlScopeWidget::ShaderProgram::BuildProgram(const char* shaderName, const char* vertexShaderSource, const char* fragmentShaderSource)
+{
+  program = new QOpenGLShaderProgram();
+
+  if (!program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource))
+  {
+    qDebug() << shaderName << "Vertex Shader Failed:" << program->log();
+    UnloadProgram();
+    return;
+  }
+
+  if (!program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource))
+  {
+    qDebug() << shaderName << "Fragment Shader Failed:" << program->log();
+    UnloadProgram();
+    return;
+  }
+
+  if (!program->link())
+  {
+    qDebug() << shaderName << "Shader Link Failed:" << program->log();
+    UnloadProgram();
+    return;
+  }
+
+  vertexLocation = program->attributeLocation("vertex");
+  matrixUniform = program->uniformLocation("mvp");
+  colorUniform = program->uniformLocation("color");
+  pointSizeUniform = program->uniformLocation("pointsize");
+
+  if (!IsValid())
+    UnloadProgram();
+}
+
+void GlScopeWidget::ShaderProgram::UnloadProgram()
+{
+  if (program == nullptr)
+    return;
+
+  delete program;
+  program = nullptr;
+}
+
+bool GlScopeWidget::ShaderProgram::IsValid() const
+{
+  return program != nullptr && vertexLocation != -1 && matrixUniform != -1 && colorUniform != -1 && pointSizeUniform != -1;
+}
+
+bool GlScopeWidget::ShaderProgram::bind()
+{
+  return program && program->bind();
+}
+
+void GlScopeWidget::ShaderProgram::release()
+{
+  program->release();
+}
+
+void GlScopeWidget::ShaderProgram::setMatrix(const QMatrix4x4& matrix)
+{
+  program->setUniformValue(matrixUniform, matrix);
+}
+
+void GlScopeWidget::ShaderProgram::setColor(const QColor& color)
+{
+  program->setUniformValue(colorUniform, color);
+}
+
+void GlScopeWidget::ShaderProgram::setPointSize(float size)
+{
+  program->setUniformValue(pointSizeUniform, size);
+}
+
 void GlScopeWidget::initializeGL()
 {
   // Reparenting to a different top-level window causes the OpenGL Context to be destroyed and recreated
@@ -1490,6 +1583,18 @@ void GlScopeWidget::initializeGL()
     "  gl_PointSize = pointsize;"
     "}\n";
 
+  // Delta Time shader
+  const char* vertexDeltaTimeShaderSource =
+    "in vec4 vertex;\n" // { x prev_timestamp, y prev_level, z timestamp, w level }
+    "uniform mat4 mvp;\n"
+    "uniform float pointsize;\n"
+    "void main()\n"
+    "{\n"
+    //"  gl_Position = mvp * vec4(vertex.z, 127, 0, 1.0);\n"
+    "  gl_Position = mvp * vec4(vertex.z, (vertex.z - vertex.x) * 1000, 0, 1.0);\n"
+    "  gl_PointSize = pointsize;"
+    "}\n";
+
   const char* fragmentShaderSource =
     "uniform vec4 color;\n"
     "void main()\n"
@@ -1497,53 +1602,25 @@ void GlScopeWidget::initializeGL()
     "  gl_FragColor = color;\n"
     "}\n";
 
-  m_program = new QOpenGLShaderProgram(this);
-  if (!m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource))
-  {
-    qDebug() << "Vertex Shader Failed:" << m_program->log();
-    cleanupGL();
-    return;
-  }
-
-  if (!m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource))
-  {
-    qDebug() << "Fragment Shader Failed:" << m_program->log();
-    cleanupGL();
-    return;
-  }
-
-  if (!m_program->link())
-  {
-    qDebug() << "Shader Link Failed:" << m_program->log();
-    cleanupGL();
-    return;
-  }
-
-  m_vertexLocation = m_program->attributeLocation("vertex");
-  Q_ASSERT(m_vertexLocation != -1);
-  m_matrixUniform = m_program->uniformLocation("mvp");
-  Q_ASSERT(m_matrixUniform != -1);
-  m_colorUniform = m_program->uniformLocation("color");
-  Q_ASSERT(m_colorUniform != -1);
-  m_pointSizeUniform = m_program->uniformLocation("pointsize");
-  Q_ASSERT(m_pointSizeUniform != -1);
+  m_xyProgram.BuildProgram("xy", vertexShaderSource, fragmentShaderSource);
+  m_deltaProgram.BuildProgram("deltaTime", vertexDeltaTimeShaderSource, fragmentShaderSource);
 }
 
 void GlScopeWidget::cleanupGL()
 {
-  // The context is about to be destroyed, it may be recreated later
-  if (m_program == nullptr)
-    return; // Never started
+  if (!m_xyProgram.IsValid())
+    return;
 
+  // The context is about to be destroyed, it may be recreated later
   makeCurrent();
 
-  delete m_program;
-  m_program = nullptr;
+  m_xyProgram.UnloadProgram();
+  m_deltaProgram.UnloadProgram();
 
   doneCurrent();
 }
 
-inline void DrawLevelAxisText(QPainter& painter, const QFontMetricsF& metrics, const QRectF& scopeWindow, int level, qreal y_scale, const QString& postfix)
+inline static void DrawLevelAxisText(QPainter& painter, const QFontMetricsF& metrics, const QRectF& scopeWindow, int level, qreal y_scale, const QString& postfix)
 {
   const qreal y = scopeWindow.height() - (level * y_scale);
 
@@ -1639,12 +1716,15 @@ void GlScopeWidget::paintGL()
         }
       }
 
-      if (m_verticalScaleMode == VerticalScale::Percent)
+      QString postfix;
+      switch (m_verticalScaleMode)
       {
-        const QString postfix = QStringLiteral("%");
+      case VerticalScale::Percent:
+      {
+        postfix = QStringLiteral("%");
         const qreal max_value = 100.0;
         const qreal y_scale = scopeWindow.height() / 100.0; // Percent
-        const float value_scale = kMaxDmx8 / 100.0f;
+        const float value_scale = ScopeModel::kMaxDmx8 / 100.0f;
 
         // From bottom to top
         for (qreal value = m_scopeView.top(); value < max_value; value += m_levelInterval)
@@ -1660,10 +1740,14 @@ void GlScopeWidget::paintGL()
         gridLines.emplace_back(lineLeft, static_cast<float>(m_scopeView.bottom()));
         gridLines.emplace_back(lineRight, static_cast<float>(m_scopeView.bottom()));
         DrawLevelAxisText(painter, metrics, scopeWindow, max_value, y_scale, postfix);
-      }
-      else
+      } break;
+
+      case VerticalScale::DeltaTime:
+        postfix = QStringLiteral("ms");
+        [[fallthrough]];
+      case VerticalScale::Dmx8:
+      case VerticalScale::Dmx16:
       {
-        const QString postfix;
         const int max_value = m_scopeView.bottom();
         const qreal y_scale = scopeWindow.height() / m_scopeView.bottom();
 
@@ -1681,6 +1765,7 @@ void GlScopeWidget::paintGL()
         gridLines.emplace_back(lineLeft, max_value);
         gridLines.emplace_back(lineRight, max_value);
         DrawLevelAxisText(painter, metrics, scopeWindow, max_value, y_scale, postfix);
+      } break;
       }
     }
 
@@ -1733,79 +1818,124 @@ void GlScopeWidget::paintGL()
   }
 
   // Unable to render at all
-  if (!m_program)
+  if (!m_xyProgram.IsValid())
     return;
 
-  m_program->bind();
-  glEnableVertexAttribArray(m_vertexLocation);
+  m_xyProgram.bind();
+  glEnableVertexAttribArray(m_xyProgram.vertexLocation);
 
-  m_program->setUniformValue(m_matrixUniform, m_mvpMatrix);
+  m_xyProgram.setMatrix(m_mvpMatrix);
 
   // Draw the gridlines
   {
-    m_program->setUniformValue(m_colorUniform, gridColor);
-    glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, gridLines.data());
+    m_xyProgram.setColor(gridColor);
+    glVertexAttribPointer(m_xyProgram.vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, gridLines.data());
     glDrawArrays(GL_LINES, 0, gridLines.size());
   }
 
   // Draw the cursorLines
   if (!cursorLines.empty())
   {
-    m_program->setUniformValue(m_colorUniform, cursorColor);
-    glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, cursorLines.data());
+    m_xyProgram.setColor(cursorColor);
+    glVertexAttribPointer(m_xyProgram.vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, cursorLines.data());
     glDrawArrays(GL_LINES, 0, cursorLines.size());
   }
 
   if (m_model->isTriggered())
   {
     // Draw the current time
-    m_program->setUniformValue(m_colorUniform, timeCursorColor);
+    m_xyProgram.setColor(timeCursorColor);
     const std::vector<QVector2D> nowLine = {
       {static_cast<float>(m_model->endTime()), 0},
       {static_cast<float>(m_model->endTime()), static_cast<float>(m_scopeView.bottom())}
     };
-    glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, nowLine.data());
+    glVertexAttribPointer(m_xyProgram.vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, nowLine.data());
     glDrawArrays(GL_LINE_STRIP, 0, 2);
   }
   else if (!m_model->triggerIsFreeRun())
   {
     // Draw the trigger level marker
-    m_program->setUniformValue(m_colorUniform, triggerCursorColor);
+    m_xyProgram.setColor(triggerCursorColor);
 
     const std::vector<QVector2D> triggerLine = makeTriggerLine(m_model->triggerType());
 
-    glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, triggerLine.data());
+    glVertexAttribPointer(m_xyProgram.vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, triggerLine.data());
     glDrawArrays(GL_TRIANGLES, 0, triggerLine.size());
   }
 
-  glEnable(GL_PROGRAM_POINT_SIZE);
-  m_program->setUniformValue(m_pointSizeUniform, m_levelDotSize * float(devicePixelRatioF()));
-  for (ScopeTrace* trace : m_model->traces())
+  glDisableVertexAttribArray(m_xyProgram.vertexLocation);
+  m_xyProgram.release();
+
+  if (m_verticalScaleMode == VerticalScale::DeltaTime)
   {
-    if (!trace->enabled())
-      continue;
+    // Draw the trace using the deltatime program
+    m_deltaProgram.bind();
+    glEnableVertexAttribArray(m_deltaProgram.vertexLocation);
 
-    // Change the scale as needed
-    if (m_verticalScaleMode == VerticalScale::Percent)
+    m_deltaProgram.setMatrix(m_mvpMatrix);
+
+    glEnable(GL_PROGRAM_POINT_SIZE);
+    m_deltaProgram.setPointSize(m_levelDotSize * float(devicePixelRatioF()));
+    for (ScopeTrace* trace : m_model->traces())
     {
-      m_program->setUniformValue(m_matrixUniform, trace->isSixteenBit() ? m_mvpMatrix16 : m_mvpMatrix);
-    }
+      if (!trace->enabled())
+        continue;
 
-    m_program->setUniformValue(m_colorUniform, trace->color());
-    const auto levels = trace->values();
-    glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, levels.value().data());
-    glDrawArrays(GL_LINE_STRIP, 0, levels.value().size());
+      m_deltaProgram.setColor(trace->color());
+      const auto levels = trace->values();
+      if (levels.value().size() > 1)
+      {
+        glVertexAttribPointer(m_deltaProgram.vertexLocation, 4, GL_FLOAT, GL_FALSE, sizeof(QVector2D), levels.value().data());
+        glDrawArrays(GL_LINE_STRIP, 0, levels.value().size() - 1);
 
-    // Draw the points if enabled
-    if (m_levelDotSize > 0.5f)
-    {
-      glDrawArrays(GL_POINTS, 0, levels.value().size());
+        // Draw the points if enabled
+        if (m_levelDotSize > 0.5f)
+        {
+          glDrawArrays(GL_POINTS, 0, levels.value().size() - 1);
+        }
+      }
     }
+    glDisable(GL_PROGRAM_POINT_SIZE);
+
+    glDisableVertexAttribArray(m_deltaProgram.vertexLocation);
+    m_deltaProgram.release();
   }
-  glDisable(GL_PROGRAM_POINT_SIZE);
+  else
+  {
+    m_xyProgram.bind();
+    glEnableVertexAttribArray(m_xyProgram.vertexLocation);
 
-  glDisableVertexAttribArray(m_vertexLocation);
-  m_program->release();
+    m_xyProgram.setMatrix(m_mvpMatrix);
+
+    glEnable(GL_PROGRAM_POINT_SIZE);
+    m_xyProgram.setPointSize(m_levelDotSize * float(devicePixelRatioF()));
+    for (ScopeTrace* trace : m_model->traces())
+    {
+      if (!trace->enabled())
+        continue;
+
+      // Change the scale as needed
+      if (m_verticalScaleMode == VerticalScale::Percent)
+      {
+        m_xyProgram.setMatrix(trace->isSixteenBit() ? m_mvpMatrix16 : m_mvpMatrix);
+      }
+
+      m_xyProgram.setColor(trace->color());
+      const auto levels = trace->values();
+      glVertexAttribPointer(m_xyProgram.vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, levels.value().data());
+      glDrawArrays(GL_LINE_STRIP, 0, levels.value().size());
+
+      // Draw the points if enabled
+      if (m_levelDotSize > 0.5f)
+      {
+        glDrawArrays(GL_POINTS, 0, levels.value().size());
+      }
+    }
+    glDisable(GL_PROGRAM_POINT_SIZE);
+
+    glDisableVertexAttribArray(m_xyProgram.vertexLocation);
+    m_xyProgram.release();
+  }
 
   // Cursor labels if active
   // Draw these last so the gridlines aren't on top
@@ -1823,18 +1953,26 @@ void GlScopeWidget::paintGL()
 
     bool timeAtTop = true;
 
-    // Cursor level as percent and DMX if inside grid
+    // Cursor level as actual and percent if inside grid
     if (levelInView(m_cursorPoint))
     {
-      const qreal percent_value = m_cursorPoint.y() * (m_verticalScaleMode == VerticalScale::Dmx16 ? 100.0f / kMaxDmx16 : 100.0f / kMaxDmx8);
-      const QString text = QString::number(m_cursorPoint.y(), 'f', 0) + QStringLiteral(" (") //
-        + QString::number(percent_value, 'f', 2) //
-        + QStringLiteral("%)");
+      // Actual value
+      QString text = QString::number(m_cursorPoint.y(), 'f', 0);
+      if (m_verticalScaleMode != VerticalScale::DeltaTime)
+      {
+        // Append the percentage
+        const qreal percent_value = m_cursorPoint.y() * (m_verticalScaleMode == VerticalScale::Dmx16 ? 100.0f / ScopeModel::kMaxDmx16 : 100.0f / ScopeModel::kMaxDmx8);
+        text.append(QStringLiteral(" (") + QString::number(percent_value, 'f', 2) + QStringLiteral("%)"));
+      }
+      else
+      {
+        text.append(QStringLiteral("ms"));
+      }
 
       // Draw it above/below the line
       const qreal y_scale = scopeWindow.height() / m_scopeView.bottom();
       qreal y = scopeWindow.height() - (m_cursorPoint.y() * y_scale);
-      if (percent_value > 90.0)
+      if (m_cursorPoint.y() > m_scopeView.height() * 0.9)
       {
         y += metrics.ascent();
         timeAtTop = false;  // Draw the time at the bottom
