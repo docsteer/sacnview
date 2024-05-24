@@ -42,6 +42,9 @@ MultiView::MultiView(QWidget* parent)
 
   // Maybe don't show the Secure column
   ui->sourceTableView->setColumnHidden(SACNSourceTableModel::COL_PATHWAY_SECURE, !Preferences::Instance().GetPathwaySecureRx());
+
+  // Allow the user to temporarily rearrange the columns
+  ui->sourceTableView->horizontalHeader()->setSectionsMovable(true);
 }
 
 MultiView::~MultiView()

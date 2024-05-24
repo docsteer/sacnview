@@ -71,6 +71,11 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
         ui->tableView->setColumnHidden(col, true);
     // Maybe don't show the Secure column
     ui->tableView->setColumnHidden(SACNSourceTableModel::COL_PATHWAY_SECURE, !Preferences::Instance().GetPathwaySecureRx());
+    // Don'display the Notes column
+    ui->tableView->setColumnHidden(SACNSourceTableModel::COL_NOTES, true);
+
+    // Allow the user to temporarily rearrange the columns
+    ui->tableView->horizontalHeader()->setSectionsMovable(true);
 
     // Not running
     updateButtons(false);
