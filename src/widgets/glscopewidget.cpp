@@ -1233,17 +1233,6 @@ void ScopeModel::triggerNow(qreal offset)
   {
     trace->applyOffset(offset);
   }
-  // Reset the counters
-  for (sACNManager::tListener& listener : m_listeners)
-  {
-    auto sources = listener->getSourceList();
-    for (sACNSource* source : sources)
-    {
-      source->resetSeqErr();
-      source->resetJumps();
-      source->fpscounter.ClearHistogram();
-    }
-  }
 
   emit queueTriggered();
 }
