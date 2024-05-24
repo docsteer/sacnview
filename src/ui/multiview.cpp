@@ -73,6 +73,9 @@ void MultiView::on_btnStartStop_clicked(bool checked)
       m_listeners.emplace(universe, listener);
     }
 
+    // Reset the counters for all desired previously-known sources
+    m_sourceTableModel->resetCounters();
+
     // Unused listeners will now go out of scope and be destroyed "later"
   }
   else
