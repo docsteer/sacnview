@@ -27,15 +27,31 @@ SACNSourceTableModel::~SACNSourceTableModel()
 {
 }
 
+Qt::ItemFlags SACNSourceTableModel::flags(const QModelIndex& index) const
+{
+  Qt::ItemFlags result = QAbstractTableModel::flags(index);
+  if (index.column() == COL_NOTES)
+    result |= Qt::ItemIsEditable;
+  return result;
+}
+
 bool SACNSourceTableModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
   if (role != Qt::EditRole)
+    return false;
+
+  // Out of bounds
+  if (index.row() < 0 || index.row() >= m_rows.size())
     return false;
 
   // Sequence and Jump counters can be reset
   switch (index.column())
   {
   default: break;
+  case COL_NOTES:
+  {
+    m_notes.insert(m_rows[index.row()].cid, value.toString());
+  } return true;
   case COL_SEQ_ERR: // TODO
   case COL_JUMPS: // TODO
     break;
@@ -55,6 +71,7 @@ QVariant SACNSourceTableModel::data(const QModelIndex& index, int role) const
 
   switch (role)
   {
+  case Qt::EditRole:
   case Qt::DisplayRole: return getDisplayData(rowData, index.column());
 
   case Qt::BackgroundRole: return getBackgroundData(rowData, index.column());
@@ -112,7 +129,7 @@ QVariant SACNSourceTableModel::getDisplayData(const RowData& rowData, int column
   }
   case COL_CID: return rowData.cid;
   case COL_UNIVERSE: return rowData.universe;
-  case COL_PRIO: return rowData.per_address == SourcePriority::PerUniverse ?  QString::number(rowData.priority) : QStringLiteral("(%1)").arg(rowData.priority);
+  case COL_PRIO: return rowData.per_address == SourcePriority::PerUniverse ? QString::number(rowData.priority) : QStringLiteral("(%1)").arg(rowData.priority);
   case COL_SYNC:
     if (rowData.protocol_version == sACNProtocolDraft)
       return tr("N/A");
@@ -131,7 +148,7 @@ QVariant SACNSourceTableModel::getDisplayData(const RowData& rowData, int column
   case COL_SEQ_ERR: return rowData.seq_err;
   case COL_JUMPS: return rowData.jumps;
   case COL_VER: return GetProtocolVersionString(rowData.protocol_version);
-  case COL_DD: 
+  case COL_DD:
     switch (rowData.per_address)
     {
     case SourcePriority::PerUniverse: return tr("No");
@@ -150,6 +167,8 @@ QVariant SACNSourceTableModel::getDisplayData(const RowData& rowData, int column
     case SourceSecure::BadPassword: return tr("Bad Password");
     case SourceSecure::Yes: return tr("Yes");
     }
+    break;
+  case COL_NOTES: return m_notes.value(rowData.cid);
   }
   return QVariant();
 }
@@ -284,6 +303,7 @@ QVariant SACNSourceTableModel::headerData(int section, Qt::Orientation orientati
       case COL_DD: return tr("Per-Address");
       case COL_SLOTS: return tr("Slots");
       case COL_PATHWAY_SECURE: return tr("Secure");
+      case COL_NOTES: return tr("Notes");
       } break;
     case Qt::ToolTipRole:
       switch (section)
@@ -311,6 +331,7 @@ QVariant SACNSourceTableModel::headerData(int section, Qt::Orientation orientati
       case COL_DD: return tr("If the source supports Electronic Theatre Controls Per-Address extension, is the source transmitting per address priorities?");
       case COL_SLOTS: return tr("Number of DMX Data slots the source is transmitting");
       case COL_PATHWAY_SECURE: return tr("If the source supports Pathways Secure DMX extension, is the password correct and the packet secure?");
+      case COL_NOTES: return tr("User notes. Not provided by the source");
       }
       break;
     }
@@ -518,7 +539,7 @@ void SACNSourceTableModel::sourceChanged(sACNSource* source)
 
   // Update and signal
   m_rows[row_num].Update(source);
-  emit dataChanged(index(row_num, 0), index(row_num, COL_END - 1));
+  emit dataChanged(index(row_num, COL_SOURCE_UPDATE_BEGIN), index(row_num, COL_SOURCE_UPDATE_END));
 }
 
 void SACNSourceTableModel::sourceOnline(sACNSource* source)
