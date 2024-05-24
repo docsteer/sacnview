@@ -74,6 +74,9 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
     // Don'display the Notes column
     ui->tableView->setColumnHidden(SACNSourceTableModel::COL_NOTES, true);
 
+    // Allow the user to temporarily rearrange the columns
+    ui->tableView->horizontalHeader()->setSectionsMovable(true);
+
     // Not running
     updateButtons(false);
 }
