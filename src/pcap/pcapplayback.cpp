@@ -81,9 +81,11 @@ void PcapPlayback::openThread()
     connect(sender, &pcapplaybacksender::sendingFinished, this, &PcapPlayback::playbackFinished);
     connect(sender, &pcapplaybacksender::sendingClosed, this, &PcapPlayback::playbackClosed);
     connect(sender, &pcapplaybacksender::error, this, &PcapPlayback::error);
-    connect(sender, &QThread::finished, [this]() {
+    connect(sender, &QThread::finished, this, [this]()
+    {
         sender->deleteLater();
-        sender = Q_NULLPTR; });
+        sender = Q_NULLPTR;
+    });
     connect(sender, &pcapplaybacksender::finished, this, &PcapPlayback::playbackThreadClosed);
     ui->progressBar->reset();
     sender->start();
@@ -134,7 +136,7 @@ void PcapPlayback::on_btnOpen_clicked()
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t *m_pcap_in = pcap_open_offline(fileName.toUtf8(), errbuf);
     if (!m_pcap_in) {
-        error(tr("Error opening %1\n%2").arg(QDir::toNativeSeparators(fileName)).arg(errbuf));
+        error(tr("Error opening %1\n%2").arg(QDir::toNativeSeparators(fileName), errbuf));
         return;
     } else {
         ui->lblFilename->setText(QDir::toNativeSeparators(fileName));
@@ -191,7 +193,7 @@ void PcapPlayback::on_btnOpen_clicked()
     {
         QTime elasped(0,0,0);
         ui->lblFileTime->setText(QString("%1").arg(
-                                 elasped.addMSecs(pkt_start_time.msecsTo(pkt_end_time)).toString("hh:mm:ss.zzz")));
+            elasped.addMSecs(pkt_start_time.msecsTo(pkt_end_time)).toString("hh:mm:ss.zzz")));
     }
     updateUIBtns();
 

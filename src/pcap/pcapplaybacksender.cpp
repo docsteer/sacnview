@@ -92,7 +92,7 @@ void pcapplaybacksender::run()
                                m_pcap_out = pcap_open_live(dev->name, 0, 1, 0, errbuf);
                                if (!m_pcap_out)
                                {
-                                   emit error(tr("%1\n%2").arg(errbuf).arg(iface.humanReadableName()));
+                                   emit error(tr("%1\n%2").arg(errbuf, iface.humanReadableName()));
                                    return;
                                }
                             }
@@ -107,7 +107,7 @@ void pcapplaybacksender::run()
 
         // Did we get an interface?
         if (!m_pcap_out) {
-            error(tr("Unable to open required interface\n%1").arg(iface.humanReadableName()));
+            emit error(tr("Unable to open required interface\n%1").arg(iface.humanReadableName()));
             return;
         }
     }
@@ -211,7 +211,7 @@ bool pcapplaybacksender::openFile()
     char errbuf[PCAP_ERRBUF_SIZE];
     m_pcap_in = pcap_open_offline(m_filename.toUtf8(), errbuf);
     if (!m_pcap_in) {
-        emit error(tr("Error opening %1\n%2").arg(QDir::toNativeSeparators(m_filename)).arg(errbuf));
+        emit error(tr("Error opening %1\n%2").arg(QDir::toNativeSeparators(m_filename), errbuf));
         return false;
     }
 
