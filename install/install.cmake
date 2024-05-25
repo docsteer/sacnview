@@ -41,13 +41,6 @@
           COMMAND ${CMAKE_COMMAND} -E copy_if_different
           $<TARGET_FILE:sACNView> ${SACNVIEW_DEPLOY_DIR})
 
-      # Copy WinPCap DLLs
-      foreach(DLLFILE IN LISTS PCAP_LIBS)
-        add_custom_command (TARGET sACNView POST_BUILD
-          COMMAND ${CMAKE_COMMAND} -E copy_if_different
-          $<TARGET_FILE:${DLLFILE}> ${SACNVIEW_DEPLOY_DIR})
-      endforeach()
-
       # Run makensis if is installed in default location
       if(EXISTS ${SACNVIEW_MAKENSIS_FILE})
         if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64" OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES "AMD64")
