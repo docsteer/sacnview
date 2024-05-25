@@ -11,6 +11,7 @@
 #ifdef Q_OS_WIN
 #include <windows.h>
 #include <delayimp.h>
+#include <tchar.h>
 #endif
 
 PcapPlayback::PcapPlayback(QWidget *parent) :
@@ -37,6 +38,12 @@ bool PcapPlayback::foundLibPcap()
         }
         return EXCEPTION_CONTINUE_SEARCH;
     };
+
+    // Prefer Npcap
+    TCHAR npcapDir[BUFSIZ];
+    GetSystemDirectory(npcapDir, BUFSIZ);
+    _tcscat_s(npcapDir, BUFSIZ, TEXT("\\Npcap"));
+    SetDllDirectory(npcapDir);
 
     __try {
         HRESULT hr = __HrLoadAllImportsForDll("wpcap.dll");
