@@ -36,6 +36,14 @@
         COMMAND Qt::windeployqt  --release --no-compiler-runtime --dir "${SACNVIEW_DEPLOY_DIR}" "$<TARGET_FILE:sACNView>"
       )
 
+      # Qt5 requires OpenSSL to be added separately
+      if (NOT Qt6_FOUND)
+        foreach(DLLFILE IN LISTS OPENSSL_LIBS)
+          add_custom_command (TARGET sACNView POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${DLLFILE} ${SACNVIEW_DEPLOY_DIR})
+        endforeach()
+      endif()
+
       # Copy target
         add_custom_command (TARGET sACNView POST_BUILD
           COMMAND ${CMAKE_COMMAND} -E copy_if_different

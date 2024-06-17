@@ -1,5 +1,20 @@
 # All 3rd party libraries
 
+# Bundled OpenSSL for Qt5
+if (WIN32)
+  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64" OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES "AMD64")
+    set(OPENSSL_LIBS
+        ${CMAKE_CURRENT_LIST_DIR}/openssl-1.1.1q-win64/libcrypto-1_1-x64.dll
+        ${CMAKE_CURRENT_LIST_DIR}/openssl-1.1.1q-win64/libssl-1_1-x64.dll
+    )
+  else()
+    set(OPENSSL_LIBS
+        ${CMAKE_CURRENT_LIST_DIR}/openssl-1.1.1q-win32/libcrypto-1_1.dll
+        ${CMAKE_CURRENT_LIST_DIR}/openssl-1.1.1q-win632/libssl-1_1.dll
+    )
+  endif()
+endif()
+
 # WinPCap Library
 if (WIN32)
   set(PCAP_LIBS wpcap Packet)
