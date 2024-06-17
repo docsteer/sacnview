@@ -482,9 +482,12 @@ void GlScopeWindow::removeTrace(bool)
   if (!selection->hasSelection())
     return;
 
-  // Get the items to delete
-  QModelIndexList selected = selection->selectedIndexes();
-  m_scope->model()->removeTraces(selected);
+  // Get the items to delete via the proxy
+  QAbstractProxyModel* proxy = qobject_cast<QAbstractProxyModel*>(m_tableView->model());
+  if (proxy)
+    m_scope->model()->removeTraces(proxy->mapSelectionToSource(selection->selection()).indexes());
+  else
+    m_scope->model()->removeTraces(selection->selectedIndexes());
   refreshButtons();
 }
 
