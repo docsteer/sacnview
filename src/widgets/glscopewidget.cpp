@@ -1580,7 +1580,7 @@ void GlScopeWidget::initializeGL()
     "void main()\n"
     "{\n"
     //"  gl_Position = mvp * vec4(vertex.z, 127, 0, 1.0);\n"
-    "  gl_Position = mvp * vec4(vertex.z, (vertex.z - vertex.x) * 1000, 0, 1.0);\n"
+    "  gl_Position = mvp * vec4(vertex.z, (vertex.z - vertex.x) * 1000.0, 0, 1.0);\n"
     "  gl_PointSize = pointsize;"
     "}\n";
 
