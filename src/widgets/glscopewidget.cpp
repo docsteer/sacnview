@@ -44,6 +44,63 @@ T roundCeilMultiple(T value, T multiple)
   return static_cast<T>(std::ceil(static_cast<qreal>(value) / static_cast<qreal>(multiple)) * static_cast<qreal>(multiple));
 }
 
+//////////////////////////////////////////////////////////////////////
+
+void TraceBuffer::reserve(size_t items)
+{
+  if (hasRollingTimeLimit())
+    items = items * 2;  // Reserve enough space to shuffle back as a single block
+
+  m_buffer.reserve(items);
+}
+
+size_t TraceBuffer::capacity() const
+{
+  if (hasRollingTimeLimit())
+    return m_buffer.capacity() / 2;
+  else
+    return m_buffer.capacity();
+}
+
+void TraceBuffer::emplace_back(const float& time, const float& value)
+{
+  // Maybe move the buffer backwards
+  if (m_begin > size())
+  {
+    std::copy(begin(), end(), m_buffer.begin());
+    m_begin = 0;
+    m_buffer.resize(m_size);
+  }
+
+  m_buffer.emplace_back(time, value);
+  ++m_size;
+  applyRollingLimit();
+}
+
+void TraceBuffer::setRollingTimeLimit(float timelimit)
+{
+  m_timelimit = timelimit;
+  if (!empty())
+    applyRollingLimit();
+}
+
+// Assumes the buffer is not empty
+void TraceBuffer::applyRollingLimit()
+{
+  if (!hasRollingTimeLimit())
+    return;
+
+  // Keep removing until within the limit
+  // Usually this only removes one item
+  while (timeSpan() > m_timelimit)
+  {
+    ++m_begin;
+    --m_size;
+  }
+}
+
+//////////////////////////////////////////////////////////////////////
+
 bool ScopeTrace::extractUniverseAddress(QStringView address_string, uint16_t& universe, uint16_t& address_hi, uint16_t& address_lo)
 {
   if (address_string.front() != QLatin1Char('U'))

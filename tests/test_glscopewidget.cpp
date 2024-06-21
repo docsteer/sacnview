@@ -19,6 +19,13 @@
 #include <QBuffer>
 #include <QFile>
 
+QT_BEGIN_NAMESPACE
+inline void PrintTo(const QVector2D& vec, ::std::ostream* os)
+{
+  *os << '{' << vec.x() << ',' << vec.y() << '}';
+}
+QT_END_NAMESPACE
+
 TEST(ScopeTrace, AddPoint)
 {
   // Storing all points, even if same level
@@ -92,6 +99,47 @@ TEST(ScopeTrace, CompressPoints)
   trace.addPoint(++time, levels, &nilSource, false);
   EXPECT_EQ(5, trace.values().value().size());
   EXPECT_EQ(time, trace.values().value().back().x());
+}
+
+TEST(ScopeTrace, RollingCapture)
+{
+  // Storing all points, even if same level
+
+  ScopeTrace trace(Qt::red, 1, 1, 0, 10);
+  trace.setRollingTimeLimit(3.1f); // Slightly more than 3 seconds
+  EXPECT_TRUE(trace.isValid());
+  EXPECT_FALSE(trace.isSixteenBit());
+  EXPECT_TRUE(trace.values().value().empty());
+
+  // Source should not be null so create one
+  sACNSource nilSource(CID::CreateCid(), 1);
+  const sACNMergedSourceList levels = { {&nilSource, {}, 1}, {&nilSource,{},2} };
+
+  float time = 0;
+  trace.addPoint(time, levels, &nilSource, true);
+  ASSERT_EQ(1, trace.values().value().size());
+  EXPECT_EQ(QVector2D(time, 1), trace.values().value().back());
+
+  trace.addPoint(++time, levels, &nilSource, true);
+  EXPECT_EQ(2, trace.values().value().size());
+  EXPECT_EQ(QVector2D(time, 1), trace.values().value().back());
+
+  trace.addPoint(++time, levels, &nilSource, true);
+  EXPECT_EQ(3, trace.values().value().size()) << "Time" << time;
+  EXPECT_EQ(QVector2D(time, 1), trace.values().value().back());
+
+  // Now have three seconds worth, should not get any more
+  const size_t cap = trace.capacity();
+  for (size_t i = 0; i < 100; ++i)
+  {
+    ++time;
+    trace.addPoint(time, levels, &nilSource, true);
+    EXPECT_EQ(4, trace.values().value().size()) << "Time" << time;
+    EXPECT_EQ(QVector2D(time, 1), trace.values().value().back());
+  }
+
+  // Capacity should not have changed
+  EXPECT_EQ(cap, trace.capacity()) << "Capacity increased";
 }
 
 void VerifyRedGreenTrace(ScopeModel& glscope, const char* note)
