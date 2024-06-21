@@ -773,9 +773,9 @@ void ScopeModel::setCaptureConfiguration(const QString& configString)
 
   m_trigger.setConfiguration(configString);
 
-  m_runTime = ExtractValue(configString, QStringLiteral("Run For"), QStringLiteral("sec"));
+  setRunTime(ExtractValue(configString, QStringLiteral("Run For"), QStringLiteral("sec")));
 
-  m_storageTime = ExtractValue(configString, QLatin1String("Store"), QLatin1String("min")) * 60.0;
+  setStorageTime(ExtractValue(configString, QLatin1String("Store"), QLatin1String("min")) * 60.0);
 }
 
 bool ScopeModel::saveTraces(QIODevice& file) const
@@ -1013,6 +1013,9 @@ bool ScopeModel::loadTraces(QIODevice& file)
   // Fairly likely to be valid, stop and clear my data now
   beginResetModel();
   private_removeAllTraces();
+
+  // Do not enforce storage time limit during load
+  setStorageTime(0);
 
   // Read the wallclock trigger datetime
   if (wallclockTrigger.isValid())
