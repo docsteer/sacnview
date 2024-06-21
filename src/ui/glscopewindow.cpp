@@ -603,6 +603,7 @@ void GlScopeWindow::updateConfiguration()
   // Read values back from the scope model
   m_recordMode->setCurrentIndex(m_scope->model()->storeAllPoints() ? 0 : 1);
   m_spinRunTime->setValue(m_scope->model()->runTime());
+  onStorageTimeChanged(m_scope->model()->storageTime());
   m_triggerType->setCurrentIndex(static_cast<int>(m_scope->model()->triggerType()));
   m_spinTriggerLevel->setValue(m_scope->model()->triggerLevel());
 }

@@ -740,8 +740,28 @@ QString ScopeModel::captureConfigurationString() const
   if (m_runTime > 0)
     result.append(QStringLiteral("Run For %1 sec,").arg(m_runTime));
 
+  if (m_storageTime > 0)
+  {
+    result.append(QStringLiteral("Store %1 min,").arg(m_storageTime / 60.0, 0, 'f', 0));
+  }
+
   result.chop(1);
   return result;
+}
+
+qreal ExtractValue(const QString& configString, const QString& item, const QString& units, qreal default = 0)
+{
+  qsizetype valuePos = configString.indexOf(item);
+  const qsizetype valueUnitPos = configString.indexOf(units, valuePos);
+  if (valuePos < 0 || valueUnitPos < 0)
+    return default;
+
+  bool ok;
+  valuePos += item.size() + 1;
+  const qreal value = configString.mid(valuePos, valueUnitPos - valuePos).toDouble(&ok);
+  if (ok)
+    return value;
+  return default;
 }
 
 void ScopeModel::setCaptureConfiguration(const QString& configString)
@@ -753,20 +773,9 @@ void ScopeModel::setCaptureConfiguration(const QString& configString)
 
   m_trigger.setConfiguration(configString);
 
-  qsizetype runTimePos = configString.indexOf(QLatin1String("Run For"));
-  const qsizetype runTimeSecPos = configString.indexOf(QLatin1String("sec"), runTimePos);
-  if (runTimePos < 0 || runTimeSecPos < 0)
-  {
-    m_runTime = 0;
-  }
-  else
-  {
-    bool ok;
-    runTimePos += 8;
-    const qreal time = configString.mid(runTimePos, runTimeSecPos - runTimePos).toDouble(&ok);
-    if (ok)
-      m_runTime = time;
-  }
+  m_runTime = ExtractValue(configString, QStringLiteral("Run For"), QStringLiteral("sec"));
+
+  m_storageTime = ExtractValue(configString, QLatin1String("Store"), QLatin1String("min")) * 60.0;
 }
 
 bool ScopeModel::saveTraces(QIODevice& file) const
