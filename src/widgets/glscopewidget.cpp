@@ -44,6 +44,63 @@ T roundCeilMultiple(T value, T multiple)
   return static_cast<T>(std::ceil(static_cast<qreal>(value) / static_cast<qreal>(multiple)) * static_cast<qreal>(multiple));
 }
 
+//////////////////////////////////////////////////////////////////////
+
+void TraceBuffer::reserve(size_t items)
+{
+  if (hasRollingTimeLimit())
+    items = items * 2;  // Reserve enough space to shuffle back as a single block
+
+  m_buffer.reserve(items);
+}
+
+size_t TraceBuffer::capacity() const
+{
+  if (hasRollingTimeLimit())
+    return m_buffer.capacity() / 2;
+  else
+    return m_buffer.capacity();
+}
+
+void TraceBuffer::emplace_back(const float& time, const float& value)
+{
+  // Maybe move the buffer backwards
+  if (m_begin > size())
+  {
+    std::copy(begin(), end(), m_buffer.begin());
+    m_begin = 0;
+    m_buffer.resize(m_size);
+  }
+
+  m_buffer.emplace_back(time, value);
+  ++m_size;
+  applyRollingLimit();
+}
+
+void TraceBuffer::setRollingTimeLimit(float timelimit)
+{
+  m_timelimit = timelimit;
+  if (!empty())
+    applyRollingLimit();
+}
+
+// Assumes the buffer is not empty
+void TraceBuffer::applyRollingLimit()
+{
+  if (!hasRollingTimeLimit())
+    return;
+
+  // Keep removing until within the limit
+  // Usually this only removes one item
+  while (timeSpan() > m_timelimit)
+  {
+    ++m_begin;
+    --m_size;
+  }
+}
+
+//////////////////////////////////////////////////////////////////////
+
 bool ScopeTrace::extractUniverseAddress(QStringView address_string, uint16_t& universe, uint16_t& address_hi, uint16_t& address_lo)
 {
   if (address_string.front() != QLatin1Char('U'))
@@ -269,7 +326,7 @@ ScopeModel::AddResult ScopeModel::addTrace(const QColor& color, uint16_t univers
     }
 
     beginInsertRows(QModelIndex(), m_traceTable.size(), m_traceTable.size());
-    ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_reservation);
+    ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_storageTime, m_reservation);
     m_traceTable.push_back(trace);
     m_traceLookup.emplace(universe, std::vector<ScopeTrace*>(1, trace));
     endInsertRows();
@@ -295,7 +352,7 @@ ScopeModel::AddResult ScopeModel::addTrace(const QColor& color, uint16_t univers
 
   // Add this new trace to the existing universe
   beginInsertRows(QModelIndex(), m_traceTable.size(), m_traceTable.size());
-  ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_reservation);
+  ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_storageTime, m_reservation);
   m_traceTable.push_back(trace);
   univs_item.push_back(trace);
   endInsertRows();
@@ -683,8 +740,28 @@ QString ScopeModel::captureConfigurationString() const
   if (m_runTime > 0)
     result.append(QStringLiteral("Run For %1 sec,").arg(m_runTime));
 
+  if (m_storageTime > 0)
+  {
+    result.append(QStringLiteral("Store %1 min,").arg(m_storageTime / 60.0, 0, 'f', 0));
+  }
+
   result.chop(1);
   return result;
+}
+
+qreal ExtractValue(const QString& configString, const QString& item, const QString& units, qreal default = 0)
+{
+  qsizetype valuePos = configString.indexOf(item);
+  const qsizetype valueUnitPos = configString.indexOf(units, valuePos);
+  if (valuePos < 0 || valueUnitPos < 0)
+    return default;
+
+  bool ok;
+  valuePos += item.size() + 1;
+  const qreal value = configString.mid(valuePos, valueUnitPos - valuePos).toDouble(&ok);
+  if (ok)
+    return value;
+  return default;
 }
 
 void ScopeModel::setCaptureConfiguration(const QString& configString)
@@ -696,20 +773,9 @@ void ScopeModel::setCaptureConfiguration(const QString& configString)
 
   m_trigger.setConfiguration(configString);
 
-  qsizetype runTimePos = configString.indexOf(QLatin1String("Run For"));
-  const qsizetype runTimeSecPos = configString.indexOf(QLatin1String("sec"), runTimePos);
-  if (runTimePos < 0 || runTimeSecPos < 0)
-  {
-    m_runTime = 0;
-  }
-  else
-  {
-    bool ok;
-    runTimePos += 8;
-    const qreal time = configString.mid(runTimePos, runTimeSecPos - runTimePos).toDouble(&ok);
-    if (ok)
-      m_runTime = time;
-  }
+  setRunTime(ExtractValue(configString, QStringLiteral("Run For"), QStringLiteral("sec")));
+
+  setStorageTime(ExtractValue(configString, QLatin1String("Store"), QLatin1String("min")) * 60.0);
 }
 
 bool ScopeModel::saveTraces(QIODevice& file) const
@@ -948,6 +1014,9 @@ bool ScopeModel::loadTraces(QIODevice& file)
   beginResetModel();
   private_removeAllTraces();
 
+  // Do not enforce storage time limit during load
+  setStorageTime(0);
+
   // Read the wallclock trigger datetime
   if (wallclockTrigger.isValid())
     m_wallclockTrigger_ms = wallclockTrigger.toMSecsSinceEpoch();
@@ -1107,6 +1176,23 @@ void ScopeModel::setRunTime(qreal seconds)
   emit runTimeChanged(runTime());
 }
 
+void ScopeModel::setStorageTime(qreal seconds)
+{
+  if (storageTime() == seconds)
+    return;
+
+  // Validate and update new or existing value
+  if (seconds >= 0)
+    m_storageTime = seconds;
+
+  for (ScopeTrace* trace : m_traceTable)
+  {
+    trace->setRollingTimeLimit(m_storageTime);
+  }
+
+  emit storageTimeChanged(storageTime());
+}
+
 // Triggers
 void ScopeModel::setTriggerType(Trigger mode)
 {
@@ -1239,12 +1325,14 @@ void ScopeModel::triggerNow(qreal offset)
 
 QRectF ScopeModel::traceExtents() const
 {
+  if (m_storageTime > 0)
+    return QRectF(std::max(m_endTime - m_storageTime, 0.0), 0, m_storageTime, m_maxValue);
   return QRectF(0, 0, m_endTime, m_maxValue);
 }
 
 qreal ScopeModel::endTime() const
 {
-  if (isTriggered())
+  if (isRunning() && isTriggered())
     return (qreal(sACNManager::elapsed()) / 1000) - m_startOffset;
 
   return m_endTime;

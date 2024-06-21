@@ -42,6 +42,65 @@ private:
   QMutex& m_mutex;
 };
 
+
+// A time-based circularish buffer
+// All items will always be contiguous in memory.
+// Adding occasionally causes the internal buffer to be copied or resized
+class TraceBuffer
+{
+public:
+  inline void clear() noexcept { m_begin = 0; m_size = 0; m_buffer.clear(); }
+  void reserve(size_t items);
+  size_t capacity() const;
+  inline size_t size() const noexcept { return m_size; }
+  inline bool empty() const noexcept { return m_size == 0; }
+
+  // Append
+  inline void push_back(const QVector2D& value) { emplace_back(value.x(), value.y()); }
+  void emplace_back(const float& time, const float& value);
+
+  // Access specific item
+  inline QVector2D& operator[](size_t pos) { return m_buffer[pos + m_begin]; }
+  inline const QVector2D& operator[](size_t pos) const { return m_buffer[pos + m_begin]; }
+
+  inline QVector2D& front() { return m_buffer[m_begin]; }
+  inline const QVector2D& front() const { return m_buffer[m_begin]; }
+
+  inline QVector2D& back() { return m_buffer[m_begin + m_size - 1]; }
+  inline const QVector2D& back() const { return m_buffer[m_begin + m_size - 1]; }
+
+  inline const QVector2D* data() const noexcept { return m_buffer.data() + m_begin; }
+
+  // iterators
+  using iterator = ::std::vector<QVector2D>::iterator;
+  using const_iterator = ::std::vector<QVector2D>::const_iterator;
+  inline iterator begin() { return m_buffer.begin() + m_begin; }
+  inline const_iterator begin() const { return m_buffer.begin() + m_begin; }
+  inline const_iterator cbegin() const { return begin(); }
+  inline iterator end() { return begin() + m_size; }
+  inline const_iterator end() const { return begin() + m_size; }
+  inline const_iterator cend() const { return end(); }
+
+  // Copy to std::vector
+  inline explicit operator std::vector<QVector2D>() const { return std::vector<QVector2D>(begin(), end()); }
+
+  // Update the timelimit
+  bool hasRollingTimeLimit() const { return m_timelimit > 0; }
+  float rollingTimeLimit() const { return m_timelimit; }
+  void setRollingTimeLimit(float timelimit);
+
+  inline float timeSpan() const { return empty() ? 0.0f : back().x() - front().x(); }
+  iterator lower_bound(float time) { return ::std::lower_bound(begin(), end(), time, [](const QVector2D& item, float t) {return item.x() < t; }); }
+
+private:
+  std::vector<QVector2D> m_buffer;
+  size_t m_begin = 0;
+  size_t m_size = 0;
+  float m_timelimit = 0;
+
+  void applyRollingLimit();
+};
+
 class ScopeTrace
 {
 public:
@@ -53,13 +112,14 @@ public:
    * @param address_lo The DMX address (1-512) of the Fine byte
    * @param reservation How many points to reserve ahead of time
   */
-  ScopeTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo, size_t reservation)
+  ScopeTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo, float timelimit, size_t reservation)
     : m_color(color)
     , m_universe(universe)
     , m_slot_hi(address_hi - 1)
     , m_slot_lo(address_lo - 1)
   {
-    reserve(reservation);
+    m_trace.reserve(reservation);
+    m_trace.setRollingTimeLimit(timelimit);
   }
 
   // String conversion
@@ -92,6 +152,9 @@ public:
   const QString& label() const { return m_label; }
   void setLabel(const QString& label) { m_label = label; }
 
+  float getRollingTimeLimit() const { return m_trace.rollingTimeLimit(); }
+  void setRollingTimeLimit(float timelimit) { QMutexLocker lock(&m_mutex); m_trace.setRollingTimeLimit(timelimit); }
+
   void clear() { QMutexLocker lock(&m_mutex); m_trace.clear(); }
   void reserve(size_t point_count) { QMutexLocker lock(&m_mutex); m_trace.reserve(point_count); }
 
@@ -102,14 +165,17 @@ public:
   void applyOffset(float offset);
 
   // For rendering
-  InterlockedReader<std::vector<QVector2D>> values() const { return InterlockedReader<std::vector<QVector2D>>(m_trace, m_mutex); }
+  InterlockedReader<TraceBuffer> values() const { return InterlockedReader<TraceBuffer>(m_trace, m_mutex); }
 
   // For loading from CSV
   void addValue(const QVector2D& value) { QMutexLocker lock(&m_mutex); m_trace.push_back(value); }
 
+  // For test purposes
+  size_t capacity() const { return m_trace.capacity(); }
+
 private:
   mutable QMutex m_mutex;
-  std::vector<QVector2D> m_trace;
+  TraceBuffer m_trace;
   QColor m_color;
   uint16_t m_universe = 0;
   uint16_t m_slot_hi = 0;
@@ -267,11 +333,19 @@ public:
 
   /**
   * @brief Length of time in seconds to run after Start or Trigger
-  * Zero for forever (or until memory is exhausted)
+  * Zero for forever
   */
   qreal runTime() const { return m_runTime; }
   Q_SLOT void setRunTime(qreal seconds);
   Q_SIGNAL void runTimeChanged(qreal seconds);
+
+  /**
+  * @brief Length of time in seconds to store data
+  * Zero for forever (or until memory is exhausted)
+  */
+  qreal storageTime() const { return m_storageTime; }
+  Q_SLOT void setStorageTime(qreal seconds);
+  Q_SIGNAL void storageTimeChanged(qreal seconds);
 
   /// Trace visibility has changed so must re-render
   Q_SIGNAL void traceVisibilityChanged();
@@ -326,6 +400,7 @@ private:
   qreal m_endTime = 0;  // Max. time extents of the scope measurements
   qreal m_maxValue = 0; // Max. possible value in DMX
   qreal m_runTime = 0;
+  qreal m_storageTime = 0;
   qint64 m_wallclockTrigger_ms = 0; // Wallclock time of trigger in milliseconds since epoch
   int m_timerId = 0;
 

@@ -98,7 +98,7 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
 
       ++row;
 
-      lbl = new QLabel(tr("Store:"), confWidget);
+      lbl = new QLabel(tr("Plot:"), confWidget);
       layoutGrp->addWidget(lbl, row, 0);
       m_recordMode = new QComboBox(confWidget);
       m_recordMode->addItems({ tr("All Packets"), tr("Level Changes") });
@@ -133,6 +133,23 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
 
       m_disableWhenRunning.push_back(lbl);
       m_disableWhenRunning.push_back(m_spinRunTime);
+
+      ++row;
+      //! Storage Scope capacity configuration
+      lbl = new QLabel(tr("Store:"), confWidget);
+      layoutGrp->addWidget(lbl, row, 0);
+      m_spinStorageTime = new SteppedSpinBox(confWidget);
+      m_spinStorageTime->setStepList({ 0,1,5,10,15,20,30,60,120 }); // Minutes
+      //! Minutes suffix
+      m_spinStorageTime->setSuffix(tr("min"));
+      m_spinStorageTime->setSpecialValueText(tr("Forever"));
+      onStorageTimeChanged(m_scope->model()->storageTime());
+      connect(m_spinStorageTime, QOverload<int>::of(&QSpinBox::valueChanged), this, &GlScopeWindow::setStorageTime);
+      connect(m_scope->model(), &ScopeModel::storageTimeChanged, this, &GlScopeWindow::onStorageTimeChanged);
+      layoutGrp->addWidget(m_spinStorageTime, row, 1, 1, 2);
+
+      m_disableWhenRunning.push_back(lbl);
+      m_disableWhenRunning.push_back(m_spinStorageTime);
 
       ++row;
       //! Scope vertical scale configuration
@@ -330,7 +347,7 @@ void GlScopeWindow::onRunningChanged(bool running)
 void GlScopeWindow::onTimeSliderMoved(int value)
 {
   qreal startTime = value;
-  startTime = startTime / 1000;
+  startTime = startTime / 1000.0;
   QRectF scopeView = m_scope->scopeView();
   scopeView.moveLeft(startTime);
   m_scope->setScopeView(scopeView);
@@ -345,6 +362,16 @@ void GlScopeWindow::onTimeDivisionsChanged(int value)
 void GlScopeWindow::setTimeFormat(int value)
 {
   m_scope->setTimeFormat(static_cast<GlScopeWidget::TimeFormat>(value));
+}
+
+void GlScopeWindow::setStorageTime(int minutes)
+{
+  m_scope->model()->setStorageTime(minutes * 60.0);
+}
+
+void GlScopeWindow::onStorageTimeChanged(qreal seconds)
+{
+  m_spinStorageTime->setValue(seconds / 60);
 }
 
 void GlScopeWindow::setRecordMode(int idx)
@@ -552,10 +579,12 @@ void GlScopeWindow::updateTimeScrollBars()
   const QRectF extents = m_scope->model()->traceExtents();
   const qreal viewWidth = m_scope->scopeView().width();
   m_scrollTime->setEnabled(extents.width() > viewWidth);
+  if (!m_scrollTime->isEnabled())
+    return;
 
   // Use milliseconds
   m_scrollTime->setMinimum(extents.left() * 1000);
-  const qreal maxVal = (extents.right() - viewWidth) * 1000;
+  const qreal maxVal = (extents.right() - viewWidth) * 1000.0;
   m_scrollTime->setMaximum(maxVal > 0 ? maxVal : 0);
   m_scrollTime->setPageStep(viewWidth * 1000);
 
@@ -574,6 +603,7 @@ void GlScopeWindow::updateConfiguration()
   // Read values back from the scope model
   m_recordMode->setCurrentIndex(m_scope->model()->storeAllPoints() ? 0 : 1);
   m_spinRunTime->setValue(m_scope->model()->runTime());
+  onStorageTimeChanged(m_scope->model()->storageTime());
   m_triggerType->setCurrentIndex(static_cast<int>(m_scope->model()->triggerType()));
   m_spinTriggerLevel->setValue(m_scope->model()->triggerLevel());
 }
