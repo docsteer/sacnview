@@ -347,7 +347,7 @@ void GlScopeWindow::onRunningChanged(bool running)
 void GlScopeWindow::onTimeSliderMoved(int value)
 {
   qreal startTime = value;
-  startTime = startTime / 1000;
+  startTime = startTime / 1000.0;
   QRectF scopeView = m_scope->scopeView();
   scopeView.moveLeft(startTime);
   m_scope->setScopeView(scopeView);
@@ -579,10 +579,12 @@ void GlScopeWindow::updateTimeScrollBars()
   const QRectF extents = m_scope->model()->traceExtents();
   const qreal viewWidth = m_scope->scopeView().width();
   m_scrollTime->setEnabled(extents.width() > viewWidth);
+  if (!m_scrollTime->isEnabled())
+    return;
 
   // Use milliseconds
   m_scrollTime->setMinimum(extents.left() * 1000);
-  const qreal maxVal = (extents.right() - viewWidth) * 1000;
+  const qreal maxVal = (extents.right() - viewWidth) * 1000.0;
   m_scrollTime->setMaximum(maxVal > 0 ? maxVal : 0);
   m_scrollTime->setPageStep(viewWidth * 1000);
 
