@@ -30,7 +30,7 @@ TEST(ScopeTrace, AddPoint)
 {
   // Storing all points, even if same level
 
-  ScopeTrace trace(Qt::red, 1, 1, 0, 10);
+  ScopeTrace trace(Qt::red, 1, 1, 0, 0, 10);
   EXPECT_TRUE(trace.isValid());
   EXPECT_FALSE(trace.isSixteenBit());
   EXPECT_TRUE(trace.values().value().empty());
@@ -72,7 +72,7 @@ TEST(ScopeTrace, CompressPoints)
 {
   // Only storing level changes
 
-  ScopeTrace trace(Qt::red, 1, 1, 0, 10);
+  ScopeTrace trace(Qt::red, 1, 1, 0, 0, 10);
   // Add three identical levels
     // Source should not be null so create one
   sACNSource nilSource(CID::CreateCid(), 1);
@@ -105,8 +105,7 @@ TEST(ScopeTrace, RollingCapture)
 {
   // Storing all points, even if same level
 
-  ScopeTrace trace(Qt::red, 1, 1, 0, 10);
-  trace.setRollingTimeLimit(3.1f); // Slightly more than 3 seconds
+  ScopeTrace trace(Qt::red, 1, 1, 0, 3.1f, 10);// Slightly more than 3 seconds
   EXPECT_TRUE(trace.isValid());
   EXPECT_FALSE(trace.isSixteenBit());
   EXPECT_TRUE(trace.values().value().empty());

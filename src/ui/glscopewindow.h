@@ -43,6 +43,8 @@ private:
   Q_SLOT void onTimeSliderMoved(int value);
   Q_SLOT void onTimeDivisionsChanged(int value);
   Q_SLOT void setTimeFormat(int value);
+  Q_SLOT void setStorageTime(int minutes);
+  Q_SLOT void onStorageTimeChanged(qreal seconds);
 
   Q_SLOT void setRecordMode(int idx);
   Q_SLOT void setTraceStyle(int idx);
@@ -71,6 +73,7 @@ private:
   QComboBox* m_recordMode = nullptr;
   QComboBox* m_traceStyle = nullptr;
   QSpinBox* m_spinRunTime = nullptr;
+  SteppedSpinBox* m_spinStorageTime = nullptr;
   SteppedSpinBox* m_spinVertScale = nullptr;
   SteppedSpinBox* m_spinTimeScale = nullptr;
   QComboBox* m_timeFormat = nullptr;

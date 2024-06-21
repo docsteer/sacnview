@@ -326,7 +326,7 @@ ScopeModel::AddResult ScopeModel::addTrace(const QColor& color, uint16_t univers
     }
 
     beginInsertRows(QModelIndex(), m_traceTable.size(), m_traceTable.size());
-    ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_reservation);
+    ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_storageTime, m_reservation);
     m_traceTable.push_back(trace);
     m_traceLookup.emplace(universe, std::vector<ScopeTrace*>(1, trace));
     endInsertRows();
@@ -352,7 +352,7 @@ ScopeModel::AddResult ScopeModel::addTrace(const QColor& color, uint16_t univers
 
   // Add this new trace to the existing universe
   beginInsertRows(QModelIndex(), m_traceTable.size(), m_traceTable.size());
-  ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_reservation);
+  ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_storageTime, m_reservation);
   m_traceTable.push_back(trace);
   univs_item.push_back(trace);
   endInsertRows();
@@ -1164,6 +1164,23 @@ void ScopeModel::setRunTime(qreal seconds)
   emit runTimeChanged(runTime());
 }
 
+void ScopeModel::setStorageTime(qreal seconds)
+{
+  if (storageTime() == seconds)
+    return;
+
+  // Validate and update new or existing value
+  if (seconds >= 0)
+    m_storageTime = seconds;
+
+  for (ScopeTrace* trace : m_traceTable)
+  {
+    trace->setRollingTimeLimit(m_storageTime);
+  }
+
+  emit storageTimeChanged(storageTime());
+}
+
 // Triggers
 void ScopeModel::setTriggerType(Trigger mode)
 {
@@ -1296,12 +1313,14 @@ void ScopeModel::triggerNow(qreal offset)
 
 QRectF ScopeModel::traceExtents() const
 {
+  if (m_storageTime > 0)
+    return QRectF(std::max(m_endTime - m_storageTime, 0.0), 0, m_storageTime, m_maxValue);
   return QRectF(0, 0, m_endTime, m_maxValue);
 }
 
 qreal ScopeModel::endTime() const
 {
-  if (isTriggered())
+  if (isRunning() && isTriggered())
     return (qreal(sACNManager::elapsed()) / 1000) - m_startOffset;
 
   return m_endTime;

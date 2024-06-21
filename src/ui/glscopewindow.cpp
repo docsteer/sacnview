@@ -98,7 +98,7 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
 
       ++row;
 
-      lbl = new QLabel(tr("Store:"), confWidget);
+      lbl = new QLabel(tr("Plot:"), confWidget);
       layoutGrp->addWidget(lbl, row, 0);
       m_recordMode = new QComboBox(confWidget);
       m_recordMode->addItems({ tr("All Packets"), tr("Level Changes") });
@@ -133,6 +133,23 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
 
       m_disableWhenRunning.push_back(lbl);
       m_disableWhenRunning.push_back(m_spinRunTime);
+
+      ++row;
+      //! Storage Scope capacity configuration
+      lbl = new QLabel(tr("Store:"), confWidget);
+      layoutGrp->addWidget(lbl, row, 0);
+      m_spinStorageTime = new SteppedSpinBox(confWidget);
+      m_spinStorageTime->setStepList({ 0,1,5,10,15,20,30,60,120 }); // Minutes
+      //! Minutes suffix
+      m_spinStorageTime->setSuffix(tr("min"));
+      m_spinStorageTime->setSpecialValueText(tr("Forever"));
+      onStorageTimeChanged(m_scope->model()->storageTime());
+      connect(m_spinStorageTime, QOverload<int>::of(&QSpinBox::valueChanged), this, &GlScopeWindow::setStorageTime);
+      connect(m_scope->model(), &ScopeModel::storageTimeChanged, this, &GlScopeWindow::onStorageTimeChanged);
+      layoutGrp->addWidget(m_spinStorageTime, row, 1, 1, 2);
+
+      m_disableWhenRunning.push_back(lbl);
+      m_disableWhenRunning.push_back(m_spinStorageTime);
 
       ++row;
       //! Scope vertical scale configuration
@@ -345,6 +362,16 @@ void GlScopeWindow::onTimeDivisionsChanged(int value)
 void GlScopeWindow::setTimeFormat(int value)
 {
   m_scope->setTimeFormat(static_cast<GlScopeWidget::TimeFormat>(value));
+}
+
+void GlScopeWindow::setStorageTime(int minutes)
+{
+  m_scope->model()->setStorageTime(minutes * 60.0);
+}
+
+void GlScopeWindow::onStorageTimeChanged(qreal seconds)
+{
+  m_spinStorageTime->setValue(seconds / 60);
 }
 
 void GlScopeWindow::setRecordMode(int idx)
