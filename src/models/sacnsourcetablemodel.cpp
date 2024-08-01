@@ -129,7 +129,7 @@ QVariant SACNSourceTableModel::getDisplayData(const RowData& rowData, int column
   }
   case COL_CID: return rowData.cid;
   case COL_UNIVERSE: return rowData.universe;
-  case COL_PRIO: return rowData.per_address == SourcePriority::PerUniverse ? QString::number(rowData.priority) : QStringLiteral("(%1)").arg(rowData.priority);
+  case COL_PRIO: return rowData.per_address == SourcePriority::PerUniverse ? QString::number(rowData.priority) : QStringLiteral("[%1]").arg(rowData.priority);
   case COL_SYNC:
     if (rowData.protocol_version == sACNProtocolDraft)
       return tr("N/A");
