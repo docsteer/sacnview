@@ -101,6 +101,7 @@ set(SACNVIEW_HEADERS
     src/models/csvmodelexport.h
     src/widgets/glscopewidget.h
     src/widgets/steppedspinbox.h
+    src/widgets/checkableheader.h
 )
 
 set(SACNVIEW_SOURCES
@@ -154,6 +155,7 @@ set(SACNVIEW_SOURCES
     src/widgets/glscopewidget.cpp
     src/models/sacnsourcetablemodel.cpp
     src/models/csvmodelexport.cpp
+    src/widgets/checkableheader.cpp
 )
 
 # Prepend the path to all sources

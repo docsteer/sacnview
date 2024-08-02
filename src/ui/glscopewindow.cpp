@@ -16,6 +16,7 @@
 
 #include "widgets/glscopewidget.h"
 #include "widgets/steppedspinbox.h"
+#include "widgets/checkableheader.h"
 
 #include <QBoxLayout>
 #include <QGridLayout>
@@ -24,7 +25,6 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QGroupBox>
-#include <QHeaderView>
 #include <QLabel>
 #include <QPushButton>
 #include <QScrollBar>
@@ -246,6 +246,7 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
       QBoxLayout* layoutGrp = new QVBoxLayout(grpChans);
 
       m_tableView = new QTableView(this);
+      m_tableView->setHorizontalHeader(new CheckableHeader(m_tableView));
       m_tableView->verticalHeader()->hide();
       m_tableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
       m_tableView->setAlternatingRowColors(true);
