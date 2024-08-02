@@ -1584,9 +1584,20 @@ void GlScopeWidget::setScopeView(const QRectF& rect)
 {
   if (rect.isEmpty())
   {
-    m_scopeView = m_model->traceExtents();
-    m_scopeView.setRight(m_defaultIntervalCount * m_timeInterval);
-    setVerticalScaleMode(m_verticalScaleMode);
+    QRectF extents = m_model->traceExtents();
+    extents.setRight(m_defaultIntervalCount * m_timeInterval);
+
+    if (m_verticalScaleMode == VerticalScale::DeltaTime && m_scopeView.height() > 0)
+    {
+      // Keep the vertical scale the same
+      m_scopeView.setLeft(extents.left());
+      m_scopeView.setRight(extents.right());
+    }
+    else
+    {
+      m_scopeView = extents;
+      setVerticalScaleMode(m_verticalScaleMode);
+    }
   }
   else if (rect == m_scopeView)
   {
