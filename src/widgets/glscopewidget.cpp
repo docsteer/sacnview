@@ -514,18 +514,114 @@ ScopeModel::~ScopeModel()
 
 QVariant ScopeModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-  if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
+  if (orientation == Qt::Horizontal)
   {
-    switch (section)
+    switch (role)
     {
-    case COL_UNIVERSE: return tr("Universe");
-    case COL_ADDRESS: return tr("Address");
-    case COL_COLOUR: return tr("Colour");
-    case COL_TRIGGER: return tr("Trigger");
-    case COL_LABEL: return tr("Label");
+    default: break;
+    case Qt::DisplayRole:
+    {
+      switch (section)
+      {
+      case COL_UNIVERSE: return tr("Universe");
+      case COL_ADDRESS: return tr("Address");
+      case COL_COLOUR: return tr("Colour");
+      case COL_TRIGGER: return tr("Trigger");
+      case COL_LABEL: return tr("Label");
+      }
+    } break;
+    case Qt::CheckStateRole:
+    {
+      if (section == COL_UNIVERSE)
+      {
+        return listCheckState();
+      }
+    } break;
+    case Qt::DecorationRole:
+    {
+      if (section == COL_UNIVERSE)
+      {
+        return m_headerEnableCheckDecoration;
+      }
+    } break;
     }
   }
   return QVariant();
+}
+
+bool ScopeModel::setHeaderData(int section, Qt::Orientation orientation, const QVariant& value, int role)
+{
+  if (orientation == Qt::Horizontal && section == COL_UNIVERSE)
+  {
+    if (role == Qt::CheckStateRole && value.canConvert<Qt::CheckState>())
+    {
+      setListCheckState(value.value<Qt::CheckState>());
+      return true;
+    }
+    if (role == Qt::DecorationRole)
+    {
+      m_headerEnableCheckDecoration = value.value<QPixmap>();
+      return true;
+    }
+  }
+  return false;
+}
+
+Qt::CheckState ScopeModel::listCheckState() const
+{
+  if (m_traceTable.empty())
+    return Qt::Checked; // Any that are added will be checked
+
+  Qt::CheckState result = Qt::PartiallyChecked;
+  for (const ScopeTrace* trace : m_traceTable)
+  {
+    if (!trace)
+      continue;
+
+    switch (result)
+    {
+    case Qt::PartiallyChecked:
+      result = trace->enabled() ? Qt::Checked : Qt::Unchecked;
+      break;
+    case Qt::Unchecked:
+      if (trace->enabled())
+        return Qt::PartiallyChecked;
+      break;
+    case Qt::Checked:
+      if (!trace->enabled())
+        return Qt::PartiallyChecked;
+      break;
+    }
+  }
+  return result;
+}
+
+void ScopeModel::setListCheckState(Qt::CheckState check)
+{
+  if (check == Qt::PartiallyChecked)
+    return;
+
+  const bool value = check == Qt::Checked ? true : false;
+  for (ScopeTrace* trace : m_traceTable)
+  {
+    if (!trace)
+      continue;
+    trace->setEnabled(value);
+  }
+
+  emit dataChanged(index(0, COL_UNIVERSE), index(rowCount() - 1, COL_UNIVERSE), { Qt::CheckStateRole });
+  emit headerDataChanged(Qt::Horizontal, COL_UNIVERSE, COL_UNIVERSE);
+}
+
+void ScopeModel::toggleListCheckState()
+{
+  Qt::CheckState checked = listCheckState();
+  switch (checked)
+  {
+  default:
+  case Qt::Checked: setListCheckState(Qt::Unchecked); return;
+  case Qt::Unchecked: setListCheckState(Qt::Checked); return;
+  }
 }
 
 int ScopeModel::rowCount(const QModelIndex& parent) const
@@ -617,6 +713,7 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
     {
       trace->setEnabled(value.toBool());
       emit dataChanged(idx, idx, { Qt::CheckStateRole });
+      emit headerDataChanged(Qt::Horizontal, COL_UNIVERSE, COL_UNIVERSE);
       emit traceVisibilityChanged();
       return true;
     }

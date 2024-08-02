@@ -229,6 +229,11 @@ public:
   /// QAbstractTableModel interface
   int columnCount(const QModelIndex& parent = QModelIndex()) const override { return COL_COUNT; }
   QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+  bool setHeaderData(int section, Qt::Orientation orientation, const QVariant& value, int role = Qt::EditRole) override;
+
+  Qt::CheckState listCheckState() const;
+  Q_SLOT void setListCheckState(Qt::CheckState check);
+  Q_SLOT void toggleListCheckState();
 
   int rowCount(const QModelIndex& parent = QModelIndex()) const override;
   Qt::ItemFlags flags(const QModelIndex& index = QModelIndex()) const override;
@@ -393,6 +398,7 @@ protected:
   void timerEvent(QTimerEvent* ev) override;
 
 private:
+  QPixmap m_headerEnableCheckDecoration; // Fudge to get QHeaderView to draw the checkbox
   std::vector<ScopeTrace*> m_traceTable;
   std::map<uint16_t, std::vector<ScopeTrace*>> m_traceLookup;
   std::vector<sACNManager::tListener> m_listeners; // Keep the listeners alive
