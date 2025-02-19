@@ -182,6 +182,8 @@ public:
 
   void SetUpdateIgnore(const QString& version);
   QString GetUpdateIgnore() const;
+  bool GetAutoCheckUpdates() const;
+  void SetAutoCheckUpdates(bool b);
 
   bool GetRestartPending() const { return m_restartPending; }
   void SetRestartPending() { m_restartPending = true; }

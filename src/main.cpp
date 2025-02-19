@@ -87,8 +87,13 @@ int main(int argc, char *argv[])
         }
     }
 
-    // Check web (if avaliable) for new version
-    VersionCheck version;
+    // Check web (if enabled) for new version
+    VersionCheck *versionCheck = nullptr;
+    if (Preferences::Instance().GetAutoCheckUpdates())
+    {
+      versionCheck = new VersionCheck();
+      versionCheck->checkForUpdate();
+    }
 
     // Setup interface
     bool newInterface = false;
@@ -176,6 +181,7 @@ int main(int argc, char *argv[])
     int result = a.exec();
 
     delete w;
+    delete versionCheck;
 
     Preferences::Instance().savePreferences();
 

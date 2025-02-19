@@ -22,6 +22,8 @@
 #include <QTreeWidgetItem>
 #include <QTreeWidget>
 
+class VersionCheck;
+
 namespace Ui {
 class aboutDialog;
 }
@@ -36,6 +38,8 @@ public:
 
 private slots:
     void updateDisplay();
+    void on_chkAutoUpdate_clicked(bool checked);
+    void on_btnCheckUpdateNow_clicked(bool);
 
     void on_twDiag_expanded(const QModelIndex &index);
     void on_twDiag_collapsed(const QModelIndex &index);
@@ -45,6 +49,7 @@ private slots:
 private:
     Ui::aboutDialog *ui;
     QTimer *m_displayTimer;
+    VersionCheck* m_versionCheck = nullptr;
 
     struct universeDetails
     {

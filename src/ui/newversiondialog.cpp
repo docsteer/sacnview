@@ -180,14 +180,16 @@ void NewVersionDialog::on_btnIgnore_pressed()
     Preferences::Instance().SetUpdateIgnore(m_newVersion);
 }
 
-VersionCheck::VersionCheck(QObject *parent):
-    QObject(parent)
+VersionCheck::VersionCheck(QObject* parent) :
+  QObject(parent)
 {
-    manager = new QNetworkAccessManager(this);
+  manager = new QNetworkAccessManager(this);
+  connect(manager, &QNetworkAccessManager::finished, this, &VersionCheck::replyFinished);
+}
+
+void VersionCheck::checkForUpdate()
+{
     QNetworkRequest request;
-
-    connect(manager, &QNetworkAccessManager::finished, this, &VersionCheck::replyFinished);
-
     request.setRawHeader("User-Agent", QString("%1 %2").arg(APP_NAME, VERSION).toUtf8());
     request.setRawHeader("Accept", "application/vnd.github.v3.raw+json");
     request.setUrl(QUrl("https://api.github.com/repos/docsteer/sacnview/releases"));

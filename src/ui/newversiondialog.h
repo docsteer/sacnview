@@ -57,6 +57,7 @@ public:
     VersionCheck(QObject *parent = 0);
 
 public slots:
+    void checkForUpdate();
     void replyFinished (QNetworkReply *reply);
 
 private:

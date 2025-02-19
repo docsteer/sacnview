@@ -17,7 +17,9 @@
 #include "ui_aboutdialog.h"
 #include "consts.h"
 #include <pcap.h>
+#include "preferences.h"
 #include "translations/translations.h"
+#include "newversiondialog.h"
 
 #include <QTimer>
 #include <QDesktopServices>
@@ -29,6 +31,8 @@ aboutDialog::aboutDialog(QWidget* parent) :
   QDialog(parent),
   ui(new Ui::aboutDialog)
 {
+  m_versionCheck = new VersionCheck(this);
+
   ui->setupUi(this);
 
   if (QString(VERSION) == QString(GIT_CURRENT_SHA1)) {
@@ -53,6 +57,9 @@ aboutDialog::aboutDialog(QWidget* parent) :
     }
   }
   ui->lblTranslatorNames->setText(translators.join("\n"));
+
+  // Automatic updates
+  ui->chkAutoUpdate->setChecked(Preferences::Instance().GetAutoCheckUpdates());
 
   // Libs
   ui->lblLicense->setText(
@@ -199,6 +206,16 @@ void aboutDialog::resizeDiagColumn()
   for (int n = 0; n < ui->twDiag->columnCount(); n++) {
     ui->twDiag->resizeColumnToContents(n);
   }
+}
+
+void aboutDialog::on_chkAutoUpdate_clicked(bool checked)
+{
+  Preferences::Instance().SetAutoCheckUpdates(checked);
+}
+
+void aboutDialog::on_btnCheckUpdateNow_clicked(bool)
+{
+  m_versionCheck->checkForUpdate();
 }
 
 void aboutDialog::on_twDiag_expanded(const QModelIndex& index)
