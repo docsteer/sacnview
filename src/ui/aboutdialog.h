@@ -25,47 +25,47 @@
 class VersionCheck;
 
 namespace Ui {
-class aboutDialog;
+  class aboutDialog;
 }
 
 class aboutDialog : public QDialog
 {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    explicit aboutDialog(QWidget *parent = Q_NULLPTR);
-    ~aboutDialog();
+  explicit aboutDialog(QWidget* parent = Q_NULLPTR);
+  ~aboutDialog();
 
 private slots:
-    void updateDisplay();
-    void on_chkAutoUpdate_clicked(bool checked);
-    void on_btnCheckUpdateNow_clicked(bool);
+  void updateDisplay();
+  void on_chkAutoUpdate_clicked(bool checked);
+  void on_btnCheckUpdateNow_clicked(bool);
 
-    void on_twDiag_expanded(const QModelIndex &index);
-    void on_twDiag_collapsed(const QModelIndex &index);
+  void on_twDiag_expanded(const QModelIndex& index);
+  void on_twDiag_collapsed(const QModelIndex& index);
 
-    void on_aboutDialog_finished(int result);
+  void on_aboutDialog_finished(int result);
 
 private:
-    Ui::aboutDialog *ui;
-    QTimer *m_displayTimer;
-    VersionCheck* m_versionCheck = nullptr;
+  Ui::aboutDialog* ui = Q_NULLPTR;
+  QTimer* m_displayTimer = Q_NULLPTR;
+  VersionCheck* m_versionCheck = Q_NULLPTR;
 
-    struct universeDetails
-    {
-        universeDetails() {}
+  struct universeDetails
+  {
+    universeDetails() {}
 
-        sACNManager::tListener listener;
-        QTreeWidgetItem* treeUniverse;
-        QTreeWidgetItem* treeMergesPerSecond;
-        QTreeWidgetItem* treeMergesBindStatus;
-        QTreeWidgetItem* treeMergesBindStatusUnicast;
-        QTreeWidgetItem* treeMergesBindStatusMulticast;
-    };
-    QList<universeDetails> m_universeDetails;
+    sACNManager::tListener listener;
+    QTreeWidgetItem* treeUniverse = Q_NULLPTR;
+    QTreeWidgetItem* treeMergesPerSecond = Q_NULLPTR;
+    QTreeWidgetItem* treeMergesBindStatus = Q_NULLPTR;
+    QTreeWidgetItem* treeMergesBindStatusUnicast = Q_NULLPTR;
+    QTreeWidgetItem* treeMergesBindStatusMulticast = Q_NULLPTR;
+  };
+  QList<universeDetails> m_universeDetails;
 
-    void resizeDiagColumn();
-    void bindStatus(QTreeWidgetItem *treeItem, sACNRxSocket::eBindStatus bindStatus);
+  void resizeDiagColumn();
+  void bindStatus(QTreeWidgetItem* treeItem, sACNRxSocket::eBindStatus bindStatus);
 };
 
 #endif // ABOUTDIALOG_H

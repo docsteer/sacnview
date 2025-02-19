@@ -19,49 +19,49 @@
 #include <QDialog>
 
 namespace Ui {
-class NewVersionDialog;
+  class NewVersionDialog;
 }
 
 class NewVersionDialog : public QDialog
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    NewVersionDialog(QWidget *parent = Q_NULLPTR);
+  NewVersionDialog(QWidget* parent = Q_NULLPTR);
 
-    void setNewVersionNumber(const QString &version);
-    void setNewVersionInfo(const QString &info);
-    void setDownloadUrl(const QString &url);
+  void setNewVersionNumber(const QString& version);
+  void setNewVersionInfo(const QString& info);
+  void setDownloadUrl(const QString& url);
 private slots:
-    void on_btnInstall_pressed();
-    void on_btnExitInstall_pressed();
-    void on_btnCancelDl_pressed();
-    void on_btnIgnore_pressed();
-    void progress(qint64 bytes, qint64 total);
-    void finished();
-    void dataReadyRead();
+  void on_btnInstall_pressed();
+  void on_btnExitInstall_pressed();
+  void on_btnCancelDl_pressed();
+  void on_btnIgnore_pressed();
+  void progress(qint64 bytes, qint64 total);
+  void finished();
+  void dataReadyRead();
 private:
-    Ui::NewVersionDialog *ui;
-    QString m_dlUrl;
-    QString m_newVersion;
-    QNetworkAccessManager *m_manager;
-    QNetworkReply *m_reply;
-    QFile m_dlFile;
-    QString m_storagePath;
-    void doDownload(const QUrl &url);
+  Ui::NewVersionDialog* ui = Q_NULLPTR;
+  QString m_dlUrl;
+  QString m_newVersion;
+  QNetworkAccessManager* m_manager = Q_NULLPTR;
+  QNetworkReply* m_reply = Q_NULLPTR;
+  QFile m_dlFile;
+  QString m_storagePath;
+  void doDownload(const QUrl& url);
 };
 
 class VersionCheck : public QObject
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    VersionCheck(QObject *parent = 0);
+  VersionCheck(QObject* parent = Q_NULLPTR);
 
 public slots:
-    void checkForUpdate();
-    void replyFinished (QNetworkReply *reply);
+  void checkForUpdate();
+  void replyFinished(QNetworkReply* reply);
 
 private:
-   QNetworkAccessManager *manager;
+  QNetworkAccessManager* manager = Q_NULLPTR;
 };
 
 #endif // VERSIONCHECK_H

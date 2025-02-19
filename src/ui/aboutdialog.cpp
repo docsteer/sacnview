@@ -27,9 +27,9 @@
 #include <QStringList>
 #include <QLibraryInfo>
 
-aboutDialog::aboutDialog(QWidget* parent) :
-  QDialog(parent),
-  ui(new Ui::aboutDialog)
+aboutDialog::aboutDialog(QWidget* parent)
+  : QDialog(parent)
+  , ui(new Ui::aboutDialog)
 {
   m_versionCheck = new VersionCheck(this);
 
