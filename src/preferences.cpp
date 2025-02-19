@@ -74,12 +74,38 @@ static const QString S_GROUP_FLOATING_WINDOW = QStringLiteral("FloatingWindows")
 // The base color to generate pastel shades for sources
 static const QColor mixColor(QColorConstants::Svg::coral);
 
+static const QByteArray DefaultByteArrayDmx(MAX_DMX_ADDRESS, char(0));
+static QByteArray DefaultByteArrayPriority(int i)
+{
+  return QByteArray(MAX_DMX_ADDRESS, char(100 + i));
+}
+
+// Helper functions for simpler format
+static void SaveByteArray(QSettings& settings, const QString& key, const QByteArray& value)
+{
+  if (value.isEmpty())
+    settings.remove(key);
+  else
+    settings.setValue(key, value);
+}
+
 Preferences::Preferences()
 {
   for (QByteArray& preset : m_presets)
-    preset = QByteArray(MAX_DMX_ADDRESS, char(0));
+    preset = DefaultByteArrayDmx;
   for (size_t i = 0; i < m_priorityPresets.size(); ++i)
-    m_priorityPresets[i] = QByteArray(MAX_DMX_ADDRESS, char(100 + i));
+    m_priorityPresets[i] = DefaultByteArrayPriority(i);
+
+  // Allow the commandline to override the configuration file
+  const QStringList args = QCoreApplication::arguments();
+  // Find the last ini override
+  int pref_index = args.lastIndexOf(QStringLiteral("-ini"));
+  if (pref_index == -1)
+    pref_index = args.lastIndexOf(QStringLiteral("/ini"));
+
+  if (pref_index != -1 && pref_index < args.size() - 1)
+    m_settings_file = args[pref_index + 1];
+
   loadPreferences();
 }
 
@@ -283,13 +309,13 @@ QByteArray Preferences::GetPathwaySecureSequenceMap() const
 
 void Preferences::SetUpdateIgnore(const QString& version)
 {
-  QSettings settings;
+  QSettings settings = getSettings();
   settings.setValue(S_UPDATE_IGNORE, version);
 }
 
 QString Preferences::GetUpdateIgnore() const
 {
-  QSettings settings;
+  QSettings settings = getSettings();
   return settings.value(S_UPDATE_IGNORE, QString()).toString();
 }
 
@@ -323,7 +349,7 @@ QString Preferences::GetFormattedValue(int nLevelInDecimal, bool decorated) cons
 
 void Preferences::savePreferences() const
 {
-  QSettings settings;
+  QSettings settings = getSettings();
 
   if (m_interface.isValid())
   {
@@ -344,19 +370,25 @@ void Preferences::savePreferences() const
   settings.setValue(S_TX_RATE_OVERRIDE, m_txrateoverride);
   settings.setValue(S_TX_BAD_PRIORITY, m_txbadpriority);
   settings.setValue(S_RX_BAD_PRIORITY, m_rxbadpriority);
-  settings.setValue(S_LOCALE, m_locale);
+  settings.setValue(S_LOCALE, m_locale.bcp47Name());
   settings.setValue(S_UNIVERSESLISTED, m_universesListed);
 
   saveWindowGeometrySettings();
 
   for (int i = 0; i < PRESET_COUNT; i++)
   {
-    settings.setValue(S_PRESETS.arg(i), QVariant(m_presets[i]));
+    // Only store if not default
+    const QString preset_name = S_PRESETS.arg(i);
+    if (settings.contains(preset_name) || m_presets[i] != DefaultByteArrayDmx)
+      settings.setValue(preset_name, QVariant(m_presets[i]));
   }
 
   for (int i = 0; i < PRIORITYPRESET_COUNT; i++)
   {
-    settings.setValue(S_PRIORITYPRESET.arg(i), QVariant(m_priorityPresets[i]));
+    // Only store if not default
+    const QString preset_name = S_PRIORITYPRESET.arg(i);
+    if (settings.contains(preset_name) || m_priorityPresets[i] != DefaultByteArrayPriority(i))
+      settings.setValue(preset_name.arg(i), QVariant(m_priorityPresets[i]));
   }
 
   settings.setValue(S_MULTICASTTTL, m_multicastTtl);
@@ -368,14 +400,21 @@ void Preferences::savePreferences() const
   settings.setValue(S_PATHWAYSECURE_TX_SEQUENCE_TYPE, m_pathwaySecureTxSequenceType);
   settings.setValue(S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT, m_pathwaySecureTxSequenceBootCount);
   settings.setValue(S_PATHWAYSECURE_RX_SEQUENCE_TIME_WINDOW, m_pathwaySecureRxSequenceTimeWindow);
-  settings.setValue(S_PATHWAYSECURE_SEQUENCE_MAP, m_pathwaySecureSequenceMap);
+  SaveByteArray(settings, S_PATHWAYSECURE_SEQUENCE_MAP, m_pathwaySecureSequenceMap);
 
   settings.sync();
 }
 
+QSettings Preferences::getSettings() const
+{
+  if (m_settings_file.isEmpty())
+    return QSettings();
+  return QSettings(m_settings_file, QSettings::IniFormat);
+}
+
 void Preferences::loadPreferences()
 {
-  QSettings settings;
+  QSettings settings = getSettings();
 
   if (settings.contains(S_INTERFACE_ADDRESS))
   {
@@ -407,7 +446,13 @@ void Preferences::loadPreferences()
   m_txrateoverride = settings.value(S_TX_RATE_OVERRIDE, m_txrateoverride).toBool();
   m_txbadpriority = settings.value(S_TX_BAD_PRIORITY, m_txbadpriority).toBool();
   m_rxbadpriority = settings.value(S_RX_BAD_PRIORITY, m_rxbadpriority).toBool();
-  m_locale = settings.value(S_LOCALE, m_locale).toLocale();
+  {
+    QVariant v = settings.value(S_LOCALE, m_locale);
+    if (v.type() == QMetaType::QLocale)
+      m_locale = v.toLocale();
+    else
+      m_locale = QLocale(v.toString());
+  }
   m_universesListed = settings.value(S_UNIVERSESLISTED, m_universesListed).toUInt();
   m_multicastTtl = settings.value(S_MULTICASTTTL, m_multicastTtl).toUInt();
   m_pathwaySecureRx = settings.value(S_PATHWAYSECURE_RX, m_pathwaySecureRx).toBool();
@@ -438,7 +483,7 @@ void Preferences::loadPreferences()
 
 void Preferences::loadWindowGeometrySettings()
 {
-  QSettings settings;
+  QSettings settings = getSettings();
   switch (m_windowMode)
   {
   default: break;
@@ -465,7 +510,7 @@ void Preferences::loadWindowGeometrySettings()
 
 void Preferences::saveWindowGeometrySettings() const
 {
-  QSettings settings;
+  QSettings settings = getSettings();
   switch (m_windowMode)
   {
   default: break;
@@ -474,15 +519,15 @@ void Preferences::saveWindowGeometrySettings() const
     break;
   }
 
-  settings.setValue(S_MAINWINDOWGEOM, m_mainWindowGeometry.first);
-  settings.setValue(S_MAINWINDOWSTATE, m_mainWindowGeometry.second);
+  SaveByteArray(settings, S_MAINWINDOWGEOM, m_mainWindowGeometry.first);
+  SaveByteArray(settings, S_MAINWINDOWSTATE, m_mainWindowGeometry.second);
 
   settings.beginWriteArray(S_SUBWINDOWLIST);
   for (int i = 0; i < m_windowInfo.count(); i++)
   {
     settings.setArrayIndex(i);
     settings.setValue(S_SUBWINDOWNAME, m_windowInfo[i].name);
-    settings.setValue(S_SUBWINDOWGEOM, m_windowInfo[i].geometry);
+    SaveByteArray(settings, S_SUBWINDOWGEOM, m_windowInfo[i].geometry);
   }
   settings.endArray();
 }
