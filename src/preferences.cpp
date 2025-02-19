@@ -66,6 +66,7 @@ static const QString S_PATHWAYSECURE_TX_SEQUENCE_TYPE = QStringLiteral("Pathway 
 static const QString S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT = QStringLiteral("Pathway Secure Data TX Sequence Boot Count");
 static const QString S_PATHWAYSECURE_SEQUENCE_MAP = QStringLiteral("Pathway Secure Data Sequence Map");
 static const QString S_UPDATE_IGNORE = QStringLiteral("Ignore Update Version");
+static const QString S_UPDATE_IGNORE_ALL = QStringLiteral("All");
 
 // Floating window mode
 static const QString S_WINDOW_MODE = QStringLiteral("WindowMode");  // MDI or floating mode
@@ -317,6 +318,19 @@ QString Preferences::GetUpdateIgnore() const
 {
   QSettings settings = getSettings();
   return settings.value(S_UPDATE_IGNORE, QString()).toString();
+}
+
+bool Preferences::GetAutoCheckUpdates() const
+{
+  return GetUpdateIgnore() != S_UPDATE_IGNORE_ALL;
+}
+
+void Preferences::SetAutoCheckUpdates(bool b)
+{
+  if (b)
+    SetUpdateIgnore(QString());
+  else
+    SetUpdateIgnore(S_UPDATE_IGNORE_ALL);
 }
 
 QString Preferences::GetFormattedValue(int nLevelInDecimal, bool decorated) const
