@@ -28,6 +28,10 @@
 
 #include <array>
 
+QT_BEGIN_NAMESPACE
+class QSettings;
+QT_END_NAMESPACE
+
 struct SubWindowInfo
 {
   QString name;
@@ -187,6 +191,8 @@ public:
   void savePreferences() const;
 
 private:
+  QString m_settings_file; // Overridden settings filepath
+
   QNetworkInterface m_interface;
   mutable QHash<CID, QColor> m_cidToColor;
 
@@ -234,6 +240,7 @@ private:
 
   bool m_restartPending = false;
 
+  QSettings getSettings() const;
   void loadPreferences();
   void loadWindowGeometrySettings();
   void saveWindowGeometrySettings() const;

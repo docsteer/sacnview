@@ -80,6 +80,17 @@ Preferences::Preferences()
     preset = QByteArray(MAX_DMX_ADDRESS, char(0));
   for (size_t i = 0; i < m_priorityPresets.size(); ++i)
     m_priorityPresets[i] = QByteArray(MAX_DMX_ADDRESS, char(100 + i));
+
+  // Allow the commandline to override the configuration file
+  const QStringList args = QCoreApplication::arguments();
+  // Find the last ini override
+  int pref_index = args.lastIndexOf(QStringLiteral("-ini"));
+  if (pref_index == -1)
+    pref_index = args.lastIndexOf(QStringLiteral("/ini"));
+
+  if (pref_index != -1 && pref_index < args.size() - 1)
+    m_settings_file = args[pref_index + 1];
+
   loadPreferences();
 }
 
@@ -283,13 +294,13 @@ QByteArray Preferences::GetPathwaySecureSequenceMap() const
 
 void Preferences::SetUpdateIgnore(const QString& version)
 {
-  QSettings settings;
+  QSettings settings = getSettings();
   settings.setValue(S_UPDATE_IGNORE, version);
 }
 
 QString Preferences::GetUpdateIgnore() const
 {
-  QSettings settings;
+  QSettings settings = getSettings();
   return settings.value(S_UPDATE_IGNORE, QString()).toString();
 }
 
@@ -323,7 +334,7 @@ QString Preferences::GetFormattedValue(int nLevelInDecimal, bool decorated) cons
 
 void Preferences::savePreferences() const
 {
-  QSettings settings;
+  QSettings settings = getSettings();
 
   if (m_interface.isValid())
   {
@@ -373,9 +384,16 @@ void Preferences::savePreferences() const
   settings.sync();
 }
 
+QSettings Preferences::getSettings() const
+{
+  if (m_settings_file.isEmpty())
+    return QSettings();
+  return QSettings(m_settings_file, QSettings::IniFormat);
+}
+
 void Preferences::loadPreferences()
 {
-  QSettings settings;
+  QSettings settings = getSettings();
 
   if (settings.contains(S_INTERFACE_ADDRESS))
   {
@@ -438,7 +456,7 @@ void Preferences::loadPreferences()
 
 void Preferences::loadWindowGeometrySettings()
 {
-  QSettings settings;
+  QSettings settings = getSettings();
   switch (m_windowMode)
   {
   default: break;
@@ -465,7 +483,7 @@ void Preferences::loadWindowGeometrySettings()
 
 void Preferences::saveWindowGeometrySettings() const
 {
-  QSettings settings;
+  QSettings settings = getSettings();
   switch (m_windowMode)
   {
   default: break;
