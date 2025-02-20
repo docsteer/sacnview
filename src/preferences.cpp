@@ -402,7 +402,7 @@ void Preferences::savePreferences() const
     // Only store if not default
     const QString preset_name = S_PRIORITYPRESET.arg(i);
     if (settings.contains(preset_name) || m_priorityPresets[i] != DefaultByteArrayPriority(i))
-      settings.setValue(preset_name.arg(i), QVariant(m_priorityPresets[i]));
+      settings.setValue(preset_name, QVariant(m_priorityPresets[i]));
   }
 
   settings.setValue(S_MULTICASTTTL, m_multicastTtl);
