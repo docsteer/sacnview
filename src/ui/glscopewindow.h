@@ -39,8 +39,8 @@ public:
   explicit GlScopeWindow(int universe, QWidget* parent = nullptr);
   ~GlScopeWindow();
 
-  QJsonObject getJsonConfiguration() const;
-  void setJsonConfiguration(const QJsonObject& json);
+  Q_INVOKABLE QJsonObject getJsonConfiguration() const;
+  Q_INVOKABLE void setJsonConfiguration(const QJsonObject& json);
 
 private:
   Q_SLOT void onRunningChanged(bool running);

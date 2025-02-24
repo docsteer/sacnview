@@ -39,8 +39,8 @@ public:
   Q_SLOT void startRx() { on_btnStartStop_clicked(true); }
   Q_SLOT void stopRx() { on_btnStartStop_clicked(false); }
 
-  QJsonObject getJsonConfiguration() const;
-  void setJsonConfiguration(const QJsonObject& json);
+  Q_INVOKABLE QJsonObject getJsonConfiguration() const;
+  Q_INVOKABLE void setJsonConfiguration(const QJsonObject& json);
 
 protected slots:
   void on_btnStartStop_clicked(bool checked);
