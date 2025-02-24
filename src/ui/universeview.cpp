@@ -128,6 +128,22 @@ void UniverseView::refreshTitle()
         setWindowTitle(tr("Universe %1 View").arg(universe));
 }
 
+QJsonObject UniverseView::getJsonConfiguration() const
+{
+  QJsonObject result;
+  result[QLatin1String("universe")] = ui->sbUniverse->value();
+  result[QLatin1String("priorities")] = ui->universeDisplay->showChannelPriority();
+  result[QLatin1String("compare_universe")] = ui->sbCompareUniverse->value();
+  return result;
+}
+
+void UniverseView::setJsonConfiguration(const QJsonObject& json)
+{
+  ui->sbUniverse->setValue(json[QLatin1String("universe")].toInt(ui->sbUniverse->value()));
+  ui->universeDisplay->setShowChannelPriority(json[QLatin1String("priorities")].toBool());
+  ui->sbCompareUniverse->setValue(json[QLatin1String("compare_universe")].toInt(ui->sbCompareUniverse->value()));
+}
+
 void UniverseView::on_btnGo_clicked()
 {
     startListening(ui->sbUniverse->value());

@@ -48,6 +48,7 @@ static const QString S_MAINWINDOWSTATE = QStringLiteral("Main Window State");
 static const QString S_SUBWINDOWLIST = QStringLiteral("Sub Window");
 static const QString S_SUBWINDOWNAME = QStringLiteral("SubWindow Name");
 static const QString S_SUBWINDOWGEOM = QStringLiteral("SubWindow Geometry");
+static const QString S_SUBWINDOWCONFIG = QStringLiteral("Configuration");
 static const QString S_LISTEN_ALL = QStringLiteral("Listen All");
 static const QString S_THEME = QStringLiteral("Theme");
 static const QString S_TX_RATE_OVERRIDE = QStringLiteral("TX Rate Override");
@@ -402,7 +403,7 @@ void Preferences::savePreferences() const
     // Only store if not default
     const QString preset_name = S_PRIORITYPRESET.arg(i);
     if (settings.contains(preset_name) || m_priorityPresets[i] != DefaultByteArrayPriority(i))
-      settings.setValue(preset_name.arg(i), QVariant(m_priorityPresets[i]));
+      settings.setValue(preset_name, QVariant(m_priorityPresets[i]));
   }
 
   settings.setValue(S_MULTICASTTTL, m_multicastTtl);
@@ -517,6 +518,7 @@ void Preferences::loadWindowGeometrySettings()
     settings.setArrayIndex(i);
     value.name = settings.value(S_SUBWINDOWNAME).toString();
     value.geometry = settings.value(S_SUBWINDOWGEOM).toByteArray();
+    value.config = settings.value(S_SUBWINDOWCONFIG).toJsonObject();
     m_windowInfo << value;
   }
   settings.endArray();
@@ -540,8 +542,13 @@ void Preferences::saveWindowGeometrySettings() const
   for (int i = 0; i < m_windowInfo.count(); i++)
   {
     settings.setArrayIndex(i);
-    settings.setValue(S_SUBWINDOWNAME, m_windowInfo[i].name);
-    SaveByteArray(settings, S_SUBWINDOWGEOM, m_windowInfo[i].geometry);
+    const SubWindowInfo& info = m_windowInfo[i];
+    settings.setValue(S_SUBWINDOWNAME, info.name);
+    SaveByteArray(settings, S_SUBWINDOWGEOM, info.geometry);
+    if (info.config.isEmpty())
+      settings.remove(S_SUBWINDOWCONFIG);
+    else
+      settings.setValue(S_SUBWINDOWCONFIG, info.config);
   }
   settings.endArray();
 }

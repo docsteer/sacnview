@@ -25,6 +25,7 @@
 #include <QNetworkInterface>
 #include <QColor>
 #include <QLocale>
+#include <QJsonObject>
 
 #include <array>
 
@@ -35,7 +36,8 @@ QT_END_NAMESPACE
 struct SubWindowInfo
 {
   QString name;
-  QByteArray geometry;
+  QByteArray geometry; // Subwindow geoemtry to load
+  QJsonObject config; // A configuration to load
 };
 
 class Preferences
@@ -136,7 +138,7 @@ public:
   bool GetTXRateOverride() const { return m_txrateoverride; }
 
   // Permit illegal TX priority
-  void SetTXBadPriority(bool b) {m_txbadpriority = b;}
+  void SetTXBadPriority(bool b) { m_txbadpriority = b; }
   bool GetTXBadPriority() const { return m_txbadpriority; }
   static int GetTxMaxUiPriority() { return Instance().m_txbadpriority ? MAX_SACN_BAD_PRIORITY : MAX_SACN_PRIORITY; }
 

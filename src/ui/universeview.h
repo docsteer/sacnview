@@ -41,6 +41,9 @@ public:
     Q_SLOT void startRx() { on_btnGo_clicked(); }
     Q_SLOT void stopRx() { on_btnPause_clicked(); }
 
+    Q_INVOKABLE QJsonObject getJsonConfiguration() const;
+    Q_INVOKABLE void setJsonConfiguration(const QJsonObject& json);
+
 protected slots:
     void refreshTitle();
     void on_btnGo_clicked();

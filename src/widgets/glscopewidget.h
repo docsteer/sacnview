@@ -17,6 +17,7 @@
 #include <QAbstractTableModel>
 #include <QDateTime>
 #include <QVector2D>
+#include <QJsonObject>
 
 #include "sacn/sacnlistener.h"
 
@@ -128,6 +129,8 @@ public:
 
   static QString universeAddressString(uint16_t universe, uint16_t address_hi, uint16_t address_lo);
   static QString addressString(uint16_t address_hi, uint16_t address_lo);
+
+  QJsonObject toJsonConfig() const;
 
   QString universeAddressString() const;
   QString addressString() const;
@@ -250,6 +253,7 @@ public:
   */
   AddResult addTrace(const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo = 0);
   AddResult addTrace(const QString& label, const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo = 0);
+  AddResult addTrace(const QJsonObject& json);
 
   /**
    * @brief Remove a trace
@@ -294,6 +298,11 @@ public:
    * @brief Clear all trace values but leave the traces ready for another run
   */
   void clearValues();
+
+  // @brief Store the complete configuration to JSON
+  QJsonObject getJsonConfig() const;
+  // @brief Load the complete configuration from JSON.
+  bool setJsonConfig(const QJsonObject& config);
 
   /**
    * @brief Store the traces as a CSV file segment. Scope must be stopped.
@@ -426,6 +435,9 @@ private:
 
     QString configurationString() const;
     void setConfiguration(const QString& configString);
+
+    QJsonObject toJson() const;
+    void setFromJson(const QJsonObject& json);
   };
 
   TriggerConfig m_trigger; // Trigger configuration

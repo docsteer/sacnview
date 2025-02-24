@@ -270,34 +270,42 @@ void MDIMainWindow::restoreSubWindows()
   const QList<SubWindowInfo>& windows = p.GetSavedWindows();
   for (const SubWindowInfo& window : windows)
   {
+    QWidget* widget = Q_NULLPTR;
+
+    // Construct supported windows
     if (window.name == "Scope")
     {
-      GlScopeWindow* scopeWindow = new GlScopeWindow(MIN_SACN_UNIVERSE, this);
-      showWidgetAsSubWindow(scopeWindow)->restoreGeometry(window.geometry);
+      widget = new GlScopeWindow(MIN_SACN_UNIVERSE, this);
+    }
+    else if (window.name == "Universe")
+    {
+      widget = new UniverseView(MIN_SACN_UNIVERSE, this);
+    }
+    else if (window.name == "Transmit")
+    {
+      widget = new transmitwindow(MIN_SACN_UNIVERSE, this);
+    }
+    else if (window.name == "Snapshot")
+    {
+      widget = new Snapshot(MIN_SACN_UNIVERSE, this);
+    }
+    else if (window.name == "MultiUniverse")
+    {
+      widget = new MultiUniverse(MIN_SACN_UNIVERSE, this);
+    }
+    else if (window.name == "MultiView")
+    {
+      widget = new MultiView(MIN_SACN_UNIVERSE, this);
     }
 
-    if (window.name == "Universe")
+    if (widget)
     {
-      UniverseView* universe = new UniverseView(MIN_SACN_UNIVERSE, this);
-      showWidgetAsSubWindow(universe)->restoreGeometry(window.geometry);
+      showWidgetAsSubWindow(widget)->restoreGeometry(window.geometry);
+      // Attempt to set the config
+      if (!window.config.isEmpty())
+        QMetaObject::invokeMethod(widget, "setJsonConfiguration", Q_ARG(QJsonObject, window.config));
     }
 
-    if (window.name == "Transmit")
-    {
-      transmitwindow* transmit = new transmitwindow(MIN_SACN_UNIVERSE, this);
-      showWidgetAsSubWindow(transmit)->restoreGeometry(window.geometry);
-    }
-
-    if (window.name == "Snapshot")
-    {
-      Snapshot* snapshot = new Snapshot(MIN_SACN_UNIVERSE, this);
-      showWidgetAsSubWindow(snapshot)->restoreGeometry(window.geometry);
-    }
-    if (window.name == "MultiUniverse")
-    {
-      MultiUniverse* multi = new MultiUniverse(MIN_SACN_UNIVERSE, this);
-      showWidgetAsSubWindow(multi)->restoreGeometry(window.geometry);
-    }
   }
 }
 
@@ -354,40 +362,39 @@ QWidget* MDIMainWindow::addFloatWidget(QWidget* w)
 
 void MDIMainWindow::StoreWidgetGeometry(const QWidget* window, const QWidget* widget, QList<SubWindowInfo>& result)
 {
+  SubWindowInfo i;
+
   if (qobject_cast<const GlScopeWindow*>(widget) != Q_NULLPTR)
   {
-    SubWindowInfo i;
     i.name = "Scope";
-    i.geometry = window->saveGeometry();
-    result << i;
   }
-  if (qobject_cast<const UniverseView*>(window) != Q_NULLPTR)
+  else if (qobject_cast<const UniverseView*>(widget) != Q_NULLPTR)
   {
-    SubWindowInfo i;
     i.name = "Universe";
-    i.geometry = window->saveGeometry();
-    result << i;
   }
-  if (qobject_cast<const transmitwindow*>(window) != Q_NULLPTR)
+  else if (qobject_cast<const transmitwindow*>(widget) != Q_NULLPTR)
   {
-    SubWindowInfo i;
     i.name = "Transmit";
-    i.geometry = window->saveGeometry();
-    result << i;
   }
-  if (qobject_cast<const Snapshot*>(window) != Q_NULLPTR)
+  else if (qobject_cast<const Snapshot*>(widget) != Q_NULLPTR)
   {
-    SubWindowInfo i;
     i.name = "Snapshot";
-    i.geometry = window->saveGeometry();
-    result << i;
   }
-  if (qobject_cast<const MultiUniverse*>(window) != Q_NULLPTR)
+  else if (qobject_cast<const MultiUniverse*>(widget) != Q_NULLPTR)
   {
-    SubWindowInfo i;
     i.name = "MultiUniverse";
+  }
+  else if (qobject_cast<const MultiView*>(widget) != Q_NULLPTR)
+  {
+    i.name = "MultiView";
+  }
+
+  // Add to list if supported
+  if (!i.name.isEmpty())
+  {
     i.geometry = window->saveGeometry();
-    result << i;
+    QMetaObject::invokeMethod(const_cast<QWidget*>(widget), "getJsonConfiguration", Qt::DirectConnection, Q_RETURN_ARG(QJsonObject, i.config));
+    result.append(i);
   }
 }
 
