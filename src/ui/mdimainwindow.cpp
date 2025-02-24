@@ -274,6 +274,7 @@ void MDIMainWindow::restoreSubWindows()
     {
       GlScopeWindow* scopeWindow = new GlScopeWindow(MIN_SACN_UNIVERSE, this);
       showWidgetAsSubWindow(scopeWindow)->restoreGeometry(window.geometry);
+      scopeWindow->setJsonConfiguration(window.config);
     }
 
     if (window.name == "Universe")
@@ -359,6 +360,7 @@ void MDIMainWindow::StoreWidgetGeometry(const QWidget* window, const QWidget* wi
     SubWindowInfo i;
     i.name = "Scope";
     i.geometry = window->saveGeometry();
+    i.config = qobject_cast<const GlScopeWindow*>(widget)->getJsonConfiguration();
     result << i;
   }
   if (qobject_cast<const UniverseView*>(window) != Q_NULLPTR)

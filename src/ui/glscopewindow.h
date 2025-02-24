@@ -19,6 +19,7 @@
 #include <QWidget>
 #include <QColorDialog>
 #include <QStyledItemDelegate>
+#include <QJsonObject>
 
 class GlScopeWidget;
 class SteppedSpinBox;
@@ -37,6 +38,9 @@ class GlScopeWindow : public QWidget
 public:
   explicit GlScopeWindow(int universe, QWidget* parent = nullptr);
   ~GlScopeWindow();
+
+  QJsonObject getJsonConfiguration() const;
+  void setJsonConfiguration(const QJsonObject& json);
 
 private:
   Q_SLOT void onRunningChanged(bool running);

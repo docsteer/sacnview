@@ -20,6 +20,8 @@
 #include <QMetaEnum>
 #include <QMouseEvent>
 
+#include <QJsonArray>
+
 static constexpr qreal AXIS_LABEL_WIDTH = 45.0;
 static constexpr qreal AXIS_LABEL_HEIGHT = 20.0;
 static constexpr qreal TOP_GAP = 10.0;
@@ -160,6 +162,17 @@ QString ScopeTrace::addressString(uint16_t address_hi, uint16_t address_lo)
   if (address_lo > 0 && address_lo <= MAX_DMX_ADDRESS)
     return QString::number(address_hi) + QLatin1Char('/') + QString::number(address_lo);
   return QString::number(address_hi);
+}
+
+QJsonObject ScopeTrace::toJsonConfig() const
+{
+  QJsonObject json;
+  json.insert(QLatin1String("label"), m_label);
+  json.insert(QLatin1String("color"), m_color.name());
+  json.insert(QLatin1String("slot"), universeAddressString());
+  if (m_enabled)
+    json.insert(QLatin1String("enabled"), m_enabled);
+  return json;
 }
 
 QString ScopeTrace::universeAddressString() const
@@ -367,6 +380,28 @@ ScopeModel::AddResult ScopeModel::addTrace(const QString& label, const QColor& c
     ScopeTrace* trace = findTrace(universe, address_hi, address_lo);
     if (trace)
       trace->setLabel(label);
+  }
+  return result;
+}
+
+ScopeModel::AddResult ScopeModel::addTrace(const QJsonObject& json)
+{
+  uint16_t universe = 0;
+  uint16_t address_hi = 0;
+  uint16_t address_lo = 0;
+
+  if (!ScopeTrace::extractUniverseAddress(json.value(QLatin1String("slot")).toString(), universe, address_hi, address_lo))
+    return AddResult::Invalid;
+
+  const AddResult result = addTrace(QColor(json.value(QLatin1String("color")).toString()), universe, address_hi, address_lo);
+  if (result != AddResult::Invalid)
+  {
+    ScopeTrace* trace = findTrace(universe, address_hi, address_lo);
+    if (trace)
+    {
+      trace->setEnabled(json.value(QLatin1String("enabled")).toBool(true));
+      trace->setLabel(json.value(QLatin1String("label")).toString());
+    }
   }
   return result;
 }
@@ -825,6 +860,58 @@ void ScopeModel::clearValues()
   m_startOffset = 0;
   m_endTime = 0;
   m_wallclockTrigger_ms = 0;
+}
+
+QJsonObject ScopeModel::getJsonConfig() const
+{
+  QJsonObject result;
+
+  result.insert(QLatin1String("store_all"), m_storeAllPoints);
+  result.insert(QLatin1String("run_time"), m_runTime);
+  result.insert(QLatin1String("storage_time"), m_storageTime);
+
+  result.insert(QLatin1String("trigger"), m_trigger.toJson());
+
+  // Append traces
+  QJsonArray traces;
+  for (const ScopeTrace* trace : m_traceTable)
+  {
+    if (trace == nullptr)
+      continue;
+
+    traces.append(trace->toJsonConfig());
+  }
+  result.insert(QLatin1String("traces"), traces);
+  return result;
+}
+
+bool ScopeModel::setJsonConfig(const QJsonObject& config)
+{
+  if (config.isEmpty())
+    return false;
+
+  // Assume valid, stop and clear my data now
+  beginResetModel();
+  private_removeAllTraces();
+
+  // TODO: Load the traces
+  const QJsonArray traceArray = config.value(QLatin1String("traces")).toArray();
+  for (auto it = traceArray.begin(); it != traceArray.end(); ++it)
+  {
+    addTrace(it->toObject());
+  }
+
+  // Load the config
+  m_storeAllPoints = config.value(QLatin1String("store_all")).toBool(true);
+  m_trigger.setFromJson(config.value(QLatin1String("trigger")).toObject());
+
+  setRunTime(config.value(QLatin1String("run_time")).toDouble());
+  setStorageTime(config.value(QLatin1String("storage_time")).toDouble()); 
+
+  endResetModel();
+  // Force a re-render
+  emit traceVisibilityChanged();
+  return true;
 }
 
 QString ScopeModel::captureConfigurationString() const
@@ -2428,4 +2515,39 @@ void ScopeModel::TriggerConfig::setConfiguration(const QString& configString)
     if (ok)
       level = triggerLevel;
   }
+}
+
+QJsonObject ScopeModel::TriggerConfig::toJson() const
+{
+  QJsonObject json;
+  json.insert(QLatin1String("mode"), QMetaEnum::fromType<ScopeModel::Trigger>().valueToKey(static_cast<int>(mode)));
+  json.insert(QLatin1String("slot"), ScopeTrace::universeAddressString(universe, address_hi, address_lo));
+  json.insert(QLatin1String("level"), level);
+  return json;
+}
+
+void ScopeModel::TriggerConfig::setFromJson(const QJsonObject& json)
+{
+  const QString modeString = json.value(QLatin1String("mode")).toString();
+  mode = Trigger::FreeRun;
+  const auto metaEnum = QMetaEnum::fromType<Trigger>();
+  for (int i = 0; i < metaEnum.keyCount(); ++i)
+  {
+    if (modeString == QLatin1String(metaEnum.key(i)))
+    {
+      mode = static_cast<Trigger>(metaEnum.value(i));
+      break;
+    }
+  }
+
+  const QString slotString = json.value(QLatin1String("slot")).toString();
+  uint16_t new_univ, new_addr_hi, new_addr_lo;
+  if (ScopeTrace::extractUniverseAddress(slotString, new_univ, new_addr_hi, new_addr_lo))
+  {
+    universe = new_univ;
+    address_hi = new_addr_hi;
+    address_lo = new_addr_lo;
+  }
+
+  level = json.value(QLatin1String("level")).toInt();
 }

@@ -328,6 +328,21 @@ GlScopeWindow::~GlScopeWindow()
   delete m_scope;
 }
 
+QJsonObject GlScopeWindow::getJsonConfiguration() const
+{
+  return m_scope->model()->getJsonConfig();
+}
+
+void GlScopeWindow::setJsonConfiguration(const QJsonObject& json)
+{
+  m_scope->model()->setJsonConfig(json);
+
+  // Update
+  updateTimeScrollBars();
+  updateConfiguration();
+  refreshButtons();
+}
+
 void GlScopeWindow::onRunningChanged(bool running)
 {
   if (m_chkSyncViews->isChecked() && !running)
