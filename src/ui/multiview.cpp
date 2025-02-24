@@ -47,6 +47,13 @@ MultiView::MultiView(QWidget* parent)
   ui->sourceTableView->horizontalHeader()->setSectionsMovable(true);
 }
 
+MultiView::MultiView(int firstUniverse, QWidget* parent)
+  : MultiView(parent)
+{
+  ui->spinUniverseMin->setValue(firstUniverse);
+  ui->spinUniverseMax->setValue(firstUniverse + Preferences::Instance().GetUniversesListed());
+}
+
 MultiView::~MultiView()
 {
   delete ui;
@@ -88,6 +95,34 @@ void MultiView::on_btnStartStop_clicked(bool checked)
     ui->spinUniverseMax->setEnabled(true);
     m_sourceTableModel->pause();
   }
+}
+
+QJsonObject MultiView::getJsonConfiguration() const
+{
+  QJsonObject result;
+  result.insert(QLatin1String("start"), ui->spinUniverseMin->value());
+  result.insert(QLatin1String("end"), ui->spinUniverseMax->value());
+
+  QJsonObject timing;
+  timing.insert(QLatin1String("short"), ui->spinShort->value());
+  timing.insert(QLatin1String("long"), ui->spinLong->value());
+  timing.insert(QLatin1String("static"), ui->spinStatic->value());
+  result.insert(QLatin1String("timing"), timing);
+  return result;
+}
+
+void MultiView::setJsonConfiguration(const QJsonObject& json)
+{
+  if (json.isEmpty())
+    return;
+
+  ui->spinUniverseMin->setValue(json[QLatin1String("start")].toInt(ui->spinUniverseMin->value()));
+  ui->spinUniverseMax->setValue(json[QLatin1String("end")].toInt(ui->spinUniverseMax->value()));
+
+  QJsonObject timing = json[QLatin1String("timing")].toObject();
+  ui->spinShort->setValue(timing[QLatin1String("short")].toInt(ui->spinShort->value()));
+  ui->spinLong->setValue(timing[QLatin1String("long")].toInt(ui->spinLong->value()));
+  ui->spinStatic->setValue(timing[QLatin1String("static")].toInt(ui->spinStatic->value()));
 }
 
 void MultiView::on_btnClearOffline_clicked()

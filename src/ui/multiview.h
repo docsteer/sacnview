@@ -32,12 +32,15 @@ class MultiView : public QWidget
   Q_OBJECT
 public:
   explicit MultiView(QWidget* parent = 0);
+  explicit MultiView(int firstUniverse, QWidget* parent = 0);
   ~MultiView();
 
   // Trigger API
   Q_SLOT void startRx() { on_btnStartStop_clicked(true); }
   Q_SLOT void stopRx() { on_btnStartStop_clicked(false); }
 
+  QJsonObject getJsonConfiguration() const;
+  void setJsonConfiguration(const QJsonObject& json);
 
 protected slots:
   void on_btnStartStop_clicked(bool checked);
