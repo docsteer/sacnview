@@ -35,6 +35,8 @@ public:
   explicit PreferencesDialog(QWidget* parent = 0);
   ~PreferencesDialog();
 
+  Q_SIGNAL void storeWindowLayoutNow();
+
 protected:
   void showEvent(QShowEvent* e) override;
 

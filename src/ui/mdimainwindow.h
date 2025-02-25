@@ -51,8 +51,8 @@ protected:
 
 public:
   QWidget* showWidgetAsSubWindow(QWidget* w);
-  void saveSubWindows();
-  void restoreSubWindows();
+  Q_SLOT void saveSubWindows();
+  Q_SLOT void restoreSubWindows();
 
 protected slots:
   void on_actionScopeView_triggered(bool checked);
