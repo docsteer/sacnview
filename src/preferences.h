@@ -158,7 +158,7 @@ public:
   void SetUniversesListStart(int start) { m_universesListStart = std::clamp(static_cast<uint16_t>(start), MIN_SACN_UNIVERSE, MAX_SACN_UNIVERSE); }
   int GetUniversesListStart() const { return m_universesListStart; }
 
-  void SetUniversesListCount(int count) { m_universesListCount = std::clamp(count, 0, 500); }
+  void SetUniversesListCount(int count) { m_universesListCount = std::clamp(count, MIN_UNIVERSES_LIST_COUNT, MAX_UNIVERSES_LIST_COUNT); }
   int GetUniversesListCount() const { return m_universesListCount; }
 
   void SetPriorityPreset(const QByteArray& data, int index);

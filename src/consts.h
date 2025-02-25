@@ -39,6 +39,8 @@ constexpr uint16_t MIN_SACN_UNIVERSE = 1;
 constexpr uint16_t MAX_SACN_UNIVERSE = 63999;
 constexpr uint16_t MIN_DMX_ADDRESS = 1;
 constexpr uint16_t MAX_DMX_ADDRESS = 512;
+constexpr int MIN_UNIVERSES_LIST_COUNT = 0;
+constexpr int MAX_UNIVERSES_LIST_COUNT = 500;
 constexpr int PRESET_COUNT = 8;
 constexpr int PRIORITYPRESET_COUNT = 5;
 
