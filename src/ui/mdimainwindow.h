@@ -75,9 +75,7 @@ private slots:
 
   void on_actionPCAPPlayback_triggered();
 
-  void on_pbFewer_clicked();
-
-  void on_pbMore_clicked();
+  void on_sbUniversesCount_editingFinished();
 
   void subWindowRemoved();
 

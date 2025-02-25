@@ -56,6 +56,10 @@ MDIMainWindow::MDIMainWindow(QWidget* parent) :
   ui->sbUniverseList->setWrapping(true);
   ui->sbUniverseList->setValue(Preferences::Instance().GetUniversesListStart());
 
+  ui->sbUniversesCount->setMinimum(MIN_UNIVERSES_LIST_COUNT);
+  ui->sbUniversesCount->setMaximum(MAX_UNIVERSES_LIST_COUNT);
+  ui->sbUniversesCount->setValue(Preferences::Instance().GetUniversesListCount());
+
   // Discovered sources list
   m_proxyDiscovered->setSourceModel(m_modelDiscovered);
   ui->treeViewDiscovered->setModel(m_proxyDiscovered);
@@ -227,7 +231,7 @@ QWidget* MDIMainWindow::showWidgetAsSubWindow(QWidget* w)
   }
 }
 
-void MDIMainWindow::saveSubWindows()
+void MDIMainWindow::saveSubWindows() const
 {
   Preferences& p = Preferences::Instance();
   p.SetMainWindowGeometry(saveGeometry(), saveState(kDockStateVersion));
@@ -337,7 +341,13 @@ void MDIMainWindow::on_actionPCAPPlayback_triggered()
   showWidgetAsSubWindow(pcapPlayback);
 }
 
-int MDIMainWindow::getSelectedUniverse()
+void MDIMainWindow::on_sbUniversesCount_editingFinished()
+{
+  Preferences::Instance().SetUniversesListCount(ui->sbUniversesCount->value());
+  on_sbUniverseList_valueChanged(ui->sbUniverseList->value());
+}
+
+int MDIMainWindow::getSelectedUniverse() const
 {
   QModelIndex selectedIndex = ui->treeView->currentIndex();
   int selectedUniverse = m_model->indexToUniverse(selectedIndex);
@@ -418,18 +428,6 @@ void MDIMainWindow::StoreWidgetGeometry(const QWidget* window, const QWidget* wi
     QMetaObject::invokeMethod(const_cast<QWidget*>(widget), "getJsonConfiguration", Qt::DirectConnection, Q_RETURN_ARG(QJsonObject, i.config));
     result.append(i);
   }
-}
-
-void MDIMainWindow::on_pbFewer_clicked()
-{
-  Preferences::Instance().SetUniversesListCount(Preferences::Instance().GetUniversesListCount() - 1);
-  on_sbUniverseList_valueChanged(ui->sbUniverseList->value());
-}
-
-void MDIMainWindow::on_pbMore_clicked()
-{
-  Preferences::Instance().SetUniversesListCount(Preferences::Instance().GetUniversesListCount() + 1);
-  on_sbUniverseList_valueChanged(ui->sbUniverseList->value());
 }
 
 void MDIMainWindow::subWindowRemoved()

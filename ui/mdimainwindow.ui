@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>sACNView</string>
   </property>
+  <property name="toolTip">
+   <string>Number of universes to monitor</string>
+  </property>
   <property name="styleSheet">
    <string notr="true">QSpinBox {
 border: 1px solid palette(mid); 
@@ -247,61 +250,19 @@ background-color:grey;
           </widget>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,0,0,1">
+          <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0">
            <property name="sizeConstraint">
             <enum>QLayout::SetNoConstraint</enum>
            </property>
            <item>
-            <spacer name="horizontalSpacer_2">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
+            <widget class="QSpinBox" name="sbUniversesCount">
+             <property name="frame">
+              <bool>false</bool>
              </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pbFewer">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>(-) Show Fewer</string>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pbMore">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Show More (+)</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="horizontalSpacer">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-            </spacer>
            </item>
           </layout>
          </item>
