@@ -102,7 +102,7 @@ void MDIMainWindow::closeEvent(QCloseEvent* ev)
 void MDIMainWindow::on_actionScopeView_triggered(bool checked)
 {
   Q_UNUSED(checked);
-  GlScopeWindow* scopeWindow = new GlScopeWindow(ui->sbUniverseList->value(), this);
+  GlScopeWindow* scopeWindow = new GlScopeWindow(getSelectedUniverse(), this);
   showWidgetAsSubWindow(scopeWindow);
 }
 
@@ -116,7 +116,7 @@ void MDIMainWindow::on_actionRecieve_triggered(bool checked)
 void MDIMainWindow::on_actionMultiView_triggered(bool checked)
 {
   Q_UNUSED(checked);
-  MultiView* multiView = new MultiView(this);
+  MultiView* multiView = new MultiView(ui->sbUniverseList->value(), this);
   showWidgetAsSubWindow(multiView);
 }
 
@@ -130,7 +130,7 @@ void MDIMainWindow::on_actionTranmsit_triggered(bool checked)
 void MDIMainWindow::on_actionSnapshot_triggered(bool checked)
 {
   Q_UNUSED(checked);
-  Snapshot* snapView = new Snapshot(ui->sbUniverseList->value(), this);
+  Snapshot* snapView = new Snapshot(getSelectedUniverse(), this);
   showWidgetAsSubWindow(snapView);
 }
 
@@ -155,13 +155,13 @@ void MDIMainWindow::on_actionAbout_triggered(bool checked)
 
 void MDIMainWindow::on_btnUnivListBack_pressed()
 {
-  ui->sbUniverseList->setValue(ui->sbUniverseList->value() - Preferences::Instance().GetUniversesListed());
+  ui->sbUniverseList->setValue(ui->sbUniverseList->value() - Preferences::Instance().GetUniversesListCount());
 }
 
 void MDIMainWindow::on_btnUnivListForward_pressed()
 {
 
-  ui->sbUniverseList->setValue(ui->sbUniverseList->value() + Preferences::Instance().GetUniversesListed());
+  ui->sbUniverseList->setValue(ui->sbUniverseList->value() + Preferences::Instance().GetUniversesListCount());
 }
 
 void MDIMainWindow::on_sbUniverseList_valueChanged(int value)
@@ -341,7 +341,7 @@ int MDIMainWindow::getSelectedUniverse()
 {
   QModelIndex selectedIndex = ui->treeView->currentIndex();
   int selectedUniverse = m_model->indexToUniverse(selectedIndex);
-  return (selectedUniverse >= MIN_SACN_UNIVERSE && selectedUniverse <= MAX_SACN_UNIVERSE) ? selectedUniverse : 1;
+  return (selectedUniverse >= MIN_SACN_UNIVERSE && selectedUniverse <= MAX_SACN_UNIVERSE) ? selectedUniverse : ui->sbUniverseList->value();
 }
 
 QWidget* MDIMainWindow::addMdiWidget(QWidget* w)
@@ -422,13 +422,13 @@ void MDIMainWindow::StoreWidgetGeometry(const QWidget* window, const QWidget* wi
 
 void MDIMainWindow::on_pbFewer_clicked()
 {
-  Preferences::Instance().SetUniversesListed(Preferences::Instance().GetUniversesListed() - 1);
+  Preferences::Instance().SetUniversesListCount(Preferences::Instance().GetUniversesListCount() - 1);
   on_sbUniverseList_valueChanged(ui->sbUniverseList->value());
 }
 
 void MDIMainWindow::on_pbMore_clicked()
 {
-  Preferences::Instance().SetUniversesListed(Preferences::Instance().GetUniversesListed() + 1);
+  Preferences::Instance().SetUniversesListCount(Preferences::Instance().GetUniversesListCount() + 1);
   on_sbUniverseList_valueChanged(ui->sbUniverseList->value());
 }
 
