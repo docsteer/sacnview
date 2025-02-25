@@ -54,6 +54,9 @@ MDIMainWindow::~MDIMainWindow()
 
 void MDIMainWindow::showEvent(QShowEvent* ev)
 {
+  if (Preferences::Instance().GetWindowMode() == WindowMode::Floating && !Preferences::Instance().GetRestoreWindowLayout())
+    resize(310, 560);
+
   QMainWindow::showEvent(ev);
 
   // Universe list
