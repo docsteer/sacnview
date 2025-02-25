@@ -99,6 +99,11 @@ void PreferencesDialog::showEvent(QShowEvent* e)
   ui->cmbPathwayTxSequenceType->setCurrentIndex(Preferences::Instance().GetPathwaySecureTxSequenceType());
 
   ui->cbRestoreWindows->setChecked(Preferences::Instance().GetRestoreWindowLayout());
+  ui->cbAutoRx->setChecked(Preferences::Instance().GetAutoStartRX());
+  // Can't automatically start receiving unless restoring the windows
+  ui->cbAutoRx->setEnabled(Preferences::Instance().GetRestoreWindowLayout());
+  connect(ui->cbRestoreWindows, &QCheckBox::toggled, ui->cbAutoRx, &QCheckBox::setEnabled);
+
   ui->cbSaveWindowsOnExit->setChecked(Preferences::Instance().GetAutoSaveWindowLayout());
   // Can't manually save layout if autosaving as will get wiped
   ui->btnSaveWindows->setDisabled(Preferences::Instance().GetAutoSaveWindowLayout());
@@ -192,6 +197,9 @@ void PreferencesDialog::on_buttonBox_accepted()
   // Save layout
   p.SetRestoreWindowLayout(ui->cbRestoreWindows->isChecked());
   p.SetAutoSaveWindowLayout(ui->cbSaveWindowsOnExit->isChecked());
+
+  // Receive autostart
+  Preferences::Instance().SetAutoStartRX(ui->cbAutoRx->isChecked());
 
   // Transmit timeout
   int seconds = ui->NumOfHoursOfSacn->value() * 60 * 60 + ui->NumOfMinOfSacn->value() * 60 + ui->NumOfSecOfSacn->value();

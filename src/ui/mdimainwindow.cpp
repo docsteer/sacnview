@@ -299,6 +299,12 @@ void MDIMainWindow::restoreSubWindows()
     }
 
   }
+
+  if (p.GetAutoStartRX())
+  {
+    // Automatically start all receiver views after a moment
+    QTimer::singleShot(500, this, &MDIMainWindow::startReceiverViews);
+  }
 }
 
 void MDIMainWindow::startReceiverViews()

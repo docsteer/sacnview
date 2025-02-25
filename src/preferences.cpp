@@ -43,6 +43,7 @@ static const QString S_TIMEOUT = QStringLiteral("Timeout");
 static const QString S_FLICKERFINDERSHOWINFO = QStringLiteral("Flicker Finder Info");
 static const QString S_SAVEWINDOWLAYOUT = QStringLiteral("AutosaveWindowLayout");
 static const QString S_RESTOREWINDOWLAYOUT = QStringLiteral("RestoreWindowLayout");
+static const QString S_AUTOSTARTRX = QStringLiteral("AutomaticReceive");
 static const QString S_PRESETS = QStringLiteral("Preset %1");
 static const QString S_MAINWINDOWGEOM = QStringLiteral("Main Window Geometry");
 static const QString S_MAINWINDOWSTATE = QStringLiteral("Main Window State");
@@ -381,6 +382,7 @@ void Preferences::savePreferences() const
   settings.setValue(S_FLICKERFINDERSHOWINFO, QVariant(m_flickerFinderShowInfo));
   settings.setValue(S_SAVEWINDOWLAYOUT, m_autosaveWindowLayout);
   settings.setValue(S_RESTOREWINDOWLAYOUT, m_restoreWindowLayout);
+  settings.setValue(S_AUTOSTARTRX, m_autoStartRx);
   settings.setValue(S_WINDOW_MODE, static_cast<int>(m_windowMode));
   settings.setValue(S_LISTEN_ALL, m_interfaceListenAll);
   settings.setValue(S_THEME, m_theme);
@@ -460,6 +462,7 @@ void Preferences::loadPreferences()
   m_windowMode = static_cast<WindowMode>(settings.value(S_WINDOW_MODE, static_cast<int>(m_windowMode)).toInt());
   m_autosaveWindowLayout = settings.value(S_SAVEWINDOWLAYOUT, m_autosaveWindowLayout).toBool();
   m_restoreWindowLayout = settings.value(S_RESTOREWINDOWLAYOUT, m_restoreWindowLayout).toBool();
+  m_autoStartRx = settings.value(S_AUTOSTARTRX, m_autoStartRx).toBool();
   m_theme = static_cast<Themes::theme_e>(settings.value(S_THEME, static_cast<int>(m_theme)).toInt());
   m_txrateoverride = settings.value(S_TX_RATE_OVERRIDE, m_txrateoverride).toBool();
   m_txbadpriority = settings.value(S_TX_BAD_PRIORITY, m_txbadpriority).toBool();
