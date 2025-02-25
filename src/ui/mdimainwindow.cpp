@@ -44,20 +44,6 @@ MDIMainWindow::MDIMainWindow(QWidget* parent) :
   m_proxySync(new sACNSyncListModel::proxy(this))
 {
   ui->setupUi(this);
-}
-
-MDIMainWindow::~MDIMainWindow()
-{
-  qDeleteAll(m_subWindows);
-  delete ui;
-}
-
-void MDIMainWindow::showEvent(QShowEvent* ev)
-{
-  if (Preferences::Instance().GetWindowMode() == WindowMode::Floating && !Preferences::Instance().GetRestoreWindowLayout())
-    resize(310, 560);
-
-  QMainWindow::showEvent(ev);
 
   // Universe list
   ui->treeView->setModel(m_model);
@@ -66,9 +52,9 @@ void MDIMainWindow::showEvent(QShowEvent* ev)
   connect(m_model, &QAbstractItemModel::rowsAboutToBeRemoved, this, &MDIMainWindow::rowsAboutToBeRemoved);
 
   ui->sbUniverseList->setMinimum(MIN_SACN_UNIVERSE);
-  ui->sbUniverseList->setMaximum(MAX_SACN_UNIVERSE - Preferences::Instance().GetUniversesListed() + 1);
+  ui->sbUniverseList->setMaximum(MAX_SACN_UNIVERSE - Preferences::Instance().GetUniversesListCount() + 1);
   ui->sbUniverseList->setWrapping(true);
-  ui->sbUniverseList->setValue(MIN_SACN_UNIVERSE);
+  ui->sbUniverseList->setValue(Preferences::Instance().GetUniversesListStart());
 
   // Discovered sources list
   m_proxyDiscovered->setSourceModel(m_modelDiscovered);
@@ -83,6 +69,20 @@ void MDIMainWindow::showEvent(QShowEvent* ev)
   connect(ui->treeViewSync, &QAbstractItemView::doubleClicked, this, &MDIMainWindow::universeDoubleClick);
   ui->treeViewSync->setSortingEnabled(true);
   ui->treeViewSync->sortByColumn(0, Qt::AscendingOrder);
+}
+
+MDIMainWindow::~MDIMainWindow()
+{
+  qDeleteAll(m_subWindows);
+  delete ui;
+}
+
+void MDIMainWindow::showEvent(QShowEvent* ev)
+{
+  if (Preferences::Instance().GetWindowMode() == WindowMode::Floating && !Preferences::Instance().GetRestoreWindowLayout())
+    resize(310, 560);
+
+  QMainWindow::showEvent(ev);
 
   // And apply prefs
   applyPrefs();
@@ -167,9 +167,11 @@ void MDIMainWindow::on_btnUnivListForward_pressed()
 void MDIMainWindow::on_sbUniverseList_valueChanged(int value)
 {
   if (m_model)
+  {
     m_model->setStartUniverse(value);
+    Preferences::Instance().SetUniversesListStart(value);
+  }
 }
-
 
 void MDIMainWindow::universeDoubleClick(const QModelIndex& index)
 {

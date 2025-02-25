@@ -67,8 +67,8 @@ static const QString S_WINDOWCONFIG = QStringLiteral("Configuration");
 
 // Receive
 static const QString S_RX_AUTOSTART = QStringLiteral("Rx/AutomaticStart");
-static const QString S_RX_UNIVERSESLISTSTART = QStringLiteral("Rx/UniverseList/Start");
-static const QString S_RX_UNIVERSESLISTED = QStringLiteral("Rx/UniverseList/Count");
+static const QString S_RX_UNIVERSESLIST_START = QStringLiteral("Rx/UniverseList/Start");
+static const QString S_RX_UNIVERSESLIST_COUNT = QStringLiteral("Rx/UniverseList/Count");
 
 static const QString S_RX_BLIND_VISUALIZER = QStringLiteral("Rx/ShowBlind");
 static const QString S_RX_FLICKERFINDERSHOWINFO = QStringLiteral("Rx/FlickerFinderInfo");
@@ -404,7 +404,8 @@ void Preferences::savePreferences() const
   settings.setValue(S_DISPLAY_FORMAT, QVariant(static_cast<int>(m_nDisplayFormat)));
 
   settings.setValue(S_RX_AUTOSTART, m_autoStartRx);
-  settings.setValue(S_RX_UNIVERSESLISTED, m_universesListed);
+  settings.setValue(S_RX_UNIVERSESLIST_START, m_universesListStart);
+  settings.setValue(S_RX_UNIVERSESLIST_COUNT, m_universesListCount);
 
   settings.setValue(S_RX_BLIND_VISUALIZER, QVariant(m_bBlindVisualizer));
   settings.setValue(S_RX_ETC_DD, QVariant(m_bETCDD));
@@ -503,7 +504,8 @@ void Preferences::loadPreferences()
     else
       m_locale = QLocale(v.toString());
   }
-  m_universesListed = settings.value(S_RX_UNIVERSESLISTED, m_universesListed).toUInt();
+  m_universesListStart = settings.value(S_RX_UNIVERSESLIST_START, m_universesListStart).toUInt();
+  m_universesListCount = settings.value(S_RX_UNIVERSESLIST_COUNT, m_universesListCount).toUInt();
   m_multicastTtl = settings.value(S_TX_MULTICAST_TTL, m_multicastTtl).toUInt();
   m_pathwaySecureRx = settings.value(S_PATHWAYSECURE_RX, m_pathwaySecureRx).toBool();
   m_pathwaySecureRxPassword = settings.value(S_PATHWAYSECURE_RX_PASSWORD, m_pathwaySecureRxPassword).toString();

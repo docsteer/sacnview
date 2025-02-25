@@ -155,8 +155,11 @@ public:
   void SetLocale(const QLocale& locale) { m_locale = locale; }
   const QLocale& GetLocale() const { return m_locale; }
 
-  void SetUniversesListed(quint8 count) { m_universesListed = (std::max)(count, (quint8)1); }
-  quint8 GetUniversesListed() const { return m_universesListed; }
+  void SetUniversesListStart(int start) { m_universesListStart = std::clamp(static_cast<uint16_t>(start), MIN_SACN_UNIVERSE, MAX_SACN_UNIVERSE); }
+  int GetUniversesListStart() const { return m_universesListStart; }
+
+  void SetUniversesListCount(int count) { m_universesListCount = std::clamp(count, 0, 500); }
+  int GetUniversesListCount() const { return m_universesListCount; }
 
   void SetPriorityPreset(const QByteArray& data, int index);
   const QByteArray& GetPriorityPreset(int index) const;
@@ -222,7 +225,8 @@ private:
   Themes::theme_e m_theme = Themes::LIGHT;
 
   QLocale m_locale;
-  quint8 m_universesListed = 20;
+  int m_universesListStart = MIN_SACN_UNIVERSE;
+  int m_universesListCount = 20;
 
   quint8 m_multicastTtl = 1;
 
