@@ -40,11 +40,6 @@ public:
   explicit MDIMainWindow(QWidget* parent = 0);
   ~MDIMainWindow();
 
-  /// Start all receiver views
-  Q_SIGNAL void startReceiverViews();
-  /// Stop all receiver views
-  Q_SIGNAL void stopReceiverViews();
-
 protected:
   void showEvent(QShowEvent* ev) override;
   void closeEvent(QCloseEvent* ev) override;
@@ -53,6 +48,11 @@ public:
   QWidget* showWidgetAsSubWindow(QWidget* w);
   Q_SLOT void saveSubWindows();
   Q_SLOT void restoreSubWindows();
+
+  /// Start all receiver views
+  Q_SLOT void startReceiverViews();
+  /// Stop all receiver views
+  Q_SLOT void stopReceiverViews();
 
 protected slots:
   void on_actionScopeView_triggered(bool checked);

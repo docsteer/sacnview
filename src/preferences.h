@@ -120,6 +120,9 @@ public:
   void SetRestoreWindowLayout(bool value) { m_restoreWindowLayout = value; }
   bool GetRestoreWindowLayout() const { return m_restoreWindowLayout; }
 
+  void SetAutoStartRX(bool value) { m_autoStartRx = value; }
+  bool GetAutoStartRX() const { return m_autoStartRx; }
+
   void SetWindowMode(WindowMode mode);
   WindowMode GetWindowMode() const { return m_windowMode; }
 
@@ -245,6 +248,7 @@ private:
 
   bool m_autosaveWindowLayout = false;
   bool m_restoreWindowLayout = false;
+  bool m_autoStartRx = false;
 
   bool m_restartPending = false;
 

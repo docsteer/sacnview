@@ -318,14 +318,24 @@ GlScopeWindow::GlScopeWindow(int universe, QWidget* parent)
   onRunningChanged(m_scope->model()->isRunning());
 
   // Now connect signals for other receiver views
-  connect(this, SIGNAL(startOtherViews()), parent, SIGNAL(startReceiverViews()));
-  connect(this, SIGNAL(stopOtherViews()), parent, SIGNAL(stopReceiverViews()));
+  connect(this, SIGNAL(startOtherViews()), parent, SLOT(startReceiverViews()));
+  connect(this, SIGNAL(stopOtherViews()), parent, SLOT(stopReceiverViews()));
 }
 
 GlScopeWindow::~GlScopeWindow()
 {
   // Must delete the scope first
   delete m_scope;
+}
+
+void GlScopeWindow::startRx()
+{
+  m_btnStart->click();
+}
+
+void GlScopeWindow::stopRx()
+{
+  m_btnStop->click();
 }
 
 QJsonObject GlScopeWindow::getJsonConfiguration() const
