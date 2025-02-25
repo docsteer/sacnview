@@ -114,8 +114,11 @@ public:
   void SetPreset(const QByteArray& data, int index);
   const QByteArray& GetPreset(int index) const;
 
-  void SetSaveWindowLayout(bool value) { m_saveWindowLayout = value; }
-  bool GetSaveWindowLayout() const { return m_saveWindowLayout; }
+  void SetAutoSaveWindowLayout(bool value) { m_autosaveWindowLayout = value; }
+  bool GetAutoSaveWindowLayout() const { return m_autosaveWindowLayout; }
+
+  void SetRestoreWindowLayout(bool value) { m_restoreWindowLayout = value; }
+  bool GetRestoreWindowLayout() const { return m_restoreWindowLayout; }
 
   void SetWindowMode(WindowMode mode);
   WindowMode GetWindowMode() const { return m_windowMode; }
@@ -240,7 +243,8 @@ private:
   bool m_pathwaySecureRx = true;
   bool m_pathwaySecureRxDataOnly = false;
 
-  bool m_saveWindowLayout = false;
+  bool m_autosaveWindowLayout = false;
+  bool m_restoreWindowLayout = false;
 
   bool m_restartPending = false;
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>834</width>
-    <height>633</height>
+    <height>657</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -620,8 +620,29 @@
      <property name="title">
       <string>Display Options</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_10">
-      <item>
+     <layout class="QGridLayout" name="gridLayout_4">
+      <item row="7" column="0">
+       <widget class="QCheckBox" name="cbSaveWindowsOnExit">
+        <property name="text">
+         <string>Save windows on exit</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QCheckBox" name="cbFloatingWindows">
+        <property name="text">
+         <string>Floating Windows</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" colspan="2">
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" colspan="2">
        <widget class="QRadioButton" name="DecimalDisplayFormat">
         <property name="enabled">
          <bool>true</bool>
@@ -643,7 +664,7 @@
         </property>
        </widget>
       </item>
-      <item>
+      <item row="1" column="0" colspan="2">
        <widget class="QRadioButton" name="PercentDisplayFormat">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -662,7 +683,7 @@
         </property>
        </widget>
       </item>
-      <item>
+      <item row="2" column="0" colspan="2">
        <widget class="QRadioButton" name="HexDisplayFormat">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -681,21 +702,14 @@
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="Line" name="line">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="cbFloatingWindows">
+      <item row="7" column="1">
+       <widget class="QPushButton" name="btnSaveWindows">
         <property name="text">
-         <string>Floating Windows</string>
+         <string>Save windows now</string>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="6" column="0" colspan="2">
        <widget class="QCheckBox" name="cbRestoreWindows">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -714,7 +728,7 @@
         </property>
        </widget>
       </item>
-      <item>
+      <item row="4" column="0" colspan="2">
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
          <widget class="QLabel" name="label">

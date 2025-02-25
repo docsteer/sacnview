@@ -87,7 +87,8 @@ void MDIMainWindow::showEvent(QShowEvent* ev)
 
 void MDIMainWindow::closeEvent(QCloseEvent* ev)
 {
-  saveSubWindows();
+  if (Preferences::Instance().GetAutoSaveWindowLayout())
+    saveSubWindows();
 
   qDeleteAll(m_subWindows);
   m_subWindows.clear();
@@ -136,6 +137,7 @@ void MDIMainWindow::on_actionSettings_triggered(bool /*checked*/)
   {
     m_prefDialog = new PreferencesDialog(this);
     connect(m_prefDialog, &QDialog::accepted, this, &MDIMainWindow::applyPrefs);
+    connect(m_prefDialog, &PreferencesDialog::storeWindowLayoutNow, this, &MDIMainWindow::saveSubWindows);
   }
 
   m_prefDialog->open();
@@ -233,35 +235,32 @@ QWidget* MDIMainWindow::showWidgetAsSubWindow(QWidget* w)
 void MDIMainWindow::saveSubWindows()
 {
   Preferences& p = Preferences::Instance();
-  if (p.GetSaveWindowLayout())
+  p.SetMainWindowGeometry(saveGeometry(), saveState(kDockStateVersion));
+
+  QList<SubWindowInfo> result;
+  if (m_mdiArea)
   {
-    p.SetMainWindowGeometry(saveGeometry(), saveState(kDockStateVersion));
-
-    QList<SubWindowInfo> result;
-    if (m_mdiArea)
+    QList<QMdiSubWindow*> windows = m_mdiArea->subWindowList();
+    for (const QMdiSubWindow* window : windows)
     {
-      QList<QMdiSubWindow*> windows = m_mdiArea->subWindowList();
-      for (const QMdiSubWindow* window : windows)
-      {
-        StoreWidgetGeometry(window, window->widget(), result);
-      }
+      StoreWidgetGeometry(window, window->widget(), result);
     }
-    else
-    {
-      for (const QWidget* window : m_subWindows)
-      {
-        StoreWidgetGeometry(window, window, result);
-      }
-    }
-
-    p.SetSavedWindows(result);
   }
+  else
+  {
+    for (const QWidget* window : m_subWindows)
+    {
+      StoreWidgetGeometry(window, window, result);
+    }
+  }
+
+  p.SetSavedWindows(result);
 }
 
 void MDIMainWindow::restoreSubWindows()
 {
   const Preferences& p = Preferences::Instance();
-  if (!p.GetSaveWindowLayout())
+  if (!p.GetRestoreWindowLayout())
     return;
 
   restoreGeometry(p.GetMainWindowGeometry());

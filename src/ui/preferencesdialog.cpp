@@ -39,6 +39,8 @@ PreferencesDialog::PreferencesDialog(QWidget* parent) :
   ui->cmbPathwayTxSequenceType->addItem(tr("Volatile"));
   ui->cmbPathwayTxSequenceType->addItem(tr("Non-Volatile"));
   ui->cmbPathwayTxSequenceType->setCurrentIndex(0); // Default Time
+
+  connect(ui->btnSaveWindows, &QAbstractButton::clicked, this, &PreferencesDialog::storeWindowLayoutNow);
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -96,7 +98,11 @@ void PreferencesDialog::showEvent(QShowEvent* e)
   ui->sbPathwaySecureRxSequenceTimeWindow->setValue(Preferences::Instance().GetPathwaySecureRxSequenceTimeWindow());
   ui->cmbPathwayTxSequenceType->setCurrentIndex(Preferences::Instance().GetPathwaySecureTxSequenceType());
 
-  ui->cbRestoreWindows->setChecked(Preferences::Instance().GetSaveWindowLayout());
+  ui->cbRestoreWindows->setChecked(Preferences::Instance().GetRestoreWindowLayout());
+  ui->cbSaveWindowsOnExit->setChecked(Preferences::Instance().GetAutoSaveWindowLayout());
+  // Can't manually save layout if autosaving as will get wiped
+  ui->btnSaveWindows->setDisabled(Preferences::Instance().GetAutoSaveWindowLayout());
+  connect(ui->cbSaveWindowsOnExit, &QCheckBox::toggled, ui->btnSaveWindows, &QPushButton::setDisabled);
 
   ui->cbFloatingWindows->setChecked(Preferences::Instance().GetWindowMode() == WindowMode::Floating);
 
@@ -184,7 +190,8 @@ void PreferencesDialog::on_buttonBox_accepted()
     p.SetWindowMode(WindowMode::MDI);
 
   // Save layout
-  p.SetSaveWindowLayout(ui->cbRestoreWindows->isChecked());
+  p.SetRestoreWindowLayout(ui->cbRestoreWindows->isChecked());
+  p.SetAutoSaveWindowLayout(ui->cbSaveWindowsOnExit->isChecked());
 
   // Transmit timeout
   int seconds = ui->NumOfHoursOfSacn->value() * 60 * 60 + ui->NumOfMinOfSacn->value() * 60 + ui->NumOfSecOfSacn->value();

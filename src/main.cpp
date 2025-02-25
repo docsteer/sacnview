@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
 #endif
 
     // Show window
-    if(Preferences::Instance().GetSaveWindowLayout() || Preferences::Instance().GetWindowMode() == WindowMode::Floating)
+    if(Preferences::Instance().GetRestoreWindowLayout() || Preferences::Instance().GetWindowMode() == WindowMode::Floating)
         w->show();
     else
         w->showMaximized();
