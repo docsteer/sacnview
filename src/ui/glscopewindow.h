@@ -39,6 +39,10 @@ public:
   explicit GlScopeWindow(int universe, QWidget* parent = nullptr);
   ~GlScopeWindow();
 
+  // Trigger API
+  Q_SLOT void startRx();
+  Q_SLOT void stopRx();
+
   Q_INVOKABLE QJsonObject getJsonConfiguration() const;
   Q_INVOKABLE void setJsonConfiguration(const QJsonObject& json);
 

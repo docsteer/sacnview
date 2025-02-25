@@ -217,16 +217,6 @@ void MDIMainWindow::on_actionMultiUniverse_triggered()
 
 QWidget* MDIMainWindow::showWidgetAsSubWindow(QWidget* w)
 {
-  // Connect cross-window triggering signals
-  // Check if extant
-  const QMetaObject* meta = w->metaObject();
-  if (meta->indexOfSlot("startRx()") != -1)
-  {
-    // Classes should support both or neither
-    connect(this, SIGNAL(startReceiverViews()), w, SLOT(startRx()));
-    connect(this, SIGNAL(stopReceiverViews()), w, SLOT(stopRx()));
-  }
-
   switch (Preferences::Instance().GetWindowMode())
   {
   default:
@@ -308,6 +298,28 @@ void MDIMainWindow::restoreSubWindows()
         QMetaObject::invokeMethod(widget, "setJsonConfiguration", Q_ARG(QJsonObject, window.config));
     }
 
+  }
+}
+
+void MDIMainWindow::startReceiverViews()
+{
+  // Invoke startRx() on everything except the sender
+  for (QWidget *widget : m_subWindows)
+  {
+    if (sender() == widget)
+      continue;
+    QMetaObject::invokeMethod(widget, "startRx");
+  }
+}
+
+void MDIMainWindow::stopReceiverViews()
+{
+  // Invoke stopRx() on everything except the sender
+  for (QWidget* widget : m_subWindows)
+  {
+    if (sender() == widget)
+      continue;
+    QMetaObject::invokeMethod(widget, "stopRx");
   }
 }
 
