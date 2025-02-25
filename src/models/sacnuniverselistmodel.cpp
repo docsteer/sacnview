@@ -67,7 +67,7 @@ void sACNUniverseListModel::setStartUniverse(int start)
     m_universes.clear();
 
     // Copy listener sharedpointers, to release later
-    auto old_listeners = m_listeners;
+    QList<sACNManager::tListener> old_listeners = m_listeners;
 
     // Create listeners
     m_start = start;
