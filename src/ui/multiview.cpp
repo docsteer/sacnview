@@ -51,7 +51,7 @@ MultiView::MultiView(int firstUniverse, QWidget* parent)
   : MultiView(parent)
 {
   ui->spinUniverseMin->setValue(firstUniverse);
-  ui->spinUniverseMax->setValue(firstUniverse + Preferences::Instance().GetUniversesListed());
+  ui->spinUniverseMax->setValue(firstUniverse + Preferences::Instance().GetUniversesListCount());
 }
 
 MultiView::~MultiView()

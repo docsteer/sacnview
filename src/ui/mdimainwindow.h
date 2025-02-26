@@ -46,7 +46,7 @@ protected:
 
 public:
   QWidget* showWidgetAsSubWindow(QWidget* w);
-  Q_SLOT void saveSubWindows();
+  Q_SLOT void saveSubWindows() const;
   Q_SLOT void restoreSubWindows();
 
   /// Start all receiver views
@@ -75,9 +75,7 @@ private slots:
 
   void on_actionPCAPPlayback_triggered();
 
-  void on_pbFewer_clicked();
-
-  void on_pbMore_clicked();
+  void on_sbUniversesCount_editingFinished();
 
   void subWindowRemoved();
 
@@ -100,7 +98,7 @@ private:
   // Dialogs
   PreferencesDialog* m_prefDialog = nullptr;
 
-  int getSelectedUniverse();
+  int getSelectedUniverse() const;
   QWidget* addMdiWidget(QWidget* w);
   QWidget* addFloatWidget(QWidget* w);
 

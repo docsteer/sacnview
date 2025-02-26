@@ -45,7 +45,7 @@ sACNBasicSourceInfo::sACNBasicSourceInfo(sACNUniverseInfo *p):
 
 sACNUniverseListModel::sACNUniverseListModel(QObject *parent) : QAbstractItemModel(parent)
 {
-    m_start = MIN_SACN_UNIVERSE;
+    m_start = Preferences::Instance().GetUniversesListStart();
 
     m_displayDDOnlySource = Preferences::Instance().GetETCDisplayDDOnly();
 
@@ -58,7 +58,7 @@ void sACNUniverseListModel::setStartUniverse(int start)
     QWriteLocker modelindex_locker(&rwlock_ModelIndex);
 
     // Limit max value
-    const int startMax = (MAX_SACN_UNIVERSE - Preferences::Instance().GetUniversesListed() + 1);
+    const int startMax = (MAX_SACN_UNIVERSE - Preferences::Instance().GetUniversesListCount() + 1);
     if (start > startMax) start = startMax;
 
     beginResetModel();
@@ -67,11 +67,11 @@ void sACNUniverseListModel::setStartUniverse(int start)
     m_universes.clear();
 
     // Copy listener sharedpointers, to release later
-    auto old_listeners = m_listeners;
+    QList<sACNManager::tListener> old_listeners = m_listeners;
 
     // Create listeners
     m_start = start;
-    for(int universe=m_start; universe<m_start+Preferences::Instance().GetUniversesListed(); universe++)
+    for(int universe=m_start; universe<m_start+Preferences::Instance().GetUniversesListCount(); universe++)
     {
         m_listeners.push_back(sACNManager::Instance().getListener(universe));
 
