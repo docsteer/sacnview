@@ -20,10 +20,12 @@
 #include "preferences.h"
 #include "translations/translations.h"
 #include "newversiondialog.h"
+#include "sacnlistenermodel.h"
 
 #include <QTimer>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QSortFilterProxyModel>
 #include <QStringList>
 #include <QLibraryInfo>
 
@@ -94,121 +96,37 @@ aboutDialog::aboutDialog(QWidget* parent)
         "Licensed under the <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\">Creative Commons Zero v1.0 Universal</a></p>"));
   }
 
-  // Setup diagnostics tree
-  ui->twDiag->setColumnCount(2);
-  ui->twDiag->header()->hide();
+  // Setup diagnostics
+  m_listenerModel = new SACNListenerTableModel(this);
+  QSortFilterProxyModel* sortProxy = new QSortFilterProxyModel(this);
+  sortProxy->setSourceModel(m_listenerModel);
+  sortProxy->setDynamicSortFilter(true);
+  ui->twDiag->setModel(sortProxy);
+  ui->twDiag->sortByColumn(SACNListenerTableModel::COL_UNIVERSE, Qt::AscendingOrder);
 
-  // Get listener list
-  const auto listenerList = sACNManager::Instance().getListenerList();
-
-  // Sort list
-  struct {
-    bool operator()(const sACNManager::wListener& a, const sACNManager::wListener& b) const
-    {
-      auto aStrong = a.toStrongRef();
-      auto bStrong = b.toStrongRef();
-      if (aStrong && bStrong)
-        return aStrong->universe() < bStrong->universe();
-      else if (!aStrong)
-        return true;
-      else
-        return false;
-    }
-  } listenerSortbyUni;
-  auto listenerListSorted = listenerList.values();
-  std::sort(listenerListSorted.begin(), listenerListSorted.end(), listenerSortbyUni);
-
-  // Display Sorted!
-  for (const auto& weakListener : listenerListSorted) {
-
-    sACNManager::tListener listener(weakListener);
-    if (listener) {
-      int universe = listener->universe();
-
-      // Save listener
-      m_universeDetails.append(universeDetails());
-      m_universeDetails.last().listener = listener;
-
-      // Universe Number Text (Parent)
-      {
-        m_universeDetails.last().treeUniverse = new QTreeWidgetItem(ui->twDiag);
-        m_universeDetails.last().treeUniverse->setText(0, QString(tr("Universe %1")).arg(universe));
-      }
-
-      // Merges per second (Child)
-      {
-        m_universeDetails.last().treeMergesPerSecond = new QTreeWidgetItem(m_universeDetails.last().treeUniverse);
-        m_universeDetails.last().treeMergesPerSecond->setText(0, tr("Merges per second"));
-        m_universeDetails.last().treeMergesPerSecond->setText(1, "-");
-      }
-
-      // Bind status (Child)
-      {
-        m_universeDetails.last().treeMergesBindStatus = new QTreeWidgetItem(m_universeDetails.last().treeUniverse);
-        m_universeDetails.last().treeMergesBindStatus->setText(0, tr("Bind status"));
-
-        m_universeDetails.last().treeMergesBindStatusUnicast = new QTreeWidgetItem(m_universeDetails.last().treeMergesBindStatus);
-        m_universeDetails.last().treeMergesBindStatusUnicast->setText(0, tr("Unicast"));
-        bindStatus(m_universeDetails.last().treeMergesBindStatusUnicast, listener->getBindStatus().unicast);
-
-        m_universeDetails.last().treeMergesBindStatusMulticast = new QTreeWidgetItem(m_universeDetails.last().treeMergesBindStatus);
-        m_universeDetails.last().treeMergesBindStatusMulticast->setText(0, tr("Multicast"));
-        bindStatus(m_universeDetails.last().treeMergesBindStatusMulticast, listener->getBindStatus().multicast);
-
-      }
-    }
-  }
   resizeDiagColumn();
 
   m_displayTimer = new QTimer(this);
   connect(m_displayTimer, &QTimer::timeout, this, &aboutDialog::updateDisplay);
   m_displayTimer->start(1000);
-
 }
 
 aboutDialog::~aboutDialog()
 {
-  foreach(universeDetails universeDetail, m_universeDetails) {
-    delete universeDetail.treeUniverse;
-  }
-
-  m_displayTimer->deleteLater();
+  delete m_listenerModel;
+  m_displayTimer->stop();
   delete ui;
 }
 
 void aboutDialog::updateDisplay()
 {
-  for (universeDetails universeDetail : m_universeDetails) {
-    // Update merges per second
-    auto merges = universeDetail.listener->mergesPerSecond();
-    if (merges > 0)
-      universeDetail.treeMergesPerSecond->setText(1, QString("%1").arg(merges));
-  }
-}
-
-void aboutDialog::bindStatus(QTreeWidgetItem* treeItem, sACNRxSocket::eBindStatus bindStatus)
-{
-  QString bindString;
-  switch (bindStatus) {
-  case sACNRxSocket::BIND_UNKNOWN:
-    bindString = QString(tr("Unknown"));
-    break;
-  case sACNRxSocket::BIND_OK:
-    bindString = QString(tr("OK"));
-    break;
-  case sACNRxSocket::BIND_FAILED:
-    bindString = QString(tr("Failed"));
-    break;
-  }
-  treeItem->setText(1, bindString);
+  if (m_listenerModel)
+    m_listenerModel->refresh();
 }
 
 void aboutDialog::resizeDiagColumn()
 {
-  // Resize coloums
-  for (int n = 0; n < ui->twDiag->columnCount(); n++) {
-    ui->twDiag->resizeColumnToContents(n);
-  }
+  ui->twDiag->resizeColumnsToContents();
 }
 
 void aboutDialog::on_chkAutoUpdate_clicked(bool checked)
