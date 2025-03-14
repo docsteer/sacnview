@@ -84,7 +84,7 @@ bool sACNTxSocket::bind()
   bool ok = false;
 
   // Bind to first IPv4 address on selected NIC
-  foreach(QNetworkAddressEntry ifaceAddr, m_interface.addressEntries()) {
+  for (const QNetworkAddressEntry& ifaceAddr : m_interface.addressEntries()) {
     if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol) {
       ok = QUdpSocket::bind(ifaceAddr.ip());
       if (ok) {
@@ -104,7 +104,8 @@ bool sACNTxSocket::bind()
     }
   }
 
-  if (!ok) qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Failed to bind TX socket";
+  if (!ok)
+    qDebug() << "sACNTxSocket " << QThread::currentThreadId() << ": Failed to bind TX socket";
 
   return ok;
 }
@@ -131,7 +132,7 @@ qint64 sACNTxSocket::writeDatagram(const char* data, qint64 len, const QHostAddr
   // Copy to correct internal listener(s) for local display, if required by platform
   if (writeDatagramLoopbackTest(host, localAddress())) {
     CIPAddr addr;
-    for (auto& weakListener : sACNManager::Instance().getListenerList()) {
+    for (const auto& weakListener : sACNManager::Instance().getListenerList()) {
       sACNManager::tListener listener(weakListener);
       if (listener) {
         GetUniverseAddress(listener->universe(), addr);
