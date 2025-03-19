@@ -14,8 +14,9 @@ list(APPEND SACNVIEW_FORMS
   ${CMAKE_CURRENT_LIST_DIR}/translationdialog.ui
 )
 
-list(APPEND SACNVIEW_RCC
-  ${CMAKE_CURRENT_LIST_DIR}/translations.qrc
+set(SACNVIEW_TS
+  ${CMAKE_CURRENT_LIST_DIR}/sACNView_de.ts
+  ${CMAKE_CURRENT_LIST_DIR}/sACNView_en.ts
+  ${CMAKE_CURRENT_LIST_DIR}/sACNView_es.ts
+  ${CMAKE_CURRENT_LIST_DIR}/sACNView_fr.ts
 )
-
-## TODO: LUpdate and LRelease
