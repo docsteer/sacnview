@@ -21,7 +21,7 @@ TranslationDialog::TranslationDialog(const QLocale DefaultLocale, QVBoxLayout *V
 
     // Translations
     m_bgTranslations->setExclusive(true);
-    for (auto translation : Translations::lTranslations)
+    for (const auto &translation : Translations::lTranslations)
     {
         QRadioButton *rb = new QRadioButton(this);
         m_bgTranslations->addButton(rb);
@@ -54,8 +54,8 @@ bool TranslationDialog::LoadTranslation(const QLocale locale)
 
     // Exists in resource
     bool ret = false;
-    for (auto lang : locale.uiLanguages() ) {
-        ret = QFile(QString(":/i18n/%1_%2.qm").arg(qApp->applicationName()).arg(lang)).exists();
+    for (const auto &lang : locale.uiLanguages() ) {
+        ret = QFile(QStringLiteral(":/i18n/%1_%2.qm").arg(qApp->applicationName()).arg(lang)).exists();
         if (ret) break;
     }
     if (ret) {
@@ -64,19 +64,19 @@ bool TranslationDialog::LoadTranslation(const QLocale locale)
         // Load application translation from resource
         {
             QTranslator *translator = new QTranslator();
-            if (translator->load(locale, qApp->applicationName(), "_", ":/i18n/", ".qm"))
+            if (translator->load(locale, qApp->applicationName(), QStringLiteral("_"), QStringLiteral(":/i18n/"), QStringLiteral(".qm")))
                 qApp->installTranslator(translator);
         }
 
         // Load QT translations
         {
             QTranslator *translator = new QTranslator();
-            if (translator->load(locale, "qt", "_", QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+            if (translator->load(locale, QStringLiteral("qt"), QStringLiteral("_"), QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
                 qApp->installTranslator(translator);
         }
         {
             QTranslator *translator = new QTranslator();
-            if (translator->load(locale, "qtbase", "_", QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+            if (translator->load(locale, QStringLiteral("qtbase"), QStringLiteral("_"), QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
                 qApp->installTranslator(translator);
         }
 
