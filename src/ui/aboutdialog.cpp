@@ -16,7 +16,7 @@
 #include "aboutdialog.h"
 #include "ui_aboutdialog.h"
 #include "consts.h"
-#include <pcap.h>
+#include "pcap/pcapplayback.h"
 #include "preferences.h"
 #include "translations/translations.h"
 #include "newversiondialog.h"
@@ -80,12 +80,15 @@ aboutDialog::aboutDialog(QWidget* parent)
   }
 
   {
-    const char* libpcap = pcap_lib_version();
-    ui->lblLibs->setText(
-      tr("<p>This application uses <a href=\"https://www.tcpdump.org/\">libpcap</a><br>"
-        "%1<br>"
-        "Licensed under the <a href=\"https://opensource.org/licenses/BSD-3-Clause\">The 3-Clause BSD License</a></p>")
-      .arg(QString::fromUtf8(libpcap)));
+    ui->lblLibs->clear();
+    if (PcapPlayback::foundLibPcap())
+    {
+        ui->lblLibs->setText(
+          tr("<p>This application uses <a href=\"https://www.tcpdump.org/\">libpcap</a><br>"
+            "%1<br>"
+            "Licensed under the <a href=\"https://opensource.org/licenses/BSD-3-Clause\">The 3-Clause BSD License</a></p>")
+              .arg(QString::fromStdString(PcapPlayback::getLibPcapVersion())));
+    }
     ui->lblLibs->setText(ui->lblLibs->text() +
       tr("<p>This application uses <a href=\"https://www.blake2.net/\">BLAKE2</a><br>"
         "Licensed under the <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\">Creative Commons Zero v1.0 Universal</a></p>"));

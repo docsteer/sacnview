@@ -191,6 +191,7 @@ int main(int argc, char *argv[])
 
     int result = a.exec();
 
+    w->saveSubWindows();
     delete w;
     delete versionCheck;
 

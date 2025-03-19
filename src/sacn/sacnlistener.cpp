@@ -40,21 +40,21 @@
 //Background merge interval
 #define BACKGROUND_MERGE 500
 
-sACNListener::sACNListener(int universe, QObject* parent)
-  : QObject(parent)
-  , m_merged_levels(DMX_SLOT_MAX, sACNMergedAddress())
-  , m_universe(universe)
+sACNListener::sACNListener(int universe, QObject *parent)
+    : QObject(parent)
+    , m_merged_levels(DMX_SLOT_MAX, sACNMergedAddress())
+    , m_universe(universe)
 {
-  qRegisterMetaType<QHostAddress>("QHostAddress");
+    qRegisterMetaType<QHostAddress>("QHostAddress");
   m_current_levels.fill(-1);
   m_current_priorities.fill(-1);
 }
 
 sACNListener::~sACNListener()
 {
-  m_initalSampleTimer->deleteLater();
-  m_mergeTimer->deleteLater();
-  qDeleteAll(m_sockets);
+    m_initalSampleTimer->deleteLater();
+    m_mergeTimer->deleteLater();
+    qDeleteAll(m_sockets);
   qDebug() << this << ": stopping";
 }
 
@@ -66,165 +66,165 @@ void sACNListener::startReception()
   m_current_levels.fill(-1);
   m_current_priorities.fill(-1);
 
-  if (Preferences::Instance().GetNetworkListenAll() && !Preferences::Instance().networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) {
-    // Listen on ALL interfaces and not working offline
-    for (const auto& interface : QNetworkInterface::allInterfaces())
-    {
-      // If the interface is ok for use...
-      if (Preferences::Instance().interfaceSuitable(interface))
-      {
-        startInterface(interface);
-      }
-    }
+    if (Preferences::Instance().GetNetworkListenAll() && !Preferences::Instance().networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) {
+        // Listen on ALL interfaces and not working offline
+        for (const auto &interface : QNetworkInterface::allInterfaces())
+        {
+            // If the interface is ok for use...
+            if(Preferences::Instance().interfaceSuitable(interface))
+            {
+                startInterface(interface);
+            }
+        }
   }
   else {
-    // Listen only to selected interface
-    startInterface(Preferences::Instance().networkInterface());
-    if (!m_sockets.empty()) {
-      m_bindStatus.multicast = (m_sockets.back()->multicastInterface().isValid()) ? sACNRxSocket::BIND_OK : sACNRxSocket::BIND_FAILED;
-      m_bindStatus.unicast = (m_sockets.back()->state() == QAbstractSocket::BoundState) ? sACNRxSocket::BIND_OK : sACNRxSocket::BIND_FAILED;
+        // Listen only to selected interface
+        startInterface(Preferences::Instance().networkInterface());
+        if (!m_sockets.empty()) {
+            m_bindStatus.multicast = (m_sockets.back()->multicastInterface().isValid()) ? sACNRxSocket::BIND_OK : sACNRxSocket::BIND_FAILED;
+            m_bindStatus.unicast = (m_sockets.back()->state() == QAbstractSocket::BoundState) ? sACNRxSocket::BIND_OK : sACNRxSocket::BIND_FAILED;
+        }
     }
-  }
 
-  // Start intial sampling
-  m_initalSampleTimer = new QTimer(this);
-  m_initalSampleTimer->setSingleShot(true);
-  m_initalSampleTimer->setInterval(SAMPLE_TIME);
-  connect(m_initalSampleTimer, &QTimer::timeout, this, &sACNListener::sampleExpiration, Qt::DirectConnection);
-  m_initalSampleTimer->start();
+    // Start intial sampling
+    m_initalSampleTimer = new QTimer(this);
+    m_initalSampleTimer->setSingleShot(true);
+    m_initalSampleTimer->setInterval(SAMPLE_TIME);
+    connect(m_initalSampleTimer, &QTimer::timeout, this, &sACNListener::sampleExpiration, Qt::DirectConnection);
+    m_initalSampleTimer->start();
 
-  // Merge is performed whenever a packet arrives and every BACKGROUND_MERGE interval
-  m_mergesPerSecondTimer.start();
-  m_mergeTimer = new QTimer(this);
-  m_mergeTimer->setInterval(BACKGROUND_MERGE);
-  connect(m_mergeTimer, &QTimer::timeout, this, &sACNListener::performMerge, Qt::DirectConnection);
-  connect(m_mergeTimer, &QTimer::timeout, this, &sACNListener::checkSourceExpiration, Qt::DirectConnection);
-  m_mergeTimer->start();
+    // Merge is performed whenever a packet arrives and every BACKGROUND_MERGE interval
+    m_mergesPerSecondTimer.start();
+    m_mergeTimer = new QTimer(this);
+    m_mergeTimer->setInterval(BACKGROUND_MERGE);
+    connect(m_mergeTimer, &QTimer::timeout, this, &sACNListener::performMerge, Qt::DirectConnection);
+    connect(m_mergeTimer, &QTimer::timeout, this, &sACNListener::checkSourceExpiration, Qt::DirectConnection);
+    m_mergeTimer->start();
 
-  // Everything is set
-  emit listenerStarted(m_universe);
+    // Everything is set
+    emit listenerStarted(m_universe);
 }
 
-void sACNListener::startInterface(const QNetworkInterface& iface)
+void sACNListener::startInterface(const QNetworkInterface &iface)
 {
-  m_sockets.push_back(new sACNRxSocket(iface));
-  sACNRxSocket::sBindStatus status = m_sockets.back()->bind(m_universe);
-  if (status.unicast == sACNRxSocket::BIND_OK || status.multicast == sACNRxSocket::BIND_OK) {
-    connect(m_sockets.back(), &QUdpSocket::readyRead, this, &sACNListener::readPendingDatagrams, Qt::DirectConnection);
+    m_sockets.push_back(new sACNRxSocket(iface));
+    sACNRxSocket::sBindStatus status = m_sockets.back()->bind(m_universe);
+    if (status.unicast == sACNRxSocket::BIND_OK || status.multicast == sACNRxSocket::BIND_OK) {
+        connect(m_sockets.back(), &QUdpSocket::readyRead, this, &sACNListener::readPendingDatagrams, Qt::DirectConnection);
   }
   else {
-    // Failed to bind
-    m_sockets.pop_back();
-  }
+        // Failed to bind
+        m_sockets.pop_back();
+    }
 
-  if ((m_bindStatus.unicast == sACNRxSocket::BIND_UNKNOWN) || (m_bindStatus.unicast == sACNRxSocket::BIND_OK))
-    m_bindStatus.unicast = status.unicast;
-  if ((m_bindStatus.multicast == sACNRxSocket::BIND_UNKNOWN) || (m_bindStatus.multicast == sACNRxSocket::BIND_OK))
-    m_bindStatus.multicast = status.multicast;
+    if ((m_bindStatus.unicast == sACNRxSocket::BIND_UNKNOWN) || (m_bindStatus.unicast == sACNRxSocket::BIND_OK))
+        m_bindStatus.unicast = status.unicast;
+    if ((m_bindStatus.multicast == sACNRxSocket::BIND_UNKNOWN) || (m_bindStatus.multicast == sACNRxSocket::BIND_OK))
+        m_bindStatus.multicast = status.multicast;
 }
 
 void sACNListener::sampleExpiration()
 {
-  m_isSampling = false;
+    m_isSampling = false;
   qDebug() << this << ": Sampling has ended";
 }
 
 void sACNListener::checkSourceExpiration()
 {
-  char cidstr[CID::CIDSTRINGBYTES];
-  for (std::vector<sACNSource*>::iterator it = m_sources.begin(); it != m_sources.end(); ++it)
-  {
-    if ((*it)->src_valid)
+    char cidstr [CID::CIDSTRINGBYTES];
+    for(std::vector<sACNSource *>::iterator it = m_sources.begin(); it != m_sources.end(); ++it)
     {
-      if ((*it)->active.Expired() && (*it)->priority_wait.Expired())
-      {
-        (*it)->src_valid = false;
-        (*it)->src_stable = false;
-        CID::CIDIntoString((*it)->src_cid, cidstr);
-        emit sourceLost(*it);
-        m_mergeAll = true;
-        qDebug() << "Lost source " << cidstr;
-      }
-      else if ((*it)->doing_per_channel && (*it)->priority_wait.Expired())
-      {
-        CID::CIDIntoString((*it)->src_cid, cidstr);
-        (*it)->doing_per_channel = false;
-        emit sourceChanged(*it);
-        m_mergeAll = true;
+        if((*it)->src_valid)
+        {
+            if((*it)->active.Expired() && (*it)->priority_wait.Expired())
+            {
+                (*it)->src_valid = false;
+                (*it)->src_stable = false;
+                CID::CIDIntoString((*it)->src_cid, cidstr);
+                emit sourceLost(*it);
+                m_mergeAll = true;
+                qDebug() << "Lost source " << cidstr;
+            }
+            else if ((*it)->doing_per_channel && (*it)->priority_wait.Expired())
+            {
+                CID::CIDIntoString((*it)->src_cid, cidstr);
+                (*it)->doing_per_channel = false;
+                emit sourceChanged(*it);
+                m_mergeAll = true;
         qDebug() << this << ": Source stopped sending per-channel priority" << cidstr;
-      }
+            }
+        }
     }
-  }
 }
 
 void sACNListener::readPendingDatagrams()
 {
-#if (QT_VERSION == QT_VERSION_CHECK(5, 9, 3))
-#error "QT5.9.3 QUdpSocket::readDatagram Returns incorrect infomation: https://bugreports.qt.io/browse/QTBUG-64784"
-#endif
-#if (QT_VERSION == QT_VERSION_CHECK(5, 10, 0))
-#error "QT5.10.0 QUdpSocket::readDatagram Returns incorrect infomation: https://bugreports.qt.io/browse/QTBUG-65099"
-#endif
+    #if (QT_VERSION == QT_VERSION_CHECK(5, 9, 3))
+        #error "QT5.9.3 QUdpSocket::readDatagram Returns incorrect infomation: https://bugreports.qt.io/browse/QTBUG-64784"
+    #endif
+    #if (QT_VERSION == QT_VERSION_CHECK(5, 10, 0))
+        #error "QT5.10.0 QUdpSocket::readDatagram Returns incorrect infomation: https://bugreports.qt.io/browse/QTBUG-65099"
+    #endif
 
-  // Check all sockets
-  for (auto m_socket : m_sockets)
-  {
-    while (m_socket->hasPendingDatagrams())
+    // Check all sockets
+    for (auto m_socket : m_sockets)
     {
-      QNetworkDatagram datagram = m_socket->receiveDatagram();
+        while(m_socket->hasPendingDatagrams())
+        {
+            QNetworkDatagram datagram = m_socket->receiveDatagram();
 
-      if (datagram.data().isEmpty())
-        break;
+            if (datagram.data().isEmpty())
+                break;
 
-      /* Localhost - Allowed
-       * Relevant Multicast - Allowed
-       * Unicast for this interface - Allowed (Universe checked later)
-       * Broadcast - Rejected
-       */
-      if (datagram.destinationAddress().isBroadcast())
-        break;
+            /* Localhost - Allowed
+             * Relevant Multicast - Allowed
+             * Unicast for this interface - Allowed (Universe checked later)
+             * Broadcast - Rejected
+             */
+            if (datagram.destinationAddress().isBroadcast())
+                break;
 
-      QList<QHostAddress> interfaceAddress;
-      for (const auto& address : m_socket->getBoundInterface().addressEntries())
-        interfaceAddress << address.ip();
+            QList<QHostAddress> interfaceAddress;
+            for (const auto &address : m_socket->getBoundInterface().addressEntries())
+                interfaceAddress << address.ip();
 
-      if (
-        // Relevant Multicast
-        (datagram.destinationAddress().isMulticast() && datagram.destinationAddress() == m_socket->getMulticastAddr())
-        ||
-        // Unicast for this interface
-        interfaceAddress.contains(QHostAddress(datagram.destinationAddress()))
-        )
-      {
-        processDatagram(
-          datagram.data(),
-          datagram.destinationAddress(),
-          datagram.senderAddress());
-      }
+            if (
+                // Relevant Multicast
+                (datagram.destinationAddress().isMulticast() && datagram.destinationAddress() == m_socket->getMulticastAddr())
+                    ||
+                // Unicast for this interface
+                interfaceAddress.contains(QHostAddress(datagram.destinationAddress()))
+                )
+            {
+                processDatagram(
+                            datagram.data(),
+                            datagram.destinationAddress(),
+                            datagram.senderAddress());
+            }
+        }
     }
-  }
 }
 
-void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& destination, const QHostAddress& sender)
+void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &destination, const QHostAddress &sender)
 {
-  if (QThread::currentThread() != this->thread())
-  {
-    QMetaObject::invokeMethod(
-      this,
-      "processDatagram",
-      Q_ARG(QByteArray, data),
-      Q_ARG(QHostAddress, destination),
-      Q_ARG(QHostAddress, sender));
-    return;
-  };
+    if(QThread::currentThread()!=this->thread())
+    {
+        QMetaObject::invokeMethod(
+                    this,
+                    "processDatagram",
+                    Q_ARG(QByteArray, data),
+                    Q_ARG(QHostAddress, destination),
+                    Q_ARG(QHostAddress, sender));
+        return;
+    };
 
   const tock packet_tock = sACNManager::GetTock();
 
-  QMutexLocker locker(&m_processMutex);
+    QMutexLocker locker(&m_processMutex);
 
-  // Process packet
+    // Process packet
   quint32 root_vector = 0;
-  CID source_cid;
+    CID source_cid;
   quint8 start_code = 0;
   quint8 sequence = 0;
   quint16 universe = 0;
@@ -232,172 +232,172 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
   const quint8* pdata = nullptr;
   char source_name[SOURCE_NAME_SIZE] = {};
   quint8 priority = 0;
-  /*
-   * These only apply to the ratified version of the spec, so we will hardwire
+    /*
+     * These only apply to the ratified version of the spec, so we will hardwire
    * them to defaults just in case they never get set.
-  */
+    */
   quint16 synchronization = NOT_SYNCHRONIZED_VALUE; // E1.31:2018
-  quint8 options = NO_OPTIONS_VALUE;
+    quint8 options = NO_OPTIONS_VALUE;
 
   const e_ValidateStreamHeader streamHeaderVersion = ValidateStreamHeader(reinterpret_cast<const quint8*>(data.data()), data.length(), root_vector, source_cid, source_name, priority,
     start_code, synchronization, sequence, options, universe, slot_count, pdata);
 
   switch (streamHeaderVersion)
-  {
-  case e_ValidateStreamHeader::StreamHeader_Invalid:
-    // Recieved a packet but not valid. Log and discard
+    {
+    case e_ValidateStreamHeader::StreamHeader_Invalid:
+        // Recieved a packet but not valid. Log and discard
     qDebug() << this << ": Invalid Packet";
-    return;
+        return;
 
   case e_ValidateStreamHeader::StreamHeader_Draft:
   case e_ValidateStreamHeader::StreamHeader_Ratified:
     break;
 
-  case e_ValidateStreamHeader::StreamHeader_Extended:
+    case e_ValidateStreamHeader::StreamHeader_Extended:
   {
-    quint32 vector;
-    if (static_cast<size_t>(data.length()) > ROOT_VECTOR_ADDR + sizeof(vector))
-    {
+        quint32 vector;
+        if (static_cast<size_t>(data.length()) > ROOT_VECTOR_ADDR + sizeof(vector))
+        {
       vector = UpackBUint32(reinterpret_cast<const quint8*>(data.data()) + FRAMING_VECTOR_ADDR);
-      switch (vector)
-      {
-      case VECTOR_E131_EXTENDED_DISCOVERY:
+            switch (vector)
+            {
+            case VECTOR_E131_EXTENDED_DISCOVERY:
         sACNDiscoveryRX::getInstance()->processPacket(reinterpret_cast<const quint8*>(data.data()), data.length());
-        break;
+                break;
 
-      case VECTOR_E131_EXTENDED_SYNCHRONIZATION:
+            case VECTOR_E131_EXTENDED_SYNCHRONIZATION:
         sACNSynchronizationRX::getInstance()->processPacket(reinterpret_cast<const quint8*>(data.data()), data.length(), destination, sender);
-        break;
+                break;
 
-      default:
+            default:
         qDebug() << this << ": Unknown Extended Packet";
-      }
-    }
+            }
+        }
   } return;
 
-  case e_ValidateStreamHeader::StreamHeader_Pathway_Secure:
-    if (!Preferences::Instance().GetPathwaySecureRx())
-    {
+        case e_ValidateStreamHeader::StreamHeader_Pathway_Secure:
+            if (!Preferences::Instance().GetPathwaySecureRx())
+            {
       qDebug() << this << ": Ignore Pathway secure";
-      return;
-    }
+                return;
+            }
     break;
 
-  default:
+    default:
   case e_ValidateStreamHeader::StreamHeader_Unknown:
     qDebug() << this << ": Unkown Root Vector";
     return;
-  }
+    }
 
   // Packet is now know to contain DMX Level Data
 
-  // Wrong universe
-  if (m_universe != universe)
-  {
-    // Was it unicast? Send to correct listener (if listening)
-    if (!destination.isMulticast() && !destination.isBroadcast())
+    // Wrong universe
+    if(m_universe != universe)
     {
-      // Unicast, send to correct listener!
-      decltype(sACNManager::Instance().getListenerList()) listenerList
-        = sACNManager::Instance().getListenerList();
+        // Was it unicast? Send to correct listener (if listening)
+        if (!destination.isMulticast() && !destination.isBroadcast())
+        {
+            // Unicast, send to correct listener!
+            decltype(sACNManager::Instance().getListenerList()) listenerList
+                    = sACNManager::Instance().getListenerList();
       auto it = listenerList.find(universe);
       if (it != listenerList.end())
         it.value().toStrongRef()->processDatagram(data, destination, sender);
     }
     else {
-      // Log and discard
+            // Log and discard
       qDebug() << this << ": Rejecting universe" << universe << "sent to" << destination;
     }
-    return;
-  }
+            return;
+        }
 
-  // Listen to preview?
+    // Listen to preview?
   const bool preview = (PREVIEW_DATA_OPTION == (options & PREVIEW_DATA_OPTION));
   if (preview && !Preferences::Instance().GetBlindVisualizer())
-  {
+    {
     qDebug() << this << ": Ignore preview";
-    return;
-  }
+        return;
+    }
 
   sACNSource* ps = nullptr; // Pointer to the source
-  bool newsourcenotify = false;
-  bool validpacket = true;  //whether or not we will actually process the packet
+    bool newsourcenotify = false;
+    bool validpacket = true;  //whether or not we will actually process the packet
 
   // Find existing known source
   auto it = std::find_if(m_sources.begin(), m_sources.end(), [source_cid](sACNSource* source) { return source && source->src_cid == source_cid; });
   if (it != m_sources.end())
-  {
+    {
     ps = (*it);
 
-    // Verify Pathway Secure DMX security features, do this before updating the active flag
+            // Verify Pathway Secure DMX security features, do this before updating the active flag
     if (streamHeaderVersion == e_ValidateStreamHeader::StreamHeader_Pathway_Secure) {
       PathwaySecure::VerifyStreamSecurity(reinterpret_cast<const quint8*>(data.data()), data.size(),
         Preferences::Instance().GetPathwaySecureRxPassword(), *ps);
     }
     else {
-      ps->pathway_secure.passwordOk = false;
-      ps->pathway_secure.sequenceOk = false;
-      ps->pathway_secure.digestOk = false;
-    }
+                ps->pathway_secure.passwordOk = false;
+                ps->pathway_secure.sequenceOk = false;
+                ps->pathway_secure.digestOk = false;
+            }
 
-    if (!ps->src_valid)
-    {
-      // This is a source which is coming back online, so we need to repeat the steps
-      // for initial source aquisition
-      ps->active.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
-      ps->lastseq = sequence;
-      ps->src_valid = true;
-      ps->doing_dmx = (start_code == STARTCODE_DMX);
-      ps->doing_per_channel = ps->waited_for_dd = false;
-      newsourcenotify = false;
-      ps->priority_wait.SetInterval(std::chrono::milliseconds(WAIT_PRIORITY));
-    }
+            if(!ps->src_valid)
+            {
+                // This is a source which is coming back online, so we need to repeat the steps
+                // for initial source aquisition
+                ps->active.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
+                ps->lastseq = sequence;
+                ps->src_valid = true;
+                ps->doing_dmx = (start_code == STARTCODE_DMX);
+                ps->doing_per_channel = ps->waited_for_dd = false;
+                newsourcenotify = false;
+                ps->priority_wait.SetInterval(std::chrono::milliseconds(WAIT_PRIORITY));
+            }
 
     if ((options & STREAM_TERMINATED_OPTION) == STREAM_TERMINATED_OPTION)
-    {
+            {
       // Source is terminating
 
-      //by setting this flag to false, 0xdd packets that may come in while the terminated data
-      //packets come in won't reset the priority_wait timer
+              //by setting this flag to false, 0xdd packets that may come in while the terminated data
+              //packets come in won't reset the priority_wait timer
       ps->waited_for_dd = false;
-      if (start_code == STARTCODE_DMX)
+              if(start_code == STARTCODE_DMX)
         ps->doing_dmx = false;
 
-      //"Upon receipt of a packet containing this bit set
-      //to a value of 1, a receiver shall enter network
-      //data loss condition.  Any property values in
-      //these packets shall be ignored"
+              //"Upon receipt of a packet containing this bit set
+              //to a value of 1, a receiver shall enter network
+              //data loss condition.  Any property values in
+              //these packets shall be ignored"
       ps->active.SetInterval(std::chrono::milliseconds(m_ssHLL));  //We factor in the hold last look time here, rather than 0
 
       if (ps->doing_per_channel)
         ps->priority_wait.SetInterval(std::chrono::milliseconds(m_ssHLL)); //We factor in the hold last look time here, rather than 0
 
-      validpacket = false;
-    }
+              validpacket = false;
+            }
     else
     {
-      //Based on the start code, update the timers
+            //Based on the start code, update the timers
       switch (start_code)
       {
       case STARTCODE_DMX:
-      {
-        //No matter how valid, we got something -- but we'll tweak the interval for any hll change
+            {
+                //No matter how valid, we got something -- but we'll tweak the interval for any hll change
         ps->doing_dmx = true;
         ps->active.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
       } break;
 
       case STARTCODE_PRIORITY: if (ps->waited_for_dd)
-      {
+            {
         ps->doing_per_channel = true;  //The source could have stopped sending dd for a while.
         ps->priority_wait.Reset();
       } break;
-      }
+            }
 
-      //Validate the sequence number, updating the stored one
-      //The two's complement math is to handle rollover, and we're explicitly
-      //doing assignment to force the type sizes.  A negative number means
-      //we got an "old" one, but we assume that anything really old is possibly
-      //due the device having rebooted and starting the sequence over.
+            //Validate the sequence number, updating the stored one
+            //The two's complement math is to handle rollover, and we're explicitly
+            //doing assignment to force the type sizes.  A negative number means
+            //we got an "old" one, but we assume that anything really old is possibly
+            //due the device having rebooted and starting the sequence over.
 
       // E1.31:2018's algorithm requires two's-complement overflow caused by computation to wrap:
       // "-128" minus "+127" must equal "+1"
@@ -413,12 +413,12 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
       // gcc/clang -fwrapv implementation (nonstandard)
       // This can cause optimization issues in VS2015 and newer
       const qint8 result = reinterpret_cast<qint8&>(sequence) - reinterpret_cast<qint8&>(ps->lastseq);
-      if (result != 1)
+            if(result!=1)
       {
         ps->jumps++;
-        if ((result <= 0) && (result > -20))
-        {
-          validpacket = false;
+            if((result <= 0) && (result > -20))
+            {
+                validpacket = false;
           ps->seqErr++;
         }
       }
@@ -433,199 +433,199 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
           validpacket = false;
           ps->seqErr++;
         }
-      }
+            }
 #endif
 
       ps->lastseq = sequence;
 
-      //This next bit is a little tricky.  We want to wait for dd packets (sampling period
-      //tweaks aside) and notify them with the dd packet first, but we don't want to do that
-      //if we've never seen a dmx packet from the source.
+            //This next bit is a little tricky.  We want to wait for dd packets (sampling period
+            //tweaks aside) and notify them with the dd packet first, but we don't want to do that
+            //if we've never seen a dmx packet from the source.
       if (!ps->doing_dmx)
-      {
-        /* For fault finding an installation which only sends 0xdd for a universe
-         * (For example: ETC Cobalt does this for, currenlty, unpatched universes with in it's network map)
-         * We do want to say that having not sent dimmer data is a valid source/packet
-         */
-         // validpacket = false;
+            {
+                /* For fault finding an installation which only sends 0xdd for a universe
+                 * (For example: ETC Cobalt does this for, currenlty, unpatched universes with in it's network map)
+                 * We do want to say that having not sent dimmer data is a valid source/packet
+                 */
+                // validpacket = false;
         ps->priority_wait.Reset();  //We don't want to let the priority timer run out
-      }
+            }
       else if (!ps->waited_for_dd && validpacket)
-      {
-        if (start_code == STARTCODE_PRIORITY)
-        {
+            {
+                if(start_code == STARTCODE_PRIORITY)
+                {
           ps->waited_for_dd = true;
           ps->doing_per_channel = true;
           ps->priority_wait.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
-          newsourcenotify = true;
-        }
+                    newsourcenotify = true;
+                }
         else if (ps->priority_wait.Expired())
-        {
+                {
           ps->waited_for_dd = true;
           ps->doing_per_channel = false;
           ps->priority_wait.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));  //In case the source later decides to sent 0xdd packets
-          newsourcenotify = true;
-        }
-        else
-          newsourcenotify = validpacket = false;
-      }
+                    newsourcenotify = true;
+                }
+                else
+                    newsourcenotify = validpacket = false;
+            }
     }
-    // Found the source, and we're ready to process the packet
-  }
+        //Found the source, and we're ready to process the packet
+        }
 
 
-  if (!validpacket)
-  {
+    if(!validpacket)
+    {
     qDebug() << this << ": Source coming up, not processing packet";
-    return;
-  }
+        return;
+    }
 
   if (ps == nullptr)  // Add a new source to the list
-  {
+    {
     ps = new sACNSource(source_cid, universe);
 
-    m_sources.push_back(ps);
+        m_sources.push_back(ps);
 
-    ps->name = QString::fromUtf8(source_name);
-    ps->ip = sender;
-    ps->synchronization = synchronization;
-    ps->active.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
-    ps->lastseq = sequence;
-    ps->src_valid = true;
-    ps->src_stable = true;
-    ps->doing_dmx = (start_code == STARTCODE_DMX);
-    //If we are in the sampling period, let all packets through
-    if (m_isSampling)
-    {
-      ps->waited_for_dd = true;
-      ps->doing_per_channel = (start_code == STARTCODE_PRIORITY);
-      newsourcenotify = true;
-      ps->priority_wait.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
-    }
-    else
-    {
-      //If we aren't sampling, we want the earlier logic to set the state
-      ps->doing_per_channel = ps->waited_for_dd = false;
-      newsourcenotify = false;
-      ps->priority_wait.SetInterval(std::chrono::milliseconds(WAIT_PRIORITY));
-    }
-
-    validpacket = newsourcenotify;
-
-
-    // This is a brand new source
-    qDebug() << this << ": Found new source name " << source_name;
-    m_mergeAll = true;
-    emit sourceFound(ps);
-  }
-
-  if (newsourcenotify)
-  {
-    // This is a source that came back online
-    qDebug() << this << ": Source came back name " << source_name;
-    m_mergeAll = true;
-    emit sourceResumed(ps);
-    emit sourceChanged(ps);
-  }
-
-
-  //Finally, Process the buffer
-  if (validpacket)
-  {
-    ps->source_params_change = false;
-
-    QString name = QString::fromUtf8(source_name);
-
-    if (ps->ip != sender)
-    {
-      ps->ip = sender;
-      ps->source_params_change = true;
-    }
-
-    StreamingACNProtocolVersion protocolVersion = sACNProtocolUnknown;
-    switch (root_vector) {
-    case VECTOR_ROOT_E131_DATA:
-      protocolVersion = sACNProtocolRelease;
-      break;
-
-    case VECTOR_ROOT_E131_DATA_DRAFT:
-      protocolVersion = sACNProtocolDraft;
-      break;
-
-    case VECTOR_ROOT_E131_DATA_PATHWAY_SECURE:
-      protocolVersion = sACNProtocolPathwaySecure;
-      break;
-
-    default:
-      protocolVersion = sACNProtocolUnknown;
-      break;
-    }
-
-    if (ps->protocol_version != protocolVersion)
-    {
-      ps->protocol_version = protocolVersion;
-      ps->source_params_change = true;
-    }
-
-    if (start_code == STARTCODE_DMX)
-    {
-      if (ps->name != name)
-      {
-        ps->name = name;
-        ps->source_params_change = true;
-      }
-      if (ps->isPreview != preview)
-      {
-        ps->isPreview = preview;
-        ps->source_params_change = true;
-      }
-      if (ps->priority != priority)
-      {
-        ps->priority = priority;
-        ps->source_params_change = true;
-      }
-      if (ps->synchronization != synchronization)
-      {
+        ps->name = QString::fromUtf8(source_name);
+        ps->ip = sender;
         ps->synchronization = synchronization;
-        ps->source_params_change = true;
-      }
+        ps->active.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
+        ps->lastseq = sequence;
+        ps->src_valid = true;
+        ps->src_stable = true;
+        ps->doing_dmx = (start_code == STARTCODE_DMX);
+        //If we are in the sampling period, let all packets through
+        if(m_isSampling)
+        {
+            ps->waited_for_dd = true;
+            ps->doing_per_channel = (start_code == STARTCODE_PRIORITY);
+            newsourcenotify = true;
+            ps->priority_wait.SetInterval(std::chrono::milliseconds(E131_NETWORK_DATA_LOSS_TIMEOUT + m_ssHLL));
+        }
+        else
+        {
+            //If we aren't sampling, we want the earlier logic to set the state
+            ps->doing_per_channel = ps->waited_for_dd = false;
+            newsourcenotify = false;
+            ps->priority_wait.SetInterval(std::chrono::milliseconds(WAIT_PRIORITY));
+        }
+
+        validpacket = newsourcenotify;
+
+
+        // This is a brand new source
+    qDebug() << this << ": Found new source name " << source_name;
+        m_mergeAll = true;
+        emit sourceFound(ps);
+    }
+
+    if (newsourcenotify)
+    {
+        // This is a source that came back online
+    qDebug() << this << ": Source came back name " << source_name;
+        m_mergeAll = true;
+        emit sourceResumed(ps);
+        emit sourceChanged(ps);
+    }
+
+
+    //Finally, Process the buffer
+    if(validpacket)
+    {
+        ps->source_params_change = false;
+
+        QString name = QString::fromUtf8(source_name);
+
+        if(ps->ip != sender)
+        {
+            ps->ip = sender;
+            ps->source_params_change = true;
+        }
+
+        StreamingACNProtocolVersion protocolVersion = sACNProtocolUnknown;
+        switch (root_vector) {
+            case VECTOR_ROOT_E131_DATA:
+                protocolVersion = sACNProtocolRelease;
+                break;
+
+            case VECTOR_ROOT_E131_DATA_DRAFT:
+                protocolVersion = sACNProtocolDraft;
+                break;
+
+            case VECTOR_ROOT_E131_DATA_PATHWAY_SECURE:
+                protocolVersion = sACNProtocolPathwaySecure;
+                break;
+
+            default:
+                protocolVersion = sACNProtocolUnknown;
+                break;
+        }
+
+        if(ps->protocol_version!=protocolVersion)
+        {
+            ps->protocol_version = protocolVersion;
+            ps->source_params_change = true;
+        }
+
+        if(start_code == STARTCODE_DMX)
+        {
+            if(ps->name!=name)
+            {
+                ps->name = name;
+                ps->source_params_change = true;
+            }
+            if(ps->isPreview != preview)
+            {
+                ps->isPreview = preview;
+                ps->source_params_change = true;
+            }
+            if(ps->priority != priority)
+            {
+                ps->priority = priority;
+                ps->source_params_change = true;
+            }
+            if(ps->synchronization != synchronization)
+            {
+                ps->synchronization = synchronization;
+                ps->source_params_change = true;
+            }
 
       ps->storeReceivedLevels(pdata, slot_count);
 
-      // FPS Counter - we count only DMX frames
+            // FPS Counter - we count only DMX frames
       ps->fpscounter.newFrame(packet_tock);
-      if (ps->fpscounter.isNewFPS())
-        ps->source_params_change = true;
-    }
-    else if (start_code == STARTCODE_PRIORITY)
-    {
-      if (!Preferences::Instance().GetETCDD())
+            if (ps->fpscounter.isNewFPS())
+                ps->source_params_change = true;
+        }
+        else if(start_code == STARTCODE_PRIORITY)
+        {
+            if (!Preferences::Instance().GetETCDD())
       { // DD is disabled, fill with universe priority.
         // TODO: Does this actually ever do anything?
         std::array<uint8_t, DMX_SLOT_MAX> univ_priority;
         univ_priority.fill(ps->priority);
         ps->storeReceivedPriorities(univ_priority.data(), slot_count);
-      }
+            }
       else
-      {
+            {
         ps->storeReceivedPriorities(pdata, slot_count);
-      }
-    }
+            }
+        }
 
-    if (ps->source_params_change)
-    {
-      emit sourceChanged(ps);
-      ps->source_params_change = false;
-    }
+        if(ps->source_params_change)
+        {
+            emit sourceChanged(ps);
+            ps->source_params_change = false;
+        }
 
-    // Listen to synchronization source
-    if (ps->synchronization &&
-      (!ps->sync_listener || ps->sync_listener->universe() != ps->synchronization)) {
-      ps->sync_listener = sACNManager::Instance().getListener(ps->synchronization);
-    }
+        // Listen to synchronization source
+        if (ps->synchronization &&
+                (!ps->sync_listener || ps->sync_listener->universe() != ps->synchronization)) {
+            ps->sync_listener = sACNManager::Instance().getListener(ps->synchronization);
+        }
 
-    // Merge
-    performMerge();
+        // Merge
+        performMerge();
     // Inform everyone who cares that a DMX packet has been received
     if (start_code == STARTCODE_DMX)
     {
@@ -635,7 +635,7 @@ void sACNListener::processDatagram(const QByteArray& data, const QHostAddress& d
         callback->sACNListenerDmxReceived(packet_tock, m_universe, m_merged_levels, ps);
       }
     }
-  }
+}
 }
 
 void sACNListener::addDirectCallback(IDmxReceivedCallback* callback)
@@ -661,24 +661,24 @@ void sACNListener::removeDirectCallback(IDmxReceivedCallback* callback)
   }
 }
 
-inline bool isPatched(const sACNSource& source, uint16_t address)
+inline bool isPatched(const sACNSource &source, uint16_t address)
 {
-  // Can only be unpatched if we have DD packets
-  if (!source.doing_per_channel)
-    return true;
+    // Can only be unpatched if we have DD packets
+    if (!source.doing_per_channel)
+        return true;
 
-  // Priority not 0
-  return source.priority_array[address] != 0;
+    // Priority not 0
+    return source.priority_array[address] != 0;
 }
 
 void sACNListener::performMerge()
 {
-  if (m_mergesPerSecondTimer.hasExpired(1000))
-  {
-    m_mergesPerSecond = m_mergeCounter;
-    m_mergeCounter = 0;
-    m_mergesPerSecondTimer.restart();
-  }
+    if(m_mergesPerSecondTimer.hasExpired(1000))
+    {
+        m_mergesPerSecond = m_mergeCounter;
+        m_mergeCounter = 0;
+        m_mergesPerSecondTimer.restart();
+    }
 
   ++m_mergeCounter;
 
@@ -690,129 +690,129 @@ void sACNListener::performMerge()
   std::array<int, DMX_SLOT_MAX> addresses_to_merge;
   int number_of_addresses_to_merge = 0;
 
-  // Step one : find any addresses which have changed
-  if (m_mergeAll) // Act like all addresses changed
-  {
+    // Step one : find any addresses which have changed
+    if(m_mergeAll) // Act like all addresses changed
+    {
     number_of_addresses_to_merge = addresses_to_merge.size();
     for (int i = 0; i < addresses_to_merge.size(); i++)
-    {
-      addresses_to_merge[i] = i;
-    }
+        {
+            addresses_to_merge[i] = i;
+        }
 
-    m_mergeAll = false;
-  }
-  else
-  {
+        m_mergeAll = false;
+    }
+    else
+    {
     // Assume will not need to merge any addresses
     addresses_to_merge.fill(-1);
 
     for (sACNSource* ps : m_sources)
-    {
-      if (!ps->src_valid)
-        continue; // Inactive source, ignore it
-      if (!ps->source_levels_change)
-        continue; // We don't need to consider this one, no change
-      for (int i = 0; i < DMX_SLOT_MAX; i++)
-      {
-        if (ps->dirty_array[i])
         {
-          addresses_to_merge[i] = i;
+            if(!ps->src_valid)
+                continue; // Inactive source, ignore it
+            if(!ps->source_levels_change)
+                continue; // We don't need to consider this one, no change
+            for(int i=0; i<DMX_SLOT_MAX; i++)
+            {
+                if(ps->dirty_array[i])
+                {
+                    addresses_to_merge[i] = i;
           ++number_of_addresses_to_merge;
-        }
-      }
-      // Clear the flags
+                }
+            }
+            // Clear the flags
       ps->dirty_array.fill(false);
-      ps->source_levels_change = false;
+            ps->source_levels_change = false;
+        }
     }
-  }
 
-  if (number_of_addresses_to_merge == 0) return; // Nothing to do
+    if(number_of_addresses_to_merge == 0) return; // Nothing to do
 
-  // Clear out the sources list for all the affected channels, we'll be refreshing it
+    // Clear out the sources list for all the affected channels, we'll be refreshing it
   QMutexLocker mergeLocker(&m_merged_levelsMutex);
 
-  int skipCounter = 0;
-  for (int i = 0; i < DMX_SLOT_MAX && i < (number_of_addresses_to_merge + skipCounter); i++)
-  {
-    m_merged_levels[i].changedSinceLastMerge = false;
-    if (addresses_to_merge[i] == -1) {
-      ++skipCounter;
-      continue;
-    }
+    int skipCounter = 0;
+    for(int i=0; i < DMX_SLOT_MAX && i<(number_of_addresses_to_merge + skipCounter); i++)
+    {
+        m_merged_levels[i].changedSinceLastMerge = false;
+        if(addresses_to_merge[i] == -1) {
+            ++skipCounter;
+            continue;
+        }
     m_merged_levels[addresses_to_merge[i]].otherSources.clear();
-  }
+    }
 
-  // Find the highest priority source for each address we need to work on
+    // Find the highest priority source for each address we need to work on
   m_last_levels.fill(-1);
   m_last_priorities.fill(-1);
 
-  QMultiMap<int, sACNSource*> addressToSourceMap;
+    QMultiMap<int, sACNSource*> addressToSourceMap;
 
-  // Find the highest priority for the address
-  bool secureDataOnly = false;
-  if (Preferences::Instance().GetPathwaySecureRx())
-    secureDataOnly = Preferences::Instance().GetPathwaySecureRxDataOnly();
-  for (std::vector<sACNSource*>::iterator it = m_sources.begin(); it != m_sources.end(); ++it)
-  {
-    sACNSource* ps = *it;
-
+	// Find the highest priority for the address
+    bool secureDataOnly = false;
+    if (Preferences::Instance().GetPathwaySecureRx())
+        secureDataOnly = Preferences::Instance().GetPathwaySecureRxDataOnly();
+    for(std::vector<sACNSource *>::iterator it = m_sources.begin(); it != m_sources.end(); ++it)
+    {
+        sACNSource *ps = *it;
+ 
     // Don't merge sources with bad universe priorities
     if (discardOutOfRange && ps->HasInvalidPriority())
       continue;
 
-    if (ps->src_valid && !ps->active.Expired() && !ps->doing_per_channel)
-    {
-      // Set the priority array for sources which are not doing per-channel
-      ps->priority_array.fill(ps->priority);
-    }
-
-    skipCounter = 0;
-    for (int i = 0; i < DMX_SLOT_MAX && i < (number_of_addresses_to_merge + skipCounter); i++)
-    {
-      if (addresses_to_merge[i] == -1) {
-        ++skipCounter;
-        continue;
-      }
-      int address = addresses_to_merge[i];
-
-      if (
-        ps->src_valid // Valid Source
-        && !ps->active.Expired() // Not expired
-        && !(ps->priority_array[address] < m_last_priorities[address]) // Not lesser priority
-        && isPatched(*ps, address) // Priority > 0 if DD
-        && (address < ps->slot_count) // Sending the required slot
-        && ((!secureDataOnly) || (secureDataOnly && ps->pathway_secure.isSecure())) // Is secure, if only displaying secure sources
-        )
-      {
-        if (ps->priority_array[address] > m_last_priorities[address])
+        if(ps->src_valid && !ps->active.Expired() && !ps->doing_per_channel)
         {
-          // Source of higher priority
-          m_last_priorities[address] = ps->priority_array[address];
-          addressToSourceMap.remove(address);
+            // Set the priority array for sources which are not doing per-channel
+      ps->priority_array.fill(ps->priority);
         }
-        addressToSourceMap.insert(address, ps);
-      }
 
-      if (
-        ps->src_valid // Valid Source
-        && !ps->active.Expired() // Not Expired
-        && isPatched(*ps, address) // Priority > 0 if DD
-        && (address < ps->slot_count) // Sending the required slot
-        )
-        m_merged_levels[addresses_to_merge[i]].otherSources.insert(ps);
-    }
-  }
+        skipCounter = 0;
+        for(int i=0; i < DMX_SLOT_MAX && i<(number_of_addresses_to_merge + skipCounter); i++)
+        {
+            if(addresses_to_merge[i] == -1) {
+               ++skipCounter;
+                continue;
+            }
+            int address = addresses_to_merge[i];
 
-  // Next, find highest level for the highest prioritized sources
-  skipCounter = 0;
-  for (int i = 0; i < DMX_SLOT_MAX && i < (number_of_addresses_to_merge + skipCounter); i++)
-  {
-    if (addresses_to_merge[i] == -1) {
-      ++skipCounter;
-      continue;
+			if (
+					ps->src_valid // Valid Source
+                    && !ps->active.Expired() // Not expired
+        && !(ps->priority_array[address] < m_last_priorities[address]) // Not lesser priority
+                    && isPatched(*ps, address) // Priority > 0 if DD
+                    && (address < ps->slot_count) // Sending the required slot
+                    && ((!secureDataOnly) || (secureDataOnly && ps->pathway_secure.isSecure())) // Is secure, if only displaying secure sources
+				)
+			{
+        if (ps->priority_array[address] > m_last_priorities[address])
+				{
+					// Source of higher priority
+          m_last_priorities[address] = ps->priority_array[address];
+					addressToSourceMap.remove(address);
+				}
+				addressToSourceMap.insert(address, ps);
+			}
+
+            if(
+                    ps->src_valid // Valid Source
+                    && !ps->active.Expired() // Not Expired
+                    && isPatched(*ps, address) // Priority > 0 if DD
+                    && (address < ps->slot_count) // Sending the required slot
+                )
+                m_merged_levels[addresses_to_merge[i]].otherSources.insert(ps);
+        }
     }
+
+    // Next, find highest level for the highest prioritized sources
+    skipCounter = 0;
+    for(int i=0; i < DMX_SLOT_MAX && i<(number_of_addresses_to_merge + skipCounter); i++)
+    {
+        if(addresses_to_merge[i] == -1) {
+            ++skipCounter;
+            continue;
+        }
     const int address = addresses_to_merge[i];
-    QList<sACNSource*> sourceList = addressToSourceMap.values(address);
+        QList<sACNSource*> sourceList = addressToSourceMap.values(address);
     sACNMergedAddress& merged_level = m_merged_levels[address];
 
     // Store previous winning values
@@ -821,25 +821,25 @@ void sACNListener::performMerge()
     int prev_priority = merged_level.winningPriority;
 
     if (sourceList.empty())
-    {
+        {
       merged_level.level = -1;
       merged_level.winningSource = nullptr;
       merged_level.otherSources.clear();
       merged_level.winningPriority = m_last_priorities[address];
-    }
+        }
 
     for (sACNSource* s : sourceList)
-    {
+        {
       if (s->level_array[address] > m_last_levels[address])
-      {
+            {
         m_last_levels[address] = s->level_array[address];
         merged_level.level = m_last_levels[address];
         merged_level.winningSource = s;
         merged_level.winningPriority = m_last_priorities[address];
-      }
-    }
+            }
+        }
 
-    // Remove the winning source from the list of others
+        // Remove the winning source from the list of others
     if (merged_level.winningSource)
       merged_level.otherSources.remove(merged_level.winningSource);
 
@@ -851,10 +851,10 @@ void sACNListener::performMerge()
     // Update current final merge
     m_current_levels[address] = m_last_levels[address];
     m_current_priorities[address] = m_last_priorities[address];
-  }
+    }
 
   mergeLocker.unlock();
 
-  // Tell people..
-  emit levelsChanged();
+    // Tell people..
+    emit levelsChanged();
 }

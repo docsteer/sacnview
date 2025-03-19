@@ -8,6 +8,12 @@
 #include <QThread>
 #include <QDebug>
 
+#ifdef Q_OS_WIN
+#include <windows.h>
+#include <delayimp.h>
+#include <tchar.h>
+#endif
+
 PcapPlayback::PcapPlayback(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::PcapPlayback),
@@ -22,6 +28,47 @@ PcapPlayback::~PcapPlayback()
     delete ui;
 }
 
+bool PcapPlayback::foundLibPcap()
+{
+#ifdef Q_OS_WIN
+    const auto checkDelayException = [](int exception_value) {
+        if (exception_value == VcppException(ERROR_SEVERITY_ERROR, ERROR_MOD_NOT_FOUND)
+            || exception_value == VcppException(ERROR_SEVERITY_ERROR, ERROR_PROC_NOT_FOUND)) {
+            return EXCEPTION_EXECUTE_HANDLER;
+        }
+        return EXCEPTION_CONTINUE_SEARCH;
+    };
+
+    // Prefer Npcap
+    TCHAR npcapDir[BUFSIZ];
+    GetSystemDirectory(npcapDir, BUFSIZ);
+    _tcscat_s(npcapDir, BUFSIZ, TEXT("\\Npcap"));
+    SetDllDirectory(npcapDir);
+
+    __try {
+        HRESULT hr = __HrLoadAllImportsForDll("wpcap.dll");
+        if (FAILED(hr)) {
+            return false;
+        }
+    } __except (checkDelayException(GetExceptionCode())) {
+        return false;
+    }
+#endif
+    return true;
+}
+
+std::string PcapPlayback::getLibPcapVersion()
+{
+    if (foundLibPcap()) {
+        const char *version = pcap_lib_version();
+        return std::string(version);
+    }
+    else
+    {
+        return {};
+    }
+}
+
 void PcapPlayback::openThread()
 {
     if (sender) {
@@ -34,9 +81,11 @@ void PcapPlayback::openThread()
     connect(sender, &pcapplaybacksender::sendingFinished, this, &PcapPlayback::playbackFinished);
     connect(sender, &pcapplaybacksender::sendingClosed, this, &PcapPlayback::playbackClosed);
     connect(sender, &pcapplaybacksender::error, this, &PcapPlayback::error);
-    connect(sender, &QThread::finished, [this]() {
+    connect(sender, &QThread::finished, this, [this]()
+    {
         sender->deleteLater();
-        sender = Q_NULLPTR; });
+        sender = Q_NULLPTR;
+    });
     connect(sender, &pcapplaybacksender::finished, this, &PcapPlayback::playbackThreadClosed);
     ui->progressBar->reset();
     sender->start();
@@ -59,6 +108,18 @@ void PcapPlayback::playbackThreadClosed()
 
 void PcapPlayback::on_btnOpen_clicked()
 {
+    if (!foundLibPcap()) {
+        QMessageBox::critical(
+            this,
+            tr("Pcap not found"),
+#ifdef Q_OS_WIN
+            tr("Pcap not found, please install Wireshark"));
+#else
+            tr("Libpcap not found, please install"));
+#endif
+        return;
+    }
+
     /* Select file to open */
     QString fileName = QFileDialog::getOpenFileName(this,
             tr("Open Capture"),
@@ -75,7 +136,7 @@ void PcapPlayback::on_btnOpen_clicked()
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t *m_pcap_in = pcap_open_offline(fileName.toUtf8(), errbuf);
     if (!m_pcap_in) {
-        error(tr("Error opening %1\n%2").arg(QDir::toNativeSeparators(fileName)).arg(errbuf));
+        error(tr("Error opening %1\n%2").arg(QDir::toNativeSeparators(fileName), errbuf));
         return;
     } else {
         ui->lblFilename->setText(QDir::toNativeSeparators(fileName));
@@ -132,7 +193,7 @@ void PcapPlayback::on_btnOpen_clicked()
     {
         QTime elasped(0,0,0);
         ui->lblFileTime->setText(QString("%1").arg(
-                                 elasped.addMSecs(pkt_start_time.msecsTo(pkt_end_time)).toString("hh:mm:ss.zzz")));
+            elasped.addMSecs(pkt_start_time.msecsTo(pkt_end_time)).toString("hh:mm:ss.zzz")));
     }
     updateUIBtns();
 

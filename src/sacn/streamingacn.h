@@ -42,10 +42,10 @@ class sACNSource;
 
 enum StreamingACNProtocolVersion
 {
-  sACNProtocolUnknown = 0,
-  sACNProtocolDraft,
-  sACNProtocolRelease,
-  sACNProtocolPathwaySecure // Pathway Connectivity Secure DMX Protocol
+    sACNProtocolUnknown = 0,
+    sACNProtocolDraft,
+    sACNProtocolRelease,
+    sACNProtocolPathwaySecure // Pathway Connectivity Secure DMX Protocol
 };
 
 QString GetProtocolVersionString(StreamingACNProtocolVersion value);
@@ -53,14 +53,14 @@ QString GetProtocolVersionString(StreamingACNProtocolVersion value);
 // The sACNManager class is a singleton that manages the lifespan of sACNTransmitters and sACNListeners.
 class sACNManager : public QObject
 {
-  Q_OBJECT
+    Q_OBJECT
 public:
   static sACNManager& Instance();
 
-  typedef QSharedPointer<sACNListener> tListener;
+    typedef QSharedPointer<sACNListener> tListener;
   typedef QWeakPointer<sACNListener> wListener;
 
-  typedef QSharedPointer<sACNSentUniverse> tSender;
+    typedef QSharedPointer<sACNSentUniverse> tSender;
   typedef QWeakPointer<sACNSentUniverse> wSender;
 
   ~sACNManager();
@@ -75,11 +75,11 @@ public slots:
 
   void senderDelete(QObject* obj = Q_NULLPTR);
 private:
-  sACNManager();
-  QMutex sACNManager_mutex;
+    sACNManager();
+    QMutex sACNManager_mutex;
 
-  QHash<QObject*, quint16> m_objToUniverse;
-  QHash<QObject*, CID> m_objToCid;
+    QHash<QObject*, quint16> m_objToUniverse;
+    QHash<QObject*, CID> m_objToCid;
 
   QHash<quint16, wListener> m_listenerHash;
 
@@ -89,22 +89,22 @@ private:
 
   QThread* GetThread();
 
-  tSender createSender(CID cid, quint16 universe);
+    tSender createSender(CID cid, quint16 universe);
   QHash<CID, QHash<quint16, wSender> > m_senderHash;
 
 public:
-  tListener getListener(quint16 universe);
+    tListener getListener(quint16 universe);
   const decltype(m_listenerHash)& getListenerList() const { return m_listenerHash; }
 
-  tSender getSender(quint16 universe, CID cid = CID::CreateCid());
+    tSender getSender(quint16 universe, CID cid = CID::CreateCid());
   const decltype(m_senderHash)& getSenderList() const { return m_senderHash; }
 
 signals:
-  void newSender();
-  void deletedSender(CID cid, quint16 universe);
+    void newSender();
+    void deletedSender(CID cid, quint16 universe);
 
-  void newListener(quint16 universe);
-  void deletedListener(quint16 universe);
+    void newListener(quint16 universe);
+    void deletedListener(quint16 universe);
 
   void sourceFound(quint16 universe, sACNSource* source);
   void sourceLost(quint16 universe, sACNSource* source);
@@ -112,8 +112,8 @@ signals:
   void sourceChanged(quint16 universe, sACNSource* source);
 
 private slots:
-  void senderUniverseChanged();
-  void senderCIDChanged();
+    void senderUniverseChanged();
+    void senderCIDChanged();
 
 private:
 };
@@ -128,9 +128,9 @@ public:
   bool src_valid = false;
   bool src_stable = false;
   uint8_t lastseq = 0;
-  ttimer active;  //If this expires, we haven't received any data in over a second
-  //The per-channel priority alternate start code policy requires we detect the source only after
-  //a STARTCODE_PRIORITY packet was received or 1.5 seconds have expired
+    ttimer active;  //If this expires, we haven't received any data in over a second
+    //The per-channel priority alternate start code policy requires we detect the source only after
+    //a STARTCODE_PRIORITY packet was received or 1.5 seconds have expired
   bool waited_for_dd = false;
   bool doing_dmx = false; //if true, we are processing dmx data from this source
   bool doing_per_channel = false;  // If true, we are tracking per-channel priority messages for this source
@@ -150,24 +150,24 @@ public:
 
   uint8_t priority = 0;
   uint16_t synchronization = 0;
-  sACNManager::tListener sync_listener;
-  QString name;
-  QHostAddress ip;
-  FpsCounter fpscounter;
-  // The number of sequence errors from this source
+    sACNManager::tListener sync_listener;
+    QString name;
+    QHostAddress ip;
+    FpsCounter fpscounter;
+    // The number of sequence errors from this source
   unsigned int seqErr = 0;
-  // The number of jumps (increments by anything other than 1) of this source
+    // The number of jumps (increments by anything other than 1) of this source
   unsigned int jumps = 0;
-  // Protocol Version
-  StreamingACNProtocolVersion protocol_version;
+    // Protocol Version
+    StreamingACNProtocolVersion protocol_version;
 
-  // Pathways Secure DMX
-  struct {
-    bool passwordOk = false;
-    bool sequenceOk = false;
-    bool digestOk = false;
+    // Pathways Secure DMX
+    struct {
+        bool passwordOk = false;
+        bool sequenceOk = false;
+        bool digestOk = false;
     bool isSecure() const { return passwordOk && sequenceOk && digestOk; }
-  } pathway_secure;
+    } pathway_secure;
 
   void resetSeqErr() { seqErr = 0; }
   void resetJumps() { jumps = 0; }

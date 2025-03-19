@@ -236,14 +236,9 @@ target_link_libraries(sACNView PRIVATE ${SACNVIEW_QT_LIBRARIES})
 
 # Link PCap/WinPCap libraries
 target_link_libraries(sACNView PRIVATE ${PCAP_LIBS})
-
-if(WIN32)
-  # Copy WinPCap DLLs
-  foreach(DLLFILE IN LISTS PCAP_LIBS)
-    add_custom_command (TARGET sACNView POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      $<TARGET_FILE:${DLLFILE}> $<TARGET_FILE_DIR:sACNView>)
-  endforeach()
+if(MSVC)
+    target_link_libraries(sACNView PRIVATE delayimp)
+    target_link_options(sACNView PRIVATE "/DELAYLOAD:wpcap.dll")
 endif()
 
 # Blake2
