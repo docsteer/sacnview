@@ -55,7 +55,7 @@ bool TranslationDialog::LoadTranslation(const QLocale locale)
     // Exists in resource
     bool ret = false;
     for (auto lang : locale.uiLanguages() ) {
-        ret = QFile(QString(":/%1_%2.qm").arg(qApp->applicationName()).arg(lang)).exists();
+        ret = QFile(QString(":/i18n/%1_%2.qm").arg(qApp->applicationName()).arg(lang)).exists();
         if (ret) break;
     }
     if (ret) {
@@ -64,7 +64,7 @@ bool TranslationDialog::LoadTranslation(const QLocale locale)
         // Load application translation from resource
         {
             QTranslator *translator = new QTranslator();
-            if (translator->load(locale, qApp->applicationName(), "_", ":/", ".qm"))
+            if (translator->load(locale, qApp->applicationName(), "_", ":/i18n/", ".qm"))
                 qApp->installTranslator(translator);
         }
 

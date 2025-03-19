@@ -210,6 +210,7 @@ set(SACNVIEW_QT_LIBRARIES
 if (Qt6_FOUND)
     find_package(Qt6 COMPONENTS OpenGLWidgets REQUIRED)
     list(APPEND SACNVIEW_QT_LIBRARIES Qt::OpenGLWidgets)
+    find_package(Qt6 COMPONENTS LinguistTools)
 endif()
 
 add_executable(sACNView WIN32
@@ -219,6 +220,13 @@ add_executable(sACNView WIN32
     ${SACNVIEW_FORMS}
     ${SACNVIEW_RCC}
 )
+
+# Qt6 LinguistTools for translation
+if (Qt6_FOUND)
+   qt_add_translations(TARGETS sACNView
+      TS_FILES ${SACNVIEW_TS}
+   )
+endif()
 
 target_include_directories(sACNView PRIVATE
     ${SACNVIEW_HEADER_PATHS}
