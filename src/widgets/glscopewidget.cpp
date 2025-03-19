@@ -933,19 +933,19 @@ QString ScopeModel::captureConfigurationString() const
   return result;
 }
 
-qreal ExtractValue(const QString& configString, const QString& item, const QString& units, qreal default = 0)
+qreal ExtractValue(const QString& configString, const QString& item, const QString& units, qreal def = 0)
 {
   qsizetype valuePos = configString.indexOf(item);
   const qsizetype valueUnitPos = configString.indexOf(units, valuePos);
   if (valuePos < 0 || valueUnitPos < 0)
-    return default;
+    return def;
 
   bool ok;
   valuePos += item.size() + 1;
   const qreal value = configString.mid(valuePos, valueUnitPos - valuePos).toDouble(&ok);
   if (ok)
     return value;
-  return default;
+  return def;
 }
 
 void ScopeModel::setCaptureConfiguration(const QString& configString)
@@ -972,7 +972,11 @@ bool ScopeModel::saveTraces(QIODevice& file) const
     return false;
 
   QTextStream out(&file);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   out.setCodec("UTF-8");
+#else
+  out.setEncoding(QStringConverter::Utf8);
+#endif
   out.setLocale(QLocale::c());
   out.setRealNumberNotation(QTextStream::FixedNotation);
   out.setRealNumberPrecision(3);
@@ -1138,7 +1142,11 @@ bool ScopeModel::loadTraces(QIODevice& file)
     return false;
 
   QTextStream in(&file);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   in.setCodec("UTF-8");
+#else
+  in.setEncoding(QStringConverter::Utf8);
+#endif
   in.setLocale(QLocale::c());
   in.setRealNumberNotation(QTextStream::FixedNotation);
   in.setRealNumberPrecision(3);
@@ -1148,9 +1156,9 @@ bool ScopeModel::loadTraces(QIODevice& file)
     return false;
 
   // Split the title lines to find the trace colors and names
-  auto labels = title_line.labels.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
-  auto colors = title_line.colors.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
-  auto titles = title_line.universes.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
+  auto labels = title_line.labels.split(QLatin1Char(','), Qt::KeepEmptyParts);
+  auto colors = title_line.colors.split(QLatin1Char(','), Qt::KeepEmptyParts);
+  auto titles = title_line.universes.split(QLatin1Char(','), Qt::KeepEmptyParts);
 
   // Find data columns
   int timeColumn = -1; // Column index for time offset
@@ -1165,7 +1173,7 @@ bool ScopeModel::loadTraces(QIODevice& file)
 
     // Grab the zero datetime from Colors
     if (titles.front() == ColumnTitleWallclockTime)
-      wallclockTrigger = QDateTime::fromString(colors.front().toString(), DateTimeFormatString);
+      wallclockTrigger = QDateTime::fromString(colors.front(), DateTimeFormatString);
     else if (titles.front() == ColumnTitleTimestamp)
       timeColumn = i;
 
@@ -1230,7 +1238,7 @@ bool ScopeModel::loadTraces(QIODevice& file)
       continue;
     }
 
-    const QString label = labels.size() > i ? labels.at(i).toString() : QString();
+    const QString label = labels.size() > i ? labels.at(i) : QString();
     if (addTrace(label, color, univ_slots.universe, univ_slots.address_hi, univ_slots.address_lo) == AddResult::Added)
     {
       trace_idents.push_back(univ_slots);
@@ -1254,7 +1262,7 @@ bool ScopeModel::loadTraces(QIODevice& file)
     if (data_line.isEmpty())
       continue;
 
-    const auto data = data_line.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
+    const auto data = data_line.split(QLatin1Char(','), Qt::KeepEmptyParts);
     // Ignore any lines that do not have a column for all traces
     if (data.size() < traces.size() + firstTraceColumn)
       continue;
@@ -2271,7 +2279,7 @@ void GlScopeWidget::paintGL()
 
       // Determine left/right of cursor
       qreal x = AXIS_TO_WINDOW_GAP + (m_cursorPoint.x() - m_scopeView.left()) * x_scale;
-      const qreal textWidth = metrics.width(text);
+      const qreal textWidth = metrics.boundingRect(text).width();
       if (x + textWidth > scopeWindow.width())
         x -= (textWidth + 2.0 * AXIS_TO_WINDOW_GAP);
 
