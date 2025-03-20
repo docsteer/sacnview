@@ -33,7 +33,7 @@ AddMultiDialog::AddMultiDialog(QWidget *parent) :
     ui->sbEndAddress->setValue(MAX_DMX_ADDRESS);
 
     ui->sbPriority->setMinimum(MIN_SACN_PRIORITY);
-    ui->sbPriority->setMaximum(MAX_SACN_PRIORITY);
+    ui->sbPriority->setMaximum(Preferences::GetTxMaxUiPriority());
     ui->sbPriority->setValue(DEFAULT_SACN_PRIORITY);
 
     ui->sbNumUniverses->setMinimum(1);

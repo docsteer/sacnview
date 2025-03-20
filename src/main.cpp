@@ -87,8 +87,13 @@ int main(int argc, char *argv[])
         }
     }
 
-    // Check web (if avaliable) for new version
-    VersionCheck version;
+    // Check web (if enabled) for new version
+    VersionCheck *versionCheck = nullptr;
+    if (Preferences::Instance().GetAutoCheckUpdates())
+    {
+      versionCheck = new VersionCheck();
+      versionCheck->checkForUpdate();
+    }
 
     // Setup interface
     bool newInterface = false;
@@ -119,7 +124,6 @@ int main(int argc, char *argv[])
     // Changed to heap rather than stack,
     // so that we can destroy before cleaning up the singletons
     MDIMainWindow *w = new MDIMainWindow();
-    w->restoreSubWindows();
 
 #ifdef NDEBUG
     // Setup IPC
@@ -133,10 +137,22 @@ int main(int argc, char *argv[])
 #endif
 
     // Show window
-    if(Preferences::Instance().GetSaveWindowLayout() || Preferences::Instance().GetWindowMode() == WindowMode::Floating)
-        w->show();
+    if (Preferences::Instance().GetWindowMode() == WindowMode::Floating)
+    {
+      // Restore after show to place the floating windows on top
+      w->show();
+      w->restoreSubWindows();
+    }
+    else if (Preferences::Instance().GetRestoreWindowLayout())
+    {
+      // MDI must restore before showing
+      w->restoreSubWindows();
+      w->show();
+    }
     else
-        w->showMaximized();
+    {
+      w->showMaximized();
+    }
 
     // Show interface name on statusbar
     if (Preferences::Instance().networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack))
@@ -177,6 +193,7 @@ int main(int argc, char *argv[])
 
     w->saveSubWindows();
     delete w;
+    delete versionCheck;
 
     Preferences::Instance().savePreferences();
 

@@ -17,8 +17,10 @@
 #include <QPainter>
 #include <QScreen>
 #include <QOpenGLShaderProgram>
-#include <QLocale>
 #include <QMetaEnum>
+#include <QMouseEvent>
+
+#include <QJsonArray>
 
 static constexpr qreal AXIS_LABEL_WIDTH = 45.0;
 static constexpr qreal AXIS_LABEL_HEIGHT = 20.0;
@@ -28,6 +30,7 @@ static constexpr qreal AXIS_TO_WINDOW_GAP = 5.0;
 static constexpr qreal AXIS_TICK_SIZE = 10.0;
 
 static const QString CaptureOptionsTitle = QStringLiteral("Capture Options");
+static const QString RowTitleLabel = QStringLiteral("Label");
 static const QString RowTitleColor = QStringLiteral("Color");
 static const QString ColumnTitleWallclockTime = QStringLiteral("Wallclock");
 static const QString ColumnTitleTimestamp = QStringLiteral("Time (s)");
@@ -36,15 +39,69 @@ static const QString ShortTimeFormatString = QStringLiteral("hh:mm:ss");
 static const QString TimeFormatString = QStringLiteral("hh:mm:ss.zzz");
 static const QString DateTimeFormatString = QStringLiteral("yyyy-MM-dd ") + TimeFormatString;
 
-static constexpr qreal kMaxDmx16 = 65535;
-static constexpr qreal kMaxDmx8 = 255;
-
 template<typename T>
 T roundCeilMultiple(T value, T multiple)
 {
   if (multiple == 0) return value;
   return static_cast<T>(std::ceil(static_cast<qreal>(value) / static_cast<qreal>(multiple)) * static_cast<qreal>(multiple));
 }
+
+//////////////////////////////////////////////////////////////////////
+
+void TraceBuffer::reserve(size_t items)
+{
+  if (hasRollingTimeLimit())
+    items = items * 2;  // Reserve enough space to shuffle back as a single block
+
+  m_buffer.reserve(items);
+}
+
+size_t TraceBuffer::capacity() const
+{
+  if (hasRollingTimeLimit())
+    return m_buffer.capacity() / 2;
+  else
+    return m_buffer.capacity();
+}
+
+void TraceBuffer::emplace_back(const float& time, const float& value)
+{
+  // Maybe move the buffer backwards
+  if (m_begin > size())
+  {
+    std::copy(begin(), end(), m_buffer.begin());
+    m_begin = 0;
+    m_buffer.resize(m_size);
+  }
+
+  m_buffer.emplace_back(time, value);
+  ++m_size;
+  applyRollingLimit();
+}
+
+void TraceBuffer::setRollingTimeLimit(float timelimit)
+{
+  m_timelimit = timelimit;
+  if (!empty())
+    applyRollingLimit();
+}
+
+// Assumes the buffer is not empty
+void TraceBuffer::applyRollingLimit()
+{
+  if (!hasRollingTimeLimit())
+    return;
+
+  // Keep removing until within the limit
+  // Usually this only removes one item
+  while (timeSpan() > m_timelimit)
+  {
+    ++m_begin;
+    --m_size;
+  }
+}
+
+//////////////////////////////////////////////////////////////////////
 
 bool ScopeTrace::extractUniverseAddress(QStringView address_string, uint16_t& universe, uint16_t& address_hi, uint16_t& address_lo)
 {
@@ -107,6 +164,17 @@ QString ScopeTrace::addressString(uint16_t address_hi, uint16_t address_lo)
   return QString::number(address_hi);
 }
 
+QJsonObject ScopeTrace::toJsonConfig() const
+{
+  QJsonObject json;
+  json.insert(QLatin1String("label"), m_label);
+  json.insert(QLatin1String("color"), m_color.name());
+  json.insert(QLatin1String("slot"), universeAddressString());
+  if (m_enabled)
+    json.insert(QLatin1String("enabled"), m_enabled);
+  return json;
+}
+
 QString ScopeTrace::universeAddressString() const
 {
   return universeAddressString(universe(), addressHi(), addressLo());
@@ -159,32 +227,40 @@ bool ScopeTrace::setAddress(QStringView addressString, bool clear_values)
 }
 
 template<typename T, std::enable_if_t<std::is_arithmetic<T>::value, bool> = true>
-inline bool fillValue(T& value, uint16_t slot_hi, uint16_t slot_lo, const std::array<int, MAX_DMX_ADDRESS>& level_array)
+inline bool fillValue(T& value, uint16_t slot_hi, uint16_t slot_lo, const sACNMergedSourceList& level_array, const sACNSource* source)
 {
   // Assumes slot numbers are valid
-  if (slot_lo < MAX_DMX_ADDRESS)
+  if (slot_lo < level_array.size())
   {
     // 16 bit
-    // Do nothing if no level yet
-    if (level_array[slot_hi] < 0 || level_array[slot_lo] < 0)
+    // Do nothing if not the winning source
+    if (level_array[slot_hi].winningSource != source && level_array[slot_lo].winningSource != source)
       return false;
 
-    value = static_cast<uint16_t>(level_array[slot_hi] << 8) | static_cast<uint16_t>(level_array[slot_lo]);
+    // Do nothing if no level yet
+    if (level_array[slot_hi].level < 0 || level_array[slot_lo].level < 0)
+      return false;
+
+    value = static_cast<uint16_t>(level_array[slot_hi].level) << 8 | static_cast<uint16_t>(level_array[slot_lo].level);
     return true;
   }
   // 8 bit
-  // Do nothing if no level
-  if (level_array[slot_hi] < 0)
+  // Do nothing if not the winning source
+  if (level_array[slot_hi].winningSource != source)
     return false;
 
-  value = static_cast<T>(level_array[slot_hi]);
+  // Do nothing if no level
+  if (level_array[slot_hi].level < 0)
+    return false;
+
+  value = static_cast<T>(level_array[slot_hi].level);
   return true;
 }
 
-void ScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array, bool storeAllPoints)
+void ScopeTrace::addPoint(float timestamp, const sACNMergedSourceList& level_array, const sACNSource* source, bool storeAllPoints)
 {
   float value;
-  if (fillValue(value, m_slot_hi, m_slot_lo, level_array))
+  if (fillValue(value, m_slot_hi, m_slot_lo, level_array, source))
   {
     QMutexLocker lock(&m_mutex);
     if (storeAllPoints)
@@ -205,10 +281,10 @@ void ScopeTrace::addPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS
   }
 }
 
-void ScopeTrace::setFirstPoint(float timestamp, const std::array<int, MAX_DMX_ADDRESS>& level_array)
+void ScopeTrace::setFirstPoint(float timestamp, const sACNMergedSourceList& level_array, const sACNSource* source)
 {
   float value;
-  if (fillValue(value, m_slot_hi, m_slot_lo, level_array))
+  if (fillValue(value, m_slot_hi, m_slot_lo, level_array, source))
   {
     QMutexLocker lock(&m_mutex);
     if (m_trace.empty())
@@ -263,7 +339,7 @@ ScopeModel::AddResult ScopeModel::addTrace(const QColor& color, uint16_t univers
     }
 
     beginInsertRows(QModelIndex(), m_traceTable.size(), m_traceTable.size());
-    ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_reservation);
+    ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_storageTime, m_reservation);
     m_traceTable.push_back(trace);
     m_traceLookup.emplace(universe, std::vector<ScopeTrace*>(1, trace));
     endInsertRows();
@@ -289,11 +365,45 @@ ScopeModel::AddResult ScopeModel::addTrace(const QColor& color, uint16_t univers
 
   // Add this new trace to the existing universe
   beginInsertRows(QModelIndex(), m_traceTable.size(), m_traceTable.size());
-  ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_reservation);
+  ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_storageTime, m_reservation);
   m_traceTable.push_back(trace);
   univs_item.push_back(trace);
   endInsertRows();
   return AddResult::Added;
+}
+
+ScopeModel::AddResult ScopeModel::addTrace(const QString& label, const QColor& color, uint16_t universe, uint16_t address_hi, uint16_t address_lo)
+{
+  const AddResult result = addTrace(color, universe, address_hi, address_lo);
+  if (result == AddResult::Added && !label.isEmpty())
+  {
+    ScopeTrace* trace = findTrace(universe, address_hi, address_lo);
+    if (trace)
+      trace->setLabel(label);
+  }
+  return result;
+}
+
+ScopeModel::AddResult ScopeModel::addTrace(const QJsonObject& json)
+{
+  uint16_t universe = 0;
+  uint16_t address_hi = 0;
+  uint16_t address_lo = 0;
+
+  if (!ScopeTrace::extractUniverseAddress(json.value(QLatin1String("slot")).toString(), universe, address_hi, address_lo))
+    return AddResult::Invalid;
+
+  const AddResult result = addTrace(QColor(json.value(QLatin1String("color")).toString()), universe, address_hi, address_lo);
+  if (result != AddResult::Invalid)
+  {
+    ScopeTrace* trace = findTrace(universe, address_hi, address_lo);
+    if (trace)
+    {
+      trace->setEnabled(json.value(QLatin1String("enabled")).toBool(true));
+      trace->setLabel(json.value(QLatin1String("label")).toString());
+    }
+  }
+  return result;
 }
 
 // Removes all traces that match this
@@ -429,6 +539,7 @@ ScopeModel::ScopeModel(QObject* parent)
   private_removeAllTraces();
   connect(this, &ScopeModel::queueStop, this, &ScopeModel::stop, Qt::QueuedConnection);
   connect(this, &ScopeModel::queueTriggered, this, &ScopeModel::triggered, Qt::QueuedConnection);
+  connect(this, &ScopeModel::queueTriggered, this, &ScopeModel::onQueueTriggered, Qt::QueuedConnection);
 }
 
 ScopeModel::~ScopeModel()
@@ -438,17 +549,114 @@ ScopeModel::~ScopeModel()
 
 QVariant ScopeModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-  if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
+  if (orientation == Qt::Horizontal)
   {
-    switch (section)
+    switch (role)
     {
-    case COL_UNIVERSE: return tr("Universe");
-    case COL_ADDRESS: return tr("Address");
-    case COL_COLOUR: return tr("Colour");
-    case COL_TRIGGER: return tr("Trigger");
+    default: break;
+    case Qt::DisplayRole:
+    {
+      switch (section)
+      {
+      case COL_UNIVERSE: return tr("Universe");
+      case COL_ADDRESS: return tr("Address");
+      case COL_COLOUR: return tr("Colour");
+      case COL_TRIGGER: return tr("Trigger");
+      case COL_LABEL: return tr("Label");
+      }
+    } break;
+    case Qt::CheckStateRole:
+    {
+      if (section == COL_UNIVERSE)
+      {
+        return listCheckState();
+      }
+    } break;
+    case Qt::DecorationRole:
+    {
+      if (section == COL_UNIVERSE)
+      {
+        return m_headerEnableCheckDecoration;
+      }
+    } break;
     }
   }
   return QVariant();
+}
+
+bool ScopeModel::setHeaderData(int section, Qt::Orientation orientation, const QVariant& value, int role)
+{
+  if (orientation == Qt::Horizontal && section == COL_UNIVERSE)
+  {
+    if (role == Qt::CheckStateRole && value.canConvert<Qt::CheckState>())
+    {
+      setListCheckState(value.value<Qt::CheckState>());
+      return true;
+    }
+    if (role == Qt::DecorationRole)
+    {
+      m_headerEnableCheckDecoration = value.value<QPixmap>();
+      return true;
+    }
+  }
+  return false;
+}
+
+Qt::CheckState ScopeModel::listCheckState() const
+{
+  if (m_traceTable.empty())
+    return Qt::Checked; // Any that are added will be checked
+
+  Qt::CheckState result = Qt::PartiallyChecked;
+  for (const ScopeTrace* trace : m_traceTable)
+  {
+    if (!trace)
+      continue;
+
+    switch (result)
+    {
+    case Qt::PartiallyChecked:
+      result = trace->enabled() ? Qt::Checked : Qt::Unchecked;
+      break;
+    case Qt::Unchecked:
+      if (trace->enabled())
+        return Qt::PartiallyChecked;
+      break;
+    case Qt::Checked:
+      if (!trace->enabled())
+        return Qt::PartiallyChecked;
+      break;
+    }
+  }
+  return result;
+}
+
+void ScopeModel::setListCheckState(Qt::CheckState check)
+{
+  if (check == Qt::PartiallyChecked)
+    return;
+
+  const bool value = check == Qt::Checked ? true : false;
+  for (ScopeTrace* trace : m_traceTable)
+  {
+    if (!trace)
+      continue;
+    trace->setEnabled(value);
+  }
+
+  emit dataChanged(index(0, COL_UNIVERSE), index(rowCount() - 1, COL_UNIVERSE), { Qt::CheckStateRole });
+  emit headerDataChanged(Qt::Horizontal, COL_UNIVERSE, COL_UNIVERSE);
+}
+
+void ScopeModel::toggleListCheckState()
+{
+  Qt::CheckState checked = listCheckState();
+  switch (checked)
+  {
+  default:
+  case Qt::Checked: setListCheckState(Qt::Unchecked); return;
+  case Qt::Unchecked: setListCheckState(Qt::Checked); return;
+  }
 }
 
 int ScopeModel::rowCount(const QModelIndex& parent) const
@@ -471,6 +679,7 @@ Qt::ItemFlags ScopeModel::flags(const QModelIndex& index) const
   case  COL_ADDRESS: return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
   case  COL_COLOUR: return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
   case  COL_TRIGGER: return Qt::ItemIsEnabled | Qt::ItemIsUserCheckable;
+  case  COL_LABEL: return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
   }
 }
 
@@ -490,19 +699,26 @@ QVariant ScopeModel::data(const QModelIndex& index, int role) const
       case COL_UNIVERSE:
         if (role == Qt::DisplayRole || role == Qt::EditRole || role == DataSortRole) return trace->universe();
         if (role == Qt::CheckStateRole) return trace->enabled() ? Qt::Checked : Qt::Unchecked;
+        if (role == Qt::ToolTipRole) return tr("sACN Universe");
         break;
       case COL_ADDRESS:
-        if (role == Qt::DisplayRole || role == Qt::EditRole) return trace->addressString();
         if (role == DataSortRole) return uint32_t(trace->addressHi()) << 16 | trace->addressLo();
+        if (role == Qt::DisplayRole || role == Qt::EditRole) return trace->addressString();
+        if (role == Qt::ToolTipRole) return tr("DMX Address. MSB/LSB for 16bit");
         break;
       case COL_COLOUR:
         if (role == Qt::BackgroundRole || role == Qt::DisplayRole || role == Qt::EditRole) return trace->color();
         if (role == DataSortRole) return static_cast<uint32_t>(trace->color().rgba());
+        if (role == Qt::ToolTipRole) return tr("Trace color (#RRGGBB)");
         break;
       case COL_TRIGGER:
         if (role == Qt::CheckStateRole)
           return m_trigger.isTriggerTrace(*trace) ? Qt::Checked : Qt::Unchecked;
         if (role == DataSortRole) return m_trigger.isTriggerTrace(*trace) ? 0 : 1;
+        if (role == Qt::ToolTipRole) return tr("Trigger on this trace");
+        break;
+      case COL_LABEL:
+        if (role == Qt::DisplayRole || role == Qt::EditRole || role == DataSortRole) return trace->label();
         break;
       }
     }
@@ -516,85 +732,94 @@ bool ScopeModel::setData(const QModelIndex& idx, const QVariant& value, int role
   if (!idx.isValid())
     return false;
 
-  if (idx.column() < COL_COUNT && idx.row() < rowCount())
+  if (idx.column() >= COL_COUNT || idx.row() >= rowCount())
+    return false;
+
+  ScopeTrace* trace = m_traceTable.at(idx.row());
+  if (!trace)
+    return false;
+
+  switch (idx.column())
   {
-    ScopeTrace* trace = m_traceTable.at(idx.row());
-    if (trace)
+  default: break;
+
+  case COL_UNIVERSE:
+    if (role == Qt::CheckStateRole)
     {
-      switch (idx.column())
+      trace->setEnabled(value.toBool());
+      emit dataChanged(idx, idx, { Qt::CheckStateRole });
+      emit headerDataChanged(Qt::Horizontal, COL_UNIVERSE, COL_UNIVERSE);
+      emit traceVisibilityChanged();
+      return true;
+    }
+    if (role == Qt::EditRole)
+    {
+      // Maybe update the trigger
+      const bool isTrigger = m_trigger.isTriggerTrace(*trace);
+      if (moveTrace(trace, value.toUInt()))
       {
-      default: break;
-
-      case COL_UNIVERSE:
-        if (role == Qt::CheckStateRole)
-        {
-          trace->setEnabled(value.toBool());
-          emit dataChanged(idx, idx, { Qt::CheckStateRole });
-          emit traceVisibilityChanged();
-          return true;
-        }
-        if (role == Qt::EditRole)
-        {
-          // Maybe update the trigger
-          const bool isTrigger = m_trigger.isTriggerTrace(*trace);
-          if (moveTrace(trace, value.toUInt()))
-          {
-            if (isTrigger)
-              m_trigger.setTrigger(*trace);
-            emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
-            return true;
-          }
-        }
-        break;
-
-      case COL_ADDRESS:
-        if (role == Qt::EditRole)
-        {
-          // If 16bit changed, recheck the vertical scale
-          const bool was16bit = trace->isSixteenBit();
-          // Maybe update the trigger
-          const bool isTrigger = m_trigger.isTriggerTrace(*trace);
-          if (trace->setAddress(value.toString(), true))
-          {
-            if (was16bit != trace->isSixteenBit())
-            {
-              if (trace->isSixteenBit())
-                setMaxValue(kMaxDmx16);
-              else
-                updateMaxValue();
-            }
-            if (isTrigger)
-              m_trigger.setTrigger(*trace);
-            emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
-            return true;
-          }
-        }
-        break;
-      case COL_COLOUR:
-        if (role == Qt::EditRole)
-        {
-          QColor color = value.value<QColor>();
-          if (color.isValid())
-          {
-            trace->setColor(color);
-            emit dataChanged(idx, idx, { Qt::BackgroundRole, Qt::DisplayRole, Qt::EditRole, DataSortRole });
-            return true;
-          }
-        }
-        break;
-
-      case COL_TRIGGER:
-        if (role == Qt::CheckStateRole)
-        {
-          if (trace->isValid())
-          {
-            m_trigger.setTrigger(*trace);
-            emit dataChanged(index(0, COL_TRIGGER), index(rowCount() - 1, COL_TRIGGER), { Qt::CheckStateRole, DataSortRole });
-            return true;
-          }
-        }
-        break;
+        if (isTrigger)
+          m_trigger.setTrigger(*trace);
+        emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
+        return true;
       }
+    }
+    break;
+
+  case COL_ADDRESS:
+    if (role == Qt::EditRole)
+    {
+      // If 16bit changed, recheck the vertical scale
+      const bool was16bit = trace->isSixteenBit();
+      // Maybe update the trigger
+      const bool isTrigger = m_trigger.isTriggerTrace(*trace);
+      if (trace->setAddress(value.toString(), true))
+      {
+        if (was16bit != trace->isSixteenBit())
+        {
+          if (trace->isSixteenBit())
+            setMaxValue(kMaxDmx16);
+          else
+            updateMaxValue();
+        }
+        if (isTrigger)
+          m_trigger.setTrigger(*trace);
+        emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
+        return true;
+      }
+    }
+    break;
+  case COL_COLOUR:
+    if (role == Qt::EditRole)
+    {
+      QColor color = value.value<QColor>();
+      if (color.isValid())
+      {
+        trace->setColor(color);
+        emit dataChanged(idx, idx, { Qt::BackgroundRole, Qt::DisplayRole, Qt::EditRole, DataSortRole });
+        return true;
+      }
+    }
+    break;
+
+  case COL_TRIGGER:
+    if (role == Qt::CheckStateRole)
+    {
+      if (trace->isValid())
+      {
+        m_trigger.setTrigger(*trace);
+        emit dataChanged(index(0, COL_TRIGGER), index(rowCount() - 1, COL_TRIGGER), { Qt::CheckStateRole, DataSortRole });
+        return true;
+      }
+    }
+    break;
+
+  case COL_LABEL:
+    if (role == Qt::EditRole)
+    {
+      trace->setLabel(value.toString());
+      emit dataChanged(idx, idx, { Qt::DisplayRole, Qt::EditRole, DataSortRole });
+      return true;
     }
   }
 
@@ -637,6 +862,58 @@ void ScopeModel::clearValues()
   m_wallclockTrigger_ms = 0;
 }
 
+QJsonObject ScopeModel::getJsonConfig() const
+{
+  QJsonObject result;
+
+  result.insert(QLatin1String("store_all"), m_storeAllPoints);
+  result.insert(QLatin1String("run_time"), m_runTime);
+  result.insert(QLatin1String("storage_time"), m_storageTime);
+
+  result.insert(QLatin1String("trigger"), m_trigger.toJson());
+
+  // Append traces
+  QJsonArray traces;
+  for (const ScopeTrace* trace : m_traceTable)
+  {
+    if (trace == nullptr)
+      continue;
+
+    traces.append(trace->toJsonConfig());
+  }
+  result.insert(QLatin1String("traces"), traces);
+  return result;
+}
+
+bool ScopeModel::setJsonConfig(const QJsonObject& config)
+{
+  if (config.isEmpty())
+    return false;
+
+  // Assume valid, stop and clear my data now
+  beginResetModel();
+  private_removeAllTraces();
+
+  // TODO: Load the traces
+  const QJsonArray traceArray = config.value(QLatin1String("traces")).toArray();
+  for (auto it = traceArray.begin(); it != traceArray.end(); ++it)
+  {
+    addTrace(it->toObject());
+  }
+
+  // Load the config
+  m_storeAllPoints = config.value(QLatin1String("store_all")).toBool(true);
+  m_trigger.setFromJson(config.value(QLatin1String("trigger")).toObject());
+
+  setRunTime(config.value(QLatin1String("run_time")).toDouble());
+  setStorageTime(config.value(QLatin1String("storage_time")).toDouble()); 
+
+  endResetModel();
+  // Force a re-render
+  emit traceVisibilityChanged();
+  return true;
+}
+
 QString ScopeModel::captureConfigurationString() const
 {
   QString result = (m_storeAllPoints ? QLatin1String("All Packets,") : QLatin1String("Level Changes,"));
@@ -647,8 +924,28 @@ QString ScopeModel::captureConfigurationString() const
   if (m_runTime > 0)
     result.append(QStringLiteral("Run For %1 sec,").arg(m_runTime));
 
+  if (m_storageTime > 0)
+  {
+    result.append(QStringLiteral("Store %1 min,").arg(m_storageTime / 60.0, 0, 'f', 0));
+  }
+
   result.chop(1);
   return result;
+}
+
+qreal ExtractValue(const QString& configString, const QString& item, const QString& units, qreal def = 0)
+{
+  qsizetype valuePos = configString.indexOf(item);
+  const qsizetype valueUnitPos = configString.indexOf(units, valuePos);
+  if (valuePos < 0 || valueUnitPos < 0)
+    return def;
+
+  bool ok;
+  valuePos += item.size() + 1;
+  const qreal value = configString.mid(valuePos, valueUnitPos - valuePos).toDouble(&ok);
+  if (ok)
+    return value;
+  return def;
 }
 
 void ScopeModel::setCaptureConfiguration(const QString& configString)
@@ -660,32 +957,9 @@ void ScopeModel::setCaptureConfiguration(const QString& configString)
 
   m_trigger.setConfiguration(configString);
 
-  qsizetype runTimePos = configString.indexOf(QLatin1String("Run For"));
-  const qsizetype runTimeSecPos = configString.indexOf(QLatin1String("sec"), runTimePos);
-  if (runTimePos < 0 || runTimeSecPos < 0)
-  {
-    m_runTime = 0;
-  }
-  else
-  {
-    bool ok;
-    runTimePos += 8;
-    const qreal time = configString.mid(runTimePos, runTimeSecPos - runTimePos).toDouble(&ok);
-    if (ok)
-      m_runTime = time;
-  }
-}
+  setRunTime(ExtractValue(configString, QStringLiteral("Run For"), QStringLiteral("sec")));
 
-inline void ConfigureTextStream(QTextStream& stream)
-{
-#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
-  stream.setCodec("UTF-8");
-#else
-  stream.setEncoding(QStringConverter::Utf8);
-#endif
-  stream.setLocale(QLocale::c());
-  stream.setRealNumberNotation(QTextStream::FixedNotation);
-  stream.setRealNumberPrecision(3);
+  setStorageTime(ExtractValue(configString, QLatin1String("Store"), QLatin1String("min")) * 60.0);
 }
 
 bool ScopeModel::saveTraces(QIODevice& file) const
@@ -698,11 +972,19 @@ bool ScopeModel::saveTraces(QIODevice& file) const
     return false;
 
   QTextStream out(&file);
-  ConfigureTextStream(out);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+  out.setCodec("UTF-8");
+#else
+  out.setEncoding(QStringConverter::Utf8);
+#endif
+  out.setLocale(QLocale::c());
+  out.setRealNumberNotation(QTextStream::FixedNotation);
+  out.setRealNumberPrecision(3);
 
   // Table:
   // Capture Options:,All Packets/Level Changes
   // 
+  //              Labels, bob, jim, ...
   // 2024-01-15,   Color, red, green, ...
   // Wallclock,   Time (s),U1.1, U1.2/3, ... (Given as Universe.CoarseDMX/FineDmx (1-512)
   // 12:00:00.000, 0.000, 255,    0, ...
@@ -733,6 +1015,8 @@ bool ScopeModel::saveTraces(QIODevice& file) const
 
   QDateTime datetime = QDateTime::currentDateTime();
 
+  QString label_header = QStringLiteral(",") + RowTitleLabel;
+
   QString color_header;
   if (asWallclockTime(datetime, 0.0))
   {
@@ -750,6 +1034,10 @@ bool ScopeModel::saveTraces(QIODevice& file) const
       // Get the values for this column
       traces_values.emplace_back(trace);
 
+      // Assemble the label header string
+      label_header.append(QLatin1Char(','));
+      label_header.append(trace->label());
+
       // Assemble the color header string
       color_header.append(QLatin1Char(','));
       color_header.append(trace->color().name());
@@ -766,7 +1054,9 @@ bool ScopeModel::saveTraces(QIODevice& file) const
       }
     }
   }
-  out << color_header << '\n' << name_header;
+  out << label_header << '\n'
+    << color_header << '\n'
+    << name_header;
 
   // Value rows
   while (this_row_time < std::numeric_limits<float>::max())
@@ -809,6 +1099,7 @@ bool ScopeModel::saveTraces(QIODevice& file) const
 
 struct TitleRows {
   QString config;
+  QString labels;
   QString colors;
   QString universes;
 };
@@ -823,6 +1114,11 @@ TitleRows FindUniverseTitles(QTextStream& in)
     if (line.startsWith(CaptureOptionsTitle))
     {
       result.config = line;
+    }
+    else if (line.contains(RowTitleLabel))
+    {
+      // The last label line
+      result.labels = line;
     }
     else if (line.contains(RowTitleColor))
     {
@@ -846,20 +1142,23 @@ bool ScopeModel::loadTraces(QIODevice& file)
     return false;
 
   QTextStream in(&file);
-  ConfigureTextStream(in);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+  in.setCodec("UTF-8");
+#else
+  in.setEncoding(QStringConverter::Utf8);
+#endif
+  in.setLocale(QLocale::c());
+  in.setRealNumberNotation(QTextStream::FixedNotation);
+  in.setRealNumberPrecision(3);
 
   const auto title_line = FindUniverseTitles(in);
   if (title_line.universes.isEmpty())
     return false;
 
   // Split the title lines to find the trace colors and names
-#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
-  auto colors = title_line.colors.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
-  auto titles = title_line.universes.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
-#else
-  auto colors = QStringView{ title_line.colors }.split(QLatin1Char(','), Qt::KeepEmptyParts);
-  auto titles = QStringView{ title_line.universes }.split(QLatin1Char(','), Qt::KeepEmptyParts);
-#endif
+  auto labels = title_line.labels.split(QLatin1Char(','), Qt::KeepEmptyParts);
+  auto colors = title_line.colors.split(QLatin1Char(','), Qt::KeepEmptyParts);
+  auto titles = title_line.universes.split(QLatin1Char(','), Qt::KeepEmptyParts);
 
   // Find data columns
   int timeColumn = -1; // Column index for time offset
@@ -874,13 +1173,17 @@ bool ScopeModel::loadTraces(QIODevice& file)
 
     // Grab the zero datetime from Colors
     if (titles.front() == ColumnTitleWallclockTime)
-      wallclockTrigger = QDateTime::fromString(colors.front().toString(), DateTimeFormatString);
+      wallclockTrigger = QDateTime::fromString(colors.front(), DateTimeFormatString);
     else if (titles.front() == ColumnTitleTimestamp)
       timeColumn = i;
 
     // Remove the row header titles
     colors.pop_front();
     titles.pop_front();
+
+    // Labels are optional
+    if (!labels.isEmpty())
+      labels.pop_front();
   }
 
   // Time is required
@@ -902,6 +1205,9 @@ bool ScopeModel::loadTraces(QIODevice& file)
   // Fairly likely to be valid, stop and clear my data now
   beginResetModel();
   private_removeAllTraces();
+
+  // Do not enforce storage time limit during load
+  setStorageTime(0);
 
   // Read the wallclock trigger datetime
   if (wallclockTrigger.isValid())
@@ -932,8 +1238,11 @@ bool ScopeModel::loadTraces(QIODevice& file)
       continue;
     }
 
-    if (addTrace(color, univ_slots.universe, univ_slots.address_hi, univ_slots.address_lo) == AddResult::Added)
+    const QString label = labels.size() > i ? labels.at(i) : QString();
+    if (addTrace(label, color, univ_slots.universe, univ_slots.address_hi, univ_slots.address_lo) == AddResult::Added)
+    {
       trace_idents.push_back(univ_slots);
+    }
     else
       trace_idents.push_back(UnivSlots());
   }
@@ -953,11 +1262,7 @@ bool ScopeModel::loadTraces(QIODevice& file)
     if (data_line.isEmpty())
       continue;
 
-#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
-    const auto data = data_line.splitRef(QLatin1Char(','), Qt::KeepEmptyParts);
-#else
-    const auto data = QStringView{ data_line }.split(QLatin1Char(','), Qt::KeepEmptyParts);
-#endif
+    const auto data = data_line.split(QLatin1Char(','), Qt::KeepEmptyParts);
     // Ignore any lines that do not have a column for all traces
     if (data.size() < traces.size() + firstTraceColumn)
       continue;
@@ -1034,6 +1339,12 @@ void ScopeModel::stop()
     return;
 
   m_running = false;
+  if (m_timerId != 0)
+  {
+    killTimer(m_timerId);
+    m_timerId = 0;
+  }
+
 
   // Disconnect all
   for (auto& listener : m_listeners)
@@ -1055,6 +1366,23 @@ void ScopeModel::setRunTime(qreal seconds)
     m_runTime = seconds;
 
   emit runTimeChanged(runTime());
+}
+
+void ScopeModel::setStorageTime(qreal seconds)
+{
+  if (storageTime() == seconds)
+    return;
+
+  // Validate and update new or existing value
+  if (seconds >= 0)
+    m_storageTime = seconds;
+
+  for (ScopeTrace* trace : m_traceTable)
+  {
+    trace->setRollingTimeLimit(m_storageTime);
+  }
+
+  emit storageTimeChanged(storageTime());
 }
 
 // Triggers
@@ -1183,29 +1511,20 @@ void ScopeModel::triggerNow(qreal offset)
   {
     trace->applyOffset(offset);
   }
-  // Reset the counters
-  for (sACNManager::tListener& listener : m_listeners)
-  {
-    auto sources = listener->getSourceList();
-    for (sACNSource* source : sources)
-    {
-      source->resetSeqErr();
-      source->resetJumps();
-      source->fpscounter.ClearHistogram();
-    }
-  }
 
   emit queueTriggered();
 }
 
 QRectF ScopeModel::traceExtents() const
 {
+  if (m_storageTime > 0)
+    return QRectF(std::max(m_endTime - m_storageTime, 0.0), 0, m_storageTime, m_maxValue);
   return QRectF(0, 0, m_endTime, m_maxValue);
 }
 
 qreal ScopeModel::endTime() const
 {
-  if (isTriggered())
+  if (isRunning() && isTriggered())
     return (qreal(sACNManager::elapsed()) / 1000) - m_startOffset;
 
   return m_endTime;
@@ -1220,7 +1539,7 @@ bool ScopeModel::asWallclockTime(QDateTime& datetime, qreal time) const
   return true;
 }
 
-void ScopeModel::sACNListenerDmxReceived(tock packet_tock, int universe, const std::array<int, MAX_DMX_ADDRESS>& levels)
+void ScopeModel::sACNListenerDmxReceived(tock packet_tock, int universe, const sACNMergedSourceList& levels, const sACNSource* source)
 {
   if (!m_running)
     return;
@@ -1237,11 +1556,11 @@ void ScopeModel::sACNListenerDmxReceived(tock packet_tock, int universe, const s
     // Only store one level for each trace until the trigger is fired
     for (ScopeTrace* trace : it->second)
     {
-      trace->setFirstPoint(timestamp, levels);
+      trace->setFirstPoint(timestamp, levels, source);
     }
 
     uint16_t current_level;
-    if (universe == m_trigger.universe && fillValue(current_level, m_trigger.address_hi - 1, m_trigger.address_lo - 1, levels))
+    if (universe == m_trigger.universe && fillValue(current_level, m_trigger.address_hi - 1, m_trigger.address_lo - 1, levels, source))
     {
       // Have a current level, maybe start the clock
       switch (m_trigger.mode)
@@ -1271,7 +1590,6 @@ void ScopeModel::sACNListenerDmxReceived(tock packet_tock, int universe, const s
   // Time in seconds
   {
     m_endTime = timestamp - m_startOffset;
-    qDebug() << m_endTime;
     if (m_runTime > 0 && m_endTime >= m_runTime)
     {
       emit queueStop();
@@ -1281,8 +1599,24 @@ void ScopeModel::sACNListenerDmxReceived(tock packet_tock, int universe, const s
 
   for (ScopeTrace* trace : it->second)
   {
-    trace->addPoint(m_endTime, levels, m_storeAllPoints);
+    trace->addPoint(m_endTime, levels, source, m_storeAllPoints);
   }
+}
+
+void ScopeModel::onQueueTriggered()
+{
+  if (m_runTime > 0)
+  {
+    // Stop myself 10ms after the end of the runtime to ensure queued packets get processed
+    // May create a 1 packet jitter in counts but this is acceptable
+    m_timerId = startTimer(int(m_runTime * 1000.0) + 10, Qt::PreciseTimer);
+  }
+}
+
+void ScopeModel::timerEvent(QTimerEvent* ev)
+{
+  if (ev->timerId() == m_timerId)
+    stop();
 }
 
 GlScopeWidget::GlScopeWidget(QWidget* parent)
@@ -1292,7 +1626,7 @@ GlScopeWidget::GlScopeWidget(QWidget* parent)
 
   m_model = new ScopeModel(this);
   connect(m_model, &ScopeModel::runningChanged, this, &GlScopeWidget::onRunningChanged);
-  connect(m_model, &ScopeModel::traceVisibilityChanged, this, qOverload<>(&QOpenGLWidget::update));
+  connect(m_model, &ScopeModel::traceVisibilityChanged, this, QOverload<void>::of(&QOpenGLWidget::update));
 
   setMinimumSize(200, 200);
   setVerticalScaleMode(VerticalScale::Percent);
@@ -1313,33 +1647,52 @@ void GlScopeWidget::setVerticalScaleMode(VerticalScale scaleMode)
   case VerticalScale::Percent:
   {
     m_levelInterval = 10;
-    m_scopeView.setBottom(kMaxDmx8);  // The 16 bit matrix downscales to 8bit
   } break;
   case VerticalScale::Dmx8:
   {
     m_levelInterval = 20;
-    m_scopeView.setBottom(kMaxDmx8);
   } break;
   case VerticalScale::Dmx16:
   {
     m_levelInterval = 10000;
-    m_scopeView.setBottom(kMaxDmx16);
+  } break;
+  case VerticalScale::DeltaTime:
+  {
+    m_levelInterval = 100;
   } break;
   }
 
   m_verticalScaleMode = scaleMode;
+  m_scopeView.setBottom(scopeVerticalMaxDefault(scaleMode));
 
   updateMVPMatrix();
   update();
+}
+
+
+bool GlScopeWidget::levelInView(const QPointF& point) const
+{
+  return (point.y() <= m_scopeView.bottom() && point.y() >= m_scopeView.top());
 }
 
 void GlScopeWidget::setScopeView(const QRectF& rect)
 {
   if (rect.isEmpty())
   {
-    m_scopeView = m_model->traceExtents();
-    m_scopeView.setRight(m_defaultIntervalCount * m_timeInterval);
-    setVerticalScaleMode(m_verticalScaleMode);
+    QRectF extents = m_model->traceExtents();
+    extents.setRight(m_defaultIntervalCount * m_timeInterval);
+
+    if (m_verticalScaleMode == VerticalScale::DeltaTime && m_scopeView.height() > 0)
+    {
+      // Keep the vertical scale the same
+      m_scopeView.setLeft(extents.left());
+      m_scopeView.setRight(extents.right());
+    }
+    else
+    {
+      m_scopeView = extents;
+      setVerticalScaleMode(m_verticalScaleMode);
+    }
   }
   else if (rect == m_scopeView)
   {
@@ -1349,6 +1702,27 @@ void GlScopeWidget::setScopeView(const QRectF& rect)
   {
     m_scopeView = rect;
   }
+
+  updateMVPMatrix();
+  update();
+}
+
+void GlScopeWidget::setScopeViewVerticalRange(qreal min, qreal max)
+{
+  // Reset to defaults if invalid or equal
+  if (max < min || max < 0 || min < 0 || qFuzzyCompare(min, max))
+  {
+    setScopeView();
+    return;
+  }
+
+  // Set vertical range
+  m_scopeView.setTop(min);
+  m_scopeView.setBottom(max);
+
+  // Set vaguely sane interval ticks
+  qreal rangeInterval = (max - min) / 10.0;
+  m_levelInterval = std::ceil(rangeInterval);
 
   updateMVPMatrix();
   update();
@@ -1384,6 +1758,90 @@ void GlScopeWidget::setTimeFormat(TimeFormat format)
   emit timeFormatChanged();
 }
 
+void GlScopeWidget::setDotSize(float width)
+{
+  if (width == m_levelDotSize)
+    return;
+
+  m_levelDotSize = width;
+  update();
+
+  emit dotSizeChanged(m_levelDotSize);
+}
+
+void GlScopeWidget::ShaderProgram::BuildProgram(const char* shaderName, const char* vertexShaderSource, const char* fragmentShaderSource)
+{
+  program = new QOpenGLShaderProgram();
+
+  if (!program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource))
+  {
+    qDebug() << shaderName << "Vertex Shader Failed:" << program->log();
+    UnloadProgram();
+    return;
+  }
+
+  if (!program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource))
+  {
+    qDebug() << shaderName << "Fragment Shader Failed:" << program->log();
+    UnloadProgram();
+    return;
+  }
+
+  if (!program->link())
+  {
+    qDebug() << shaderName << "Shader Link Failed:" << program->log();
+    UnloadProgram();
+    return;
+  }
+
+  vertexLocation = program->attributeLocation("vertex");
+  matrixUniform = program->uniformLocation("mvp");
+  colorUniform = program->uniformLocation("color");
+  pointSizeUniform = program->uniformLocation("pointsize");
+
+  if (!IsValid())
+    UnloadProgram();
+}
+
+void GlScopeWidget::ShaderProgram::UnloadProgram()
+{
+  if (program == nullptr)
+    return;
+
+  delete program;
+  program = nullptr;
+}
+
+bool GlScopeWidget::ShaderProgram::IsValid() const
+{
+  return program != nullptr && vertexLocation != -1 && matrixUniform != -1 && colorUniform != -1 && pointSizeUniform != -1;
+}
+
+bool GlScopeWidget::ShaderProgram::bind()
+{
+  return program && program->bind();
+}
+
+void GlScopeWidget::ShaderProgram::release()
+{
+  program->release();
+}
+
+void GlScopeWidget::ShaderProgram::setMatrix(const QMatrix4x4& matrix)
+{
+  program->setUniformValue(matrixUniform, matrix);
+}
+
+void GlScopeWidget::ShaderProgram::setColor(const QColor& color)
+{
+  program->setUniformValue(colorUniform, color);
+}
+
+void GlScopeWidget::ShaderProgram::setPointSize(float size)
+{
+  program->setUniformValue(pointSizeUniform, size);
+}
+
 void GlScopeWidget::initializeGL()
 {
   // Reparenting to a different top-level window causes the OpenGL Context to be destroyed and recreated
@@ -1398,9 +1856,23 @@ void GlScopeWidget::initializeGL()
   const char* vertexShaderSource =
     "in vec2 vertex;\n"
     "uniform mat4 mvp;\n"
+    "uniform float pointsize;\n"
     "void main()\n"
     "{\n"
     "  gl_Position = mvp * vec4(vertex.x, vertex.y, 0, 1.0);\n"
+    "  gl_PointSize = pointsize;"
+    "}\n";
+
+  // Delta Time shader
+  const char* vertexDeltaTimeShaderSource =
+    "in vec4 vertex;\n" // { x prev_timestamp, y prev_level, z timestamp, w level }
+    "uniform mat4 mvp;\n"
+    "uniform float pointsize;\n"
+    "void main()\n"
+    "{\n"
+    //"  gl_Position = mvp * vec4(vertex.z, 127, 0, 1.0);\n"
+    "  gl_Position = mvp * vec4(vertex.z, (vertex.z - vertex.x) * 1000.0, 0, 1.0);\n"
+    "  gl_PointSize = pointsize;"
     "}\n";
 
   const char* fragmentShaderSource =
@@ -1410,53 +1882,27 @@ void GlScopeWidget::initializeGL()
     "  gl_FragColor = color;\n"
     "}\n";
 
-  m_program = new QOpenGLShaderProgram(this);
-  if (!m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource))
-  {
-    qDebug() << "Vertex Shader Failed:" << m_program->log();
-    cleanupGL();
-    return;
-  }
-
-  if (!m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource))
-  {
-    qDebug() << "Fragment Shader Failed:" << m_program->log();
-    cleanupGL();
-    return;
-  }
-
-  if (!m_program->link())
-  {
-    qDebug() << "Shader Link Failed:" << m_program->log();
-    cleanupGL();
-    return;
-  }
-
-  m_vertexLocation = m_program->attributeLocation("vertex");
-  Q_ASSERT(m_vertexLocation != -1);
-  m_matrixUniform = m_program->uniformLocation("mvp");
-  Q_ASSERT(m_matrixUniform != -1);
-  m_colorUniform = m_program->uniformLocation("color");
-  Q_ASSERT(m_colorUniform != -1);
+  m_xyProgram.BuildProgram("xy", vertexShaderSource, fragmentShaderSource);
+  m_deltaProgram.BuildProgram("deltaTime", vertexDeltaTimeShaderSource, fragmentShaderSource);
 }
 
 void GlScopeWidget::cleanupGL()
 {
-  // The context is about to be destroyed, it may be recreated later
-  if (m_program == nullptr)
-    return; // Never started
+  if (!m_xyProgram.IsValid())
+    return;
 
+  // The context is about to be destroyed, it may be recreated later
   makeCurrent();
 
-  delete m_program;
-  m_program = nullptr;
+  m_xyProgram.UnloadProgram();
+  m_deltaProgram.UnloadProgram();
 
   doneCurrent();
 }
 
-inline void DrawLevelAxisText(QPainter& painter, const QFontMetricsF& metrics, const QRectF& scopeWindow, int level, qreal y_scale, const QString& postfix)
+inline static void DrawLevelAxisText(QPainter& painter, const QFontMetricsF& metrics, const QRectF& scopeWindow, int level, qreal y_scale, const QString& postfix)
 {
-  qreal y = scopeWindow.height() - (level * y_scale);
+  const qreal y = scopeWindow.height() - (level * y_scale);
 
   // TODO: use QStaticText to optimise the text layout
   const QString text = QString::number(level) + postfix;
@@ -1485,15 +1931,38 @@ void GlScopeWidget::paintGL()
   std::vector<QVector2D> gridLines;
   gridLines.reserve((11 + 14) * 2); // 10 ticks across, 13 up for 0-255
 
+  // Cursor lines
+  std::vector<QVector2D> cursorLines;
+  cursorLines.reserve(4);
+
   // Colors
   static const QColor gridColor(0x43, 0x43, 0x43);
   static const QColor textColor(Qt::white);
   static const QColor timeCursorColor(Qt::white);
+  static const QColor cursorColor(Qt::gray);
+  static const QColor cursorTextColor(Qt::white);
   static const QColor triggerCursorColor(Qt::gray);
 
-  // Draw the axes using QPainter as is easiest way to get the text
-  // It's ok if the labels aren't pixel perfect
+  // Origin is the bottom left of the scope window
+  QPointF origin(rect().bottomLeft().x() + AXIS_LABEL_WIDTH, rect().bottomLeft().y() - AXIS_LABEL_HEIGHT);
+
+  QRectF scopeWindow;
+  scopeWindow.setBottomLeft(origin);
+  scopeWindow.setTop(rect().top() + TOP_GAP);
+  scopeWindow.setRight(rect().right() - RIGHT_GAP);
+
+  // Draw nothing if tiny
+  if (scopeWindow.width() < AXIS_TICK_SIZE)
+    return;
+
+  const qreal x_scale = scopeWindow.width() / m_scopeView.width();
+
+  QFont font;
+  QFontMetricsF metrics(font);
   {
+    // Draw the labels using QPainter as is easiest way to get the text
+    // It's ok if the labels aren't pixel perfect
+
     QPen textPen;
     textPen.setColor(textColor);
 
@@ -1502,21 +1971,6 @@ void GlScopeWidget::paintGL()
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setPen(textPen);
 
-    // Origin is the bottom left of the scope window
-    QPointF origin(rect().bottomLeft().x() + AXIS_LABEL_WIDTH, rect().bottomLeft().y() - AXIS_LABEL_HEIGHT);
-
-    QRectF scopeWindow;
-    scopeWindow.setBottomLeft(origin);
-    scopeWindow.setTop(rect().top() + TOP_GAP);
-    scopeWindow.setRight(rect().right() - RIGHT_GAP);
-
-    // Draw nothing if tiny
-    if (scopeWindow.width() < AXIS_TICK_SIZE)
-      return;
-
-    QFont font;
-    QFontMetricsF metrics(font);
-
     painter.translate(scopeWindow.topLeft().x(), scopeWindow.topLeft().y());
 
     // Draw vertical (level) axis
@@ -1524,12 +1978,33 @@ void GlScopeWidget::paintGL()
       const float lineLeft = m_scopeView.left();
       const float lineRight = std::fmaxf(m_scopeView.right(), endTime);
 
-      if (m_verticalScaleMode == VerticalScale::Percent)
+      // Cursor if active
+      if (!m_cursorPoint.isNull())
       {
-        const QString postfix = QStringLiteral("%");
+        // Time cursor
+        if (timeInView(m_cursorPoint))
+        {
+          cursorLines.emplace_back(static_cast<float>(m_cursorPoint.x()), 0.0f);
+          cursorLines.emplace_back(static_cast<float>(m_cursorPoint.x()), m_scopeView.bottom());
+        }
+
+        // Level cursor
+        if (levelInView(m_cursorPoint))
+        {
+          cursorLines.emplace_back(lineLeft, static_cast<float>(m_cursorPoint.y()));
+          cursorLines.emplace_back(lineRight, static_cast<float>(m_cursorPoint.y()));
+        }
+      }
+
+      QString postfix;
+      switch (m_verticalScaleMode)
+      {
+      case VerticalScale::Percent:
+      {
+        postfix = QStringLiteral("%");
         const qreal max_value = 100.0;
         const qreal y_scale = scopeWindow.height() / 100.0; // Percent
-        const float value_scale = kMaxDmx8 / 100.0f;
+        const float value_scale = ScopeModel::kMaxDmx8 / 100.0f;
 
         // From bottom to top
         for (qreal value = m_scopeView.top(); value < max_value; value += m_levelInterval)
@@ -1545,10 +2020,14 @@ void GlScopeWidget::paintGL()
         gridLines.emplace_back(lineLeft, static_cast<float>(m_scopeView.bottom()));
         gridLines.emplace_back(lineRight, static_cast<float>(m_scopeView.bottom()));
         DrawLevelAxisText(painter, metrics, scopeWindow, max_value, y_scale, postfix);
-      }
-      else
+      } break;
+
+      case VerticalScale::DeltaTime:
+        postfix = QStringLiteral("ms");
+        [[fallthrough]];
+      case VerticalScale::Dmx8:
+      case VerticalScale::Dmx16:
       {
-        const QString postfix;
         const int max_value = m_scopeView.bottom();
         const qreal y_scale = scopeWindow.height() / m_scopeView.bottom();
 
@@ -1566,14 +2045,13 @@ void GlScopeWidget::paintGL()
         gridLines.emplace_back(lineLeft, max_value);
         gridLines.emplace_back(lineRight, max_value);
         DrawLevelAxisText(painter, metrics, scopeWindow, max_value, y_scale, postfix);
+      } break;
       }
     }
 
     // Draw horizontal (time) axis
     painter.resetTransform();
     painter.translate(scopeWindow.bottomLeft().x(), scopeWindow.bottomLeft().y());
-
-    const qreal x_scale = scopeWindow.width() / m_scopeView.width();
 
     if (m_timeFormat == TimeFormat::Elapsed)
     {
@@ -1620,63 +2098,194 @@ void GlScopeWidget::paintGL()
   }
 
   // Unable to render at all
-  if (!m_program)
+  if (!m_xyProgram.IsValid())
     return;
 
-  m_program->bind();
-  glEnableVertexAttribArray(m_vertexLocation);
+  m_xyProgram.bind();
+  glEnableVertexAttribArray(m_xyProgram.vertexLocation);
 
-  m_program->setUniformValue(m_matrixUniform, m_mvpMatrix);
+  m_xyProgram.setMatrix(m_mvpMatrix);
 
   // Draw the gridlines
   {
-    m_program->setUniformValue(m_colorUniform, gridColor);
-    glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, gridLines.data());
+    m_xyProgram.setColor(gridColor);
+    glVertexAttribPointer(m_xyProgram.vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, gridLines.data());
     glDrawArrays(GL_LINES, 0, gridLines.size());
+  }
+
+  // Draw the cursorLines
+  if (!cursorLines.empty())
+  {
+    m_xyProgram.setColor(cursorColor);
+    glVertexAttribPointer(m_xyProgram.vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, cursorLines.data());
+    glDrawArrays(GL_LINES, 0, cursorLines.size());
   }
 
   if (m_model->isTriggered())
   {
     // Draw the current time
-    m_program->setUniformValue(m_colorUniform, timeCursorColor);
+    m_xyProgram.setColor(timeCursorColor);
     const std::vector<QVector2D> nowLine = {
       {static_cast<float>(m_model->endTime()), 0},
       {static_cast<float>(m_model->endTime()), static_cast<float>(m_scopeView.bottom())}
     };
-    glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, nowLine.data());
+    glVertexAttribPointer(m_xyProgram.vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, nowLine.data());
     glDrawArrays(GL_LINE_STRIP, 0, 2);
   }
-  else if (m_model->triggerType() != ScopeModel::Trigger::FreeRun)
+  else if (!m_model->triggerIsFreeRun())
   {
     // Draw the trigger level marker
-    m_program->setUniformValue(m_colorUniform, triggerCursorColor);
+    m_xyProgram.setColor(triggerCursorColor);
 
     const std::vector<QVector2D> triggerLine = makeTriggerLine(m_model->triggerType());
 
-    glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, triggerLine.data());
+    glVertexAttribPointer(m_xyProgram.vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, triggerLine.data());
     glDrawArrays(GL_TRIANGLES, 0, triggerLine.size());
   }
 
+  glDisableVertexAttribArray(m_xyProgram.vertexLocation);
+  m_xyProgram.release();
 
-  for (ScopeTrace* trace : m_model->traces())
+  if (m_verticalScaleMode == VerticalScale::DeltaTime)
   {
-    if (!trace->enabled())
-      continue;
+    // Draw the trace using the deltatime program
+    m_deltaProgram.bind();
+    glEnableVertexAttribArray(m_deltaProgram.vertexLocation);
 
-    // Change the scale as needed
-    if (m_verticalScaleMode == VerticalScale::Percent)
+    m_deltaProgram.setMatrix(m_mvpMatrix);
+
+    glEnable(GL_PROGRAM_POINT_SIZE);
+    m_deltaProgram.setPointSize(m_levelDotSize * float(devicePixelRatioF()));
+    for (ScopeTrace* trace : m_model->traces())
     {
-      m_program->setUniformValue(m_matrixUniform, trace->isSixteenBit() ? m_mvpMatrix16 : m_mvpMatrix);
-    }
+      if (!trace->enabled())
+        continue;
 
-    m_program->setUniformValue(m_colorUniform, trace->color());
-    const auto levels = trace->values();
-    glVertexAttribPointer(m_vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, levels.value().data());
-    glDrawArrays(GL_LINE_STRIP, 0, levels.value().size());
+      m_deltaProgram.setColor(trace->color());
+      const auto levels = trace->values();
+      if (levels.value().size() > 1)
+      {
+        glVertexAttribPointer(m_deltaProgram.vertexLocation, 4, GL_FLOAT, GL_FALSE, sizeof(QVector2D), levels.value().data());
+        glDrawArrays(GL_LINE_STRIP, 0, levels.value().size() - 1);
+
+        // Draw the points if enabled
+        if (m_levelDotSize > 0.5f)
+        {
+          glDrawArrays(GL_POINTS, 0, levels.value().size() - 1);
+        }
+      }
+    }
+    glDisable(GL_PROGRAM_POINT_SIZE);
+
+    glDisableVertexAttribArray(m_deltaProgram.vertexLocation);
+    m_deltaProgram.release();
+  }
+  else
+  {
+    m_xyProgram.bind();
+    glEnableVertexAttribArray(m_xyProgram.vertexLocation);
+
+    m_xyProgram.setMatrix(m_mvpMatrix);
+
+    glEnable(GL_PROGRAM_POINT_SIZE);
+    m_xyProgram.setPointSize(m_levelDotSize * float(devicePixelRatioF()));
+    for (ScopeTrace* trace : m_model->traces())
+    {
+      if (!trace->enabled())
+        continue;
+
+      // Change the scale as needed
+      if (m_verticalScaleMode == VerticalScale::Percent)
+      {
+        m_xyProgram.setMatrix(trace->isSixteenBit() ? m_mvpMatrix16 : m_mvpMatrix);
+      }
+
+      m_xyProgram.setColor(trace->color());
+      const auto levels = trace->values();
+      glVertexAttribPointer(m_xyProgram.vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, levels.value().data());
+      glDrawArrays(GL_LINE_STRIP, 0, levels.value().size());
+
+      // Draw the points if enabled
+      if (m_levelDotSize > 0.5f)
+      {
+        glDrawArrays(GL_POINTS, 0, levels.value().size());
+      }
+    }
+    glDisable(GL_PROGRAM_POINT_SIZE);
+
+    glDisableVertexAttribArray(m_xyProgram.vertexLocation);
+    m_xyProgram.release();
   }
 
-  glDisableVertexAttribArray(m_vertexLocation);
-  m_program->release();
+  // Cursor labels if active
+  // Draw these last so the gridlines aren't on top
+  if (!m_cursorPoint.isNull())
+  {
+    QPen textPen;
+    textPen.setColor(cursorTextColor);
+
+    QPainter painter(this);
+
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setPen(textPen);
+
+    painter.translate(scopeWindow.topLeft().x(), scopeWindow.topLeft().y());
+
+    bool timeAtTop = true;
+
+    // Cursor level as actual and percent if inside grid
+    if (levelInView(m_cursorPoint))
+    {
+      // Actual value
+      QString text = QString::number(m_cursorPoint.y(), 'f', 0);
+      if (m_verticalScaleMode != VerticalScale::DeltaTime)
+      {
+        // Append the percentage
+        const qreal percent_value = m_cursorPoint.y() * (m_verticalScaleMode == VerticalScale::Dmx16 ? 100.0f / ScopeModel::kMaxDmx16 : 100.0f / ScopeModel::kMaxDmx8);
+        text.append(QStringLiteral(" (") + QString::number(percent_value, 'f', 2) + QStringLiteral("%)"));
+      }
+      else
+      {
+        text.append(QStringLiteral("ms"));
+      }
+
+      // Draw it above/below the line
+      const qreal y_scale = scopeWindow.height() / m_scopeView.bottom();
+      qreal y = scopeWindow.height() - (m_cursorPoint.y() * y_scale);
+      if (m_cursorPoint.y() > m_scopeView.height() * 0.9)
+      {
+        y += metrics.ascent();
+        timeAtTop = false;  // Draw the time at the bottom
+      }
+      else
+      {
+        y -= metrics.descent();
+      }
+      painter.drawText(QPointF(AXIS_TO_WINDOW_GAP, y), text);
+    }
+
+    // Cursor time as elapsed and wallclock (if available)
+    if (timeInView(m_cursorPoint))
+    {
+      const bool milliseconds = (m_timeInterval < 1.0);
+      QString text = milliseconds //
+        ? QString::number(m_cursorPoint.x() * 1000.0, 'f', 0) + QStringLiteral("ms")
+        : QString::number(m_cursorPoint.x(), 'f', 3) + QStringLiteral("s");
+      QDateTime datetime = QDateTime::currentDateTime();
+      if (m_model->asWallclockTime(datetime, m_cursorPoint.x()))
+      {
+        text += QStringLiteral(", ") + datetime.toString(TimeFormatString);
+      }
+
+      // Determine left/right of cursor
+      qreal x = AXIS_TO_WINDOW_GAP + (m_cursorPoint.x() - m_scopeView.left()) * x_scale;
+      const qreal textWidth = metrics.boundingRect(text).width();
+      if (x + textWidth > scopeWindow.width())
+        x -= (textWidth + 2.0 * AXIS_TO_WINDOW_GAP);
+
+      painter.drawText(QPointF(x, timeAtTop ? metrics.height() : scopeWindow.height() - AXIS_TO_WINDOW_GAP), text);
+    }
+  }
 }
 
 void GlScopeWidget::resizeGL(int w, int h)
@@ -1691,6 +2300,48 @@ void GlScopeWidget::resizeGL(int w, int h)
 void GlScopeWidget::timerEvent(QTimerEvent* /*ev*/)
 {
   // Schedule an update
+  update();
+}
+
+void GlScopeWidget::mousePressEvent(QMouseEvent* ev)
+{
+  if (ev->buttons() & Qt::LeftButton)
+    updateCursor(ev->pos());
+
+  QOpenGLWidget::mousePressEvent(ev);
+}
+
+void GlScopeWidget::mouseMoveEvent(QMouseEvent* ev)
+{
+  if (ev->buttons() & Qt::LeftButton)
+  {
+    updateCursor(ev->pos());
+  }
+  QOpenGLWidget::mouseMoveEvent(ev);
+}
+
+void GlScopeWidget::updateCursor(const QPoint& widgetPos)
+{
+  QPointF pos(widgetPos.x(), height() - widgetPos.y());
+
+  // Be a little forgiving about pixel perfection to make it easier to get a line at the far left
+  if (pos.x() < AXIS_LABEL_WIDTH && pos.x() > AXIS_LABEL_WIDTH - AXIS_TICK_SIZE)
+    pos.setX(AXIS_LABEL_WIDTH);
+
+  // Disable cursor when clicking out-of-bounds bottom-left
+  if (pos.x() < AXIS_LABEL_WIDTH && pos.y() < AXIS_LABEL_HEIGHT)
+  {
+    m_cursorPoint = QPointF();
+  }
+  else
+  {
+    // Convert to trace space
+    const QMatrix4x4 invModelMatrix = m_modelMatrix.inverted();
+    m_cursorPoint = invModelMatrix * pos;
+    // Round the level to nearest whole DMX
+    m_cursorPoint.setY(std::round(m_cursorPoint.y()));
+  }
+
   update();
 }
 
@@ -1715,10 +2366,10 @@ void GlScopeWidget::onRunningChanged(bool running)
 
 void GlScopeWidget::updateMVPMatrix()
 {
-  QMatrix4x4 modelMatrix;
+  m_modelMatrix = QMatrix4x4();
 
   // Translate to origin
-  modelMatrix.translate(AXIS_LABEL_WIDTH, AXIS_LABEL_HEIGHT);
+  m_modelMatrix.translate(AXIS_LABEL_WIDTH, AXIS_LABEL_HEIGHT);
 
   // Horizontal scale
   const qreal pix_width = rect().width() - AXIS_LABEL_WIDTH - RIGHT_GAP;
@@ -1728,12 +2379,12 @@ void GlScopeWidget::updateMVPMatrix()
   const qreal pix_height = rect().height() - AXIS_LABEL_HEIGHT - TOP_GAP;
   const qreal y_scale = pix_height / m_scopeView.height();
 
-  modelMatrix.scale(x_scale, y_scale, 1);
+  m_modelMatrix.scale(x_scale, y_scale, 1);
 
   // Translate to current time and vertical offset
-  modelMatrix.translate(-m_scopeView.left(), -m_scopeView.top(), 0);
+  m_modelMatrix.translate(-m_scopeView.left(), -m_scopeView.top(), 0);
 
-  m_mvpMatrix = m_viewMatrix * modelMatrix;
+  m_mvpMatrix = m_viewMatrix * m_modelMatrix;
 
   if (m_verticalScaleMode == VerticalScale::Percent)
   {
@@ -1872,4 +2523,39 @@ void ScopeModel::TriggerConfig::setConfiguration(const QString& configString)
     if (ok)
       level = triggerLevel;
   }
+}
+
+QJsonObject ScopeModel::TriggerConfig::toJson() const
+{
+  QJsonObject json;
+  json.insert(QLatin1String("mode"), QMetaEnum::fromType<ScopeModel::Trigger>().valueToKey(static_cast<int>(mode)));
+  json.insert(QLatin1String("slot"), ScopeTrace::universeAddressString(universe, address_hi, address_lo));
+  json.insert(QLatin1String("level"), level);
+  return json;
+}
+
+void ScopeModel::TriggerConfig::setFromJson(const QJsonObject& json)
+{
+  const QString modeString = json.value(QLatin1String("mode")).toString();
+  mode = Trigger::FreeRun;
+  const auto metaEnum = QMetaEnum::fromType<Trigger>();
+  for (int i = 0; i < metaEnum.keyCount(); ++i)
+  {
+    if (modeString == QLatin1String(metaEnum.key(i)))
+    {
+      mode = static_cast<Trigger>(metaEnum.value(i));
+      break;
+    }
+  }
+
+  const QString slotString = json.value(QLatin1String("slot")).toString();
+  uint16_t new_univ, new_addr_hi, new_addr_lo;
+  if (ScopeTrace::extractUniverseAddress(slotString, new_univ, new_addr_hi, new_addr_lo))
+  {
+    universe = new_univ;
+    address_hi = new_addr_hi;
+    address_lo = new_addr_lo;
+  }
+
+  level = json.value(QLatin1String("level")).toInt();
 }

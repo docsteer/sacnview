@@ -111,7 +111,8 @@ void sACNSource::storeReceivedPriorities(const uint8_t* pdata, uint16_t rx_slot_
 
   memcpy(priority_array.data(), pdata, rx_slot_count);
 
-  // Compare the two
+  // Compare the two and atomically update badness if acceptable.
+  bool was_priority_array_bad = false;
   for (int i = 0; i < DMX_SLOT_MAX; i++)
   {
     if (priority_array[i] != last_priority_array[i])
@@ -119,7 +120,16 @@ void sACNSource::storeReceivedPriorities(const uint8_t* pdata, uint16_t rx_slot_
       dirty_array[i] |= true;
       source_levels_change = true;
     }
+    if (priority_array[i] > MAX_SACN_PRIORITY)
+      was_priority_array_bad = true;
   }
+
+  priority_array_bad = was_priority_array_bad;
+}
+
+bool sACNSource::HasInvalidPriority() const
+{
+  return priority_array_bad || (priority > MAX_SACN_PRIORITY);
 }
 
 sACNManager& sACNManager::Instance()

@@ -30,18 +30,14 @@ const char* FADERLABELFORMAT = "<b>%1</b><br>%2";
 const char* FADERADDRESSPROP = "ADDRESS";
 const char* FADERLABELPROP = "LABEL*";
 
-transmitwindow::transmitwindow(int universe, QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::transmitwindow),
-    m_sender(Q_NULLPTR),
-    m_fxEngine(Q_NULLPTR),
-    m_recordMode(false)
+transmitwindow::transmitwindow(int universe, QWidget *parent)
+  : QWidget(parent)
+  , ui(new Ui::transmitwindow)
 {
     ui->setupUi(this);
 
     updateTitle();
 
-    m_levels.fill(0);
     on_cbPriorityMode_currentIndexChanged(ui->cbPriorityMode->currentIndex());
 
     ui->sbUniverse->setMinimum(1);
@@ -50,7 +46,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     ui->sbUniverse->setWrapping(true);
 
     ui->sbPriority->setMinimum(MIN_SACN_PRIORITY);
-    ui->sbPriority->setMaximum(MAX_SACN_PRIORITY);
+    ui->sbPriority->setMaximum(Preferences::GetTxMaxUiPriority());
     ui->sbPriority->setValue(DEFAULT_SACN_PRIORITY);
     ui->sbPriority->setWrapping(true);
 
@@ -70,7 +66,6 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     ui->sbFadeRangeStart->setWrapping(true);
 
     ui->leSourceName->setText(Preferences::Instance().GetDefaultTransmitName());
-
 
     ui->dlFadeRate->setMinimum(0);
     ui->dlFadeRate->setMaximum(FX_FADE_RATES.count()-1);
@@ -156,6 +151,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     updateGeometry();
 
     m_perAddressPriorities.fill(DEFAULT_SACN_PRIORITY);
+    updatePerChanPriorityButton();
 
     // Set up slider for channel check
     ui->slChannelCheck->setMinimum(0);
@@ -163,7 +159,6 @@ transmitwindow::transmitwindow(int universe, QWidget *parent) :
     ui->slChannelCheck->setValue(MAX_SACN_LEVEL);
     ui->lcdNumber->display(1);
 
-    m_blink = false;
     m_blinkTimer = new QTimer(this);
     m_blinkTimer->setInterval(BLINK_TIME);
     connect(m_blinkTimer, &QTimer::timeout, this, &transmitwindow::doBlink);
@@ -409,6 +404,10 @@ void transmitwindow::on_btnStart_pressed()
         m_sender->setSlotCount(ui->sbSlotCount->value());
         m_sender->setName(ui->leSourceName->text());
         m_sender->setUniverse(ui->sbUniverse->value());
+        
+        // Always use the universe priority value
+        m_sender->setPerSourcePriority(ui->sbPriority->value());
+
         if(ui->cbPriorityMode->currentIndex() == static_cast<int>(PriorityMode::PER_ADDRESS))
         {
             m_sender->setPriorityMode(PriorityMode::PER_ADDRESS);
@@ -417,7 +416,6 @@ void transmitwindow::on_btnStart_pressed()
         else
         {
             m_sender->setPriorityMode(PriorityMode::PER_SOURCE);
-            m_sender->setPerSourcePriority(ui->sbPriority->value());
         }
         using namespace std::chrono_literals;
         m_sender->setSendFrequency(ui->sbMinFPS->value(), ui->sbMaxFPS->value());
@@ -456,15 +454,26 @@ void transmitwindow::on_btnFxStart_pressed()
 }
 
 
-void transmitwindow::on_btnEditPerChan_pressed()
+void transmitwindow::on_btnEditPerChan_clicked()
 {
-    ConfigurePerChanPrioDlg dlg;
-    dlg.setWindowTitle(tr("Per address priority universe %1").arg(ui->sbUniverse->value()));
-    dlg.setData(m_perAddressPriorities.data());
-    int result = dlg.exec();
-    if(result==QDialog::Accepted)
+    if (m_perChannelDialog == nullptr)
     {
-        memcpy(m_perAddressPriorities.data(), dlg.data(), m_slotCount);
+      m_perChannelDialog = new ConfigurePerChanPrioDlg(this);
+      m_perChannelDialog->setModal(true);
+      connect(m_perChannelDialog, &QDialog::finished, this, &transmitwindow::onConfigurePerChanPrioDlgFinished);
+    }
+
+    m_perChannelDialog->setWindowTitle(tr("Per address priority universe %1").arg(ui->sbUniverse->value()));
+    m_perChannelDialog->setData(m_perAddressPriorities.data());
+    m_perChannelDialog->show();
+}
+
+void transmitwindow::onConfigurePerChanPrioDlgFinished(int result)
+{
+    if (result == QDialog::Accepted)
+    {
+        memcpy(m_perAddressPriorities.data(), m_perChannelDialog->data(), m_slotCount);
+        updatePerChanPriorityButton();
     }
 }
 
@@ -472,12 +481,14 @@ void transmitwindow::on_cbPriorityMode_currentIndexChanged(int index)
 {
     if (index == static_cast<int>(PriorityMode::PER_ADDRESS))
     {
-        ui->sbPriority->setEnabled(false);
+        ui->sbPriority->setPrefix(QStringLiteral("("));
+        ui->sbPriority->setSuffix(QStringLiteral(")"));
         ui->btnEditPerChan->setEnabled(true);
     }
     else
     {
-        ui->sbPriority->setEnabled(true);
+        ui->sbPriority->setPrefix(QString());
+        ui->sbPriority->setSuffix(QString());
         ui->btnEditPerChan->setEnabled(false);
     }
 }
@@ -866,6 +877,20 @@ void transmitwindow::setLevel(int address, int value)
             break;
         }
     }
+}
+
+void transmitwindow::updatePerChanPriorityButton()
+{
+    uint8_t min = 255;
+    uint8_t max = 0;
+    for (uint8_t val : m_perAddressPriorities)
+    {
+        if (min > val)
+            min = val;
+        if (max < val)
+            max = val;
+    }
+    ui->btnEditPerChan->setText(QStringLiteral("%1-%2...").arg(min).arg(max));
 }
 
 void transmitwindow::setLevelList(QList<QPair<int, int>> levelList)

@@ -337,12 +337,18 @@ void GridWidget::mouseDoubleClickEvent(QMouseEvent *event)
 
 void GridWidget::setAllCellColor(const QColor& color)
 {
-  m_colors.fill(color);
+  if (color.isValid())
+    m_colors.fill(color);
+  else
+    setAllCellColor(palette().color(QPalette::Base));
 }
 
 void GridWidget::setCellColor(int cell, const QColor &color)
 {
+  if (color.isValid())
     m_colors[cell] = color;
+  else
+    setCellColor(cell, palette().color(QPalette::Base));
 }
 
 void GridWidget::setCellValue(int cell, const QString &value)

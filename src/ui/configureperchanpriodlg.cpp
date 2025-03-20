@@ -25,8 +25,8 @@ ConfigurePerChanPrioDlg::ConfigurePerChanPrioDlg(QWidget *parent) :
     ui->setupUi(this);
     ui->sbPriority->setMinimum(MIN_SACN_PRIORITY);
     ui->sbSetAll->setMinimum(MIN_SACN_PRIORITY);
-    ui->sbPriority->setMaximum(MAX_SACN_PRIORITY);
-    ui->sbSetAll->setMaximum(MAX_SACN_PRIORITY);
+    ui->sbPriority->setMaximum(Preferences::GetTxMaxUiPriority());
+    ui->sbSetAll->setMaximum(Preferences::GetTxMaxUiPriority());
     ui->sbPriority->setValue(DEFAULT_SACN_PRIORITY);
     ui->sbSetAll->setValue(DEFAULT_SACN_PRIORITY);
     ui->sbPriority->setEnabled(false);
@@ -43,7 +43,7 @@ ConfigurePerChanPrioDlg::ConfigurePerChanPrioDlg(QWidget *parent) :
         m_presetButtons << presetButton;
     }
     ui->widget->setMinimum(MIN_SACN_PRIORITY);
-    ui->widget->setMaximum(MAX_SACN_PRIORITY);
+    ui->widget->setMaximum(Preferences::GetTxMaxUiPriority());
     ui->widget->setAllValues(100);
 }
 
@@ -52,12 +52,22 @@ ConfigurePerChanPrioDlg::~ConfigurePerChanPrioDlg()
     delete ui;
 }
 
+void SetCell(GridEditWidget* widget, int cell, uint8_t value)
+{
+  widget->setCellValue(cell, QString::number(value));
+  widget->setCellColor(cell, value > MAX_SACN_PRIORITY ?
+    Preferences::Instance().colorForStatus(Preferences::Status::Bad) :
+    QColor());
+
+}
 
 void ConfigurePerChanPrioDlg::setData(quint8 *data)
 {
     memcpy(m_data, data, MAX_DMX_ADDRESS);
-    for(int i=0; i<MAX_DMX_ADDRESS; i++)
-        ui->widget->setCellValue(i, QString::number(m_data[i]));
+    for (int i = 0; i < MAX_DMX_ADDRESS; i++)
+    {
+      SetCell(ui->widget, i, m_data[i]);
+    }
     ui->widget->update();
 }
 
@@ -71,7 +81,7 @@ quint8 *ConfigurePerChanPrioDlg::data()
 void ConfigurePerChanPrioDlg::on_btnSetAll_pressed()
 {
     for(int i=0; i<512; i++)
-        ui->widget->setCellValue(i, QString::number(ui->sbSetAll->value()));
+        SetCell(ui->widget, i, ui->sbSetAll->value());
     ui->widget->update();
 }
 
@@ -120,7 +130,7 @@ void ConfigurePerChanPrioDlg::presetButtonPressed()
 
 void ConfigurePerChanPrioDlg::on_btnSet_pressed()
 {
-    foreach(auto i, m_selectedCells)
-        ui->widget->setCellValue(i, QString::number(ui->sbPriority->value()));
+    for(int i : m_selectedCells)
+        SetCell(ui->widget, i, ui->sbPriority->value());
     ui->widget->update();
 }

@@ -24,10 +24,10 @@ class SACNSourceTableModel : public QAbstractTableModel
   Q_OBJECT
 public:
   // The column order in the source table
-  enum SC_ROWS
+  enum SC_COLS
   {
-    COL_NAME,
     COL_ONLINE,
+    COL_NAME,
     COL_CID,
     COL_UNIVERSE,
     COL_PRIO,
@@ -35,15 +35,25 @@ public:
     COL_PREVIEW,
     COL_IP,
     COL_FPS,
-    COL_TIME_SUMMARY,
+    COL_TIME_RANGE,
+    COL_TIME_SHORT,
+    COL_TIME_LONG,
+    COL_TIME_STATIC,
     COL_SEQ_ERR,
     COL_JUMPS,
     COL_VER,
     COL_DD,
     COL_SLOTS,
     COL_PATHWAY_SECURE,
-    COL_END
+    COL_NOTES,
+    COL_END,
+
+    // Range of columns that are updated from the SACNSource
+    COL_SOURCE_UPDATE_BEGIN = COL_ONLINE,
+    COL_SOURCE_UPDATE_END = COL_PATHWAY_SECURE,
   };
+
+  static constexpr std::array<int, 4> TimingDetailColumns = { COL_TIME_RANGE, COL_TIME_SHORT, COL_TIME_LONG, COL_TIME_STATIC };
 
 public:
   SACNSourceTableModel(QObject* parent = nullptr);
@@ -52,6 +62,7 @@ public:
   int columnCount(const QModelIndex& parent = QModelIndex()) const override { return COL_END; }
   int rowCount(const QModelIndex& parent = QModelIndex()) const override { return static_cast<int>(m_rows.size()); }
 
+  Qt::ItemFlags flags(const QModelIndex& index) const override;
   bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole) override;
   QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
   QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
@@ -105,6 +116,13 @@ private:
     Yes
   };
 
+  enum class SourcePriority
+  {
+    PerUniverse,
+    PerAddress,
+    PerAddressInvalid
+  };
+
   struct RowData
   {
     RowData() = default;
@@ -124,14 +142,22 @@ private:
     uint16_t slot_count = 0;
     uint8_t priority = 0;
     bool preview = false;
-    bool per_address = false;
+    SourcePriority per_address = SourcePriority::PerUniverse;
     FpsCounter::Histogram histogram;
+
+    // Cache
+    mutable size_t shortCount = 0;
+    mutable size_t longCount = 0;
+    mutable size_t staticCount = 0;
+    mutable bool countValid = false;
 
     void Update(const sACNSource* source);
   };
 
   std::vector<RowData> m_rows;
   std::vector<sACNManager::wListener> m_listeners;
+  // Notes by CID as provided by SACNView user
+  QMap<CID, QString> m_notes;
 
   // Interval shorter than expected
   FpsCounter::HistogramBucket m_shortInterval = std::chrono::milliseconds(19);
@@ -143,5 +169,7 @@ private:
   // Data
   QVariant getDisplayData(const RowData& rowData, int column) const;
   QVariant getBackgroundData(const RowData& rowData, int column) const;
-  QVariant getTimingSummary(const RowData& rowData) const;
+  QVariant getTimingSummary(const RowData& rowData, int column) const;
+
+  void RefreshAllTimingData();
 };

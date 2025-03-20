@@ -101,6 +101,7 @@ set(SACNVIEW_HEADERS
     src/models/csvmodelexport.h
     src/widgets/glscopewidget.h
     src/widgets/steppedspinbox.h
+    src/widgets/checkableheader.h
 )
 
 set(SACNVIEW_SOURCES
@@ -154,6 +155,7 @@ set(SACNVIEW_SOURCES
     src/widgets/glscopewidget.cpp
     src/models/sacnsourcetablemodel.cpp
     src/models/csvmodelexport.cpp
+    src/widgets/checkableheader.cpp
 )
 
 # Prepend the path to all sources
@@ -208,6 +210,7 @@ set(SACNVIEW_QT_LIBRARIES
 if (Qt6_FOUND)
     find_package(Qt6 COMPONENTS OpenGLWidgets REQUIRED)
     list(APPEND SACNVIEW_QT_LIBRARIES Qt::OpenGLWidgets)
+    find_package(Qt6 COMPONENTS LinguistTools)
 endif()
 
 add_executable(sACNView WIN32
@@ -217,6 +220,13 @@ add_executable(sACNView WIN32
     ${SACNVIEW_FORMS}
     ${SACNVIEW_RCC}
 )
+
+# Qt6 LinguistTools for translation
+if (Qt6_FOUND)
+   qt_add_translations(TARGETS sACNView
+      TS_FILES ${SACNVIEW_TS}
+   )
+endif()
 
 target_include_directories(sACNView PRIVATE
     ${SACNVIEW_HEADER_PATHS}
@@ -299,6 +309,13 @@ target_compile_definitions(sACNView PRIVATE
   "GIT_DATE_YEAR=\"${GIT_DATE_YEAR}\""
   "VERSION=\"${GIT_TAG}\""
 )
+
+# GoogleTest
+option(SACNVIEW_UNIT_TESTS "Enable unit tests" OFF)
+if (SACNVIEW_UNIT_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
 
 # Deploy the build using windeployqt
 option(SACNVIEW_CREATE_INSTALLER "Create the sACNView installer" OFF)

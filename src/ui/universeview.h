@@ -36,11 +36,13 @@ class UniverseView : public QWidget
 public:
     explicit UniverseView(int universe = MIN_SACN_UNIVERSE, QWidget *parent = 0);
     ~UniverseView();
-    void startListening(int universe);
 
     // Trigger API
     Q_SLOT void startRx() { on_btnGo_clicked(); }
     Q_SLOT void stopRx() { on_btnPause_clicked(); }
+
+    Q_INVOKABLE QJsonObject getJsonConfiguration() const;
+    Q_INVOKABLE void setJsonConfiguration(const QJsonObject& json);
 
 protected slots:
     void refreshTitle();
@@ -65,6 +67,8 @@ protected slots:
 protected:
     virtual void resizeEvent(QResizeEvent *event);
     virtual void showEvent(QShowEvent *event);
+
+    void startListening(int universe);
 
 private:
     void resizeColumns();

@@ -31,53 +31,109 @@
 #include <zlib.h>
 #endif
 
+///////////////////////////////
 // Strings for storing settings
+
+// Translation
+static const QString S_LOCALE = QStringLiteral("Locale");
+
+// Updates
+static const QString S_UPDATE_IGNORE = QStringLiteral("IgnoreUpdateVersion");
+static const QString S_UPDATE_IGNORE_ALL = QStringLiteral("All"); // Special value
+
+// Local networkinng
 static const QString S_INTERFACE_ADDRESS = QStringLiteral("MacAddress");
 static const QString S_INTERFACE_NAME = QStringLiteral("InterfaceName");
-static const QString S_DISPLAY_FORMAT = QStringLiteral("Display Format");
-static const QString S_BLIND_VISUALIZER = QStringLiteral("Show Blind");
-static const QString S_ETC_DDONLY = QStringLiteral("Show ETC DD Only");
-static const QString S_ETC_DD = QStringLiteral("Enable ETC DD");
-static const QString S_DEFAULT_SOURCENAME = QStringLiteral("Default Transmit Source Name");
-static const QString S_TIMEOUT = QStringLiteral("Timeout");
-static const QString S_FLICKERFINDERSHOWINFO = QStringLiteral("Flicker Finder Info");
-static const QString S_SAVEWINDOWLAYOUT = QStringLiteral("Save Window Layout");
-static const QString S_PRESETS = QStringLiteral("Preset %1");
-static const QString S_MAINWINDOWGEOM = QStringLiteral("Main Window Geometry");
-static const QString S_MAINWINDOWSTATE = QStringLiteral("Main Window State");
-static const QString S_SUBWINDOWLIST = QStringLiteral("Sub Window");
-static const QString S_SUBWINDOWNAME = QStringLiteral("SubWindow Name");
-static const QString S_SUBWINDOWGEOM = QStringLiteral("SubWindow Geometry");
-static const QString S_LISTEN_ALL = QStringLiteral("Listen All");
-static const QString S_THEME = QStringLiteral("Theme");
-static const QString S_TX_RATE_OVERRIDE = QStringLiteral("TX Rate Override");
-static const QString S_LOCALE = QStringLiteral("LOCALE");
-static const QString S_UNIVERSESLISTED = QStringLiteral("Universe List Count");
-static const QString S_PRIORITYPRESET = QStringLiteral("PriorityPreset %1");
-static const QString S_MULTICASTTTL = QStringLiteral("Multicast TTL");
-static const QString S_PATHWAYSECURE_RX = QStringLiteral("Enable Pathway Secure Rx");
-static const QString S_PATHWAYSECURE_RX_PASSWORD = QStringLiteral("Pathway Secure Rx Password");
-static const QString S_PATHWAYSECURE_TX_PASSWORD = QStringLiteral("Pathway Secure Tx Password");
-static const QString S_PATHWAYSECURE_RX_DATA_ONLY = QStringLiteral("Show Pathway Secure RX Data Only");
-static const QString S_PATHWAYSECURE_RX_SEQUENCE_TIME_WINDOW = QStringLiteral("Pathway Secure Data RX Sequence Time Window");
-static const QString S_PATHWAYSECURE_TX_SEQUENCE_TYPE = QStringLiteral("Pathway Secure Data TX Sequence Type");
-static const QString S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT = QStringLiteral("Pathway Secure Data TX Sequence Boot Count");
-static const QString S_PATHWAYSECURE_SEQUENCE_MAP = QStringLiteral("Pathway Secure Data Sequence Map");
-static const QString S_UPDATE_IGNORE = QStringLiteral("Ignore Update Version");
+static const QString S_LISTEN_ALL = QStringLiteral("ListenAllNics");
 
-// Floating window mode
+// Display/Theming
+static const QString S_DISPLAY_FORMAT = QStringLiteral("DisplayFormat");
+static const QString S_THEME = QStringLiteral("Theme");
 static const QString S_WINDOW_MODE = QStringLiteral("WindowMode");  // MDI or floating mode
-static const QString S_GROUP_FLOATING_WINDOW = QStringLiteral("FloatingWindows"); // Group for floating window geometries
+
+// Save/Restore windows
+static const QString S_SAVEWINDOWLAYOUT = QStringLiteral("AutosaveWindowLayout");
+static const QString S_RESTOREWINDOWLAYOUT = QStringLiteral("RestoreWindowLayout");
+
+static const QString S_GROUP_FLOATING_WINDOW = QStringLiteral("Floating");  // Group for floating window geometries
+static const QString S_GROUP_MDI_WINDOW = QStringLiteral("MDI");            // Group for MDI window geometries
+
+static const QString S_SUBWINDOWLIST = QStringLiteral("SubWindow");
+
+static const QString S_WINDOWNAME = QStringLiteral("Name");
+static const QString S_WINDOWGEOM = QStringLiteral("Geometry");
+static const QString S_WINDOWSTATE = QStringLiteral("State");
+static const QString S_WINDOWCONFIG = QStringLiteral("Configuration");
+
+// Receive
+static const QString S_RX_AUTOSTART = QStringLiteral("Rx/AutomaticStart");
+static const QString S_RX_UNIVERSESLIST_START = QStringLiteral("Rx/UniverseList/Start");
+static const QString S_RX_UNIVERSESLIST_COUNT = QStringLiteral("Rx/UniverseList/Count");
+
+static const QString S_RX_BLIND_VISUALIZER = QStringLiteral("Rx/ShowBlind");
+static const QString S_RX_FLICKERFINDERSHOWINFO = QStringLiteral("Rx/FlickerFinderInfo");
+static const QString S_RX_ETC_DD = QStringLiteral("Rx/EnableDD");
+static const QString S_RX_ETC_DDONLY = QStringLiteral("Rx/ShowDDNoLevelSource");
+static const QString S_RX_BAD_PRIORITY = QStringLiteral("Rx/MergeBadPriority");
+
+// Pathway Receive
+static const QString S_PATHWAYSECURE_RX = QStringLiteral("PathwaySecure/Rx/Enable");
+static const QString S_PATHWAYSECURE_RX_PASSWORD = QStringLiteral("PathwaySecure/Rx/Password");
+static const QString S_PATHWAYSECURE_RX_DATA_ONLY = QStringLiteral("PathwaySecure/Rx/SecureOnly");
+static const QString S_PATHWAYSECURE_RX_SEQUENCE_TIME_WINDOW = QStringLiteral("PathwaySecure/Rx/SequenceTimeWindow");
+
+// Transmit
+static const QString S_TX_DEFAULT_SOURCENAME = QStringLiteral("Tx/DefaultSourceName");
+static const QString S_TX_TIMEOUT = QStringLiteral("Tx/Timeout");
+
+static const QString S_TX_RATE_OVERRIDE = QStringLiteral("Tx/RateOverride");
+static const QString S_TX_BAD_PRIORITY = QStringLiteral("Tx/BadPriority");
+static const QString S_TX_PRESETS = QStringLiteral("Tx/Preset/%1");
+static const QString S_TX_PRIORITYPRESET = QStringLiteral("Tx/PriorityPreset/%1");
+static const QString S_TX_MULTICAST_TTL = QStringLiteral("Tx/MulticastTTL");
+
+// Pathway Transmit
+static const QString S_PATHWAYSECURE_TX_PASSWORD = QStringLiteral("PathwaySecure/Tx/Password");
+static const QString S_PATHWAYSECURE_TX_SEQUENCE_TYPE = QStringLiteral("PathwaySecure/Tx/SequenceType");
+static const QString S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT = QStringLiteral("PathwaySecure/Tx/SequenceBootCount");
+
+static const QString S_PATHWAYSECURE_SEQUENCE_MAP = QStringLiteral("PathwaySecure/SequenceMap");
 
 // The base color to generate pastel shades for sources
 static const QColor mixColor(QColorConstants::Svg::coral);
 
+static const QByteArray DefaultByteArrayDmx(MAX_DMX_ADDRESS, char(0));
+static QByteArray DefaultByteArrayPriority(int i)
+{
+  return QByteArray(MAX_DMX_ADDRESS, char(100 + i));
+}
+
+// Helper functions for simpler format
+static void SaveByteArray(QSettings& settings, const QString& key, const QByteArray& value)
+{
+  if (value.isEmpty())
+    settings.remove(key);
+  else
+    settings.setValue(key, value);
+}
+
 Preferences::Preferences()
 {
   for (QByteArray& preset : m_presets)
-    preset = QByteArray(MAX_DMX_ADDRESS, char(0));
+    preset = DefaultByteArrayDmx;
   for (size_t i = 0; i < m_priorityPresets.size(); ++i)
-    m_priorityPresets[i] = QByteArray(MAX_DMX_ADDRESS, char(100 + i));
+    m_priorityPresets[i] = DefaultByteArrayPriority(i);
+
+  // Allow the commandline to override the configuration file
+  const QStringList args = QCoreApplication::arguments();
+  // Find the last ini override
+  int pref_index = args.lastIndexOf(QStringLiteral("-ini"));
+  if (pref_index == -1)
+    pref_index = args.lastIndexOf(QStringLiteral("/ini"));
+
+  if (pref_index != -1 && pref_index < args.size() - 1)
+    m_settings_file = args[pref_index + 1];
+
   loadPreferences();
 }
 
@@ -281,14 +337,27 @@ QByteArray Preferences::GetPathwaySecureSequenceMap() const
 
 void Preferences::SetUpdateIgnore(const QString& version)
 {
-  QSettings settings;
+  QSettings settings = getSettings();
   settings.setValue(S_UPDATE_IGNORE, version);
 }
 
 QString Preferences::GetUpdateIgnore() const
 {
-  QSettings settings;
+  QSettings settings = getSettings();
   return settings.value(S_UPDATE_IGNORE, QString()).toString();
+}
+
+bool Preferences::GetAutoCheckUpdates() const
+{
+  return GetUpdateIgnore() != S_UPDATE_IGNORE_ALL;
+}
+
+void Preferences::SetAutoCheckUpdates(bool b)
+{
+  if (b)
+    SetUpdateIgnore(QString());
+  else
+    SetUpdateIgnore(S_UPDATE_IGNORE_ALL);
 }
 
 QString Preferences::GetFormattedValue(int nLevelInDecimal, bool decorated) const
@@ -321,57 +390,80 @@ QString Preferences::GetFormattedValue(int nLevelInDecimal, bool decorated) cons
 
 void Preferences::savePreferences() const
 {
-  QSettings settings;
+  QSettings settings = getSettings();
 
   if (m_interface.isValid())
   {
     settings.setValue(S_INTERFACE_ADDRESS, m_interface.hardwareAddress());
     settings.setValue(S_INTERFACE_NAME, m_interface.name());
   }
-  settings.setValue(S_DISPLAY_FORMAT, QVariant(static_cast<int>(m_nDisplayFormat)));
-  settings.setValue(S_BLIND_VISUALIZER, QVariant(m_bBlindVisualizer));
-  settings.setValue(S_ETC_DDONLY, QVariant(m_bETCDisplayDDOnly));
-  settings.setValue(S_ETC_DD, QVariant(m_bETCDD));
-  settings.setValue(S_DEFAULT_SOURCENAME, m_sDefaultTransmitName);
-  settings.setValue(S_TIMEOUT, QVariant(m_nNumSecondsOfSacn));
-  settings.setValue(S_FLICKERFINDERSHOWINFO, QVariant(m_flickerFinderShowInfo));
-  settings.setValue(S_SAVEWINDOWLAYOUT, m_saveWindowLayout);
-  settings.setValue(S_WINDOW_MODE, static_cast<int>(m_windowMode));
   settings.setValue(S_LISTEN_ALL, m_interfaceListenAll);
+
+  settings.setValue(S_LOCALE, m_locale.bcp47Name());
   settings.setValue(S_THEME, m_theme);
+  settings.setValue(S_DISPLAY_FORMAT, QVariant(static_cast<int>(m_nDisplayFormat)));
+
+  settings.setValue(S_RX_AUTOSTART, m_autoStartRx);
+  settings.setValue(S_RX_UNIVERSESLIST_START, m_universesListStart);
+  settings.setValue(S_RX_UNIVERSESLIST_COUNT, m_universesListCount);
+
+  settings.setValue(S_RX_BLIND_VISUALIZER, QVariant(m_bBlindVisualizer));
+  settings.setValue(S_RX_ETC_DD, QVariant(m_bETCDD));
+  settings.setValue(S_RX_ETC_DDONLY, QVariant(m_bETCDisplayDDOnly));
+  settings.setValue(S_RX_FLICKERFINDERSHOWINFO, QVariant(m_flickerFinderShowInfo));
+  
+  settings.setValue(S_RX_BAD_PRIORITY, m_rxbadpriority);
+
+  settings.setValue(S_TX_DEFAULT_SOURCENAME, m_sDefaultTransmitName);
+  settings.setValue(S_TX_TIMEOUT, QVariant(m_nNumSecondsOfSacn));
   settings.setValue(S_TX_RATE_OVERRIDE, m_txrateoverride);
-  settings.setValue(S_LOCALE, m_locale);
-  settings.setValue(S_UNIVERSESLISTED, m_universesListed);
+  settings.setValue(S_TX_BAD_PRIORITY, m_txbadpriority);
+
+  settings.setValue(S_SAVEWINDOWLAYOUT, m_autosaveWindowLayout);
+  settings.setValue(S_RESTOREWINDOWLAYOUT, m_restoreWindowLayout);
 
   saveWindowGeometrySettings();
 
   for (int i = 0; i < PRESET_COUNT; i++)
   {
-    settings.setValue(S_PRESETS.arg(i), QVariant(m_presets[i]));
+    // Only store if not default
+    const QString preset_name = S_TX_PRESETS.arg(i);
+    if (settings.contains(preset_name) || m_presets[i] != DefaultByteArrayDmx)
+      settings.setValue(preset_name, m_presets[i]);
   }
 
   for (int i = 0; i < PRIORITYPRESET_COUNT; i++)
   {
-    settings.setValue(S_PRIORITYPRESET.arg(i), QVariant(m_priorityPresets[i]));
+    // Only store if not default
+    const QString preset_name = S_TX_PRIORITYPRESET.arg(i);
+    if (settings.contains(preset_name) || m_priorityPresets[i] != DefaultByteArrayPriority(i))
+      settings.setValue(preset_name, m_priorityPresets[i]);
   }
 
-  settings.setValue(S_MULTICASTTTL, m_multicastTtl);
+  settings.setValue(S_TX_MULTICAST_TTL, m_multicastTtl);
 
   settings.setValue(S_PATHWAYSECURE_RX, m_pathwaySecureRx);
-  settings.setValue(S_PATHWAYSECURE_RX_PASSWORD, m_pathwaySecureRxPassword);
-  settings.setValue(S_PATHWAYSECURE_TX_PASSWORD, m_pathwaySecureTxPassword);
   settings.setValue(S_PATHWAYSECURE_RX_DATA_ONLY, m_pathwaySecureRxDataOnly);
+  settings.setValue(S_PATHWAYSECURE_RX_PASSWORD, m_pathwaySecureRxPassword);
+  settings.setValue(S_PATHWAYSECURE_RX_SEQUENCE_TIME_WINDOW, m_pathwaySecureRxSequenceTimeWindow);
+  settings.setValue(S_PATHWAYSECURE_TX_PASSWORD, m_pathwaySecureTxPassword);
   settings.setValue(S_PATHWAYSECURE_TX_SEQUENCE_TYPE, m_pathwaySecureTxSequenceType);
   settings.setValue(S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT, m_pathwaySecureTxSequenceBootCount);
-  settings.setValue(S_PATHWAYSECURE_RX_SEQUENCE_TIME_WINDOW, m_pathwaySecureRxSequenceTimeWindow);
-  settings.setValue(S_PATHWAYSECURE_SEQUENCE_MAP, m_pathwaySecureSequenceMap);
+  SaveByteArray(settings, S_PATHWAYSECURE_SEQUENCE_MAP, m_pathwaySecureSequenceMap);
 
   settings.sync();
 }
 
+QSettings Preferences::getSettings() const
+{
+  if (m_settings_file.isEmpty())
+    return QSettings();
+  return QSettings(m_settings_file, QSettings::IniFormat);
+}
+
 void Preferences::loadPreferences()
 {
-  QSettings settings;
+  QSettings settings = getSettings();
 
   if (settings.contains(S_INTERFACE_ADDRESS))
   {
@@ -391,19 +483,30 @@ void Preferences::loadPreferences()
 
   m_interfaceListenAll = settings.value(S_LISTEN_ALL, m_interfaceListenAll).toBool();
   m_nDisplayFormat = static_cast<DisplayFormat>(settings.value(S_DISPLAY_FORMAT, static_cast<int>(m_nDisplayFormat)).toInt());
-  m_bBlindVisualizer = settings.value(S_BLIND_VISUALIZER, m_bBlindVisualizer).toBool();
-  m_bETCDisplayDDOnly = settings.value(S_ETC_DDONLY, m_bETCDisplayDDOnly).toBool();
-  m_bETCDD = settings.value(S_ETC_DD, m_bETCDD).toBool();
-  m_sDefaultTransmitName = settings.value(S_DEFAULT_SOURCENAME, m_sDefaultTransmitName).toString();
-  m_nNumSecondsOfSacn = settings.value(S_TIMEOUT, m_nNumSecondsOfSacn).toInt();
-  m_flickerFinderShowInfo = settings.value(S_FLICKERFINDERSHOWINFO, m_flickerFinderShowInfo).toBool();
+  m_bBlindVisualizer = settings.value(S_RX_BLIND_VISUALIZER, m_bBlindVisualizer).toBool();
+  m_bETCDisplayDDOnly = settings.value(S_RX_ETC_DDONLY, m_bETCDisplayDDOnly).toBool();
+  m_bETCDD = settings.value(S_RX_ETC_DD, m_bETCDD).toBool();
+  m_sDefaultTransmitName = settings.value(S_TX_DEFAULT_SOURCENAME, m_sDefaultTransmitName).toString();
+  m_nNumSecondsOfSacn = settings.value(S_TX_TIMEOUT, m_nNumSecondsOfSacn).toInt();
+  m_flickerFinderShowInfo = settings.value(S_RX_FLICKERFINDERSHOWINFO, m_flickerFinderShowInfo).toBool();
   m_windowMode = static_cast<WindowMode>(settings.value(S_WINDOW_MODE, static_cast<int>(m_windowMode)).toInt());
-  m_saveWindowLayout = settings.value(S_SAVEWINDOWLAYOUT, m_saveWindowLayout).toBool();
+  m_autosaveWindowLayout = settings.value(S_SAVEWINDOWLAYOUT, m_autosaveWindowLayout).toBool();
+  m_restoreWindowLayout = settings.value(S_RESTOREWINDOWLAYOUT, m_restoreWindowLayout).toBool();
+  m_autoStartRx = settings.value(S_RX_AUTOSTART, m_autoStartRx).toBool();
   m_theme = static_cast<Themes::theme_e>(settings.value(S_THEME, static_cast<int>(m_theme)).toInt());
   m_txrateoverride = settings.value(S_TX_RATE_OVERRIDE, m_txrateoverride).toBool();
-  m_locale = settings.value(S_LOCALE, m_locale).toLocale();
-  m_universesListed = settings.value(S_UNIVERSESLISTED, m_universesListed).toUInt();
-  m_multicastTtl = settings.value(S_MULTICASTTTL, m_multicastTtl).toUInt();
+  m_txbadpriority = settings.value(S_TX_BAD_PRIORITY, m_txbadpriority).toBool();
+  m_rxbadpriority = settings.value(S_RX_BAD_PRIORITY, m_rxbadpriority).toBool();
+  {
+    QVariant v = settings.value(S_LOCALE, m_locale);
+    if (v.type() == QMetaType::QLocale)
+      m_locale = v.toLocale();
+    else
+      m_locale = QLocale(v.toString());
+  }
+  m_universesListStart = settings.value(S_RX_UNIVERSESLIST_START, m_universesListStart).toUInt();
+  m_universesListCount = settings.value(S_RX_UNIVERSESLIST_COUNT, m_universesListCount).toUInt();
+  m_multicastTtl = settings.value(S_TX_MULTICAST_TTL, m_multicastTtl).toUInt();
   m_pathwaySecureRx = settings.value(S_PATHWAYSECURE_RX, m_pathwaySecureRx).toBool();
   m_pathwaySecureRxPassword = settings.value(S_PATHWAYSECURE_RX_PASSWORD, m_pathwaySecureRxPassword).toString();
   m_pathwaySecureTxPassword = settings.value(S_PATHWAYSECURE_TX_PASSWORD, m_pathwaySecureTxPassword).toString();
@@ -415,34 +518,39 @@ void Preferences::loadPreferences()
 
   loadWindowGeometrySettings();
 
-  for (int i = 0; i < PRESET_COUNT; i++) {
-    if (settings.contains(S_PRESETS.arg(i))) {
+  for (int i = 0; i < PRESET_COUNT; i++)
+  {
+    const QString key = S_TX_PRESETS.arg(i);
+    if (settings.contains(key))
+    {
       // Never change the size
-      m_presets[i].replace(0, MAX_DMX_ADDRESS, settings.value(S_PRESETS.arg(i)).toByteArray());
+      m_presets[i].replace(0, MAX_DMX_ADDRESS, settings.value(key).toByteArray());
     }
   }
 
-  for (int i = 0; i < PRIORITYPRESET_COUNT; i++) {
-    if (settings.contains(S_PRIORITYPRESET.arg(i))) {
+  for (int i = 0; i < PRIORITYPRESET_COUNT; i++)
+  {
+    const QString key = S_TX_PRIORITYPRESET.arg(i);
+    if (settings.contains(key))
+    {
       // Never change the size
-      m_priorityPresets[i].replace(0, MAX_DMX_ADDRESS, settings.value(S_PRIORITYPRESET.arg(i)).toByteArray());
+      m_priorityPresets[i].replace(0, MAX_DMX_ADDRESS, settings.value(key).toByteArray());
     }
   }
 }
 
 void Preferences::loadWindowGeometrySettings()
 {
-  QSettings settings;
+  QSettings settings = getSettings();
   switch (m_windowMode)
   {
   default: break;
-  case WindowMode::Floating:
-    settings.beginGroup(S_GROUP_FLOATING_WINDOW);
-    break;
+  case WindowMode::MDI: settings.beginGroup(S_GROUP_MDI_WINDOW); break;
+  case WindowMode::Floating: settings.beginGroup(S_GROUP_FLOATING_WINDOW); break;
   }
 
-  m_mainWindowGeometry.first = settings.value(S_MAINWINDOWGEOM, m_mainWindowGeometry.first).toByteArray();
-  m_mainWindowGeometry.second = settings.value(S_MAINWINDOWSTATE, m_mainWindowGeometry.second).toByteArray();
+  m_mainWindowGeometry.first = settings.value(S_WINDOWGEOM, m_mainWindowGeometry.first).toByteArray();
+  m_mainWindowGeometry.second = settings.value(S_WINDOWSTATE, m_mainWindowGeometry.second).toByteArray();
 
   m_windowInfo.clear();
   int size = settings.beginReadArray(S_SUBWINDOWLIST);
@@ -450,8 +558,9 @@ void Preferences::loadWindowGeometrySettings()
   {
     SubWindowInfo value;
     settings.setArrayIndex(i);
-    value.name = settings.value(S_SUBWINDOWNAME).toString();
-    value.geometry = settings.value(S_SUBWINDOWGEOM).toByteArray();
+    value.name = settings.value(S_WINDOWNAME).toString();
+    value.geometry = settings.value(S_WINDOWGEOM).toByteArray();
+    value.config = settings.value(S_WINDOWCONFIG).toJsonObject();
     m_windowInfo << value;
   }
   settings.endArray();
@@ -459,24 +568,31 @@ void Preferences::loadWindowGeometrySettings()
 
 void Preferences::saveWindowGeometrySettings() const
 {
-  QSettings settings;
+  QSettings settings = getSettings();
+
+  settings.setValue(S_WINDOW_MODE, static_cast<int>(m_windowMode));
+
   switch (m_windowMode)
   {
   default: break;
-  case WindowMode::Floating:
-    settings.beginGroup(S_GROUP_FLOATING_WINDOW);
-    break;
+  case WindowMode::MDI: settings.beginGroup(S_GROUP_MDI_WINDOW); break;
+  case WindowMode::Floating: settings.beginGroup(S_GROUP_FLOATING_WINDOW); break;
   }
 
-  settings.setValue(S_MAINWINDOWGEOM, m_mainWindowGeometry.first);
-  settings.setValue(S_MAINWINDOWSTATE, m_mainWindowGeometry.second);
+  SaveByteArray(settings, S_WINDOWGEOM, m_mainWindowGeometry.first);
+  SaveByteArray(settings, S_WINDOWSTATE, m_mainWindowGeometry.second);
 
   settings.beginWriteArray(S_SUBWINDOWLIST);
   for (int i = 0; i < m_windowInfo.count(); i++)
   {
     settings.setArrayIndex(i);
-    settings.setValue(S_SUBWINDOWNAME, m_windowInfo[i].name);
-    settings.setValue(S_SUBWINDOWGEOM, m_windowInfo[i].geometry);
+    const SubWindowInfo& info = m_windowInfo[i];
+    settings.setValue(S_WINDOWNAME, info.name);
+    SaveByteArray(settings, S_WINDOWGEOM, info.geometry);
+    if (info.config.isEmpty())
+      settings.remove(S_WINDOWCONFIG);
+    else
+      settings.setValue(S_WINDOWCONFIG, info.config);
   }
   settings.endArray();
 }

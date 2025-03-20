@@ -66,10 +66,16 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
     ui->tableView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
     // Don't need to display the Universe column
     ui->tableView->setColumnHidden(SACNSourceTableModel::COL_UNIVERSE, true);
-    // Don't show the time summary column
-    ui->tableView->setColumnHidden(SACNSourceTableModel::COL_TIME_SUMMARY, true);
+    // Don't show the timing detail columns
+    for (int col : SACNSourceTableModel::TimingDetailColumns)
+        ui->tableView->setColumnHidden(col, true);
     // Maybe don't show the Secure column
     ui->tableView->setColumnHidden(SACNSourceTableModel::COL_PATHWAY_SECURE, !Preferences::Instance().GetPathwaySecureRx());
+    // Don'display the Notes column
+    ui->tableView->setColumnHidden(SACNSourceTableModel::COL_NOTES, true);
+
+    // Allow the user to temporarily rearrange the columns
+    ui->tableView->horizontalHeader()->setSectionsMovable(true);
 
     // Not running
     updateButtons(false);
@@ -120,6 +126,22 @@ void UniverseView::refreshTitle()
         setWindowTitle(tr("Comparing Universe %1 to %2").arg(universe).arg(compareToUniverse));
     else
         setWindowTitle(tr("Universe %1 View").arg(universe));
+}
+
+QJsonObject UniverseView::getJsonConfiguration() const
+{
+  QJsonObject result;
+  result[QLatin1String("universe")] = ui->sbUniverse->value();
+  result[QLatin1String("priorities")] = ui->universeDisplay->showChannelPriority();
+  result[QLatin1String("compare_universe")] = ui->sbCompareUniverse->value();
+  return result;
+}
+
+void UniverseView::setJsonConfiguration(const QJsonObject& json)
+{
+  ui->sbUniverse->setValue(json[QLatin1String("universe")].toInt(ui->sbUniverse->value()));
+  ui->universeDisplay->setShowChannelPriority(json[QLatin1String("priorities")].toBool());
+  ui->sbCompareUniverse->setValue(json[QLatin1String("compare_universe")].toInt(ui->sbCompareUniverse->value()));
 }
 
 void UniverseView::on_btnGo_clicked()

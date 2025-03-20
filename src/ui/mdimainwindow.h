@@ -40,19 +40,19 @@ public:
   explicit MDIMainWindow(QWidget* parent = 0);
   ~MDIMainWindow();
 
-  /// Start all receiver views
-  Q_SIGNAL void startReceiverViews();
-  /// Stop all receiver views
-  Q_SIGNAL void stopReceiverViews();
-
 protected:
   void showEvent(QShowEvent* ev) override;
   void closeEvent(QCloseEvent* ev) override;
 
 public:
   QWidget* showWidgetAsSubWindow(QWidget* w);
-  void saveSubWindows();
-  void restoreSubWindows();
+  Q_SLOT void saveSubWindows() const;
+  Q_SLOT void restoreSubWindows();
+
+  /// Start all receiver views
+  Q_SLOT void startReceiverViews();
+  /// Stop all receiver views
+  Q_SLOT void stopReceiverViews();
 
 protected slots:
   void on_actionScopeView_triggered(bool checked);
@@ -75,9 +75,7 @@ private slots:
 
   void on_actionPCAPPlayback_triggered();
 
-  void on_pbFewer_clicked();
-
-  void on_pbMore_clicked();
+  void on_sbUniversesCount_editingFinished();
 
   void subWindowRemoved();
 
@@ -100,7 +98,7 @@ private:
   // Dialogs
   PreferencesDialog* m_prefDialog = nullptr;
 
-  int getSelectedUniverse();
+  int getSelectedUniverse() const;
   QWidget* addMdiWidget(QWidget* w);
   QWidget* addFloatWidget(QWidget* w);
 

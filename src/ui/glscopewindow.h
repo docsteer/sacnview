@@ -19,6 +19,7 @@
 #include <QWidget>
 #include <QColorDialog>
 #include <QStyledItemDelegate>
+#include <QJsonObject>
 
 class GlScopeWidget;
 class SteppedSpinBox;
@@ -38,14 +39,25 @@ public:
   explicit GlScopeWindow(int universe, QWidget* parent = nullptr);
   ~GlScopeWindow();
 
+  // Trigger API
+  Q_SLOT void startRx();
+  Q_SLOT void stopRx();
+
+  Q_INVOKABLE QJsonObject getJsonConfiguration() const;
+  Q_INVOKABLE void setJsonConfiguration(const QJsonObject& json);
+
 private:
   Q_SLOT void onRunningChanged(bool running);
   Q_SLOT void onTimeSliderMoved(int value);
   Q_SLOT void onTimeDivisionsChanged(int value);
   Q_SLOT void setTimeFormat(int value);
+  Q_SLOT void setStorageTime(int minutes);
+  Q_SLOT void onStorageTimeChanged(qreal seconds);
 
   Q_SLOT void setRecordMode(int idx);
+  Q_SLOT void setTraceStyle(int idx);
   Q_SLOT void setVerticalScaleMode(int idx);
+  Q_SLOT void onVerticalScaleChanged(int value);
   Q_SLOT void setTriggerType(int idx);
 
   Q_SLOT void addTrace(bool);
@@ -56,6 +68,7 @@ private:
   Q_SLOT void loadTraces(bool);
 
   Q_SLOT void onTriggered();
+  Q_SLOT void onChkSyncViewsToggled(bool checked);
 
   // Signals to start/stop other open rx views
   Q_SIGNAL void startOtherViews();
@@ -66,7 +79,10 @@ private:
   GlScopeWidget* m_scope = nullptr;
   QScrollBar* m_scrollTime = nullptr;
   QComboBox* m_recordMode = nullptr;
+  QComboBox* m_traceStyle = nullptr;
   QSpinBox* m_spinRunTime = nullptr;
+  SteppedSpinBox* m_spinStorageTime = nullptr;
+  SteppedSpinBox* m_spinVertScale = nullptr;
   SteppedSpinBox* m_spinTimeScale = nullptr;
   QComboBox* m_timeFormat = nullptr;
   QComboBox* m_triggerType = nullptr;
@@ -88,6 +104,7 @@ private:
 
   void updateTimeScrollBars();
   void updateConfiguration();
+  void refreshButtons();
 };
 
 class ColorDialog : public QColorDialog

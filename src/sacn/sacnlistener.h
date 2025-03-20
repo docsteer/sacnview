@@ -63,7 +63,7 @@ public:
     * @param universe number
     * @param mergedLevels array of merged levels
     */
-    virtual void sACNListenerDmxReceived(tock packet_tock, int universe, const std::array<int, MAX_DMX_ADDRESS> &mergedLevels) = 0;
+    virtual void sACNListenerDmxReceived(tock packet_tock, int universe, const sACNMergedSourceList& mergedLevels, const sACNSource* source) = 0;
   };
 
 public:

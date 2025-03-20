@@ -25,13 +25,19 @@
 #include <QNetworkInterface>
 #include <QColor>
 #include <QLocale>
+#include <QJsonObject>
 
 #include <array>
+
+QT_BEGIN_NAMESPACE
+class QSettings;
+QT_END_NAMESPACE
 
 struct SubWindowInfo
 {
   QString name;
-  QByteArray geometry;
+  QByteArray geometry; // Subwindow geoemtry to load
+  QJsonObject config; // A configuration to load
 };
 
 class Preferences
@@ -108,8 +114,14 @@ public:
   void SetPreset(const QByteArray& data, int index);
   const QByteArray& GetPreset(int index) const;
 
-  void SetSaveWindowLayout(bool value) { m_saveWindowLayout = value; }
-  bool GetSaveWindowLayout() const { return m_saveWindowLayout; }
+  void SetAutoSaveWindowLayout(bool value) { m_autosaveWindowLayout = value; }
+  bool GetAutoSaveWindowLayout() const { return m_autosaveWindowLayout; }
+
+  void SetRestoreWindowLayout(bool value) { m_restoreWindowLayout = value; }
+  bool GetRestoreWindowLayout() const { return m_restoreWindowLayout; }
+
+  void SetAutoStartRX(bool value) { m_autoStartRx = value; }
+  bool GetAutoStartRX() const { return m_autoStartRx; }
 
   void SetWindowMode(WindowMode mode);
   WindowMode GetWindowMode() const { return m_windowMode; }
@@ -127,14 +139,27 @@ public:
   void SetTheme(Themes::theme_e theme) { m_theme = theme; }
   Themes::theme_e GetTheme() const { return m_theme; }
 
+  // Permit illegal TX rate
   void SetTXRateOverride(bool override) { m_txrateoverride = override; }
   bool GetTXRateOverride() const { return m_txrateoverride; }
+
+  // Permit illegal TX priority
+  void SetTXBadPriority(bool b) { m_txbadpriority = b; }
+  bool GetTXBadPriority() const { return m_txbadpriority; }
+  static int GetTxMaxUiPriority() { return Instance().m_txbadpriority ? MAX_SACN_BAD_PRIORITY : MAX_SACN_PRIORITY; }
+
+  // Permit reception of illegal Priority
+  void SetMergeIllegalPriorities(bool b) { m_rxbadpriority = b; }
+  bool GetMergeIllegalPriorities() const { return m_rxbadpriority; }
 
   void SetLocale(const QLocale& locale) { m_locale = locale; }
   const QLocale& GetLocale() const { return m_locale; }
 
-  void SetUniversesListed(quint8 count) { m_universesListed = (std::max)(count, (quint8)1); }
-  quint8 GetUniversesListed() const { return m_universesListed; }
+  void SetUniversesListStart(int start) { m_universesListStart = std::clamp(static_cast<uint16_t>(start), MIN_SACN_UNIVERSE, MAX_SACN_UNIVERSE); }
+  int GetUniversesListStart() const { return m_universesListStart; }
+
+  void SetUniversesListCount(int count) { m_universesListCount = std::clamp(count, MIN_UNIVERSES_LIST_COUNT, MAX_UNIVERSES_LIST_COUNT); }
+  int GetUniversesListCount() const { return m_universesListCount; }
 
   void SetPriorityPreset(const QByteArray& data, int index);
   const QByteArray& GetPriorityPreset(int index) const;
@@ -168,6 +193,8 @@ public:
 
   void SetUpdateIgnore(const QString& version);
   QString GetUpdateIgnore() const;
+  bool GetAutoCheckUpdates() const;
+  void SetAutoCheckUpdates(bool b);
 
   bool GetRestartPending() const { return m_restartPending; }
   void SetRestartPending() { m_restartPending = true; }
@@ -177,6 +204,8 @@ public:
   void savePreferences() const;
 
 private:
+  QString m_settings_file; // Overridden settings filepath
+
   QNetworkInterface m_interface;
   mutable QHash<CID, QColor> m_cidToColor;
 
@@ -196,7 +225,8 @@ private:
   Themes::theme_e m_theme = Themes::LIGHT;
 
   QLocale m_locale;
-  quint8 m_universesListed = 20;
+  int m_universesListStart = MIN_SACN_UNIVERSE;
+  int m_universesListCount = 20;
 
   quint8 m_multicastTtl = 1;
 
@@ -214,14 +244,19 @@ private:
   bool m_bETCDisplayDDOnly = true;
   bool m_bETCDD = true;
   bool m_txrateoverride = false;
+  bool m_txbadpriority = false;
+  bool m_rxbadpriority = false;
 
   bool m_pathwaySecureRx = true;
   bool m_pathwaySecureRxDataOnly = false;
 
-  bool m_saveWindowLayout = false;
+  bool m_autosaveWindowLayout = false;
+  bool m_restoreWindowLayout = false;
+  bool m_autoStartRx = false;
 
   bool m_restartPending = false;
 
+  QSettings getSettings() const;
   void loadPreferences();
   void loadWindowGeometrySettings();
   void saveWindowGeometrySettings() const;

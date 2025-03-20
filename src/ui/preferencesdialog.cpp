@@ -39,6 +39,8 @@ PreferencesDialog::PreferencesDialog(QWidget* parent) :
   ui->cmbPathwayTxSequenceType->addItem(tr("Volatile"));
   ui->cmbPathwayTxSequenceType->addItem(tr("Non-Volatile"));
   ui->cmbPathwayTxSequenceType->setCurrentIndex(0); // Default Time
+
+  connect(ui->btnSaveWindows, &QAbstractButton::clicked, this, &PreferencesDialog::storeWindowLayoutNow);
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -96,7 +98,16 @@ void PreferencesDialog::showEvent(QShowEvent* e)
   ui->sbPathwaySecureRxSequenceTimeWindow->setValue(Preferences::Instance().GetPathwaySecureRxSequenceTimeWindow());
   ui->cmbPathwayTxSequenceType->setCurrentIndex(Preferences::Instance().GetPathwaySecureTxSequenceType());
 
-  ui->cbRestoreWindows->setChecked(Preferences::Instance().GetSaveWindowLayout());
+  ui->cbRestoreWindows->setChecked(Preferences::Instance().GetRestoreWindowLayout());
+  ui->cbAutoRx->setChecked(Preferences::Instance().GetAutoStartRX());
+  // Can't automatically start receiving unless restoring the windows
+  ui->cbAutoRx->setEnabled(Preferences::Instance().GetRestoreWindowLayout());
+  connect(ui->cbRestoreWindows, &QCheckBox::toggled, ui->cbAutoRx, &QCheckBox::setEnabled);
+
+  ui->cbSaveWindowsOnExit->setChecked(Preferences::Instance().GetAutoSaveWindowLayout());
+  // Can't manually save layout if autosaving as will get wiped
+  ui->btnSaveWindows->setDisabled(Preferences::Instance().GetAutoSaveWindowLayout());
+  connect(ui->cbSaveWindowsOnExit, &QCheckBox::toggled, ui->btnSaveWindows, &QPushButton::setDisabled);
 
   ui->cbFloatingWindows->setChecked(Preferences::Instance().GetWindowMode() == WindowMode::Floating);
 
@@ -119,6 +130,7 @@ void PreferencesDialog::showEvent(QShowEvent* e)
   }
 
   ui->cbTxRateOverride->setChecked(Preferences::Instance().GetTXRateOverride());
+  ui->cbTxBadPriority->setChecked(Preferences::Instance().GetTXBadPriority());
 
   ui->cmbTheme->clear();
   ui->cmbTheme->addItems(Themes::getDescriptions());
@@ -143,6 +155,8 @@ void PreferencesDialog::on_buttonBox_accepted()
 
   // Display Blind
   p.SetBlindVisualizer(ui->cbDisplayBlind->isChecked());
+
+  p.SetMergeIllegalPriorities(ui->cbRxIllegalPriorities->isChecked());
 
   // Enable ETC DD?
   p.SetETCDD(ui->gbETCDD->isChecked());
@@ -181,7 +195,11 @@ void PreferencesDialog::on_buttonBox_accepted()
     p.SetWindowMode(WindowMode::MDI);
 
   // Save layout
-  p.SetSaveWindowLayout(ui->cbRestoreWindows->isChecked());
+  p.SetRestoreWindowLayout(ui->cbRestoreWindows->isChecked());
+  p.SetAutoSaveWindowLayout(ui->cbSaveWindowsOnExit->isChecked());
+
+  // Receive autostart
+  Preferences::Instance().SetAutoStartRX(ui->cbAutoRx->isChecked());
 
   // Transmit timeout
   int seconds = ui->NumOfHoursOfSacn->value() * 60 * 60 + ui->NumOfMinOfSacn->value() * 60 + ui->NumOfSecOfSacn->value();
@@ -195,6 +213,10 @@ void PreferencesDialog::on_buttonBox_accepted()
   if (ui->cbTxRateOverride->isChecked() != p.GetTXRateOverride())
     requiresRestart = true;
   p.SetTXRateOverride(ui->cbTxRateOverride->isChecked());
+
+  if (ui->cbTxBadPriority->isChecked() != p.GetTXBadPriority())
+    requiresRestart = true;
+  p.SetTXBadPriority(ui->cbTxBadPriority->isChecked());
 
   // Interfaces
   {

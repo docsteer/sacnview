@@ -27,6 +27,7 @@
 
 class sACNSentUniverse;
 class sACNEffectEngine;
+class ConfigurePerChanPrioDlg;
 
 namespace Ui {
 class transmitwindow;
@@ -46,7 +47,7 @@ protected slots:
     void on_btnStart_pressed();
     void on_sbUniverse_valueChanged(int value);
     void on_sliderMoved(int value);
-    void on_btnEditPerChan_pressed();
+    void on_btnEditPerChan_clicked();
     void on_cbPriorityMode_currentIndexChanged(int index);
     void on_sbFadersStart_valueChanged(int address);
     void on_btnCcPrev_pressed();
@@ -83,6 +84,8 @@ private slots:
     void on_sbMinFPS_editingFinished();
     void on_sbMaxFPS_editingFinished();
 
+    void onConfigurePerChanPrioDlgFinished(int result);
+
 private:
     enum TABS
     {
@@ -95,17 +98,19 @@ private:
     void setUniverseOptsEnabled(bool enabled);
     void updateTitle();
     void setLevel(int address, int value);
-    Ui::transmitwindow *ui;
+    void updatePerChanPriorityButton();
+    Ui::transmitwindow *ui = nullptr;
+    ConfigurePerChanPrioDlg *m_perChannelDialog = nullptr;
     QList<QSlider *> m_sliders;
     QList<QToolButton *> m_presetButtons;
     sACNManager::tSender m_sender;
-    quint16 m_slotCount;
-    std::array<quint8, MAX_DMX_ADDRESS> m_perAddressPriorities;
-    std::array<quint8, MAX_DMX_ADDRESS> m_levels;
-    QTimer *m_blinkTimer;
-    bool m_blink;
-    sACNEffectEngine *m_fxEngine;
-    bool m_recordMode;
+    quint16 m_slotCount = 0;
+    std::array<quint8, MAX_DMX_ADDRESS> m_perAddressPriorities = {};
+    std::array<quint8, MAX_DMX_ADDRESS> m_levels = {};
+    QTimer* m_blinkTimer = nullptr;
+    bool m_blink = false;
+    sACNEffectEngine *m_fxEngine = nullptr;
+    bool m_recordMode = false;
 };
 
 #endif // TRANSMITWINDOW_H

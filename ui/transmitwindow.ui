@@ -362,7 +362,7 @@ border-radius: 4px;
               <item>
                <widget class="QPushButton" name="btnEditPerChan">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -375,7 +375,7 @@ border-radius: 4px;
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>50</width>
+                  <width>75</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -386,7 +386,7 @@ border-radius: 4px;
                  <string>Set up per-channel priorities</string>
                 </property>
                 <property name="text">
-                 <string>...</string>
+                 <string notr="true">000-000...</string>
                 </property>
                </widget>
               </item>
@@ -695,6 +695,7 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
+                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -724,6 +725,7 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
+                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -753,6 +755,7 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
+                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -786,6 +789,7 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
+                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -815,6 +819,7 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
+                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -844,6 +849,7 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
+                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -873,6 +879,7 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
+                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -902,6 +909,7 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
+                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -931,6 +939,7 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
+                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -960,6 +969,7 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
+                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -989,6 +999,7 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
+                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -1018,6 +1029,7 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
+                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -1047,6 +1059,7 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
+                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -1076,6 +1089,7 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
+                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -1105,6 +1119,7 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
+                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -1140,6 +1155,7 @@ border-radius: 4px;
                     <font>
                      <family>Arial</family>
                      <pointsize>11</pointsize>
+                     <weight>75</weight>
                      <bold>true</bold>
                     </font>
                    </property>
@@ -1169,6 +1185,7 @@ border-radius: 4px;
                     <font>
                      <family>Arial</family>
                      <pointsize>11</pointsize>
+                     <weight>75</weight>
                      <bold>true</bold>
                     </font>
                    </property>
@@ -1198,6 +1215,7 @@ border-radius: 4px;
                     <font>
                      <family>Arial</family>
                      <pointsize>11</pointsize>
+                     <weight>75</weight>
                      <bold>true</bold>
                     </font>
                    </property>
@@ -1227,6 +1245,7 @@ border-radius: 4px;
                     <font>
                      <family>Arial</family>
                      <pointsize>11</pointsize>
+                     <weight>75</weight>
                      <bold>true</bold>
                     </font>
                    </property>
@@ -1446,8 +1465,8 @@ color: rgb(255, 85, 0);</string>
             </property>
             <property name="minimumSize">
              <size>
-              <width>106</width>
-              <height>86</height>
+              <width>102</width>
+              <height>82</height>
              </size>
             </property>
             <property name="focusPolicy">
@@ -1498,8 +1517,8 @@ color: rgb(255, 85, 0);</string>
            <widget class="QSpinBox" name="sbFadeRangeEnd">
             <property name="minimumSize">
              <size>
-              <width>106</width>
-              <height>86</height>
+              <width>102</width>
+              <height>82</height>
              </size>
             </property>
             <property name="focusPolicy">
