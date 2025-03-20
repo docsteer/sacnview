@@ -338,7 +338,6 @@ void UniverseView::on_btnPause_clicked()
 
     m_bindWarningShown = false;
 
-
     setWindowTitle(tr("Universe View"));
 }
 
