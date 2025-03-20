@@ -34,14 +34,13 @@ sACNRxSocket::sBindStatus sACNRxSocket::bind(quint16 universe)
 {
   sACNRxSocket::sBindStatus status;
   m_universe = universe;
-  bool ok = false;
 
   CIPAddr multicastAddr;
   GetUniverseAddress(universe, multicastAddr);
   m_multicastAddr = QHostAddress(multicastAddr.GetV4Address());
 
   QHostAddress listenAddr = QHostAddress::AnyIPv4;
-  ok = QUdpSocket::bind(listenAddr,
+  bool ok = QUdpSocket::bind(listenAddr,
     STREAM_IP_PORT,
     QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
 
@@ -57,17 +56,17 @@ sACNRxSocket::sBindStatus sACNRxSocket::bind(quint16 universe)
 #endif
 #endif
     setMulticastInterface(m_interface);
-    ok |= joinMulticastGroup(m_multicastAddr, m_interface);
+    ok &= joinMulticastGroup(m_multicastAddr, m_interface);
     status.multicast = ok ? BIND_OK : BIND_FAILED;
   }
 
   if (ok) {
-    qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Bound to interface:" << multicastInterface().name();
-    qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Joining Multicast Group:" << QHostAddress(multicastAddr.GetV4Address()).toString();
+    qDebug() << "sACNRxSocket" << m_universe << QThread::currentThreadId() << ": Bound to interface:" << multicastInterface().name();
+    qDebug() << "sACNRxSocket" << m_universe << QThread::currentThreadId() << ": Joined Multicast Group:" << QHostAddress(multicastAddr.GetV4Address()).toString();
   }
   else {
     close();
-    qDebug() << "sACNRxSocket " << QThread::currentThreadId() << ": Failed to bind RX socket";
+    qDebug() << "sACNRxSocket" << m_universe << QThread::currentThreadId() << ": Failed to bind";
   }
 
   return status;
