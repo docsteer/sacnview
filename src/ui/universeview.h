@@ -52,9 +52,14 @@ protected slots:
     void selectedAddressesChanged(QList<int> addresses);
     void openBigDisplay(quint16 address);
     void on_btnStartFlickerFinder_clicked();
+    void on_btnCompareUniverse_clicked();
+    void on_sbCompareUniverse_editingFinished();
     void on_btnLogWindow_clicked();
     void on_btnExportSourceList_clicked();
     void listenerStarted(int universe);
+
+    void onFlickerFinderChanged();
+    void onCompareUniverseChanged();
 
 protected:
     virtual void resizeEvent(QResizeEvent *event);
@@ -64,6 +69,8 @@ private:
     void resizeColumns();
     bool m_bindWarningShown = false;
     void checkBind();
+
+    void updateButtons(bool running);
 
     QString prioText(const sACNSource *source, quint8 address) const;
 

@@ -46,15 +46,18 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
     connect(univDisplay, &UniverseDisplay::showChannelPriorityChanged, ui->btnShowPriority, &QPushButton::setChecked);
 
     connect(univDisplay, &UniverseDisplay::universeChanged, this, &UniverseView::refreshTitle);
-    connect(univDisplay, &UniverseDisplay::flickerFinderChanged, this, &UniverseView::refreshTitle);
+    connect(univDisplay, &UniverseDisplay::flickerFinderChanged, this, &UniverseView::onFlickerFinderChanged);
+    connect(univDisplay, &UniverseDisplay::compareToUniverseChanged, this, &UniverseView::onCompareUniverseChanged);
 
-    ui->btnGo->setEnabled(true);
-    ui->btnPause->setEnabled(false);
-    ui->sbUniverse->setMinimum(MIN_SACN_UNIVERSE);
-    ui->sbUniverse->setMaximum(MAX_SACN_UNIVERSE);
+    ui->sbUniverse->setRange(MIN_SACN_UNIVERSE, MAX_SACN_UNIVERSE);
     ui->sbUniverse->setWrapping(true);
     ui->sbUniverse->setEnabled(true);
     ui->sbUniverse->setValue(universe);
+
+    ui->sbCompareUniverse->setRange(MIN_SACN_UNIVERSE, MAX_SACN_UNIVERSE);
+    ui->sbCompareUniverse->setWrapping(true);
+    ui->sbCompareUniverse->setEnabled(true);
+    ui->sbCompareUniverse->setValue(universe + 1);
 
     m_sourceTableModel = new SACNSourceTableModel(this);
     QSortFilterProxyModel* sortProxy = new QSortFilterProxyModel(this);
@@ -67,6 +70,9 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
     ui->tableView->setColumnHidden(SACNSourceTableModel::COL_TIME_SUMMARY, true);
     // Maybe don't show the Secure column
     ui->tableView->setColumnHidden(SACNSourceTableModel::COL_PATHWAY_SECURE, !Preferences::Instance().GetPathwaySecureRx());
+
+    // Not running
+    updateButtons(false);
 }
 
 UniverseView::~UniverseView()
@@ -76,9 +82,8 @@ UniverseView::~UniverseView()
 
 void UniverseView::startListening(int universe)
 {
-    ui->btnGo->setEnabled(false);
-    ui->btnPause->setEnabled(true);
-    ui->sbUniverse->setEnabled(false);
+    updateButtons(true);
+
     m_listener = sACNManager::Instance().getListener(universe);
     connect(m_listener.data(), &sACNListener::listenerStarted, this, &UniverseView::listenerStarted);
     checkBind();
@@ -92,8 +97,10 @@ void UniverseView::startListening(int universe)
     connect(m_listener.data(), &sACNListener::sourceChanged, this, &UniverseView::sourceChanged);
     connect(m_listener.data(), &sACNListener::levelsChanged, this, &UniverseView::levelsChanged);
 
-    if(ui->sbUniverse->value()!=universe)
+    if (ui->sbUniverse->value() != universe)
         ui->sbUniverse->setValue(universe);
+    if (ui->sbCompareUniverse->value() == universe)
+      ui->sbCompareUniverse->setValue(universe + 1);
 }
 
 void UniverseView::refreshTitle()
@@ -104,11 +111,13 @@ void UniverseView::refreshTitle()
         return;
     }
 
-    int universe = m_listener->universe();
-    bool flicker = ui->universeDisplay->getFlickerFinder();
+    const int universe = m_listener->universe();
+    const int compareToUniverse = ui->universeDisplay->getCompareToUniverse();
 
-    if (flicker)
+    if (ui->universeDisplay->getFlickerFinder())
         setWindowTitle(tr("Universe %1 Flicker").arg(universe));
+    else if (compareToUniverse != UniverseDisplay::NO_UNIVERSE)
+        setWindowTitle(tr("Comparing Universe %1 to %2").arg(universe).arg(compareToUniverse));
     else
         setWindowTitle(tr("Universe %1 View").arg(universe));
 }
@@ -134,11 +143,42 @@ void UniverseView::checkBind()
     msgBox.exec();
 }
 
+void UniverseView::updateButtons(bool running)
+{
+  // Enable/disable buttons
+  ui->btnGo->setEnabled(!running);
+  ui->btnPause->setEnabled(running);
+  ui->sbUniverse->setEnabled(!running);
+
+  ui->btnStartFlickerFinder->setEnabled(running);
+  ui->btnCompareUniverse->setEnabled(running);
+}
+
 void UniverseView::listenerStarted(int universe)
 {
     Q_UNUSED(universe);
 
     checkBind();
+}
+
+void UniverseView::onFlickerFinderChanged()
+{
+    if (ui->universeDisplay->getFlickerFinder())
+        ui->btnStartFlickerFinder->setText(tr("Stop Flicker Finder"));
+    else
+        ui->btnStartFlickerFinder->setText(tr("Start Flicker Finder"));
+
+    refreshTitle();
+}
+
+void UniverseView::onCompareUniverseChanged()
+{
+    if (ui->universeDisplay->getCompareToUniverse() != UniverseDisplay::NO_UNIVERSE)
+        ui->btnCompareUniverse->setText(tr("Stop Delta Finder"));
+    else
+        ui->btnCompareUniverse->setText(tr("Start Delta Finder"));
+
+    refreshTitle();
 }
 
 void UniverseView::sourceChanged(sACNSource*/*source*/)
@@ -271,11 +311,10 @@ void UniverseView::on_btnPause_clicked()
     m_sourceTableModel->pause();
 
     this->disconnect(m_listener.data());
-    ui->btnGo->setEnabled(true);
-    ui->btnPause->setEnabled(false);
-    ui->sbUniverse->setEnabled(true);
-    m_bindWarningShown = false;
 
+    updateButtons(false);
+
+    m_bindWarningShown = false;
 
     setWindowTitle(tr("Universe View"));
 }
@@ -285,7 +324,6 @@ void UniverseView::on_btnStartFlickerFinder_clicked()
     if(ui->universeDisplay->getFlickerFinder())
     {
         ui->universeDisplay->setFlickerFinder(false);
-        ui->btnStartFlickerFinder->setText(tr("Start Flicker Finder"));
     }
     else
     {
@@ -296,10 +334,40 @@ void UniverseView::on_btnStartFlickerFinder_clicked()
             if(!result) return;
         }
         ui->universeDisplay->setFlickerFinder(true);
-        ui->btnStartFlickerFinder->setText(tr("Stop Flicker Finder"));
     }
 }
 
+void UniverseView::on_btnCompareUniverse_clicked()
+{
+    if (ui->universeDisplay->getCompareToUniverse() == UniverseDisplay::NO_UNIVERSE)
+    {
+        ui->universeDisplay->setCompareToUniverse(ui->sbCompareUniverse->value());
+    }
+    else
+    {
+        ui->universeDisplay->setCompareToUniverse(UniverseDisplay::NO_UNIVERSE);
+    }
+}
+
+void UniverseView::on_sbCompareUniverse_editingFinished()
+{   
+    int val = ui->sbCompareUniverse->value();
+    
+    // Can't compare to same
+    const int univ = ui->sbUniverse->value();
+    if (val == univ)
+    {
+        val = univ + 1;
+        ui->sbCompareUniverse->setValue(val);
+    }
+
+    // Change if active and different
+    const int currentCompare = ui->universeDisplay->getCompareToUniverse();
+    if (currentCompare != UniverseDisplay::NO_UNIVERSE && currentCompare != val)
+    {
+        ui->universeDisplay->setCompareToUniverse(val);
+    }
+}
 
 void UniverseView::on_btnLogWindow_clicked()
 {

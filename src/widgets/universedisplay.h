@@ -29,7 +29,7 @@ public:
     explicit UniverseDisplay(QWidget *parent = 0);
     virtual ~UniverseDisplay() {}
 
-    static const int NO_UNIVERSE = 0;
+    static constexpr int NO_UNIVERSE = 0;
     Q_PROPERTY(int universe READ getUniverse WRITE setUniverse NOTIFY universeChanged)
     int getUniverse() const { return m_listener ? m_listener->universe() : NO_UNIVERSE; }
     Q_SLOT void setUniverse(int universe);
@@ -45,6 +45,16 @@ public:
     Q_SLOT void setShowChannelPriority(bool enable);
     Q_SIGNAL void showChannelPriorityChanged(bool enable);
 
+    Q_PROPERTY(int compareToUniverse READ getCompareToUniverse WRITE setCompareToUniverse NOTIFY compareToUniverseChanged)
+    int getCompareToUniverse() const { return m_compareListener ? m_compareListener->universe() : NO_UNIVERSE; }
+    Q_SLOT void setCompareToUniverse(int otherUniverse);
+    Q_SIGNAL void compareToUniverseChanged();
+
+    Q_PROPERTY(qint64 stableCompareTime READ getStableCompareTime WRITE setStableCompareTime NOTIFY stableCompareTimeChanged)
+    qint64 getStableCompareTime() const {      return m_stableCompareTime;    }
+    Q_SLOT void setStableCompareTime(qint64 milliseconds);
+    Q_SIGNAL void stableCompareTimeChanged();
+
     static const QColor &flickerHigherColor();
     static const QColor &flickerLowerColor();
     static const QColor &flickerChangedColor();
@@ -54,12 +64,26 @@ public slots:
 
 private slots:
     void levelsChanged();
+    void compareLevelsChanged();
+
+protected:
+    void timerEvent(QTimerEvent* ev) override;
+
+private:
+    void updateCellHeight();
+    void updateUniverseCompare();
+    void updateUniverseCompareTimer();
 
 private:
     sACNManager::tListener m_listener;
     sACNMergedSourceList m_sources;
-    std::array<quint8, MAX_DMX_ADDRESS> m_flickerFinderLevels = {};
-    std::array<bool, MAX_DMX_ADDRESS> m_flickerFinderHasChanged = {};
+    // Flicker and delta finder backing stores
+    sACNManager::tListener m_compareListener;
+    std::array<int, MAX_DMX_ADDRESS> m_compareLevels = {}; // Level to compare against
+    std::array<int, MAX_DMX_ADDRESS> m_compareDifference = {}; // Difference marker
+    std::array<qint64, MAX_DMX_ADDRESS> m_compareTimestamp = {}; // Difference timestamp
+    qint64 m_stableCompareTime = 1000; // Milliseconds level must be stable before considered different
+    int m_compareTimer = 0;
     bool m_flickerFinder = false;
     bool m_showChannelPriority = false;
 };
