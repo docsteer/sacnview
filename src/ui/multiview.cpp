@@ -84,6 +84,12 @@ void MultiView::on_btnStartStop_clicked(bool checked)
   }
 }
 
+void MultiView::on_btnClearOffline_clicked()
+{
+  if (m_sourceTableModel)
+    m_sourceTableModel->clearOffline();
+}
+
 void MultiView::on_btnResetCounters_clicked()
 {
   m_sourceTableModel->resetCounters();

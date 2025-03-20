@@ -41,6 +41,7 @@ public:
 
 protected slots:
   void on_btnStartStop_clicked(bool checked);
+  void on_btnClearOffline_clicked();
   void on_btnResetCounters_clicked();
   void on_btnExport_clicked();
 

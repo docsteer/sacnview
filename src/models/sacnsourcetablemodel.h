@@ -72,6 +72,8 @@ public:
   void restart();
   // Clear all data and remove all listeners
   void clear();
+  // Remove all Offline sources
+  void clearOffline();
 
   // Convenience
   void resetTimeSummaryCounters();
