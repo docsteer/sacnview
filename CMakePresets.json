@@ -70,5 +70,13 @@
         "rhs": "Windows"
       }
     }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-x64-release-installer",
+      "displayName": "x64 Installer",
+      "description": "Windows (64-bit) MSVC Release with Installer",
+      "configurePreset": "windows-x64-release-installer"
+    }
   ]
 }

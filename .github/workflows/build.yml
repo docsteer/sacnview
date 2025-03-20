@@ -1,5 +1,6 @@
 # Github Actions configuration file
-# Runs the build on Linux, Windows and MacOS
+# Runs the Windows
+# TODO: After update, add back Mac and Linux
 name: Build
 
 on:
@@ -21,57 +22,33 @@ jobs:
       fail-fast: false
       matrix:
         # https://github.com/actions/virtual-environments#available-environments
-        os: [ubuntu-20.04, windows-latest, macos-latest]
+        os: [windows-latest]
         include:
-          - os: ubuntu-20.04 # Oldest LTS for appimage support
-            qt: '6.2.4' # Qt6 LTS
-            qt_modules: 'qtmultimedia'
-            dependencies: |
-              sudo apt-get install mesa-common-dev libgl1-mesa-dev libpcap-dev libgstreamer-gl1.0-0 libgstreamer-plugins-base1.0-0 libxkbcommon-x11-0 -y
-            installer_setup: |
-              sudo gem install --no-document fpm
-            make_cmd: make
-            artifact: |
-              install/linux/sACNView*.AppImage
-              install/linux/*.deb
-
           - os: windows-latest
-            qt: '6.2.4' # Qt6 LTS
+            qt: '6.8.2'
             qt_modules: 'qtmultimedia'
             installer_setup: |
               Invoke-WebRequest -Uri "https://nsis.sourceforge.io/mediawiki/images/e/e0/NSIS_Simple_Firewall_Plugin_Unicode_1.21.zip" -OutFile "NSIS_Simple_Firewall_Plugin_Unicode.zip"
               7z e NSIS_Simple_Firewall_Plugin_Unicode.zip -o"C:\Program Files (x86)\NSIS\Plugins\x86-unicode"
-            arch: win64_msvc2019
-            make_cmd: nmake
             artifact: |
-              install/win64/sACNView*.exe
-              release/*.pdb 
-
-          - os: macos-latest
-            qt: '6.2.4' # Qt6 LTS
-            qt_modules: 'qtmultimedia'
-            installer_setup: |
-              brew install create-dmg
-            xcode: latest-stable
-            make_cmd: make
-            artifact: install/mac/sACNView*.dmg 
+              ./install/win64/sACNView64*.exe
+              ./out/build/windows-x64-release-installer/sACNView.pdb
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: recursive
         fetch-depth: 0
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v3.1.0
+      uses: jurplel/install-qt-action@v4
       with:
         version: ${{ matrix.qt }}
         modules: ${{ matrix.qt_modules }}
-        aqtversion: '==2.0.0'
 
     - name: Dependencies
-      run: ${{ matrix.dependencies }} 
+      run: ${{ matrix.dependencies }}
 
     - name: Setup Installer
       run: ${{ matrix.installer_setup }}
@@ -80,24 +57,17 @@ jobs:
       if: runner.os == 'Windows'
       uses: ilammy/msvc-dev-cmd@v1
 
-    - name: Environment Setup (Xcode)
-      if: runner.os == 'macOS'
-      uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: ${{ matrix.xcode }}
-
-    - name: Run qmake
+    - name: CMake Configure
       shell: bash
       run: |
-        if [[ -n "${Qt5_DIR}" ]]; then export QTDIR=${Qt5_DIR}; fi
-        if [[ -n "${Qt6_DIR}" ]]; then export QTDIR=${Qt6_DIR}; fi
-        qmake sACNView.pro
+        if [[ -n "${Qt6_DIR}" ]]; then export QTROOT=${Qt6_DIR}; fi
+        cmake --preset "windows-x64-release-installer"
 
-    - name: Run make
-      run: ${{ matrix.make_cmd }}
+    - name: CMake Build
+      run: cmake --build --preset "windows-x64-release-installer"
 
     - name: Upload Artifact(s)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ runner.os }}
-        path: ${{ matrix.artifact }} 
+        path: ${{ matrix.artifact }}

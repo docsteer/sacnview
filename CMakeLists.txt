@@ -15,7 +15,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   if(EXISTS "${LOC_PATH}")
     message(FATAL_ERROR "You cannot build in a source directory (or any directory with a CMakeLists.txt file). Please make a build subdirectory. Feel free to remove CMakeCache.txt and CMakeFiles.")
   endif()
-  
+
   # Nicer IDE
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -31,12 +31,6 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
       $<$<CONFIG:RELEASE>:/OPT:ICF>
     )
   endif()
-
-  if (WIN32)
-    # Qt5 does not automatically set these, but Qt6 does
-    add_compile_definitions(UNICODE _UNICODE)
-  endif()
-  
 endif()
 
 set(SACNVIEW_HEADER_PATHS
@@ -199,19 +193,11 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-# Find Qt 5.15 or Qt 6
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui Network Multimedia Widgets REQUIRED)
+# Find Qt 6
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Network Multimedia Widgets OpenGLWidgets REQUIRED)
 set(SACNVIEW_QT_LIBRARIES
-   Qt::Core Qt::Gui Qt::Network Qt::Multimedia Qt::Widgets
+   Qt::Core Qt::Gui Qt::Network Qt::Multimedia Qt::Widgets Qt::OpenGLWidgets
 )
-
-# Qt 6 moved some components
-if (Qt6_FOUND)
-    find_package(Qt6 COMPONENTS OpenGLWidgets REQUIRED)
-    list(APPEND SACNVIEW_QT_LIBRARIES Qt::OpenGLWidgets)
-    find_package(Qt6 COMPONENTS LinguistTools)
-endif()
 
 add_executable(sACNView WIN32
     src/main.cpp
@@ -223,6 +209,7 @@ add_executable(sACNView WIN32
 
 # Qt6 LinguistTools for translation
 if (Qt6_FOUND)
+  find_package(Qt6 COMPONENTS LinguistTools)
    qt_add_translations(TARGETS sACNView
       TS_FILES ${SACNVIEW_TS}
    )
