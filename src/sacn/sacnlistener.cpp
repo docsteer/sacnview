@@ -52,9 +52,8 @@ sACNListener::sACNListener(int universe, QObject *parent)
 
 sACNListener::~sACNListener()
 {
-    m_initalSampleTimer->deleteLater();
-    m_mergeTimer->deleteLater();
-    qDeleteAll(m_sockets);
+  m_initalSampleTimer->deleteLater();
+  killTimer(m_mergeTimerId);
   qDebug() << this << ": stopping";
 }
 
@@ -66,16 +65,22 @@ void sACNListener::startReception()
   m_current_levels.fill(-1);
   m_current_priorities.fill(-1);
 
-    if (Preferences::Instance().GetNetworkListenAll() && !Preferences::Instance().networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) {
-        // Listen on ALL interfaces and not working offline
-        for (const auto &interface : QNetworkInterface::allInterfaces())
-        {
-            // If the interface is ok for use...
-            if(Preferences::Instance().interfaceSuitable(interface))
-            {
-                startInterface(interface);
-            }
-        }
+  // Merge is performed whenever a packet arrives and every BACKGROUND_MERGE interval
+  if (m_mergeTimerId == 0)
+  {
+    m_mergeTimerId = startTimer(BACKGROUND_MERGE);
+  }
+
+  if (Preferences::Instance().GetNetworkListenAll() && !Preferences::Instance().networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)) {
+    // Listen on ALL interfaces and not working offline
+    for (const auto& interface : QNetworkInterface::allInterfaces())
+    {
+      // If the interface is ok for use...
+      if (Preferences::Instance().interfaceSuitable(interface))
+      {
+        startInterface(interface);
+      }
+    }
   }
   else {
         // Listen only to selected interface
@@ -86,20 +91,18 @@ void sACNListener::startReception()
         }
     }
 
-    // Start intial sampling
-    m_initalSampleTimer = new QTimer(this);
-    m_initalSampleTimer->setSingleShot(true);
-    m_initalSampleTimer->setInterval(SAMPLE_TIME);
-    connect(m_initalSampleTimer, &QTimer::timeout, this, &sACNListener::sampleExpiration, Qt::DirectConnection);
-    m_initalSampleTimer->start();
+  // Failed to bind, try again later
+  if (m_sockets.empty())
+    return;
 
-    // Merge is performed whenever a packet arrives and every BACKGROUND_MERGE interval
-    m_mergesPerSecondTimer.start();
-    m_mergeTimer = new QTimer(this);
-    m_mergeTimer->setInterval(BACKGROUND_MERGE);
-    connect(m_mergeTimer, &QTimer::timeout, this, &sACNListener::performMerge, Qt::DirectConnection);
-    connect(m_mergeTimer, &QTimer::timeout, this, &sACNListener::checkSourceExpiration, Qt::DirectConnection);
-    m_mergeTimer->start();
+  // Start intial sampling
+  m_initalSampleTimer = new QTimer(this);
+  m_initalSampleTimer->setSingleShot(true);
+  m_initalSampleTimer->setInterval(SAMPLE_TIME);
+  connect(m_initalSampleTimer, &QTimer::timeout, this, &sACNListener::sampleExpiration, Qt::DirectConnection);
+  m_initalSampleTimer->start();
+
+  m_mergesPerSecondTimer.start();
 
     // Everything is set
     emit listenerStarted(m_universe);
@@ -107,15 +110,15 @@ void sACNListener::startReception()
 
 void sACNListener::startInterface(const QNetworkInterface &iface)
 {
-    m_sockets.push_back(new sACNRxSocket(iface));
-    sACNRxSocket::sBindStatus status = m_sockets.back()->bind(m_universe);
-    if (status.unicast == sACNRxSocket::BIND_OK || status.multicast == sACNRxSocket::BIND_OK) {
-        connect(m_sockets.back(), &QUdpSocket::readyRead, this, &sACNListener::readPendingDatagrams, Qt::DirectConnection);
+  m_sockets.emplace_back(std::make_unique<sACNRxSocket>(iface));
+  const sACNRxSocket::sBindStatus status = m_sockets.back()->bind(m_universe);
+  if (status.unicast == sACNRxSocket::BIND_OK && status.multicast == sACNRxSocket::BIND_OK) {
+    connect(m_sockets.back().get(), &QUdpSocket::readyRead, this, &sACNListener::readPendingDatagrams, Qt::DirectConnection);
   }
   else {
-        // Failed to bind
-        m_sockets.pop_back();
-    }
+    // Failed to bind, delete it
+    m_sockets.pop_back();
+  }
 
     if ((m_bindStatus.unicast == sACNRxSocket::BIND_UNKNOWN) || (m_bindStatus.unicast == sACNRxSocket::BIND_OK))
         m_bindStatus.unicast = status.unicast;
@@ -127,6 +130,19 @@ void sACNListener::sampleExpiration()
 {
     m_isSampling = false;
   qDebug() << this << ": Sampling has ended";
+}
+
+void sACNListener::timerEvent(QTimerEvent* ev)
+{
+  if (m_sockets.empty())
+  {
+    // No sockets, retry connection
+    startReception();
+    return;
+  }
+
+  performMerge();
+  checkSourceExpiration();
 }
 
 void sACNListener::checkSourceExpiration()
@@ -166,8 +182,10 @@ void sACNListener::readPendingDatagrams()
         #error "QT5.10.0 QUdpSocket::readDatagram Returns incorrect infomation: https://bugreports.qt.io/browse/QTBUG-65099"
     #endif
 
-    // Check all sockets
-    for (auto m_socket : m_sockets)
+  // Check all sockets
+  for (auto& m_socket : m_sockets)
+  {
+    while (m_socket->hasPendingDatagrams())
     {
         while(m_socket->hasPendingDatagrams())
         {

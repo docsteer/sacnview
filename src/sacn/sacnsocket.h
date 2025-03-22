@@ -49,7 +49,7 @@ public:
 
 private:
     QNetworkInterface m_interface;
-    int m_universe;
+    int m_universe = 0;
     QHostAddress m_multicastAddr;
 };
 

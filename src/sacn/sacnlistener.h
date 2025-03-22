@@ -18,8 +18,6 @@
 
 #include <QObject>
 #include <QThread>
-#include <vector>
-#include <list>
 #include <QTimer>
 #include <QElapsedTimer>
 #include <QPoint>
@@ -28,6 +26,9 @@
 #include "sacnsocket.h"
 
 #include <array>
+#include <list>
+#include <memory>
+#include <vector>
 
 Q_DECLARE_METATYPE(QHostAddress)
 
@@ -162,10 +163,13 @@ private slots:
   void checkSourceExpiration();
   void sampleExpiration();
 
+protected:
+  void timerEvent(QTimerEvent* ev) override;
+
 private:
   QMutex m_processMutex;
   void startInterface(const QNetworkInterface& iface);
-  std::list<sACNRxSocket*> m_sockets;
+  std::list<std::unique_ptr<sACNRxSocket>> m_sockets;
   std::vector<sACNSource*> m_sources;
   std::array<int, MAX_DMX_ADDRESS> m_last_levels = {};
   std::array<int, MAX_DMX_ADDRESS> m_last_priorities = {};
@@ -179,7 +183,7 @@ private:
   // Are we in the initial sampling state
   bool m_isSampling = true;
   QTimer* m_initalSampleTimer = nullptr;
-  QTimer* m_mergeTimer = nullptr;
+  int m_mergeTimerId = 0;
   int m_predictableTimerValue;
   QMutex m_directCallbacksMutex;
   std::vector<IDmxReceivedCallback*> m_dmxReceivedCallbacks;

@@ -23,6 +23,7 @@
 #include <QTreeWidget>
 
 class VersionCheck;
+class SACNListenerTableModel;
 
 namespace Ui {
   class aboutDialog;
@@ -50,22 +51,9 @@ private:
   Ui::aboutDialog* ui = Q_NULLPTR;
   QTimer* m_displayTimer = Q_NULLPTR;
   VersionCheck* m_versionCheck = Q_NULLPTR;
-
-  struct universeDetails
-  {
-    universeDetails() {}
-
-    sACNManager::tListener listener;
-    QTreeWidgetItem* treeUniverse = Q_NULLPTR;
-    QTreeWidgetItem* treeMergesPerSecond = Q_NULLPTR;
-    QTreeWidgetItem* treeMergesBindStatus = Q_NULLPTR;
-    QTreeWidgetItem* treeMergesBindStatusUnicast = Q_NULLPTR;
-    QTreeWidgetItem* treeMergesBindStatusMulticast = Q_NULLPTR;
-  };
-  QList<universeDetails> m_universeDetails;
+  SACNListenerTableModel* m_listenerModel = Q_NULLPTR;
 
   void resizeDiagColumn();
-  void bindStatus(QTreeWidgetItem* treeItem, sACNRxSocket::eBindStatus bindStatus);
 };
 
 #endif // ABOUTDIALOG_H
