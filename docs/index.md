@@ -1,4 +1,4 @@
-sACNView is a tool for viewing, monitoring and testing the ANSI/ESTA E1.17 protocol, informally known as "Streaming ACN".
+sACNView is a tool for viewing, monitoring and testing the ANSI/ESTA E1.31 protocol, informally known as "Streaming ACN".
 
 This protocol is used in lighting systems (typically theatre, television, live entertainment and other systems where a high performance stream of data is required). It is closely related to USITT DMX-512A, providing multiple streams of DMX-like data over an Ethernet network.
 
