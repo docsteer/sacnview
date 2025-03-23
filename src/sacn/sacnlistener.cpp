@@ -221,6 +221,7 @@ void sACNListener::readPendingDatagrams()
             }
         }
     }
+  }
 }
 
 void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &destination, const QHostAddress &sender)
@@ -419,11 +420,11 @@ void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &d
 
       // E1.31:2018's algorithm requires two's-complement overflow caused by computation to wrap:
       // "-128" minus "+127" must equal "+1"
-      // 
+      //
       // However, wrapping is Undefined Behavior in the C++ standard.
       // C++20 considered changing this, it was rejected
       // See https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0907r4.html for more detail of this discussion
-      // 
+      //
       // Signed overflow wrapping can still be explictly enabled in some toolchains (eg gcc and clang's -fwrapv)
       // See test_fpscounter.cpp for verification test
 
@@ -773,7 +774,7 @@ void sACNListener::performMerge()
     for(std::vector<sACNSource *>::iterator it = m_sources.begin(); it != m_sources.end(); ++it)
     {
         sACNSource *ps = *it;
- 
+
     // Don't merge sources with bad universe priorities
     if (discardOutOfRange && ps->HasInvalidPriority())
       continue;
