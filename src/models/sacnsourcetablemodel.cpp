@@ -258,9 +258,9 @@ QVariant SACNSourceTableModel::getTimingSummary(const RowData& rowData, int colu
   switch (column)
   {
   default: break;
-  case COL_TIME_SHORT: return rowData.shortCount;
-  case COL_TIME_LONG:return rowData.longCount;
-  case COL_TIME_STATIC:return rowData.staticCount;
+  case COL_TIME_SHORT: return static_cast<quint64>(rowData.shortCount);
+  case COL_TIME_LONG:return static_cast<quint64>(rowData.longCount);
+  case COL_TIME_STATIC:return static_cast<quint64>(rowData.staticCount);
   }
   return QVariant();
 }
