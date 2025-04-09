@@ -4,6 +4,9 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15 CACHE STRING "Minimum macOS version target
 
 project(sACNView DESCRIPTION "A tool for sending and receiving the ANSI E1.31 Streaming ACN control protocol")
 
+# Additional search modules
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tools/CMake")
+
 # Workaround for cmake bug
 # Ninja generator will often exceed command line limits, but cmake doesn't use the response file by default
 SET(CMAKE_NINJA_FORCE_RESPONSE_FILE 1 CACHE INTERNAL "")
@@ -232,10 +235,21 @@ set_target_properties(sACNView PROPERTIES
 target_link_libraries(sACNView PRIVATE ${SACNVIEW_QT_LIBRARIES})
 
 # Link PCap/WinPCap libraries
-target_link_libraries(sACNView PRIVATE ${PCAP_LIBS})
 if(MSVC)
+    target_link_libraries(sACNView PRIVATE ${PCAP_LIBS})
     target_link_libraries(sACNView PRIVATE delayimp)
     target_link_options(sACNView PRIVATE "/DELAYLOAD:wpcap.dll")
+endif()
+
+if(LINUX)
+    find_package(PCAP REQUIRED)
+    target_link_libraries(sACNView PRIVATE ${PCAP_LIBRARY})
+endif()
+
+# Link ZLib
+if(LINUX)
+    find_package(ZLIB REQUIRED)
+    target_link_libraries(sACNView PRIVATE ${ZLIB_LIBRARIES})
 endif()
 
 # Blake2
