@@ -5,6 +5,24 @@
     "minor": 20
   },
   "configurePresets": [
+      {
+      "name": "macos-debug",
+      "displayName": "macos Debug",
+      "description": "Target Macos. (Debug)",
+      "inherits": "macos-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "macos-release",
+      "displayName": "macos Release",
+      "description": "Target Macos. (Release)",
+      "inherits": "macos-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
     {
       "name": "windows-x64-debug",
       "displayName": "x64 Debug",
@@ -100,11 +118,30 @@
       },
       "environment": {
         "PATH": "$penv{QTROOT}/6.8.3/gcc_64/bin/;$penv{PATH}"
-      },
+        },
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Linux"
+        }
+    },
+    {
+      "name": "macos-base",
+      "description": "Target Macos.",
+      "hidden": true,
+      "generator": "Xcode",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "cacheVariables": {
+        "Qt6_DIR": "~/Qt/6.8.3/macos/lib/cmake/Qt6"
+      },
+      "environment": {
+        "PATH": "$penv{QTROOT}/6.8.3/macos/bin/;$penv{PATH}"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
       }
     }
   ],

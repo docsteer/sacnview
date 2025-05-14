@@ -241,13 +241,13 @@ if(MSVC)
     target_link_options(sACNView PRIVATE "/DELAYLOAD:wpcap.dll")
 endif()
 
-if(LINUX)
+if(UNIX)
     find_package(PCAP REQUIRED)
     target_link_libraries(sACNView PRIVATE ${PCAP_LIBRARY})
 endif()
 
 # Link ZLib
-if(LINUX)
+if(UNIX)
     find_package(ZLIB REQUIRED)
     target_link_libraries(sACNView PRIVATE ${ZLIB_LIBRARIES})
 endif()
