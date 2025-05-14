@@ -14,10 +14,12 @@ If you are interested in simply using the program, visit the [product web site](
 # Building
 If you are interested in building the application you will need the following:
 
-* Qt Library and Creator - https://www.qt.io/ide/
-	* Note : Due to [this bug](https://bugreports.qt.io/browse/QTBUG-27641) in Qt you need to use Qt version 5.9.0 or higher to build sACNView. 
-* To build the windows installer - NSIS - http://nsis.sourceforge.net/ and the [SimpleFW NSIS Plugin](http://nsis.sourceforge.net/NSIS_Simple_Firewall_Plugin)
-	* If NSIS is included in your $PATH the installer will be built automatically
+* CMake
+* Qt Library version 6.8.2 or higher https://www.qt.io/
+* For Windows:
+	* Visual Studio 2022 - Community edition is fine
+    * NSIS - http://nsis.sourceforge.net/ and the [SimpleFW NSIS Plugin](http://nsis.sourceforge.net/NSIS_Simple_Firewall_Plugin)
+		* If NSIS is included in your $PATH the installer will be built automatically
 
 The application uses a couple of external libraries:
 
@@ -31,5 +33,21 @@ You need to acquire the Breakpad library by using the git `submodule` command
 3. Initialize the submodules (`git submodule init`)
 4. Download the submodule (`git submodule update`)
 
-After that, to build, open the .PRO file in the root directory and build with Qt Creator
+Then, to build:
 
+## Windows
+
+Set an environment variable, QTROOT, pointing to the root directory of your Qt installation - there should be directories under this for each version of Qt you have installed.
+
+Start a developer command prompt by running the `x64 Native Tools Command Prompt for VS 2022` shortcut
+
+**Note**: Do not start the x86 or unlabelled version, this will lead to errors about being unable to find Qt.
+
+Configure the application for the appropriate target using a CMake preset, e.g:
+
+    cmake --preset "windows-x64-release-installer"
+
+Once configuration is successful, you can run the build by navigating to the directory in the out folder and running
+
+	cd out\build\windows-x64-release-installer
+    cmake --build .
