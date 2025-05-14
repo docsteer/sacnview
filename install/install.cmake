@@ -1,10 +1,10 @@
   # Deploy and install
 
   set(SACNVIEW_DEPLOY_DIR "${CMAKE_CURRENT_LIST_DIR}/deploy" CACHE PATH "Folder to use for deployment")
-  
+
   # Windows deployment
   if(WIN32)
-    set(SACNVIEW_MAKENSIS_FILE "$ENV{ProgramFiles\(x86\)}/NSIS/makensis.exe" CACHE FILE "makensis.exe filepath")
+    set(SACNVIEW_MAKENSIS_FILE "$ENV{ProgramFiles\(x86\)}/NSIS/makensis.exe" CACHE STRING "makensis.exe filepath")
 
     if(TARGET Qt::qmake AND NOT TARGET Qt::windeployqt)
       get_target_property(_qt_qmake_location Qt::qmake IMPORTED_LOCATION)
