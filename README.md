@@ -37,7 +37,7 @@ Then, to build:
 
 ## Windows
 
-Set an environment variable, QTROOT, pointing to the root directory of your Qt installation - there should be directories under this for each version of Qt you have installed.
+Set an environment variable, QT_ROOT_DIR, pointing to the root directory of your Qt installation, including the version and compiler parts, so for example `C:\Qt\6.8.2\msvc2022_64`.
 
 Start a developer command prompt by running the `x64 Native Tools Command Prompt for VS 2022` shortcut
 

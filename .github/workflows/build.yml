@@ -24,7 +24,7 @@ jobs:
         os: [ubuntu-22.04, windows-latest, macos-latest]
         include:
           - os: ubuntu-22.04 # Oldest LTS for appimage support
-            qt: '6.2.4' # Qt6 LTS
+            qt: '6.8.3' # Qt6 LTS
             qt_modules: 'qtmultimedia'
             dependencies: |
               sudo apt-get install mesa-common-dev libgl1-mesa-dev libpcap-dev libgstreamer-gl1.0-0 libgstreamer-plugins-base1.0-0 libxkbcommon-x11-0 -y
@@ -83,14 +83,13 @@ jobs:
         xcode-version: ${{ matrix.xcode }}
     - name: CMake Configure
       shell: bash
-      run: |
-        export QTROOT=${RUNNER_WORKSPACE}
-        cmake --preset ${{matrix.configure_preset_name}}
+      run: cmake --preset ${{matrix.configure_preset_name}}
 
     - name: CMake Build
       run: cmake --build --preset ${{matrix.build_preset_name}}
 
     - name: Upload Artifact(s)
+      if: runner.os == 'Windows'
       uses: actions/upload-artifact@v4
       with:
         name: ${{ runner.os }}

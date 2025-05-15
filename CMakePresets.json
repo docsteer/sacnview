@@ -77,10 +77,10 @@
       "cacheVariables": {
         "CMAKE_C_COMPILER": "cl.exe",
         "CMAKE_CXX_COMPILER": "cl.exe",
-        "Qt6_DIR": "$env{QTROOT}/6.8.2/msvc2022_64/lib/cmake/Qt6"
+        "Qt6_DIR": "$env{QT_ROOT_DIR}/lib/cmake/Qt6"
       },
       "environment": {
-        "PATH": "$penv{QTROOT}/6.8.2/msvc2022_64/bin/;$penv{PATH}"
+        "PATH": "$penv{QT_ROOT_DIR}/bin/;$penv{PATH}"
       },
       "condition": {
         "type": "equals",
@@ -114,10 +114,10 @@
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
       "cacheVariables": {
-        "Qt6_DIR": "$env{QTROOT}/6.8.3/gcc_64/lib/cmake/Qt6"
+        "Qt6_DIR": "$env{QT_ROOT_DIR}/lib/cmake/Qt6"
       },
       "environment": {
-        "PATH": "$penv{QTROOT}/6.8.3/gcc_64/bin/;$penv{PATH}"
+        "PATH": "$penv{QT_ROOT_DIR}/bin/;$penv{PATH}"
         },
       "condition": {
         "type": "equals",
@@ -133,10 +133,10 @@
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
       "cacheVariables": {
-        "Qt6_DIR": "~/Qt/6.8.3/macos/lib/cmake/Qt6"
+        "Qt6_DIR": "$env{QT_ROOT_DIR}/lib/cmake/Qt6"
       },
       "environment": {
-        "PATH": "$penv{QTROOT}/6.8.3/macos/bin/;$penv{PATH}"
+        "PATH": "$penv{QT_ROOT_DIR}/bin/;$penv{PATH}"
       },
       "condition": {
         "type": "equals",
