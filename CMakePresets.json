@@ -149,8 +149,20 @@
     {
       "name": "windows-x64-release-installer",
       "displayName": "x64 Installer",
-      "description": "Windows (64-bit) MSVC Release with Installer",
+      "description": "Windows (64-bit) MSVC build preset with Installer",
       "configurePreset": "windows-x64-release-installer"
+    },
+    {
+      "name": "macos-release",
+      "displayName": "Macos Release",
+      "description": "Macos Release build preset",
+      "configurePreset": "macos-release"
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release",
+      "description": "Linux Release build preset",
+      "configurePreset": "linux-x64-release"
     }
   ]
 }

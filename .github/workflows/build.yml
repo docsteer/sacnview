@@ -1,6 +1,5 @@
 # Github Actions configuration file
-# Runs the Windows
-# TODO: After update, add back Mac and Linux
+# Runs CI builds for Windows, Macos and Linux
 name: Build
 
 on:
@@ -22,8 +21,18 @@ jobs:
       fail-fast: false
       matrix:
         # https://github.com/actions/virtual-environments#available-environments
-        os: [windows-latest]
+        os: [ubuntu-22.04, windows-latest, macos-latest]
         include:
+          - os: ubuntu-22.04 # Oldest LTS for appimage support
+            qt: '6.2.4' # Qt6 LTS
+            qt_modules: 'qtmultimedia'
+            dependencies: |
+              sudo apt-get install mesa-common-dev libgl1-mesa-dev libpcap-dev libgstreamer-gl1.0-0 libgstreamer-plugins-base1.0-0 libxkbcommon-x11-0 -y
+            installer_setup: |
+              sudo gem install --no-document fpm
+            configure_preset_name: "linux-x64-release"
+            build_preset_name: "linux-release"
+
           - os: windows-latest
             qt: '6.8.2'
             qt_modules: 'qtmultimedia'
@@ -33,6 +42,17 @@ jobs:
             artifact: |
               ./install/win64/sACNView64*.exe
               ./out/build/windows-x64-release-installer/sACNView.pdb
+            configure_preset_name: "windows-x64-release-installer"
+            build_preset_name: "windows-x64-release-installer"
+
+          - os: macos-latest
+            qt: '6.8.3'
+            qt_modules: 'qtmultimedia'
+            installer_setup: |
+              brew install create-dmg
+            xcode: latest-stable
+            configure_preset_name: "macos-release"
+            build_preset_name: "macos-release"
 
     steps:
     - name: Checkout
@@ -56,15 +76,19 @@ jobs:
     - name: Environment Setup (MSVC)
       if: runner.os == 'Windows'
       uses: ilammy/msvc-dev-cmd@v1
-
+    - name: Environment Setup (Xcode)
+      if: runner.os == 'macOS'
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: ${{ matrix.xcode }}
     - name: CMake Configure
       shell: bash
       run: |
-        if [[ -n "${Qt6_DIR}" ]]; then export QTROOT=${Qt6_DIR}; fi
-        cmake --preset "windows-x64-release-installer"
+        export QTROOT=${RUNNER_WORKSPACE}
+        cmake --preset ${{matrix.configure_preset_name}}
 
     - name: CMake Build
-      run: cmake --build --preset "windows-x64-release-installer"
+      run: cmake --build --preset ${{matrix.build_preset_name}}
 
     - name: Upload Artifact(s)
       uses: actions/upload-artifact@v4
