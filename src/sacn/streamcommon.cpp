@@ -275,7 +275,7 @@ void SetStreamHeaderSequence(quint8* pbuf, quint8 seq, bool draft)
  * pdata is the offset into the buffer where the data is stored
  */
 e_ValidateStreamHeader ValidateStreamHeader(
-        const quint8* pbuf, uint buflen,
+        const quint8* pbuf, size_t buflen,
         quint32 &root_vector,
         CID &source_cid, char* source_name, quint8 &priority,
         quint8 &start_code, quint16 &synchronization,
@@ -325,7 +325,7 @@ e_ValidateStreamHeader ValidateStreamHeader(
  * helper function that does the actual validation of a header
  * that carries the post-ratification root vector
  */
-bool VerifyStreamHeader(const quint8* pbuf, uint buflen, CID &source_cid,
+bool VerifyStreamHeader(const quint8* pbuf, size_t buflen, CID &source_cid,
             char* source_name, quint8 &priority,
             quint8 &start_code, quint16 &synchronization, quint8 &sequence,
 			quint8 &options, quint16 &universe,
@@ -407,7 +407,7 @@ bool VerifyStreamHeader(const quint8* pbuf, uint buflen, CID &source_cid,
  * ratification of the standard.
  */
 bool VerifyStreamHeaderForDraft(
-        const quint8* pbuf, uint buflen,
+        const quint8* pbuf, size_t buflen,
         CID &source_cid, char* source_name, quint8 &priority,
         quint8 &start_code, quint8 &sequence,
         quint16 &universe, quint16 &slot_count,

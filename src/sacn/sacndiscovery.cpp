@@ -97,6 +97,7 @@ void sACNDiscoveryTX::sendDiscoveryPacket()
             QByteArray pbuf(
                         E131_UNIVERSE_DISCOVERY_SIZE_MIN + (pageUniverseList.count() * sizeof(pageUniverseList[0]))
                         , 0x00);
+            const auto pbufSize = static_cast<unsigned int>(pbuf.size());
 
             // Root layer
             PackBUint16((quint8*)pbuf.data() + PREAMBLE_SIZE_ADDR, RLP_PREAMBLE_SIZE); // Preamble
@@ -104,28 +105,28 @@ void sACNDiscoveryTX::sendDiscoveryPacket()
             memcpy(pbuf.data() + ACN_IDENTIFIER_ADDR, ACN_IDENTIFIER, ACN_IDENTIFIER_SIZE); // ACN Ident
             VHD_PackFlags((quint8*)pbuf.data() + ROOT_FLAGS_AND_LENGTH_ADDR, false, false, false); // Flags
             VHD_PackLength((quint8*)pbuf.data() + ROOT_FLAGS_AND_LENGTH_ADDR,
-                           pbuf.size() - ROOT_FLAGS_AND_LENGTH_ADDR, false); // Length
+                           pbufSize - ROOT_FLAGS_AND_LENGTH_ADDR, false); // Length
             PackBUint32((quint8*)pbuf.data() + ROOT_VECTOR_ADDR, VECTOR_ROOT_E131_EXTENDED); // Vector
             cid.Pack((quint8*)pbuf.data() + CID_ADDR); // CID
 
             // Framing layer
             VHD_PackFlags((quint8*)pbuf.data() + FRAMING_FLAGS_AND_LENGTH_ADDR, false, false, false); // Flags
             VHD_PackLength((quint8*)pbuf.data() + FRAMING_FLAGS_AND_LENGTH_ADDR,
-                           pbuf.size() - FRAMING_FLAGS_AND_LENGTH_ADDR, false); // Length
+                           pbufSize - FRAMING_FLAGS_AND_LENGTH_ADDR, false); // Length
             PackBUint32((quint8*)pbuf.data() + FRAMING_VECTOR_ADDR, VECTOR_E131_EXTENDED_DISCOVERY); // Vector
             strncpy(pbuf.data() + SOURCE_NAME_ADDR, senderName.toLatin1().constData(), SOURCE_NAME_SIZE - 1); // Source Name
 
             // Universe discovery layer
             VHD_PackFlags((quint8*)pbuf.data() + DISCO_FLAGS_AND_LENGTH_ADDR, false, false, false); // Flags
             VHD_PackLength((quint8*)pbuf.data() + DISCO_FLAGS_AND_LENGTH_ADDR,
-                           pbuf.size() - DISCO_FLAGS_AND_LENGTH_ADDR, false); // Length
+                           pbufSize - DISCO_FLAGS_AND_LENGTH_ADDR, false); // Length
             PackBUint32((quint8*)pbuf.data() + DISCO_VECTOR_ADDR, VECTOR_UNIVERSE_DISCOVERY_UNIVERSE_LIST); // Vector
             PackBUint8((quint8*)pbuf.data() + DISCO_PAGE_ADDR, page); // Page
             PackBUint8((quint8*)pbuf.data() + DISCO_LAST_PAGE_ADDR, page_count - 1); // Page Count
             // Universe list
             quint16 idx = 0;
 
-            for (auto universe : qAsConst(pageUniverseList))
+            for (auto universe : std::as_const(pageUniverseList))
             {
                PackBUint16((quint8*)pbuf.data() + DISCO_LIST_UNIVERSE_ADDR + idx, universe);
                idx += sizeof(universe);
@@ -221,7 +222,7 @@ void sACNDiscoveryRX::timeoutUniverses()
     }
 }
 
-void sACNDiscoveryRX::processPacket(const quint8* pbuf, uint buflen)
+void sACNDiscoveryRX::processPacket(const quint8* pbuf, size_t buflen)
 {
     bool flag1, flag2, flag3;
     quint32 length;

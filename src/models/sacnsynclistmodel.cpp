@@ -211,7 +211,7 @@ sACNSyncListModel::item::~item() {
 
 int sACNSyncListModel::item::row() const {
     if (m_parentItem)
-        return m_parentItem->m_children.indexOf(const_cast<item*>(this));
+        return static_cast<int>(m_parentItem->m_children.indexOf(const_cast<item*>(this)));
 
     return 0;
 }

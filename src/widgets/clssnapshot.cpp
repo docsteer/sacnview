@@ -147,7 +147,7 @@ void clsSnapshot::playSnapshot() {
     m_sender->startSending();
     m_sender->setLevel(
                 reinterpret_cast<const quint8*>(m_levelData.constData()),
-                std::min(static_cast<quint16>(m_levelData.count()), static_cast<quint16>(MAX_DMX_ADDRESS)));
+                std::min(static_cast<quint16>(m_levelData.size()), static_cast<quint16>(MAX_DMX_ADDRESS)));
     updateIcons();
     emit senderStarted();
 }

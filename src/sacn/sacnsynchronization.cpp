@@ -22,6 +22,7 @@ sACNSynchronizationTX::~sACNSynchronizationTX() {}
 void sACNSynchronizationTX::createSynchronizationPacket() {
     m_pbuf.resize(E131_UNIVERSE_SYNCHRONIZATION_SIZE_MAX);
     m_pbuf.fill(0x00, E131_UNIVERSE_SYNCHRONIZATION_SIZE_MAX);
+    const auto bufSize = static_cast<int>(m_pbuf.size());
 
     // Root layer
     PackBUint16((quint8*)m_pbuf.data() + PREAMBLE_SIZE_ADDR, RLP_PREAMBLE_SIZE); // Preamble
@@ -29,14 +30,14 @@ void sACNSynchronizationTX::createSynchronizationPacket() {
     memcpy(m_pbuf.data() + ACN_IDENTIFIER_ADDR, ACN_IDENTIFIER, ACN_IDENTIFIER_SIZE); // ACN Ident
     VHD_PackFlags((quint8*)m_pbuf.data() + ROOT_FLAGS_AND_LENGTH_ADDR, false, false, false); // Flags
     VHD_PackLength((quint8*)m_pbuf.data() + ROOT_FLAGS_AND_LENGTH_ADDR,
-                   m_pbuf.size() - ROOT_FLAGS_AND_LENGTH_ADDR, false); // Length
+                   bufSize - ROOT_FLAGS_AND_LENGTH_ADDR, false); // Length
     PackBUint32((quint8*)m_pbuf.data() + ROOT_VECTOR_ADDR, VECTOR_ROOT_E131_EXTENDED); // Vector
     m_cid.Pack((quint8*)m_pbuf.data() + CID_ADDR); // CID
 
     // Framing layer
     VHD_PackFlags((quint8*)m_pbuf.data() + SYNC_FLAGS_AND_LENGTH_ADDR, false, false, false); // Flags
     VHD_PackLength((quint8*)m_pbuf.data() + SYNC_FLAGS_AND_LENGTH_ADDR,
-                   m_pbuf.size() - SYNC_FLAGS_AND_LENGTH_ADDR, false); // Length
+                   bufSize - SYNC_FLAGS_AND_LENGTH_ADDR, false); // Length
     PackBUint32((quint8*)m_pbuf.data() + SYNC_VECTOR_ADDR, VECTOR_E131_EXTENDED_SYNCHRONIZATION); // Vector
     PackBUint8((quint8*)m_pbuf.data() + SYNC_SEQ_NUM_ADDR, m_sequence); // Sequence
     PackBUint16((quint8*)m_pbuf.data() + SYNC_SYNCHRONIZATION_ADDRESS, m_syncAddress); // Synchronization Address
@@ -107,7 +108,7 @@ void sACNSynchronizationRX::timeoutSyncAddresses() {
     }
 }
 
-void sACNSynchronizationRX::processPacket(const quint8* pbuf, uint buflen, QHostAddress destination, QHostAddress sender)
+void sACNSynchronizationRX::processPacket(const quint8* pbuf, size_t buflen, const QHostAddress &destination, const QHostAddress &sender)
 {
     bool flag1, flag2, flag3;
     quint32 length;

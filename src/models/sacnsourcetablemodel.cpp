@@ -455,7 +455,7 @@ void SACNSourceTableModel::clearOffline()
         sACNSource* source = listener->source(i);
         if (source->src_valid)
         {
-          m_sourceToTableRow[source] = m_rows.size();
+          m_sourceToTableRow[source] = static_cast<int>(m_rows.size());
           m_rows.emplace_back(source);
         }
       }
@@ -547,7 +547,7 @@ void SACNSourceTableModel::sourceOnline(sACNSource* source)
   if (!source || !source->src_valid)
     return;
 
-  const int row = m_rows.size();
+  const int row = static_cast<int>(m_rows.size());
   beginInsertRows(QModelIndex(), row, row);
   m_sourceToTableRow[source] = row;
   m_rows.emplace_back(source);

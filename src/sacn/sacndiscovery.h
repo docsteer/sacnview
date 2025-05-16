@@ -68,7 +68,7 @@ public:
 
     typedef QHash<CID, sACNSourceDetail*> tDiscoveryList;
 
-    void processPacket(const quint8* pbuf, uint buflen);
+    void processPacket(const quint8* pbuf, size_t buflen);
     const tDiscoveryList &getDiscoveryList() const { return m_discoveryList; }
 
 signals:

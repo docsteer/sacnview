@@ -68,7 +68,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent)
     ui->leSourceName->setText(Preferences::Instance().GetDefaultTransmitName());
 
     ui->dlFadeRate->setMinimum(0);
-    ui->dlFadeRate->setMaximum(FX_FADE_RATES.count()-1);
+    ui->dlFadeRate->setMaximum(static_cast<int>(FX_FADE_RATES.count()-1));
     ui->dlFadeRate->setValue(0);
 
     ui->tabWidget->setCurrentIndex(0);
@@ -290,7 +290,7 @@ void transmitwindow::on_sliderMoved(int value)
     auto slider = qobject_cast<QSlider*>(sender());
     if (!slider)
         return;
-    int index = m_sliders.indexOf(qobject_cast<QSlider*>(sender()));
+    const auto index = m_sliders.indexOf(qobject_cast<QSlider*>(sender()));
     if(index<0) return;
 
     bool ok;
@@ -310,7 +310,7 @@ void transmitwindow::on_sliderMoved(int value)
 
 void transmitwindow::on_sbFadersStart_valueChanged(int address)
 {
-    for (const auto &slider : qAsConst(m_sliders))
+    for (const auto &slider : std::as_const(m_sliders))
     {
         slider->blockSignals(true);
 
@@ -755,7 +755,7 @@ void transmitwindow::presetButtonPressed()
     QToolButton *btn = dynamic_cast<QToolButton *>(sender());
     if(!btn) return;
 
-    int index = m_presetButtons.indexOf(btn);
+    const auto index = static_cast<int>(m_presetButtons.indexOf(btn));
 
     if(m_recordMode)
     {
@@ -774,7 +774,7 @@ void transmitwindow::presetButtonPressed()
         // Play back a preset
         QByteArray baPreset = Preferences::Instance().GetPreset(index);
         uint16_t address = 0;
-        for (uint8_t level : qAsConst(baPreset))
+        for (uint8_t level : std::as_const(baPreset))
             setLevel(address++, level);
     }
 }
@@ -868,7 +868,7 @@ void transmitwindow::setLevel(int address, int value)
     if(m_sender)
         m_sender->setLevel(address, value);
 
-    for (const auto &slider : qAsConst(m_sliders))
+    for (const auto &slider : std::as_const(m_sliders))
     {
         bool ok;
         auto sliderAddr = slider->property(FADERADDRESSPROP).toUInt(&ok);

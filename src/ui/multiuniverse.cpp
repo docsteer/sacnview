@@ -247,7 +247,7 @@ void MultiUniverse::fxChanged(int value)
         sACNEffectEngine *e = m_widgetToFxEngine.value(w);
         e->setMode((sACNEffectEngine::FxMode)value);
 
-        int index = m_fxEngines.indexOf(e);
+        const auto index = static_cast<int>(m_fxEngines.indexOf(e));
 
         setupControl(index, (sACNEffectEngine::FxMode)value, 0);
     }

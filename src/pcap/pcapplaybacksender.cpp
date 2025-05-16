@@ -131,8 +131,8 @@ void pcapplaybacksender::run()
                 if (!m_pktLastTime.isNull())
                 {
                     QTime pkt_time(0,0,0);
-                    pkt_time = pkt_time.addSecs(pkt_header->ts.tv_sec);
-                    pkt_time = pkt_time.addMSecs((pkt_header->ts.tv_usec / 1000));
+                    pkt_time = pkt_time.addSecs(static_cast<int>(pkt_header->ts.tv_sec));
+                    pkt_time = pkt_time.addMSecs(static_cast<int>(pkt_header->ts.tv_usec / 1000));
                     QThread::msleep(m_pktLastTime.msecsTo(pkt_time));
                 }
 
@@ -178,7 +178,7 @@ void pcapplaybacksender::run()
 
                 // Save time
                 m_pktLastTime = QTime(0,0,0);
-                m_pktLastTime = m_pktLastTime.addSecs(pkt_header->ts.tv_sec);
+                m_pktLastTime = m_pktLastTime.addSecs(static_cast<int>(pkt_header->ts.tv_sec));
                 m_pktLastTime = m_pktLastTime.addMSecs((pkt_header->ts.tv_usec / 1000));
             } else
             {

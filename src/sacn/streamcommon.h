@@ -215,7 +215,7 @@ enum e_ValidateStreamHeader
     StreamHeader_Unknown
 };
 e_ValidateStreamHeader ValidateStreamHeader(
-        const quint8* pbuf, uint buflen,
+        const quint8* pbuf, size_t buflen,
         quint32 &root_vector,
         CID &source_cid, char* source_sp, quint8 &priority,
         quint8 &start_code, quint16 &synchronization, quint8 &sequence,
@@ -227,7 +227,7 @@ e_ValidateStreamHeader ValidateStreamHeader(
  * that carries the post-ratification root vector
  */
 bool VerifyStreamHeader(
-        const quint8 *pbuf, uint buflen,
+        const quint8 *pbuf, size_t buflen,
         CID &source_cid, char* source_name, quint8 &priority,
         quint8 &start_code, quint16 &synchronization, quint8 &sequence,
         quint8 &options, quint16 &universe,
@@ -239,7 +239,7 @@ bool VerifyStreamHeader(
  * ratification of the standard.
  */
 bool VerifyStreamHeaderForDraft(
-        const quint8* pbuf, uint buflen,
+        const quint8* pbuf, size_t buflen,
         CID &source_cid, char* source_space, quint8 &priority,
         quint8 &start_code, quint8 &sequence,
         quint16 &universe, quint16 &slot_count,
