@@ -204,12 +204,18 @@ set(SACNVIEW_QT_LIBRARIES
    Qt::Core Qt::Gui Qt::Network Qt::Multimedia Qt::Widgets Qt::OpenGLWidgets
 )
 
+# Additional files depending on platform
+if(APPLE)
+    set(SACNVIEW_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/res/icon.icns")
+endif()
+
 add_executable(sACNView WIN32
     src/main.cpp
     ${SACNVIEW_HEADERS}
     ${SACNVIEW_SOURCES}
     ${SACNVIEW_FORMS}
     ${SACNVIEW_RCC}
+    ${SACNVIEW_EXTRA}
 )
 
 # Qt6 LinguistTools for translation
@@ -312,6 +318,20 @@ target_compile_definitions(sACNView PRIVATE
   "GIT_DATE_YEAR=\"${GIT_DATE_YEAR}\""
   "VERSION=\"${GIT_TAG}\""
 )
+
+if(APPLE)
+    set_target_properties(sACNView PROPERTIES
+        MACOSX_BUNDLE True
+        MACOSX_BUNDLE_ICON_FILE "icon.icns"
+        XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER org.sacnview
+        MACOSX_BUNDLE_GUI_IDENTIFIER org.sacnview
+        MACOSX_BUNDLE_BUNDLE_NAME sACNView
+        MACOSX_BUNDLE_BUNDLE_VERSION "${GIT_TAG}"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "${GIT_TAG}"
+    )
+    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/res/icon.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/res/icon.icns" DESTINATION "sACNView.app/Contents/Resources")
+endif()
 
 # GoogleTest
 option(SACNVIEW_UNIT_TESTS "Enable unit tests" OFF)
