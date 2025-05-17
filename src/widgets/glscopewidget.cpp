@@ -1854,8 +1854,12 @@ void GlScopeWidget::initializeGL()
   glClearColor(0, 0, 0, 1);
 
   // Compile shaders
+  // Note that we should remain with OpenGL 4.1 - Apple are not
+  // supporting higher versions on MacOS
+
   // 2D passthrough shader
   const char* vertexShaderSource =
+    "#version 410\n"
     "in vec2 vertex;\n"
     "uniform mat4 mvp;\n"
     "uniform float pointsize;\n"
@@ -1867,6 +1871,7 @@ void GlScopeWidget::initializeGL()
 
   // Delta Time shader
   const char* vertexDeltaTimeShaderSource =
+    "#version 410\n"
     "in vec4 vertex;\n" // { x prev_timestamp, y prev_level, z timestamp, w level }
     "uniform mat4 mvp;\n"
     "uniform float pointsize;\n"
@@ -1878,10 +1883,12 @@ void GlScopeWidget::initializeGL()
     "}\n";
 
   const char* fragmentShaderSource =
+    "#version 410\n"
+    "layout(location = 0) out vec4 fragColor;\n"
     "uniform vec4 color;\n"
     "void main()\n"
     "{\n"
-    "  gl_FragColor = color;\n"
+    "  fragColor = color;\n"
     "}\n";
 
   m_xyProgram.BuildProgram("xy", vertexShaderSource, fragmentShaderSource);
