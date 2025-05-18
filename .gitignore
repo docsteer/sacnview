@@ -36,6 +36,7 @@ Makefile*
 
 # Visual Studio
 .vs/*
+!.vs/launch.vs.json
 
 # Visual C++ cache files
 ipch/
