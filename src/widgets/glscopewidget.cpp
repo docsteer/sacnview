@@ -1859,7 +1859,7 @@ void GlScopeWidget::initializeGL()
 
   // 2D passthrough shader
   const char* vertexShaderSource =
-#ifdef Q_OS_MAC
+#ifdef Q_OS_UNIX
     "attribute highp vec2 vertex;\n"
 #else   
     "in vec2 vertex;\n"
@@ -1874,7 +1874,7 @@ void GlScopeWidget::initializeGL()
 
   // Delta Time shader
   const char* vertexDeltaTimeShaderSource =
-#ifdef Q_OS_MAC
+#ifdef Q_OS_UNIX
     "attribute highp vec4 vertex;\n"
 #else
     "in vec4 vertex;\n"
@@ -1889,7 +1889,7 @@ void GlScopeWidget::initializeGL()
     "}\n";
 
   const char* fragmentShaderSource =
-#ifdef Q_OS_MAC
+#ifdef Q_OS_UNIX
     "uniform highp vec4 color;\n"
 #else
     "uniform vec4 color;\n"
