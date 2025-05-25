@@ -20,7 +20,8 @@
       "description": "Target Macos. (Release)",
       "inherits": "macos-base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "SACNVIEW_CREATE_INSTALLER": true
       }
     },
     {
@@ -156,7 +157,8 @@
       "name": "macos-release",
       "displayName": "Macos Release",
       "description": "Macos Release build preset",
-      "configurePreset": "macos-release"
+      "configurePreset": "macos-release",
+      "configuration": "Release"
     },
     {
       "name": "linux-release",
