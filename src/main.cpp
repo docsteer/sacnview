@@ -49,8 +49,6 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
     {
       QSurfaceFormat format;
-      format.setVersion(4,1);
-      format.setProfile(QSurfaceFormat::CoreProfile);
       QSurfaceFormat::setDefaultFormat(format);
     }
 

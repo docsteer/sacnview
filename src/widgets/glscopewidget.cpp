@@ -1859,8 +1859,11 @@ void GlScopeWidget::initializeGL()
 
   // 2D passthrough shader
   const char* vertexShaderSource =
-    "#version 410\n"
+#ifdef Q_OS_MAC
+    "attribute highp vec2 vertex;\n"
+#else   
     "in vec2 vertex;\n"
+#endif
     "uniform mat4 mvp;\n"
     "uniform float pointsize;\n"
     "void main()\n"
@@ -1871,8 +1874,11 @@ void GlScopeWidget::initializeGL()
 
   // Delta Time shader
   const char* vertexDeltaTimeShaderSource =
-    "#version 410\n"
-    "in vec4 vertex;\n" // { x prev_timestamp, y prev_level, z timestamp, w level }
+#ifdef Q_OS_MAC
+    "attribute highp vec4 vertex;\n"
+#else
+    "in vec4 vertex;\n"
+#endif
     "uniform mat4 mvp;\n"
     "uniform float pointsize;\n"
     "void main()\n"
@@ -1883,12 +1889,14 @@ void GlScopeWidget::initializeGL()
     "}\n";
 
   const char* fragmentShaderSource =
-    "#version 410\n"
-    "layout(location = 0) out vec4 fragColor;\n"
+#ifdef Q_OS_MAC
+    "uniform highp vec4 color;\n"
+#else
     "uniform vec4 color;\n"
+#endif
     "void main()\n"
     "{\n"
-    "  fragColor = color;\n"
+    "  gl_FragColor = color;\n"
     "}\n";
 
   m_xyProgram.BuildProgram("xy", vertexShaderSource, fragmentShaderSource);
