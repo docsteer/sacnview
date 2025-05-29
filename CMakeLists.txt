@@ -204,12 +204,14 @@ set(SACNVIEW_QT_LIBRARIES
    Qt::Core Qt::Gui Qt::Network Qt::Multimedia Qt::Widgets Qt::OpenGLWidgets
 )
 
+qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES en de es fr)
+
 # Additional files depending on platform
 if(APPLE)
     set(SACNVIEW_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/res/icon.icns")
 endif()
 
-add_executable(sACNView WIN32
+qt_add_executable(sACNView
     src/main.cpp
     ${SACNVIEW_HEADERS}
     ${SACNVIEW_SOURCES}
@@ -318,6 +320,13 @@ target_compile_definitions(sACNView PRIVATE
   "GIT_DATE_YEAR=\"${GIT_DATE_YEAR}\""
   "VERSION=\"${GIT_TAG}\""
 )
+
+# Retrieve version from Git Tag, or use 0.0.1 if not
+if(${GIT_VERSION} MATCHES "v([0-9]+\\.[0-9]+\\.[0-9]+)")
+  project(sACNView VERSION ${CMAKE_MATCH_1})
+else()
+  project(sACNView VERSION 0.0.1)
+endif()
 
 if(APPLE)
     set_target_properties(sACNView PROPERTIES

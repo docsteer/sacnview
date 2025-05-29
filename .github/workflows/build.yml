@@ -28,10 +28,11 @@ jobs:
             qt_modules: 'qtmultimedia'
             dependencies: |
               sudo apt-get install mesa-common-dev libgl1-mesa-dev libpcap-dev libgstreamer-gl1.0-0 libgstreamer-plugins-base1.0-0 libxkbcommon-x11-0 -y
-            installer_setup: |
-              sudo gem install --no-document fpm
+            installer_setup: ""
             configure_preset_name: "linux-x64-release"
             build_preset_name: "linux-release"
+            package_preset_name: "linux"
+            artifact: ./out/build/linux-x64-release/package/*
 
           - os: windows-latest
             qt: '6.8.2'
@@ -88,8 +89,12 @@ jobs:
     - name: CMake Build
       run: cmake --build --preset ${{matrix.build_preset_name}}
 
+    - name: CPack Package
+      if: matrix.package_preset_name
+      run: cpack --preset ${{matrix.package_preset_name}}
+
     - name: Upload Artifact(s)
-      if: runner.os == 'Windows'
+      if: matrix.artifact
       uses: actions/upload-artifact@v4
       with:
         name: ${{ runner.os }}
