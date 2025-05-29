@@ -20,6 +20,7 @@
 #include "consts.h"
 #include <sstream>
 #include <QMessageBox>
+#include <QListWidget>
 #include "streamingacn.h"
 #include "securesacn.h"
 
@@ -41,6 +42,13 @@ PreferencesDialog::PreferencesDialog(QWidget* parent) :
   ui->cmbPathwayTxSequenceType->setCurrentIndex(0); // Default Time
 
   connect(ui->btnSaveWindows, &QAbstractButton::clicked, this, &PreferencesDialog::storeWindowLayoutNow);
+
+  // Category selection
+  connect(ui->lwPrefCategory, &QListWidget::itemSelectionChanged, [this]() {
+      const auto item = ui->lwPrefCategory->currentItem();
+      const auto index = ui->lwPrefCategory->indexFromItem(item);
+      ui->stackedWidget->setCurrentIndex(index.row());
+  });
 }
 
 PreferencesDialog::~PreferencesDialog()
