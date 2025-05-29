@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>625</width>
-    <height>523</height>
+    <width>793</width>
+    <height>490</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -36,35 +36,79 @@
       <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <widget class="QListWidget" name="lwPrefCategory">
+      <property name="font">
+       <font>
+        <pointsize>14</pointsize>
+       </font>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>32</width>
+        <height>32</height>
+       </size>
+      </property>
+      <property name="spacing">
+       <number>5</number>
+      </property>
       <item>
        <property name="text">
         <string>Language</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../res/resources.qrc">
+         <normaloff>:/preferences/pref_language.svg</normaloff>:/preferences/pref_language.svg</iconset>
        </property>
       </item>
       <item>
        <property name="text">
         <string>Display</string>
        </property>
+       <property name="icon">
+        <iconset resource="../res/resources.qrc">
+         <normaloff>:/preferences/pref_display.svg</normaloff>:/preferences/pref_display.svg</iconset>
+       </property>
       </item>
       <item>
        <property name="text">
         <string>Network</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../res/resources.qrc">
+         <normaloff>:/preferences/pref_network.svg</normaloff>:/preferences/pref_network.svg</iconset>
        </property>
       </item>
       <item>
        <property name="text">
         <string>Receive</string>
        </property>
+       <property name="icon">
+        <iconset resource="../res/resources.qrc">
+         <normaloff>:/preferences/pref_recieve.svg</normaloff>:/preferences/pref_recieve.svg</iconset>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Transmit</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../res/resources.qrc">
+         <normaloff>:/preferences/pref_transmit.svg</normaloff>:/preferences/pref_transmit.svg</iconset>
+       </property>
       </item>
      </widget>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>4</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="page">
        <layout class="QVBoxLayout" name="verticalLayout_7">
         <item>
-         <widget class="QLabel" name="label_10">
+         <widget class="QLabel" name="label_16">
+          <property name="font">
+           <font>
+            <pointsize>16</pointsize>
+           </font>
+          </property>
           <property name="text">
            <string>Language</string>
           </property>
@@ -611,14 +655,14 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="0" colspan="2">
+        <item row="2" column="1">
          <widget class="QCheckBox" name="cbTxBadPriority">
           <property name="text">
            <string>Allow Priorities to exceed 200 (E1.31:2016 6.2.3)*</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="0" colspan="2">
+        <item row="3" column="1">
          <widget class="QCheckBox" name="cbTxRateOverride">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">

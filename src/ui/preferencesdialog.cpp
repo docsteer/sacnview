@@ -49,6 +49,8 @@ PreferencesDialog::PreferencesDialog(QWidget* parent) :
       const auto index = ui->lwPrefCategory->indexFromItem(item);
       ui->stackedWidget->setCurrentIndex(index.row());
   });
+
+  ui->lwPrefCategory->setCurrentRow(0);
 }
 
 PreferencesDialog::~PreferencesDialog()

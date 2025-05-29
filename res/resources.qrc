@@ -32,4 +32,11 @@
         <file>camera.wav</file>
         <file>beep.wav</file>
     </qresource>
+	<qresource prefix="/preferences">
+		<file>pref_display.svg</file>
+		<file>pref_language.svg</file>
+		<file>pref_network.svg</file>
+		<file>pref_recieve.svg</file>
+		<file>pref_transmit.svg</file>
+	</qresource>
 </RCC>
