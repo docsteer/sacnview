@@ -103,7 +103,7 @@ static const QString S_PATHWAYSECURE_SEQUENCE_MAP = QStringLiteral("PathwaySecur
 static const QColor mixColor(QColorConstants::Svg::coral);
 
 static const QByteArray DefaultByteArrayDmx(MAX_DMX_ADDRESS, char(0));
-static QByteArray DefaultByteArrayPriority(int i)
+static QByteArray DefaultByteArrayPriority(size_t i)
 {
   return QByteArray(MAX_DMX_ADDRESS, char(100 + i));
 }
@@ -127,7 +127,7 @@ Preferences::Preferences()
   // Allow the commandline to override the configuration file
   const QStringList args = QCoreApplication::arguments();
   // Find the last ini override
-  int pref_index = args.lastIndexOf(QStringLiteral("-ini"));
+  auto pref_index = args.lastIndexOf(QStringLiteral("-ini"));
   if (pref_index == -1)
     pref_index = args.lastIndexOf(QStringLiteral("/ini"));
 
@@ -223,7 +223,7 @@ QColor Preferences::colorForCID(const CID& cid) const
   // Use the zlib crc32 implementation to get a consistent checksum for a given CID
   quint8 cid_buf[CID::CIDBYTES] = {};
   cid.Pack(cid_buf);
-  quint32 id = crc32(crc32(0L, Z_NULL, 0), (const Bytef*)cid_buf, CID::CIDBYTES);
+  const auto id = crc32(crc32(0L, Z_NULL, 0), (const Bytef*)cid_buf, CID::CIDBYTES);
 
   // Create a reasonable spread of different colors
   constexpr double golden_ratio = 0.618033988749895;
@@ -499,7 +499,7 @@ void Preferences::loadPreferences()
   m_rxbadpriority = settings.value(S_RX_BAD_PRIORITY, m_rxbadpriority).toBool();
   {
     QVariant v = settings.value(S_LOCALE, m_locale);
-    if (v.type() == QMetaType::QLocale)
+    if (v.typeId() == QMetaType::QLocale)
       m_locale = v.toLocale();
     else
       m_locale = QLocale(v.toString());

@@ -50,7 +50,7 @@ bool CsvModelExporter::saveAs(const QString& filename) const
     {
       const QVariant field = m_model->data(m_model->index(i, j, m_rootIndex), Qt::DisplayRole);
 
-      switch (field.type())
+      switch (field.typeId())
       {
       default:
       {

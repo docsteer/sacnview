@@ -49,7 +49,7 @@ class PathwaySecure
                  * @param[out] outbuf Pointer to post amble buffer within pbuf, nullprt on failure
                  * @return True on success
                  */
-                static bool GetBuffer(quint8* inbuf, uint buflen, quint8 **outbuf);
+                static bool GetBuffer(quint8* inbuf, size_t buflen, quint8 **outbuf);
             };
         };
 
@@ -97,7 +97,7 @@ class PathwaySecure
          * @return True if header ok
          */
         static bool VerifyStreamHeader(
-                const quint8* pbuf, uint buflen,
+                const quint8* pbuf, size_t buflen,
                 CID &source_cid, char* source_name,
                 quint8 &priority, quint8 &start_code,
                 quint16 &synchronization, quint8 &sequence,
@@ -133,7 +133,7 @@ class PathwaySecure
          * @return True if packet passes security validation
          */
         static bool VerifyStreamSecurity(
-                const quint8* pbuf, uint buflen,
+                const quint8* pbuf, size_t buflen,
                 password_t password,
                 sACNSource &source);
 
@@ -146,7 +146,7 @@ class PathwaySecure
          * @param password Password to for hash
          * @return True if security features applied
          */
-        static bool ApplyStreamSecurity(quint8* pbuf, uint buflen,
+        static bool ApplyStreamSecurity(quint8* pbuf, size_t buflen,
                 const CID &cid, const password_t &password);
 
     private:

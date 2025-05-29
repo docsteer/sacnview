@@ -258,9 +258,9 @@ QVariant SACNSourceTableModel::getTimingSummary(const RowData& rowData, int colu
   switch (column)
   {
   default: break;
-  case COL_TIME_SHORT: return rowData.shortCount;
-  case COL_TIME_LONG:return rowData.longCount;
-  case COL_TIME_STATIC:return rowData.staticCount;
+  case COL_TIME_SHORT: return static_cast<quint64>(rowData.shortCount);
+  case COL_TIME_LONG:return static_cast<quint64>(rowData.longCount);
+  case COL_TIME_STATIC:return static_cast<quint64>(rowData.staticCount);
   }
   return QVariant();
 }
@@ -455,7 +455,7 @@ void SACNSourceTableModel::clearOffline()
         sACNSource* source = listener->source(i);
         if (source->src_valid)
         {
-          m_sourceToTableRow[source] = m_rows.size();
+          m_sourceToTableRow[source] = static_cast<int>(m_rows.size());
           m_rows.emplace_back(source);
         }
       }
@@ -547,7 +547,7 @@ void SACNSourceTableModel::sourceOnline(sACNSource* source)
   if (!source || !source->src_valid)
     return;
 
-  const int row = m_rows.size();
+  const int row = static_cast<int>(m_rows.size());
   beginInsertRows(QModelIndex(), row, row);
   m_sourceToTableRow[source] = row;
   m_rows.emplace_back(source);

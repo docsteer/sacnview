@@ -151,7 +151,7 @@ void IPC_Client::readyRead()
         if (m_sender->isSending() == false)
             m_sender->startSending(true);
 
-        for (quint16 n = 0; n < levels.count(); n++)
+        for (quint16 n = 0; n < levels.length(); n++)
         {
             m_sender->setLevel(n, levels.at(n));
         }

@@ -89,7 +89,7 @@ private:
         item *parent() const { return m_parentItem; }
         sACNSyncListModel *parentModel() const { return m_parentModel; }
 
-        int childCount() const { return m_children.size(); }
+        int childCount() const { return static_cast<int>(m_children.size()); }
         item *child(size_t index) const;
         const QVector<item *> &children() const { return m_children; }
         void addChild(item *);

@@ -338,7 +338,8 @@ ScopeModel::AddResult ScopeModel::addTrace(const QColor& color, uint16_t univers
       m_trigger.address_lo = address_lo;
     }
 
-    beginInsertRows(QModelIndex(), m_traceTable.size(), m_traceTable.size());
+    const auto insertPos = static_cast<int>(m_traceTable.size());
+    beginInsertRows(QModelIndex(), insertPos, insertPos);
     ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_storageTime, m_reservation);
     m_traceTable.push_back(trace);
     m_traceLookup.emplace(universe, std::vector<ScopeTrace*>(1, trace));
@@ -364,7 +365,8 @@ ScopeModel::AddResult ScopeModel::addTrace(const QColor& color, uint16_t univers
   }
 
   // Add this new trace to the existing universe
-  beginInsertRows(QModelIndex(), m_traceTable.size(), m_traceTable.size());
+  const auto newRow = static_cast<int>(m_traceTable.size());
+  beginInsertRows(QModelIndex(), newRow, newRow);
   ScopeTrace* trace = new ScopeTrace(color, universe, address_hi, address_lo, m_storageTime, m_reservation);
   m_traceTable.push_back(trace);
   univs_item.push_back(trace);
@@ -436,7 +438,7 @@ void ScopeModel::removeTrace(uint16_t universe, uint16_t address_hi, uint16_t ad
       ScopeTrace* trace = (*it);
       if (trace->universe() == universe && trace->addressHi() == address_hi && trace->addressLo() == address_lo)
       {
-        const int row = it - m_traceTable.begin();
+        const auto row = static_cast<int>(it - m_traceTable.begin());
         beginRemoveRows(QModelIndex(), row, row);
         it = m_traceTable.erase(it);
         delete trace;
@@ -471,7 +473,7 @@ void ScopeModel::removeTrace(uint16_t universe, uint16_t address_hi, uint16_t ad
 void ScopeModel::removeTraces(const QModelIndexList& indexes)
 {
   // Create list of items to remove
-  std::vector<size_t> traceRows;
+  std::vector<int> traceRows;
   for (const QModelIndex& idx : indexes)
   {
     if (idx.isValid() && idx.row() < rowCount())
@@ -485,7 +487,7 @@ void ScopeModel::removeTraces(const QModelIndexList& indexes)
 
   size_t prevRow = std::numeric_limits<size_t>::max();
 
-  for (size_t row : traceRows)
+  for (const auto row : traceRows)
   {
     if (prevRow == row)
       continue; // This was a duplicate
@@ -522,7 +524,7 @@ ScopeTrace* ScopeModel::findTrace(uint16_t universe, uint16_t address_hi, uint16
 
 QModelIndex ScopeModel::findFirstTraceIndex(uint16_t universe, uint16_t address_hi, uint16_t address_lo, int column) const
 {
-  for (size_t row = 0; row < m_traceTable.size(); ++row)
+  for (int row = 0; row < m_traceTable.size(); ++row)
   {
     const ScopeTrace* trace = m_traceTable[row];
     if (trace && trace->universe() == universe && trace->addressHi() == address_hi && trace->addressLo() == address_lo)
@@ -664,7 +666,7 @@ int ScopeModel::rowCount(const QModelIndex& parent) const
   if (parent.isValid())
     return 0;
 
-  return m_traceTable.size();
+  return static_cast<int>(m_traceTable.size());
 }
 
 Qt::ItemFlags ScopeModel::flags(const QModelIndex& index) const
@@ -1626,7 +1628,7 @@ GlScopeWidget::GlScopeWidget(QWidget* parent)
 
   m_model = new ScopeModel(this);
   connect(m_model, &ScopeModel::runningChanged, this, &GlScopeWidget::onRunningChanged);
-  connect(m_model, &ScopeModel::traceVisibilityChanged, this, QOverload<void>::of(&QOpenGLWidget::update));
+  connect(m_model, &ScopeModel::traceVisibilityChanged, this, qOverload<>(&QOpenGLWidget::update));
 
   setMinimumSize(200, 200);
   setVerticalScaleMode(VerticalScale::Percent);
@@ -1852,9 +1854,16 @@ void GlScopeWidget::initializeGL()
   glClearColor(0, 0, 0, 1);
 
   // Compile shaders
+  // Note that we should remain with OpenGL 4.1 - Apple are not
+  // supporting higher versions on MacOS
+
   // 2D passthrough shader
   const char* vertexShaderSource =
+#ifdef Q_OS_UNIX
+    "attribute highp vec2 vertex;\n"
+#else   
     "in vec2 vertex;\n"
+#endif
     "uniform mat4 mvp;\n"
     "uniform float pointsize;\n"
     "void main()\n"
@@ -1865,7 +1874,11 @@ void GlScopeWidget::initializeGL()
 
   // Delta Time shader
   const char* vertexDeltaTimeShaderSource =
-    "in vec4 vertex;\n" // { x prev_timestamp, y prev_level, z timestamp, w level }
+#ifdef Q_OS_UNIX
+    "attribute highp vec4 vertex;\n"
+#else
+    "in vec4 vertex;\n"
+#endif
     "uniform mat4 mvp;\n"
     "uniform float pointsize;\n"
     "void main()\n"
@@ -1876,7 +1889,11 @@ void GlScopeWidget::initializeGL()
     "}\n";
 
   const char* fragmentShaderSource =
+#ifdef Q_OS_UNIX
+    "uniform highp vec4 color;\n"
+#else
     "uniform vec4 color;\n"
+#endif
     "void main()\n"
     "{\n"
     "  gl_FragColor = color;\n"
@@ -2046,6 +2063,9 @@ void GlScopeWidget::paintGL()
         gridLines.emplace_back(lineRight, max_value);
         DrawLevelAxisText(painter, metrics, scopeWindow, max_value, y_scale, postfix);
       } break;
+              
+      case VerticalScale::Invalid:
+          break;
       }
     }
 
@@ -2110,7 +2130,7 @@ void GlScopeWidget::paintGL()
   {
     m_xyProgram.setColor(gridColor);
     glVertexAttribPointer(m_xyProgram.vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, gridLines.data());
-    glDrawArrays(GL_LINES, 0, gridLines.size());
+    glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(gridLines.size()));
   }
 
   // Draw the cursorLines
@@ -2118,7 +2138,7 @@ void GlScopeWidget::paintGL()
   {
     m_xyProgram.setColor(cursorColor);
     glVertexAttribPointer(m_xyProgram.vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, cursorLines.data());
-    glDrawArrays(GL_LINES, 0, cursorLines.size());
+    glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(cursorLines.size()));
   }
 
   if (m_model->isTriggered())
@@ -2140,7 +2160,7 @@ void GlScopeWidget::paintGL()
     const std::vector<QVector2D> triggerLine = makeTriggerLine(m_model->triggerType());
 
     glVertexAttribPointer(m_xyProgram.vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, triggerLine.data());
-    glDrawArrays(GL_TRIANGLES, 0, triggerLine.size());
+    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(triggerLine.size()));
   }
 
   glDisableVertexAttribArray(m_xyProgram.vertexLocation);
@@ -2166,12 +2186,12 @@ void GlScopeWidget::paintGL()
       if (levels.value().size() > 1)
       {
         glVertexAttribPointer(m_deltaProgram.vertexLocation, 4, GL_FLOAT, GL_FALSE, sizeof(QVector2D), levels.value().data());
-        glDrawArrays(GL_LINE_STRIP, 0, levels.value().size() - 1);
+        glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(levels.value().size() - 1));
 
         // Draw the points if enabled
         if (m_levelDotSize > 0.5f)
         {
-          glDrawArrays(GL_POINTS, 0, levels.value().size() - 1);
+          glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(levels.value().size() - 1));
         }
       }
     }
@@ -2203,12 +2223,12 @@ void GlScopeWidget::paintGL()
       m_xyProgram.setColor(trace->color());
       const auto levels = trace->values();
       glVertexAttribPointer(m_xyProgram.vertexLocation, 2, GL_FLOAT, GL_FALSE, 0, levels.value().data());
-      glDrawArrays(GL_LINE_STRIP, 0, levels.value().size());
+      glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(levels.value().size()));
 
       // Draw the points if enabled
       if (m_levelDotSize > 0.5f)
       {
-        glDrawArrays(GL_POINTS, 0, levels.value().size());
+        glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(levels.value().size()));
       }
     }
     glDisable(GL_PROGRAM_POINT_SIZE);
@@ -2337,7 +2357,7 @@ void GlScopeWidget::updateCursor(const QPoint& widgetPos)
   {
     // Convert to trace space
     const QMatrix4x4 invModelMatrix = m_modelMatrix.inverted();
-    m_cursorPoint = invModelMatrix * pos;
+    m_cursorPoint = invModelMatrix.map(pos);
     // Round the level to nearest whole DMX
     m_cursorPoint.setY(std::round(m_cursorPoint.y()));
   }

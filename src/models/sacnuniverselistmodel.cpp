@@ -104,11 +104,11 @@ int sACNUniverseListModel::rowCount(const QModelIndex &parent) const
     {
         if (parent.row() >= m_universes.count() || parent.row() < 0)
             return 0;
-        return m_universes[parent.row()]->sources.count();
+        return static_cast<int>(m_universes[parent.row()]->sources.count());
     }
     if(!parent.isValid())
     {
-        return m_universes.count();
+        return static_cast<int>(m_universes.count());
     }
 
     return 0;
@@ -226,8 +226,8 @@ void sACNUniverseListModel::sourceOnline(sACNSource *source)
 
     // We are adding the source for this universe
     QModelIndex parent = index(m_universes[univIndex]->universe - m_start, 0);
-    int firstRow = m_universes[univIndex]->sources.count();
-    int lastRow = firstRow;
+    const auto firstRow = static_cast<int>(m_universes[univIndex]->sources.count());
+    const auto lastRow = firstRow;
     beginInsertRows(parent, firstRow, lastRow);
     m_universes[univIndex]->sources << info;
     m_universes[univIndex]->sourcesByCid[source->src_cid] = info;
@@ -266,9 +266,9 @@ void sACNUniverseListModel::sourceChanged(sACNSource *source)
     info->name = source->name;
 
     // Redraw entire universe
-    QModelIndex parent = index(m_universes[univIndex]->universe - m_start, 0);
+    const auto parent = index(static_cast<int>(m_universes[univIndex]->universe) - m_start, 0);
     QModelIndex topLeft = parent.sibling(0,0);
-    QModelIndex bottomRight = parent.sibling(m_universes[univIndex]->sources.count(), 0);
+    QModelIndex bottomRight = parent.sibling(static_cast<int>(m_universes[univIndex]->sources.count()), 0);
     emit dataChanged(topLeft, bottomRight);
 }
 
@@ -288,7 +288,7 @@ void sACNUniverseListModel::sourceOffline(sACNSource *source)
     if (info == Q_NULLPTR) { return; }
 
     QModelIndex parent = index(m_universes[univIndex]->universe - m_start, 0);
-    int first = m_universes[univIndex]->sources.indexOf(info);
+    const auto first = static_cast<int>(m_universes[univIndex]->sources.indexOf(info));
     int last = first;
     beginRemoveRows(parent, first, last);
 

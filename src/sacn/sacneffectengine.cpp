@@ -186,7 +186,7 @@ void sACNEffectEngine::renderText(QString text)
     if(m_image)
         delete m_image;
     m_imageWidth = 8 * text.length();
-    int img_size = 16 * m_imageWidth;
+    const auto img_size = 16 * m_imageWidth;
     m_image = new quint8[img_size];
 
     memset(m_image, 0, img_size);
@@ -199,7 +199,7 @@ void sACNEffectEngine::renderText(QString top, QString bottom)
     if(m_image)
         delete m_image;
     m_imageWidth = 32;
-    int img_size = 16 * m_imageWidth;
+    const auto img_size = 16 * m_imageWidth;
     m_image = new quint8[img_size];
     memset(m_image, 0, img_size);
 
@@ -213,10 +213,10 @@ void sACNEffectEngine::renderText(QString text, int yStart, bool big)
     int char_width = big ? 8 : 4;
     int char_height = big  ? 8 : 5;
 
-    int width = char_width * text.length();
+    const auto width = char_width * text.length();
     int height = 16;
 
-    int img_size = width * height;
+    const auto img_size = width * height;
 
 
     for (int i = 0 ; i < text.length() ; i++)
@@ -239,7 +239,7 @@ void sACNEffectEngine::renderText(QString text, int yStart, bool big)
             {
                 int raw_pixel = (1 << (8 - 1 - x)) & character_scanline;
                 bool pixel = raw_pixel > 0 ? true : false;
-                int pixel_index = (base_x + x) + (base_y + y)*width;
+                const auto pixel_index = (base_x + x) + (base_y + y)*width;
 
                 if(pixel == true && pixel_index < img_size) {
                     m_image[pixel_index] = 255;
@@ -250,7 +250,7 @@ void sACNEffectEngine::renderText(QString text, int yStart, bool big)
 
 
 
-    m_renderedImage = QImage(m_image, width, height, QImage::Format_Grayscale8);
+    m_renderedImage = QImage(m_image, static_cast<int>(width), static_cast<int>(height), QImage::Format_Grayscale8);
 
     emit textImageChanged(QPixmap::fromImage(m_renderedImage.scaledToHeight(100)));
 }

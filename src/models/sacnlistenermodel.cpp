@@ -26,7 +26,7 @@ SACNListenerTableModel::~SACNListenerTableModel()
 
 int SACNListenerTableModel::rowCount(const QModelIndex& parent) const
 {
-  return m_universeDetails.size();
+  return static_cast<int>(m_universeDetails.size());
 }
 
 int SACNListenerTableModel::columnCount(const QModelIndex& parent) const

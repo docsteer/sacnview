@@ -85,6 +85,7 @@ void PreferencesDialog::showEvent(QShowEvent* e)
   case DisplayFormat::DECIMAL:       ui->DecimalDisplayFormat->setChecked(true); break;
   case DisplayFormat::PERCENT:       ui->PercentDisplayFormat->setChecked(true); break;
   case DisplayFormat::HEXADECIMAL:   ui->HexDisplayFormat->setChecked(true); break;
+  case DisplayFormat::COUNT:         break;
   }
 
   ui->cbDisplayBlind->setChecked(Preferences::Instance().GetBlindVisualizer());

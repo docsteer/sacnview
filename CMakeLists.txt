@@ -4,6 +4,9 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15 CACHE STRING "Minimum macOS version target
 
 project(sACNView DESCRIPTION "A tool for sending and receiving the ANSI E1.31 Streaming ACN control protocol")
 
+# Additional search modules
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tools/CMake")
+
 # Workaround for cmake bug
 # Ninja generator will often exceed command line limits, but cmake doesn't use the response file by default
 SET(CMAKE_NINJA_FORCE_RESPONSE_FILE 1 CACHE INTERNAL "")
@@ -201,12 +204,20 @@ set(SACNVIEW_QT_LIBRARIES
    Qt::Core Qt::Gui Qt::Network Qt::Multimedia Qt::Widgets Qt::OpenGLWidgets
 )
 
-add_executable(sACNView WIN32
+qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES en de es fr)
+
+# Additional files depending on platform
+if(APPLE)
+    set(SACNVIEW_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/res/icon.icns")
+endif()
+
+qt_add_executable(sACNView
     src/main.cpp
     ${SACNVIEW_HEADERS}
     ${SACNVIEW_SOURCES}
     ${SACNVIEW_FORMS}
     ${SACNVIEW_RCC}
+    ${SACNVIEW_EXTRA}
 )
 
 # Qt6 LinguistTools for translation
@@ -232,10 +243,21 @@ set_target_properties(sACNView PROPERTIES
 target_link_libraries(sACNView PRIVATE ${SACNVIEW_QT_LIBRARIES})
 
 # Link PCap/WinPCap libraries
-target_link_libraries(sACNView PRIVATE ${PCAP_LIBS})
 if(MSVC)
+    target_link_libraries(sACNView PRIVATE ${PCAP_LIBS})
     target_link_libraries(sACNView PRIVATE delayimp)
     target_link_options(sACNView PRIVATE "/DELAYLOAD:wpcap.dll")
+endif()
+
+if(UNIX)
+    find_package(PCAP REQUIRED)
+    target_link_libraries(sACNView PRIVATE ${PCAP_LIBRARY})
+endif()
+
+# Link ZLib
+if(UNIX)
+    find_package(ZLIB REQUIRED)
+    target_link_libraries(sACNView PRIVATE ${ZLIB_LIBRARIES})
 endif()
 
 # Blake2
@@ -298,6 +320,27 @@ target_compile_definitions(sACNView PRIVATE
   "GIT_DATE_YEAR=\"${GIT_DATE_YEAR}\""
   "VERSION=\"${GIT_TAG}\""
 )
+
+# Retrieve version from Git Tag, or use 0.0.1 if not
+if(${GIT_VERSION} MATCHES "v([0-9]+\\.[0-9]+\\.[0-9]+)")
+  project(sACNView VERSION ${CMAKE_MATCH_1})
+else()
+  project(sACNView VERSION 0.0.1)
+endif()
+
+if(APPLE)
+    set_target_properties(sACNView PROPERTIES
+        MACOSX_BUNDLE True
+        MACOSX_BUNDLE_ICON_FILE "icon.icns"
+        XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER org.sacnview
+        MACOSX_BUNDLE_GUI_IDENTIFIER org.sacnview
+        MACOSX_BUNDLE_BUNDLE_NAME sACNView
+        MACOSX_BUNDLE_BUNDLE_VERSION "${GIT_TAG}"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "${GIT_TAG}"
+    )
+    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/res/icon.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/res/icon.icns" DESTINATION "sACNView.app/Contents/Resources")
+endif()
 
 # GoogleTest
 option(SACNVIEW_UNIT_TESTS "Enable unit tests" OFF)

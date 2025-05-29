@@ -258,8 +258,20 @@ void sACNListener::processDatagram(const QByteArray &data, const QHostAddress &d
   quint16 synchronization = NOT_SYNCHRONIZED_VALUE; // E1.31:2018
     quint8 options = NO_OPTIONS_VALUE;
 
-  const e_ValidateStreamHeader streamHeaderVersion = ValidateStreamHeader(reinterpret_cast<const quint8*>(data.data()), data.length(), root_vector, source_cid, source_name, priority,
-    start_code, synchronization, sequence, options, universe, slot_count, pdata);
+  const e_ValidateStreamHeader streamHeaderVersion = ValidateStreamHeader(
+                                          reinterpret_cast<const quint8*>(data.data()),
+                                          static_cast<int>(data.length()),
+                                            root_vector,
+                                            source_cid,
+                                            source_name,
+                                            priority,
+                                            start_code,
+                                            synchronization,
+                                            sequence,
+                                            options,
+                                            universe,
+                                            slot_count,
+                                            pdata);
 
   switch (streamHeaderVersion)
     {

@@ -47,7 +47,7 @@ AddMultiDialog::AddMultiDialog(QWidget *parent) :
     connect(ui->sbNumUniverses, QOverload<int>::of(&QSpinBox::valueChanged), this, &AddMultiDialog::rangeChanged);
 
     ui->dlFadeRate->setMinimum(0);
-    ui->dlFadeRate->setMaximum(FX_FADE_RATES.count()-1);
+    ui->dlFadeRate->setMaximum(static_cast<int>(FX_FADE_RATES.count()-1));
     ui->dlFadeRate->setValue(0);
 
     rangeChanged(0);

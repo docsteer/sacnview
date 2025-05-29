@@ -36,6 +36,7 @@ Makefile*
 
 # Visual Studio
 .vs/*
+!.vs/launch.vs.json
 
 # Visual C++ cache files
 ipch/
@@ -63,13 +64,15 @@ ipch/
 #Libs
 !libs/**
 
-#Binary Output
-out/build/*
-*.exe
-*.zip
-*.dmg
-*.AppImage
-*.deb
+#Build Output
+out/*
+
+#macos
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon[]
+._*
 
 #Translations
 translations/sACNView\.ts

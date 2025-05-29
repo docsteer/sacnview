@@ -112,7 +112,7 @@ private:
     quint8 m_manualLevel;
     QImage m_renderedImage;
     quint8 *m_image;
-    int m_imageWidth;
+    size_t m_imageWidth;
 
     // Render a single line of variable width text
     void renderText(QString text);

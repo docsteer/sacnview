@@ -159,7 +159,7 @@ CID CID::StringToCID(const char* ptext)
 //Translates a cid to a preallocated text string of 37 bytes (includes terminating NULL0
 void CID::CIDIntoString(const CID& cid, char* ptxt)
 {
-	sprintf(ptxt, "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
+	snprintf(ptxt, 37, "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
 			cid.m_cid[0], cid.m_cid[1], cid.m_cid[2], cid.m_cid[3], cid.m_cid[4],
 			cid.m_cid[5], cid.m_cid[6],	cid.m_cid[7], cid.m_cid[8],	cid.m_cid[9],
 			cid.m_cid[10], cid.m_cid[11], cid.m_cid[12], cid.m_cid[13], cid.m_cid[14],

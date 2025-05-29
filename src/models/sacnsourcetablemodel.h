@@ -69,11 +69,11 @@ public:
 
   // Time interval summary
   Q_SLOT void setShortInterval(int millisec);
-  int shortInterval() const { return m_shortInterval.count(); }
+  int shortInterval() const { return static_cast<int>(m_shortInterval.count()); }
   Q_SLOT void setLongInterval(int millisec);
-  int longInterval() const { return m_longInterval.count(); }
+  int longInterval() const { return static_cast<int>(m_longInterval.count()); }
   Q_SLOT void setStaticInterval(int millisec);
-  int staticInterval() const { return m_staticInterval.count(); }
+  int staticInterval() const { return static_cast<int>(m_staticInterval.count()); }
 
   // Add a listener. Does not take ownership
   void addListener(const sACNManager::tListener& listener);

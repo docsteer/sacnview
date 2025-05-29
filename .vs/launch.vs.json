@@ -1,0 +1,15 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "name": "sACNView Debug",
+      "project": "CMakeLists.txt",
+      "projectTarget": "",
+      "type": "default",
+      "env": {
+        "PATH": "%QT_ROOT_DIR%/bin;%PATH%"
+      }
+    }
+  ]
+}

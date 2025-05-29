@@ -260,7 +260,7 @@ void UniverseDisplay::updateUniverseCompareTimer()
 
     // Start looking for static out-of-sync levels if appropriate
     if (m_compareListener)
-        m_compareTimer = startTimer(m_stableCompareTime / 4);
+        m_compareTimer = startTimer(static_cast<int>(m_stableCompareTime / 4));
 }
 
 void UniverseDisplay::setFlickerFinder(bool on)

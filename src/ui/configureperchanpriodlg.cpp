@@ -107,7 +107,7 @@ void ConfigurePerChanPrioDlg::presetButtonPressed()
 {
     QToolButton *button = dynamic_cast<QToolButton *>(sender());
     if(!button) return;
-    int index = m_presetButtons.indexOf(button);
+    const auto index = static_cast<int>(m_presetButtons.indexOf(button));
 
     if(ui->btnPresetRec->isChecked())
     {

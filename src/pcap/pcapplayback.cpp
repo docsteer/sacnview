@@ -171,14 +171,14 @@ void PcapPlayback::on_btnOpen_clicked()
 
         if (pkt_count++ == 0) {
             // First packet
-            pkt_start_time = pkt_start_time.addSecs(pkt_header->ts.tv_sec);
-            pkt_start_time = pkt_start_time.addMSecs((pkt_header->ts.tv_usec / 1000));
+            pkt_start_time = pkt_start_time.addSecs(static_cast<int>(pkt_header->ts.tv_sec));
+            pkt_start_time = pkt_start_time.addMSecs(static_cast<int>(pkt_header->ts.tv_usec / 1000));
         }
 
     }
 
     // Get time of last packet
-    pkt_end_time = pkt_end_time.addSecs(pkt_header->ts.tv_sec);
+    pkt_end_time = pkt_end_time.addSecs(static_cast<int>(pkt_header->ts.tv_sec));
     pkt_end_time = pkt_end_time.addMSecs((pkt_header->ts.tv_usec / 1000));
 
     /* Clean up */

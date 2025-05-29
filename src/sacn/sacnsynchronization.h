@@ -103,7 +103,7 @@ public:
     tCIDDetails getSynchronizationSources(tsyncAddress syncAddress) const { return m_synchronizationSources.value(syncAddress); }
     QList<quint16> getSynchronizationAddresses() const { return m_synchronizationSources.keys(); }
 
-    void processPacket(const quint8* pbuf, uint buflen, QHostAddress destination, QHostAddress sender);
+    void processPacket(const quint8* pbuf, size_t buflen, const QHostAddress &destination, const QHostAddress &sender);
 
 signals:
     void newSyncAddress(tsyncAddress syncAddress);

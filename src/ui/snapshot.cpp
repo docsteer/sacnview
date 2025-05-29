@@ -119,7 +119,7 @@ void Snapshot::on_btnAddRow_rightClicked()
     // Decode the string range of universes
     auto strList = rawInput.split(",", Qt::SkipEmptyParts);
     QList<quint16> universeList;
-    for (const auto& item : qAsConst(strList)) {
+    for (const auto& item : std::as_const(strList)) {
         if (item.contains("-")) {
             // Ranges
             auto strRange = item.split("-", Qt::SkipEmptyParts);
@@ -161,7 +161,7 @@ void Snapshot::on_btnAddRow_rightClicked()
     }
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    for (const auto universe : qAsConst(universeList)) {
+    for (const auto universe : std::as_const(universeList)) {
         addUniverse(universe);
         QCoreApplication::processEvents();
     }
@@ -181,9 +181,9 @@ void Snapshot::on_btnRemoveRow_clicked()
     std::sort(rows.rbegin(), rows.rend());
 
     // Remove from bottom
-    for(const auto &row: qAsConst(rows))
+    for(const auto &row: std::as_const(rows))
     {
-        for(const auto snap: qAsConst(m_snapshots))
+        for(const auto snap: std::as_const(m_snapshots))
         {
 
            if (snap->getControlWidget() == ui->tableWidget->cellWidget(row, COL_BUTTON))
@@ -206,7 +206,7 @@ void Snapshot::addUniverse(quint16 universe)
         return;
 
     // Check it's not a duplicate
-    for (const auto &snapshot : qAsConst(m_snapshots)) {
+    for (const auto &snapshot : std::as_const(m_snapshots)) {
         if (snapshot->getUniverse() == universe)
             return;
     }
@@ -307,7 +307,7 @@ void Snapshot::on_btnSnapshot_pressed()
 void Snapshot::btnPlay_update(bool updateState)
 {
     bool displayPause = false;
-    for(const auto snap: qAsConst(m_snapshots))
+    for(const auto snap: std::as_const(m_snapshots))
         if (snap->isPlaying())
             displayPause = true;
     if (displayPause)
@@ -340,19 +340,19 @@ void Snapshot::on_btnPlay_pressed()
 
 void Snapshot::saveSnapshot()
 {
-    for(const auto snap: qAsConst(m_snapshots))
+    for(const auto snap: std::as_const(m_snapshots))
         snap->takeSnapshot();
 }
 
 void Snapshot::playSnapshot()
 {
-    for(const auto snap: qAsConst(m_snapshots))
+    for(const auto snap: std::as_const(m_snapshots))
         snap->playSnapshot();
 }
 
 void Snapshot::stopSnapshot()
 {
-    for(const auto snap: qAsConst(m_snapshots))
+    for(const auto snap: std::as_const(m_snapshots))
         snap->stopSnapshot();
 }
 
@@ -401,7 +401,7 @@ void Snapshot::updateMatchIcon()
     if(m_state == stPlayback)
     {
         bool allmatch = true;
-        for(const auto snap: qAsConst(m_snapshots))
+        for(const auto snap: std::as_const(m_snapshots))
             allmatch &= snap->isMatching();
         if(allmatch)
         {

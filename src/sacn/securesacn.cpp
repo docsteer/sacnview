@@ -23,7 +23,7 @@ PathwaySecure::Password::Password(QString password) :
         nullptr, 0); // No Key
 }
 
-bool PathwaySecure::RootLayer::PostAmble::GetBuffer(quint8 *inbuf, uint buflen, quint8 **outbuf)
+bool PathwaySecure::RootLayer::PostAmble::GetBuffer(quint8 *inbuf, size_t buflen, quint8 **outbuf)
 {
     *outbuf = nullptr;
 
@@ -181,7 +181,7 @@ PathwaySecure::Sequence::value_t PathwaySecure::Sequence::next(const CID &cid, t
 }
 
 bool PathwaySecure::VerifyStreamHeader(
-        const quint8* pbuf, uint buflen,
+        const quint8* pbuf, size_t buflen,
         CID &source_cid, char* source_name,
         quint8 &priority, quint8 &start_code,
         quint16 &synchronization, quint8 &sequence,
@@ -232,7 +232,7 @@ void PathwaySecure::InitStreamHeader(
     PackBUint32(pbuf + ROOT_VECTOR_ADDR,  RootLayer::VECTOR);
 }
 
-bool PathwaySecure::VerifyStreamSecurity(const quint8* pbuf, uint buflen, password_t password, sACNSource &source)
+bool PathwaySecure::VerifyStreamSecurity(const quint8* pbuf, size_t buflen, password_t password, sACNSource &source)
 {
     auto &instance = getInstance();
     if(!pbuf)
@@ -282,7 +282,7 @@ bool PathwaySecure::VerifyStreamSecurity(const quint8* pbuf, uint buflen, passwo
     return source.pathway_secure.isSecure();
 }
 
-bool PathwaySecure::ApplyStreamSecurity(quint8* pbuf, uint buflen, const CID &cid, const password_t &password)
+bool PathwaySecure::ApplyStreamSecurity(quint8* pbuf, size_t buflen, const CID &cid, const password_t &password)
 {
     auto &instance = getInstance();
 

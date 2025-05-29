@@ -103,7 +103,7 @@ sACNDiscoveredSourceListModel::modelContainer::getUniverse(const CID& cid, unsig
 int sACNDiscoveredSourceListModel::modelContainer::getRow(const CID& cid) const
 {
   QMutexLocker locker(&listMutex);
-  return sources.indexOf(cid);
+  return static_cast<int>(sources.indexOf(cid));
 }
 
 int sACNDiscoveredSourceListModel::modelContainer::getRow(const CID& cid, universe_t universe) const
@@ -113,7 +113,7 @@ int sACNDiscoveredSourceListModel::modelContainer::getRow(const CID& cid, univer
   if (sourceRow == -1)
     return -1;
 
-  return universes.at(sourceRow).indexOf(universe);
+  return static_cast<int>(universes.at(sourceRow).indexOf(universe));
 }
 
 qsizetype sACNDiscoveredSourceListModel::modelContainer::count() const
@@ -151,7 +151,7 @@ void sACNDiscoveredSourceListModel::newSource(CID cid)
 {
   if (m_sources.getRow(cid) == -1)
   {
-    const auto childRow = m_sources.count();
+    const auto childRow = static_cast<int>(m_sources.count());
     
     const bool appendSource = (childRow != 0);
     if (appendSource)
@@ -195,7 +195,7 @@ void sACNDiscoveredSourceListModel::newUniverse(CID cid, quint16 universe)
 
     if (m_sources.getRow(cid, universe) == -1)
     {
-      const auto childRow = m_sources.count(cid);
+      const auto childRow = static_cast<int>(m_sources.count(cid));
       beginInsertRows(parent, childRow, childRow);
       m_sources.addUniverse(cid, universe);
       endInsertRows();
@@ -339,7 +339,7 @@ QModelIndex sACNDiscoveredSourceListModel::parent(const QModelIndex& index) cons
 
   if (index.internalId())
   {
-    QModelIndex ret = createIndex(index.internalId() - 1, 0);
+    QModelIndex ret = createIndex(static_cast<int>(index.internalId()) - 1, 0);
     return ret;
   }
 
@@ -352,7 +352,7 @@ int sACNDiscoveredSourceListModel::rowCount(const QModelIndex& parent) const
   if (!parent.isValid())
   {
     if (!m_sources.count()) return 1; // Details that no sources found
-    return m_sources.count();
+    return static_cast<int>(m_sources.count());
   }
 
   // Universe count of source
@@ -361,7 +361,7 @@ int sACNDiscoveredSourceListModel::rowCount(const QModelIndex& parent) const
     const auto cid = m_sources.getCID(parent.row());
     if (cid == CID())
       return 0;
-    return m_sources.count(cid);
+    return static_cast<int>(m_sources.count(cid));
   }
 
   return 0;

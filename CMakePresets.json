@@ -1,10 +1,29 @@
 {
-  "version": 3,
+  "version": 6,
   "cmakeMinimumRequired": {
     "major": 3,
     "minor": 20
   },
   "configurePresets": [
+      {
+      "name": "macos-debug",
+      "displayName": "macos Debug",
+      "description": "Target Macos. (Debug)",
+      "inherits": "macos-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "macos-release",
+      "displayName": "macos Release",
+      "description": "Target Macos. (Release)",
+      "inherits": "macos-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "SACNVIEW_CREATE_INSTALLER": true
+      }
+    },
     {
       "name": "windows-x64-debug",
       "displayName": "x64 Debug",
@@ -59,15 +78,72 @@
       "cacheVariables": {
         "CMAKE_C_COMPILER": "cl.exe",
         "CMAKE_CXX_COMPILER": "cl.exe",
-        "Qt6_DIR": "$env{QTROOT}/6.8.2/msvc2022_64/lib/cmake/Qt6"
+        "Qt6_DIR": "$env{QT_ROOT_DIR}/lib/cmake/Qt6"
       },
       "environment": {
-        "PATH": "$penv{QTROOT}/6.8.2/msvc2022_64/bin/;$penv{PATH}"
+        "PATH": "$penv{QT_ROOT_DIR}/bin/;$penv{PATH}"
       },
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
+      }
+    },
+    {
+      "name": "linux-x64-debug",
+      "displayName": "Linux x64 Debug",
+      "description": "Target Linux (64-bit). (Debug)",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "linux-x64-release",
+      "displayName": "Linux x64 Release",
+      "description": "Target Linux (64-bit). (Release)",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "SACNVIEW_CREATE_INSTALLER": true
+      }
+    },
+    {
+      "name": "linux-base",
+      "description": "Target Linux",
+      "hidden": true,
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "cacheVariables": {
+        "Qt6_DIR": "$env{QT_ROOT_DIR}/lib/cmake/Qt6"
+      },
+      "environment": {
+        "PATH": "$penv{QT_ROOT_DIR}/bin/;$penv{PATH}"
+        },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+        }
+    },
+    {
+      "name": "macos-base",
+      "description": "Target Macos.",
+      "hidden": true,
+      "generator": "Xcode",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "cacheVariables": {
+        "Qt6_DIR": "$env{QT_ROOT_DIR}/lib/cmake/Qt6"
+      },
+      "environment": {
+        "PATH": "$penv{QT_ROOT_DIR}/bin/;$penv{PATH}"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
       }
     }
   ],
@@ -75,8 +151,28 @@
     {
       "name": "windows-x64-release-installer",
       "displayName": "x64 Installer",
-      "description": "Windows (64-bit) MSVC Release with Installer",
+      "description": "Windows (64-bit) MSVC build preset with Installer",
       "configurePreset": "windows-x64-release-installer"
+    },
+    {
+      "name": "macos-release",
+      "displayName": "Macos Release",
+      "description": "Macos Release build preset",
+      "configurePreset": "macos-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release",
+      "description": "Linux Release build preset",
+      "configurePreset": "linux-x64-release"
+    }
+  ],
+  "packagePresets": [
+    {
+      "name": "linux",
+      "configurePreset": "linux-x64-release",
+      "generators": ["DEB"]
     }
   ]
 }
