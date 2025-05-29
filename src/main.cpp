@@ -44,6 +44,8 @@ int main(int argc, char *argv[])
 {
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", QByteArray());
     qputenv("QT_SCALE_FACTOR", QByteArray());
+    // Allow us to control our own Dark mode on Windows
+    qputenv("QT_QPA_PLATFORM", "windows:darkmode=0");
 
     // Share the OpenGL Contexts
     QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
