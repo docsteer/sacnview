@@ -27,6 +27,8 @@
 #include "models/sacnsourcetablemodel.h"
 #include "models/csvmodelexport.h"
 
+#include "delegates/resettablecounterdelegate.h"
+
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QStandardPaths>
@@ -73,6 +75,10 @@ UniverseView::UniverseView(int universe, QWidget *parent) :
     ui->tableView->setColumnHidden(SACNSourceTableModel::COL_PATHWAY_SECURE, !Preferences::Instance().GetPathwaySecureRx());
     // Don'display the Notes column
     ui->tableView->setColumnHidden(SACNSourceTableModel::COL_NOTES, true);
+
+    // Set the delegates for resettable counters
+    ui->tableView->setItemDelegateForColumn(SACNSourceTableModel::COL_JUMPS, new ResettableCounterDelegate());
+    ui->tableView->setItemDelegateForColumn(SACNSourceTableModel::COL_SEQ_ERR, new ResettableCounterDelegate());
 
     // Allow the user to temporarily rearrange the columns
     ui->tableView->horizontalHeader()->setSectionsMovable(true);

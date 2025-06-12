@@ -6,6 +6,7 @@
 #include "preferences.h"
 #include "models/sacnsourcetablemodel.h"
 #include "models/csvmodelexport.h"
+#include "delegates/resettablecounterdelegate.h"
 
 #include <QFileDialog>
 #include <QStandardPaths>
@@ -45,6 +46,10 @@ MultiView::MultiView(QWidget* parent)
 
   // Allow the user to temporarily rearrange the columns
   ui->sourceTableView->horizontalHeader()->setSectionsMovable(true);
+
+  // Set the delegates for resettable counters
+  ui->sourceTableView->setItemDelegateForColumn(SACNSourceTableModel::COL_JUMPS, new ResettableCounterDelegate());
+  ui->sourceTableView->setItemDelegateForColumn(SACNSourceTableModel::COL_SEQ_ERR, new ResettableCounterDelegate());
 }
 
 MultiView::MultiView(int firstUniverse, QWidget* parent)

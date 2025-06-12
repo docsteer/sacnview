@@ -52,8 +52,11 @@ bool SACNSourceTableModel::setData(const QModelIndex& index, const QVariant& val
   {
     m_notes.insert(m_rows[index.row()].cid, value.toString());
   } return true;
-  case COL_SEQ_ERR: // TODO
-  case COL_JUMPS: // TODO
+  case COL_SEQ_ERR:
+      resetSequenceCounters();
+      break;
+  case COL_JUMPS:
+      resetJumpsCounters();
     break;
   }
   return false;

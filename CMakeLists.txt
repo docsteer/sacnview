@@ -100,6 +100,7 @@ set(SACNVIEW_HEADERS
     src/widgets/steppedspinbox.h
     src/widgets/checkableheader.h
     src/models/sacnlistenermodel.h
+    src/delegates/resettablecounterdelegate.h
 )
 
 set(SACNVIEW_SOURCES
@@ -155,6 +156,7 @@ set(SACNVIEW_SOURCES
     src/models/csvmodelexport.cpp
     src/widgets/checkableheader.cpp
     src/models/sacnlistenermodel.cpp
+    src/delegates/resettablecounterdelegate.cpp
 )
 
 # Prepend the path to all sources
