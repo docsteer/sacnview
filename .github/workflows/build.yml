@@ -51,7 +51,7 @@ jobs:
             qt_modules: 'qtmultimedia'
             installer_setup: ''
             xcode: latest-stable
-            configure_preset_name: "macos-release"
+            configure_preset_name: "macos"
             build_preset_name: "macos-release"
 
     steps:

@@ -5,25 +5,6 @@
     "minor": 20
   },
   "configurePresets": [
-      {
-      "name": "macos-debug",
-      "displayName": "macos Debug",
-      "description": "Target Macos. (Debug)",
-      "inherits": "macos-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "macos-release",
-      "displayName": "macos Release",
-      "description": "Target Macos. (Release)",
-      "inherits": "macos-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "SACNVIEW_CREATE_INSTALLER": true
-      }
-    },
     {
       "name": "windows-x64-debug",
       "displayName": "x64 Debug",
@@ -128,9 +109,8 @@
         }
     },
     {
-      "name": "macos-base",
-      "description": "Target Macos.",
-      "hidden": true,
+      "name": "macos",
+      "description": "Target Macos usinng XCode",
       "generator": "Xcode",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
@@ -158,7 +138,7 @@
       "name": "macos-release",
       "displayName": "Macos Release",
       "description": "Macos Release build preset",
-      "configurePreset": "macos-release",
+      "configurePreset": "macos",
       "configuration": "Release"
     },
     {
