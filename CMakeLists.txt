@@ -201,7 +201,8 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 # Find Qt 6
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Network Multimedia Widgets OpenGLWidgets REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Network Multimedia Widgets OpenGLWidgets LinguistTools REQUIRED)
+
 set(SACNVIEW_QT_LIBRARIES
    Qt::Core Qt::Gui Qt::Network Qt::Multimedia Qt::Widgets Qt::OpenGLWidgets
 )
@@ -223,12 +224,7 @@ qt_add_executable(sACNView
 )
 
 # Qt6 LinguistTools for translation
-if (Qt6_FOUND)
-  find_package(Qt6 COMPONENTS LinguistTools)
-   qt_add_translations(TARGETS sACNView
-      TS_FILES ${SACNVIEW_TS}
-   )
-endif()
+qt_add_translations(TARGETS sACNView TS_FILES ${SACNVIEW_TS})
 
 target_include_directories(sACNView PRIVATE
     ${SACNVIEW_HEADER_PATHS}
