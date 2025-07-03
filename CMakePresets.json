@@ -115,7 +115,8 @@
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
       "cacheVariables": {
-        "Qt6_DIR": "$env{QT_ROOT_DIR}/lib/cmake/Qt6"
+        "Qt6_DIR": "$env{QT_ROOT_DIR}/lib/cmake/Qt6",
+        "SACNVIEW_CREATE_INSTALLER": true
       },
       "environment": {
         "PATH": "$penv{QT_ROOT_DIR}/bin/;$penv{PATH}"

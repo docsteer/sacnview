@@ -64,6 +64,37 @@ if(WIN32)
     endif()
 endif()
 
+if(APPLE)
+    if(TARGET Qt::qmake AND NOT TARGET Qt::macdeployqt)
+        get_target_property(_qt_qmake_location Qt::qmake IMPORTED_LOCATION)
+
+        execute_process(
+            COMMAND "${_qt_qmake_location}" -query QT_INSTALL_PREFIX
+            RESULT_VARIABLE return_code
+            OUTPUT_VARIABLE qt_install_prefix
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+
+        set(imported_location "${qt_install_prefix}/bin/macdeployqt")
+
+        if(EXISTS ${imported_location})
+            add_executable(Qt::macdeployqt IMPORTED)
+
+            set_target_properties(Qt::macdeployqt PROPERTIES
+                IMPORTED_LOCATION ${imported_location}
+            )
+        endif()
+    endif()
+
+    if(TARGET Qt::macdeployqt)
+        # execute macdeployqt in deploy directory after build
+        add_custom_command(TARGET sACNView
+            POST_BUILD
+            COMMAND Qt::macdeployqt "$<TARGET_BUNDLE_DIR:sACNView>"
+        )
+    endif()
+endif()
+
 if(LINUX)
     # Generate the deployment script for the target MyApp.
     qt_generate_deploy_app_script(
