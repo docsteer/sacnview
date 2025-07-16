@@ -13,17 +13,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SACNLISTENER_H
-#define SACNLISTENER_H
+#pragma once
 
+#include "consts.h"
+#include "sacnsocket.h"
+#include "streamingacn.h"
+
+#include <QElapsedTimer>
 #include <QObject>
+#include <QPoint>
+#include <QSet>
 #include <QThread>
 #include <QTimer>
-#include <QElapsedTimer>
-#include <QPoint>
-#include "consts.h"
-#include "streamingacn.h"
-#include "sacnsocket.h"
 
 #include <array>
 #include <list>
@@ -194,6 +195,3 @@ private:
 
   sACNRxSocket::sBindStatus m_bindStatus;
 };
-
-
-#endif // SACNLISTENER_H

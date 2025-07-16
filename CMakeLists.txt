@@ -13,27 +13,27 @@ SET(CMAKE_NINJA_FORCE_RESPONSE_FILE 1 CACHE INTERNAL "")
 
 # Only do these if this is the main project, and not if it is included through add_subdirectory
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-  ### Require out-of-source builds
-  file(TO_CMAKE_PATH "${PROJECT_BINARY_DIR}/CMakeLists.txt" LOC_PATH)
-  if(EXISTS "${LOC_PATH}")
-    message(FATAL_ERROR "You cannot build in a source directory (or any directory with a CMakeLists.txt file). Please make a build subdirectory. Feel free to remove CMakeCache.txt and CMakeFiles.")
-  endif()
+    ### Require out-of-source builds
+    file(TO_CMAKE_PATH "${PROJECT_BINARY_DIR}/CMakeLists.txt" LOC_PATH)
+    if(EXISTS "${LOC_PATH}")
+        message(FATAL_ERROR "You cannot build in a source directory (or any directory with a CMakeLists.txt file). Please make a build subdirectory. Feel free to remove CMakeCache.txt and CMakeFiles.")
+    endif()
 
-  # Nicer IDE
-  set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+    # Nicer IDE
+    set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-  # Workaround for CMake bug https://gitlab.kitware.com/cmake/cmake/-/issues/20812
-  if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_compile_options(
-      $<$<CONFIG:RELEASE>:/Zi>
-    )
+    # Workaround for CMake bug https://gitlab.kitware.com/cmake/cmake/-/issues/20812
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        add_compile_options(
+            $<$<CONFIG:RELEASE>:/Zi>
+        )
 
-    add_link_options(
-      $<$<CONFIG:RELEASE>:/DEBUG>
-      $<$<CONFIG:RELEASE>:/OPT:REF>
-      $<$<CONFIG:RELEASE>:/OPT:ICF>
-    )
-  endif()
+        add_link_options(
+            $<$<CONFIG:RELEASE>:/DEBUG>
+            $<$<CONFIG:RELEASE>:/OPT:REF>
+            $<$<CONFIG:RELEASE>:/OPT:ICF>
+        )
+    endif()
 endif()
 
 set(SACNVIEW_HEADER_PATHS
@@ -201,9 +201,10 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 # Find Qt 6
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Network Multimedia Widgets OpenGLWidgets REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Network Multimedia Widgets OpenGLWidgets LinguistTools REQUIRED)
+
 set(SACNVIEW_QT_LIBRARIES
-   Qt::Core Qt::Gui Qt::Network Qt::Multimedia Qt::Widgets Qt::OpenGLWidgets
+    Qt::Core Qt::Gui Qt::Network Qt::Multimedia Qt::Widgets Qt::OpenGLWidgets
 )
 
 qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES en de es fr)
@@ -223,12 +224,7 @@ qt_add_executable(sACNView
 )
 
 # Qt6 LinguistTools for translation
-if (Qt6_FOUND)
-  find_package(Qt6 COMPONENTS LinguistTools)
-   qt_add_translations(TARGETS sACNView
-      TS_FILES ${SACNVIEW_TS}
-   )
-endif()
+qt_add_translations(TARGETS sACNView TS_FILES ${SACNVIEW_TS})
 
 target_include_directories(sACNView PRIVATE
     ${SACNVIEW_HEADER_PATHS}
@@ -237,8 +233,8 @@ target_include_directories(sACNView PRIVATE
 target_compile_features(sACNView PRIVATE cxx_std_17)
 
 set_target_properties(sACNView PROPERTIES
-  CXX_EXTENSIONS OFF
-  AUTOUIC_SEARCH_PATHS ui
+    CXX_EXTENSIONS OFF
+    AUTOUIC_SEARCH_PATHS ui
 )
 
 # Link Qt libraries
@@ -271,74 +267,85 @@ target_include_directories(sACNView PRIVATE ${BLAKE2_PATH})
 
 # sha or tag
 execute_process(
-  COMMAND git describe --always --tags
-  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-  OUTPUT_VARIABLE GIT_VERSION
-  OUTPUT_STRIP_TRAILING_WHITESPACE
+    COMMAND git describe --always --tags
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    OUTPUT_VARIABLE GIT_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 # date
 execute_process(
-  COMMAND git show -1 -s --date=format:"%a" --format="%cd" ${GIT_VERSION}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-  OUTPUT_VARIABLE GIT_DATE_DAY
-  OUTPUT_STRIP_TRAILING_WHITESPACE
+    COMMAND git show -1 -s --date=format:"%a" --format="%cd" ${GIT_VERSION}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    OUTPUT_VARIABLE GIT_DATE_DAY
+    OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 execute_process(
-  COMMAND git show -1 -s --date=format:"%d" --format="%cd" ${GIT_VERSION}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-  OUTPUT_VARIABLE GIT_DATE_DATE
-  OUTPUT_STRIP_TRAILING_WHITESPACE
+    COMMAND git show -1 -s --date=format:"%d" --format="%cd" ${GIT_VERSION}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    OUTPUT_VARIABLE GIT_DATE_DATE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 execute_process(
-  COMMAND git show -1 -s --date=format:"%b" --format="%cd" ${GIT_VERSION}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-  OUTPUT_VARIABLE GIT_DATE_MONTH
-  OUTPUT_STRIP_TRAILING_WHITESPACE
+    COMMAND git show -1 -s --date=format:"%b" --format="%cd" ${GIT_VERSION}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    OUTPUT_VARIABLE GIT_DATE_MONTH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 execute_process(
-  COMMAND git show -1 -s --date=format:"%Y" --format="%cd" ${GIT_VERSION}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-  OUTPUT_VARIABLE GIT_DATE_YEAR
-  OUTPUT_STRIP_TRAILING_WHITESPACE
+    COMMAND git show -1 -s --date=format:"%Y" --format="%cd" ${GIT_VERSION}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    OUTPUT_VARIABLE GIT_DATE_YEAR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 # most recent tag
 execute_process(
-  COMMAND git describe --abbrev=0 --always --tags
-  WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-  OUTPUT_VARIABLE GIT_TAG
-  OUTPUT_STRIP_TRAILING_WHITESPACE
+    COMMAND git describe --abbrev=0 --always --tags
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    OUTPUT_VARIABLE GIT_TAG
+    OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 target_compile_definitions(sACNView PRIVATE
-  "GIT_CURRENT_SHA1=\"${GIT_VERSION}\""
-  "GIT_DATE_DAY=\"${GIT_DATE_DAY}\""
-  "GIT_DATE_DATE=\"${GIT_DATE_DATE}\""
-  "GIT_DATE_MONTH=\"${GIT_DATE_MONTH}\""
-  "GIT_DATE_YEAR=\"${GIT_DATE_YEAR}\""
-  "VERSION=\"${GIT_TAG}\""
+    "GIT_CURRENT_SHA1=\"${GIT_VERSION}\""
+    "GIT_DATE_DAY=\"${GIT_DATE_DAY}\""
+    "GIT_DATE_DATE=\"${GIT_DATE_DATE}\""
+    "GIT_DATE_MONTH=\"${GIT_DATE_MONTH}\""
+    "GIT_DATE_YEAR=\"${GIT_DATE_YEAR}\""
+    "VERSION=\"${GIT_TAG}\""
 )
 
 # Retrieve version from Git Tag, or use 0.0.1 if not
 if(${GIT_VERSION} MATCHES "v([0-9]+\\.[0-9]+\\.[0-9]+)")
-  project(sACNView VERSION ${CMAKE_MATCH_1})
+    project(sACNView VERSION ${CMAKE_MATCH_1})
 else()
-  project(sACNView VERSION 0.0.1)
+    project(sACNView VERSION 0.0.1)
 endif()
 
 if(APPLE)
+    # Apple version must be in M.m.p format for app store distribution
+    if(${GIT_TAG} MATCHES [[([0-9]*\.[0-9]*\.[0-9]*)]])
+        message(STATUS "Apple version ${CMAKE_MATCH_1}")
+        set(APPLE_VERSION ${CMAKE_MATCH_1})
+    else()
+        message(STATUS "Tag not found, using default Apple version")
+        set(APPLE_VERSION "0.0.1")
+    endif()
+
     set_target_properties(sACNView PROPERTIES
         MACOSX_BUNDLE True
         MACOSX_BUNDLE_ICON_FILE "icon.icns"
-        XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER org.sacnview
-        MACOSX_BUNDLE_GUI_IDENTIFIER org.sacnview
-        MACOSX_BUNDLE_BUNDLE_NAME sACNView
-        MACOSX_BUNDLE_BUNDLE_VERSION "${GIT_TAG}"
-        MACOSX_BUNDLE_SHORT_VERSION_STRING "${GIT_TAG}"
+		MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/res/MacOSXBundleInfo.plist.in"
+        MACOSX_BUNDLE_GUI_IDENTIFIER com.carallon.sacnview
+        MACOSX_BUNDLE_BUNDLE_NAME "sACNView Desktop"
+        MACOSX_BUNDLE_BUNDLE_VERSION "${APPLE_VERSION}"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "${APPLE_VERSION}"
+        XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_CURRENT_LIST_DIR}/res/Entitlements.plist"
+        XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER com.carallon.sacnview
     )
     set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/res/icon.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/res/icon.icns" DESTINATION "sACNView.app/Contents/Resources")
@@ -346,14 +353,14 @@ endif()
 
 # GoogleTest
 option(SACNVIEW_UNIT_TESTS "Enable unit tests" OFF)
-if (SACNVIEW_UNIT_TESTS)
-  enable_testing()
-  add_subdirectory(tests)
+if(SACNVIEW_UNIT_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
 endif()
 
 # Deploy the build using windeployqt
 option(SACNVIEW_CREATE_INSTALLER "Create the sACNView installer" OFF)
 
 if(SACNVIEW_CREATE_INSTALLER)
-  include(install/install.cmake)
+    include(install/install.cmake)
 endif()
