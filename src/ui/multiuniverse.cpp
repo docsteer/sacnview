@@ -270,7 +270,6 @@ void MultiUniverse::enableChanged(bool enable)
 void MultiUniverse::setupControl(int row, sACNEffectEngine::FxMode mode, int value)
 {
     // Clean up, if needed
-    ui->tableWidget->cellWidget(row, COL_CONTROL)->deleteLater();
     ui->tableWidget->setCellWidget(row, COL_CONTROL, Q_NULLPTR);
     if (ui->tableWidget->item(row, COL_CONTROL)) {
         delete ui->tableWidget->item(row, COL_CONTROL);
