@@ -36,6 +36,7 @@ protected slots:
     void on_listWidget_itemSelectionChanged();
     void on_btnSelect_pressed();
     void on_btnWorkOffline_pressed();
+    void on_listWidget_doubleClicked();
 private:
     Ui::NICSelectDialog *ui;
     QNetworkInterface m_selectedInterface;

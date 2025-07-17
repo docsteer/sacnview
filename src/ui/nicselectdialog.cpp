@@ -96,3 +96,12 @@ void NICSelectDialog::on_btnWorkOffline_pressed()
     msgBox.exec();
     reject();
 }
+
+void NICSelectDialog::on_listWidget_doubleClicked()
+{
+    if (ui->listWidget->currentRow() > -1)
+    {
+        m_selectedInterface = m_interfaceList[ui->listWidget->currentRow()];
+        accept();
+    }
+}
