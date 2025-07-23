@@ -146,6 +146,10 @@ void PreferencesDialog::showEvent(QShowEvent* e)
   ui->cmbTheme->clear();
   ui->cmbTheme->addItems(Themes::getDescriptions());
   ui->cmbTheme->setCurrentIndex(static_cast<int>(Preferences::Instance().GetTheme()));
+#ifdef Q_OS_MACOS
+  // On MacOS we use the OS theme to determine our theme
+  ui->cmbTheme->setEnabled(false);
+#endif
 
   ui->sbMulticastTtl->setValue(Preferences::Instance().GetMulticastTtl());
 }

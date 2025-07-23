@@ -26,6 +26,7 @@
 #include <QStatusBar>
 #include <QStyleFactory>
 #include <QStandardPaths>
+#include <QStyleHints>
 #include <QSurfaceFormat>
 
 #include "themes.h"
@@ -73,6 +74,20 @@ int main(int argc, char *argv[])
         crashwindow->show();
     }
 #endif
+
+    // On MacOS, use the system provided theme
+    #ifdef Q_OS_MACOS
+    const auto hints = QGuiApplication::styleHints();
+    if (hints->colorScheme() == Qt::ColorScheme::Dark)
+    {
+        Preferences::Instance().SetTheme(Themes::DARK);
+    }
+    else
+    {
+        Preferences::Instance().SetTheme(Themes::LIGHT);
+    }
+    #endif
+
 
     // Setup theme
     Themes::apply(Preferences::Instance().GetTheme());
