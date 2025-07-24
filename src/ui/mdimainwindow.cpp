@@ -223,16 +223,6 @@ void MDIMainWindow::on_actionMultiUniverse_triggered()
 
 QWidget* MDIMainWindow::showWidgetAsSubWindow(QWidget* w)
 {
-  // Connect cross-window triggering signals
-  // Check if extant
-  const QMetaObject* meta = w->metaObject();
-  if (meta->indexOfSlot("startRx()") != -1)
-  {
-    // Classes should support both or neither
-    connect(this, SIGNAL(startReceiverViews()), w, SLOT(startRx()));
-    connect(this, SIGNAL(stopReceiverViews()), w, SLOT(stopRx()));
-  }
-
   switch (Preferences::Instance().GetWindowMode())
   {
   default:

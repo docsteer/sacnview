@@ -152,21 +152,21 @@ int main(int argc, char *argv[])
 #endif
 
     // Show window
-    if (Preferences::Instance().GetWindowMode() == WindowMode::Floating)
+    if (Preferences::Instance().GetRestoreWindowLayout())
     {
-      // Restore after show to place the floating windows on top
       w->show();
       w->restoreSubWindows();
-    }
-    else if (Preferences::Instance().GetRestoreWindowLayout())
-    {
-      // MDI must restore before showing
-      w->restoreSubWindows();
-      w->show();
     }
     else
     {
-      w->showMaximized();
+        if (Preferences::Instance().GetWindowMode() == WindowMode::Floating)
+        {
+            w->show();
+        }
+        else
+        {
+            w->showMaximized();
+        }
     }
 
     // Show interface name on statusbar
@@ -206,7 +206,6 @@ int main(int argc, char *argv[])
 
     int result = a.exec();
 
-    w->saveSubWindows();
     delete w;
     delete versionCheck;
 
