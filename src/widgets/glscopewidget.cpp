@@ -546,7 +546,6 @@ ScopeModel::ScopeModel(QObject* parent)
 
 ScopeModel::~ScopeModel()
 {
-  private_removeAllTraces();
 }
 
 QVariant ScopeModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -908,7 +907,7 @@ bool ScopeModel::setJsonConfig(const QJsonObject& config)
   m_trigger.setFromJson(config.value(QLatin1String("trigger")).toObject());
 
   setRunTime(config.value(QLatin1String("run_time")).toDouble());
-  setStorageTime(config.value(QLatin1String("storage_time")).toDouble()); 
+  setStorageTime(config.value(QLatin1String("storage_time")).toDouble());
 
   endResetModel();
   // Force a re-render
@@ -985,7 +984,7 @@ bool ScopeModel::saveTraces(QIODevice& file) const
 
   // Table:
   // Capture Options:,All Packets/Level Changes
-  // 
+  //
   //              Labels, bob, jim, ...
   // 2024-01-15,   Color, red, green, ...
   // Wallclock,   Time (s),U1.1, U1.2/3, ... (Given as Universe.CoarseDMX/FineDmx (1-512)
@@ -1861,7 +1860,7 @@ void GlScopeWidget::initializeGL()
   const char* vertexShaderSource =
 #ifdef Q_OS_UNIX
     "attribute highp vec2 vertex;\n"
-#else   
+#else
     "in vec2 vertex;\n"
 #endif
     "uniform mat4 mvp;\n"
@@ -1915,6 +1914,7 @@ void GlScopeWidget::cleanupGL()
   m_deltaProgram.UnloadProgram();
 
   doneCurrent();
+  disconnect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &GlScopeWidget::cleanupGL);
 }
 
 inline static void DrawLevelAxisText(QPainter& painter, const QFontMetricsF& metrics, const QRectF& scopeWindow, int level, qreal y_scale, const QString& postfix)
@@ -2063,7 +2063,7 @@ void GlScopeWidget::paintGL()
         gridLines.emplace_back(lineRight, max_value);
         DrawLevelAxisText(painter, metrics, scopeWindow, max_value, y_scale, postfix);
       } break;
-              
+
       case VerticalScale::Invalid:
           break;
       }
