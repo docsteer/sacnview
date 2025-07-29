@@ -31,7 +31,7 @@
 
 #include <QMdiArea>
 #include <QMdiSubWindow>
-#include <QOpenGlWidget>
+#include <QOpenGLWidget>
 
 static constexpr int kDockStateVersion = 1; // Increment whenever changing Docking
 
