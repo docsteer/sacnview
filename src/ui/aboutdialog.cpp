@@ -63,6 +63,10 @@ aboutDialog::aboutDialog(QWidget* parent)
   // Automatic updates
   ui->chkAutoUpdate->setChecked(Preferences::Instance().GetAutoCheckUpdates());
 
+  // Thanks
+  ui->lblThanks->setText(
+      tr("<p>The macos version of sACNView is provided<br/>with with the support of <a href=\"https://www.carallon.com\">Carallon</a>."));
+
   // Libs
   ui->lblLicense->setText(
     tr("<p>This application is provided under the <a href=\"http://www.apache.org/licenses/LICENSE-2.0\">Apache License, version 2.0</a></p>")
