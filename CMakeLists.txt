@@ -214,7 +214,7 @@ if(APPLE)
     set(SACNVIEW_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/res/icon.icns")
 endif()
 
-qt_add_executable(sACNView
+qt_add_executable(sACNView WIN32
     src/main.cpp
     ${SACNVIEW_HEADERS}
     ${SACNVIEW_SOURCES}
