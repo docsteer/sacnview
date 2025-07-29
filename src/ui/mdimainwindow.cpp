@@ -31,6 +31,7 @@
 
 #include <QMdiArea>
 #include <QMdiSubWindow>
+#include <QOpenGlWidget>
 
 static constexpr int kDockStateVersion = 1; // Increment whenever changing Docking
 
@@ -44,6 +45,21 @@ MDIMainWindow::MDIMainWindow(QWidget* parent) :
   m_proxySync(new sACNSyncListModel::proxy(this))
 {
   ui->setupUi(this);
+
+  if (Preferences::Instance().GetWindowMode() == WindowMode::MDI)
+  {
+      m_mdiArea = new QMdiArea(this);
+      setCentralWidget(m_mdiArea);
+
+      // Nasty workaround to prevent the window being shown/hidden when we open the scope view
+      // See https://stackoverflow.com/questions/76026196/how-to-force-qt-to-use-the-opengl-window-type
+      const auto dummyGlWidget = new QOpenGLWidget(this);
+      const auto dummySubWindow = m_mdiArea->addSubWindow(dummyGlWidget);
+      QTimer::singleShot(0, [this, dummySubWindow]() {
+              m_mdiArea->removeSubWindow(dummySubWindow);
+              delete dummySubWindow;
+          });
+  }
 
   // Universe list
   ui->treeView->setModel(m_model);
