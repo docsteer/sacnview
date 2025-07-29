@@ -19,7 +19,7 @@ Unicode true
 SetCompressor /SOLID lzma
 RequestExecutionLevel admin
 
-!define PRODUCT_NAME "sACNView64"
+!define PRODUCT_NAME "sACNView"
 !define PRODUCT_PUBLISHER "Tom Steer"
 !define PRODUCT_WEB_SITE "https://www.sacnview.org"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\sACNView.exe"
