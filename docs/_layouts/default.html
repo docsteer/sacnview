@@ -12,10 +12,10 @@
       </script>
     {% endif %}
 	  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-    
+
 	  <!-- Script updates the links to the latest release -->
 	<script>
-    
+
     <!-- Polyfill for older ECMAScript -->
     if (!String.prototype.endsWith) {
         String.prototype.endsWith = function(search, this_len) {
@@ -25,8 +25,8 @@
             return this.substring(this_len - search.length, this_len) === search;
         };
     }
-    
-    
+
+
 	$.getJSON('https://api.github.com/repos/docsteer/sacnview/releases/latest', function (data) {
 
     document.getElementById("name_release").innerHTML = "Release Version : " + data.name;
@@ -44,9 +44,9 @@
 				$('#download-linux-appimg').attr('href', download_url);
 		});
 	});
-  
-  
-  
+
+
+
   $.getJSON('https://api.github.com/repos/docsteer/sacnview/releases', function (data) {
 
     document.getElementById("name_prerelease").innerHTML = "Pre-Release Version : "+data[0].name;
@@ -69,7 +69,7 @@
     }
   });
   </script>
-	  
+
     <meta charset="UTF-8">
 
 {% seo %}
@@ -93,9 +93,9 @@
 	  <section id="prerelease-download" style="display:none">
             <h2 id="name_prerelease"></h1>
             <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-win" class="btn"><span> Windows</span></a>
-            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-mac" class="btn"><span> macOS</span></a>
-            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-linux-deb" class="btn"><span> Linux (.deb)</span></a>
-            <a href="https://github.com/docsteer/sacnview/releases/latest" id="pre-download-linux-appimg" class="btn"><span> Linux (AppImage)</span></a>
+            <a href="#" id="pre-download-mac" class="btn"><span>macOS<br/>Coming Soon!</span></a>
+            <a href="#" id="pre-download-linux-deb" class="btn"><span>Linux (.deb)<br/>Coming Soon!</span></a>
+            <a href="#" id="pre-download-linux-appimg" class="btn"><span>Linux (AppImage)<br/>Coming Soon!</span></a>
           </section>
       {% endif %}
       {% if site.github.is_project_page %}
