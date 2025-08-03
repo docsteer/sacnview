@@ -28,9 +28,7 @@ win32 {
     DEFINES += USE_BREAKPAD
 
     # Config breakpad if required
-    system(if not exist $$shell_quote($${BREAKPAD_PATH}) ( mkdir $$shell_quote($${BREAKPAD_PATH}) && cd $$shell_quote($${BREAKPAD_PATH}) && $$shell_quote($${DEPOT_TOOLS_PATH}\fetch.bat) breakpad))
-    # Update Breakpad
-    system(cd $$shell_quote($${BREAKPAD_PATH}) && $$shell_quote($${DEPOT_TOOLS_PATH}\gclient.bat) sync)
+    system(set "PATH=$${DEPOT_TOOLS_PATH};%PATH%" && $${LIBS_PATH}/update_breakpad_win.bat)
 
     LIBS += -luser32
     INCLUDEPATH  += {BREAKPAD_PATH}/src/src/
