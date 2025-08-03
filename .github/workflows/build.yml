@@ -1,5 +1,5 @@
 # Github Actions configuration file
-# Runs the build on Linux, Windows and MacOS
+# Runs CI builds for Windows, Macos and Linux
 name: Build
 
 on:
@@ -14,99 +14,89 @@ on:
       - released
 
 jobs:
-  build_linux:
-  # Ubuntu Bionic
-    runs-on: ubuntu-18.04
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # https://github.com/actions/virtual-environments#available-environments
+        os: [ubuntu-22.04, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-22.04 # Oldest LTS for appimage support
+            qt: '6.8.3' # Qt6 LTS
+            qt_modules: 'qtmultimedia'
+            dependencies: |
+              sudo apt-get install mesa-common-dev libgl1-mesa-dev libpcap-dev libgstreamer-gl1.0-0 libgstreamer-plugins-base1.0-0 libxkbcommon-x11-0 -y
+            installer_setup: ""
+            configure_preset_name: "linux-x64-release"
+            build_preset_name: "linux-release"
+            package_preset_name: "linux"
+            artifact: ./out/build/linux-x64-release/package/*
+
+          - os: windows-latest
+            qt: '6.8.2'
+            qt_modules: 'qtmultimedia'
+            installer_setup: |
+              Invoke-WebRequest -Uri "https://nsis.sourceforge.io/mediawiki/images/e/e0/NSIS_Simple_Firewall_Plugin_Unicode_1.21.zip" -OutFile "NSIS_Simple_Firewall_Plugin_Unicode.zip"
+              7z e NSIS_Simple_Firewall_Plugin_Unicode.zip -o"C:\Program Files (x86)\NSIS\Plugins\x86-unicode"
+            artifact: |
+              ./install/win64/sACNView64*.exe
+              ./out/build/windows-x64-release-installer/sACNView.pdb
+            configure_preset_name: "windows-x64-release-installer"
+            build_preset_name: "windows-x64-release-installer"
+
+          - os: macos-latest
+            qt: '6.8.3'
+            qt_modules: 'qtmultimedia'
+            installer_setup: ''
+            xcode: latest-stable
+            configure_preset_name: "macos"
+            build_preset_name: "macos-release"
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         submodules: recursive
-    - name: Install Extra Packages
-      run: sudo apt-get install mesa-common-dev libgl1-mesa-dev libpcap-dev libgstreamer-plugins-base1.0-0 -y
-    - name: Install FPM
-      run: sudo gem install --no-document fpm
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v2.14.0
-      with:
-        version: '5.15.2'
-    - name: Create Makefile
-      run:
-        qmake sACNView.pro
-    - name: Run MakeFile
-      run: make
-    - name: Setup TMate Session (Failure Only)
-      if: ${{ failure() }}
-      uses: mxschmitt/action-tmate@v3
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: linux
-        path: |
-          sACNView*.AppImage
-          install/linux/*.deb
+        fetch-depth: 0
 
-  build_windows:
-    runs-on: windows-latest
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        submodules: recursive
     - name: Install Qt
-      uses: jurplel/install-qt-action@v2.14.0
+      uses: jurplel/install-qt-action@v4
       with:
-        version: '5.15.2'
-        arch: win32_msvc2019
-    - name: MSVC Environment Setup
+        version: ${{ matrix.qt }}
+        modules: ${{ matrix.qt_modules }}
+
+    - name: Dependencies
+      run: ${{ matrix.dependencies }}
+
+    - name: Setup Installer
+      run: ${{ matrix.installer_setup }}
+
+    - name: Environment Setup (MSVC)
+      if: runner.os == 'Windows'
       uses: ilammy/msvc-dev-cmd@v1
-      with:
-        arch: amd64_x86
-    - name: Download NSIS SimpleFC Plugin
-      uses: suisei-cn/actions-download-file@v1
-      with:
-        url: "https://nsis.sourceforge.io/mediawiki/images/e/e0/NSIS_Simple_Firewall_Plugin_Unicode_1.21.zip"
-    - name: Install NSIS SimpleFC Plugin
-      run:  7z e NSIS_Simple_Firewall_Plugin_Unicode_1.21.zip -o"C:\Program Files (x86)\NSIS\Plugins\x86-unicode"
-    - name: Create Makefile
-      run: qmake sACNView.pro
-    - name: Run MakeFile
-      run: nmake
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: windows
-        path: |
-          install/win/sACNView*.exe
-          release/*.pdb 
-    - name: Setup TMate Session (Failure Only)
-      if: ${{ failure() }}
-      uses: mxschmitt/action-tmate@v3
 
-
-  build_mac:
-    runs-on: macos-latest
-
-    steps:    
-    - name: Checkout
-      uses: actions/checkout@v2
+    - name: Environment Setup (Xcode)
+      if: runner.os == 'macOS'
+      uses: maxim-lobanov/setup-xcode@v1
       with:
-        submodules: recursive
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v2.14.0
-    - name: Install create-dmg
-      run: brew install create-dmg
-    - name: Create Makefile
-      run: qmake sACNView.pro
-    - name: Run MakeFile
-      run: make
-    - name: Setup TMate Session (Failure Only)
-      if: ${{ failure() }}
-      uses: mxschmitt/action-tmate@v3
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v2
+        xcode-version: ${{ matrix.xcode }}
+
+    - name: CMake Configure
+      shell: bash
+      run: cmake --preset ${{matrix.configure_preset_name}}
+
+    - name: CMake Build
+      run: cmake --build --preset ${{matrix.build_preset_name}}
+
+    - name: CPack Package
+      if: matrix.package_preset_name
+      run: cpack --preset ${{matrix.package_preset_name}}
+
+    - name: Upload Artifact(s)
+      if: matrix.artifact
+      uses: actions/upload-artifact@v4
       with:
-        name: macos
-        path: install/mac/sACNView*.dmg 
+        name: ${{ runner.os }}
+        path: ${{ matrix.artifact }}

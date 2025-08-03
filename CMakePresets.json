@@ -1,0 +1,159 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20
+  },
+  "configurePresets": [
+    {
+      "name": "windows-x64-debug",
+      "displayName": "x64 Debug",
+      "description": "Target Windows (64-bit) with the Visual Studio development environment. (Debug)",
+      "inherits": "windows-base",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "windows-x64-release",
+      "displayName": "x64 Release",
+      "description": "Target Windows (64-bit) with the Visual Studio development environment. (Release)",
+      "inherits": "windows-base",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "windows-x64-release-installer",
+      "displayName": "x64 Installer",
+      "description": "Windows (64-bit) MSVC Release with Installer",
+      "inherits": "windows-x64-release",
+      "cacheVariables": {
+        "SACNVIEW_CREATE_INSTALLER": true
+      }
+    },
+    {
+      "name": "windows-x64-debug-tests",
+      "displayName": "x64 Debug Tests",
+      "description": "Target Windows (64-bit) with the Visual Studio development environment and testing. (Debug)",
+      "inherits": "windows-x64-debug",
+      "cacheVariables": {
+        "SACNVIEW_UNIT_TESTS": true
+      }
+    },
+    {
+      "name": "windows-base",
+      "description": "Target Windows with the Visual Studio development environment.",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe",
+        "Qt6_DIR": "$env{QT_ROOT_DIR}/lib/cmake/Qt6"
+      },
+      "environment": {
+        "PATH": "$penv{QT_ROOT_DIR}/bin/;$penv{PATH}"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "linux-x64-debug",
+      "displayName": "Linux x64 Debug",
+      "description": "Target Linux (64-bit). (Debug)",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "linux-x64-release",
+      "displayName": "Linux x64 Release",
+      "description": "Target Linux (64-bit). (Release)",
+      "inherits": "linux-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "SACNVIEW_CREATE_INSTALLER": true
+      }
+    },
+    {
+      "name": "linux-base",
+      "description": "Target Linux",
+      "hidden": true,
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "cacheVariables": {
+        "Qt6_DIR": "$env{QT_ROOT_DIR}/lib/cmake/Qt6"
+      },
+      "environment": {
+        "PATH": "$penv{QT_ROOT_DIR}/bin/;$penv{PATH}"
+        },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+        }
+    },
+    {
+      "name": "macos",
+      "description": "Target Macos usinng XCode",
+      "generator": "Xcode",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "cacheVariables": {
+        "Qt6_DIR": "$env{QT_ROOT_DIR}/lib/cmake/Qt6",
+        "SACNVIEW_CREATE_INSTALLER": true
+      },
+      "environment": {
+        "PATH": "$penv{QT_ROOT_DIR}/bin/;$penv{PATH}"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-x64-release-installer",
+      "displayName": "x64 Installer",
+      "description": "Windows (64-bit) MSVC build preset with Installer",
+      "configurePreset": "windows-x64-release-installer"
+    },
+    {
+      "name": "macos-release",
+      "displayName": "Macos Release",
+      "description": "Macos Release build preset",
+      "configurePreset": "macos",
+      "configuration": "Release"
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release",
+      "description": "Linux Release build preset",
+      "configurePreset": "linux-x64-release"
+    }
+  ],
+  "packagePresets": [
+    {
+      "name": "linux",
+      "configurePreset": "linux-x64-release",
+      "generators": ["DEB"]
+    }
+  ]
+}

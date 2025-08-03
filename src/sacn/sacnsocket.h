@@ -43,12 +43,14 @@ public:
     };
 
     sBindStatus bind(quint16 universe);
-    int getBoundUniverse() { return m_universe; }
-    QNetworkInterface getBoundInterface() { return m_interface; }
+    int getBoundUniverse() const { return m_universe; }
+    QNetworkInterface getBoundInterface() const{ return m_interface; }
+    const QHostAddress &getMulticastAddr() const {return m_multicastAddr; }
 
 private:
     QNetworkInterface m_interface;
-    int m_universe;
+    int m_universe = 0;
+    QHostAddress m_multicastAddr;
 };
 
 class sACNTxSocket : public QUdpSocket

@@ -72,6 +72,12 @@
 #define PROP_COUNT_ADDR 123
 #define START_CODE_ADDR 125
 #define PROP_VALUES_ADDR (START_CODE_ADDR + 1)
+// Universe Synchronization
+#define SYNC_FLAGS_AND_LENGTH_ADDR FRAMING_FLAGS_AND_LENGTH_ADDR
+#define SYNC_VECTOR_ADDR FRAMING_VECTOR_ADDR
+#define SYNC_SEQ_NUM_ADDR 44
+#define SYNC_SYNCHRONIZATION_ADDRESS 45
+#define SYNC_RESERVED 47
 // Universe Discovery
 #define DISCO_FLAGS_AND_LENGTH_ADDR 112
 #define DISCO_VECTOR_ADDR 114
@@ -80,6 +86,7 @@
 #define DISCO_LIST_UNIVERSE_ADDR 120
 
 //for support of the early draft:
+#define DRAFT_SOURCE_NAME_ADDR SOURCE_NAME_ADDR
 #define DRAFT_PRIORITY_ADDR 76
 #define DRAFT_SEQ_NUM_ADDR 77
 #define DRAFT_UNIVERSE_ADDR 78
@@ -148,17 +155,25 @@
 #define STREAM_IP_PORT 5568
 
 /*The start codes we'll commonly use*/
-#ifndef STARTCODE_PRIORITY
 //The payload is up to 512 1-byte dmx values
 #define STARTCODE_DMX 0
-///The payload is the per-channel priority (0-200), 
+//The payload is the per-channel priority (0-200),
 //where 0 means "ignore my values on this channel"
 #define STARTCODE_PRIORITY 0xDD     
 
 // Special universes
 #define E131_DISCOVERY_UNIVERSE 64214
 
-#endif
+// Timings
+#define E131_UNIVERSE_DISCOVERY_INTERVAL 10000 //10 Seconds
+#define E131_NETWORK_DATA_LOSS_TIMEOUT 2500 // 2.5 Seconds
+#define E131_DATA_KEEP_ALIVE_INTERVAL_MIN 800 // 800 mS
+#define E131_DATA_KEEP_ALIVE_INTERVAL_MAX 1000 // 1000 mS
+// We'll go with min +25% of the difference between max and min
+static constexpr float E131_DATA_KEEP_ALIVE_FREQUENCY = 1000 /
+        (static_cast<float>(E131_DATA_KEEP_ALIVE_INTERVAL_MIN) +
+         (static_cast<float>(E131_DATA_KEEP_ALIVE_INTERVAL_MAX) - static_cast<float>(E131_DATA_KEEP_ALIVE_INTERVAL_MIN)) / 4);
+
 
 /*** Functions ***/
 
@@ -192,38 +207,43 @@ void SetStreamHeaderSequence(quint8* pbuf, quint8 seq, bool draft);
  */
 enum e_ValidateStreamHeader
 {
-    SteamHeader_Invalid,
-    SteamHeader_Draft,
-    SteamHeader_Ratified,
-    SteamHeader_Extended,
-    SteamHeader_Unknown
+    StreamHeader_Invalid,
+    StreamHeader_Draft,
+    StreamHeader_Ratified,
+    StreamHeader_Extended,
+    StreamHeader_Pathway_Secure,
+    StreamHeader_Unknown
 };
-e_ValidateStreamHeader ValidateStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
-			  char* source_space, quint8 &priority, 
-              quint8 &start_code, quint16 &synchronization, quint8 &sequence,
-			  quint8 &options, quint16 &universe,
-			  quint16 &slot_count, quint8* &pdata);
+e_ValidateStreamHeader ValidateStreamHeader(
+        const quint8* pbuf, size_t buflen,
+        quint32 &root_vector,
+        CID &source_cid, char* source_sp, quint8 &priority,
+        quint8 &start_code, quint16 &synchronization, quint8 &sequence,
+        quint8 &options, quint16 &universe,
+        quint16 &slot_count, const quint8* &pdata);
 
 /*
  * helper function that does the actual validation of a header
  * that carries the post-ratification root vector
  */
-bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
-            char* source_space, quint8 &priority,
-            quint8 &start_code, quint16 &synchronization, quint8 &sequence,
-            quint8 &options, quint16 &universe,
-            quint16 &slot_count, quint8* &pdata);
+bool VerifyStreamHeader(
+        const quint8 *pbuf, size_t buflen,
+        CID &source_cid, char* source_name, quint8 &priority,
+        quint8 &start_code, quint16 &synchronization, quint8 &sequence,
+        quint8 &options, quint16 &universe,
+        quint16 &slot_count, const quint8* &pdata);
 /*
  * helper function that does the actual validation of a header
  * that carries the early draft's root vector
  * This function is included to support legacy code from before 
  * ratification of the standard.
  */
-bool VerifyStreamHeaderForDraft(quint8* pbuf, uint buflen, CID &source_cid, 
-				char* source_space, quint8 &priority, 
-				quint8 &start_code, quint8 &sequence, 
-				quint16 &universe, quint16 &slot_count, 
-				quint8* &pdata);
+bool VerifyStreamHeaderForDraft(
+        const quint8* pbuf, size_t buflen,
+        CID &source_cid, char* source_space, quint8 &priority,
+        quint8 &start_code, quint8 &sequence,
+        quint16 &universe, quint16 &slot_count,
+        const quint8* &pdata);
 
 /*
  * Returns true if contains draft root vector value

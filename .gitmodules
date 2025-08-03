@@ -1,6 +1,9 @@
-[submodule "libs/breakpad"]
-	path = libs/breakpad
-	url = https://github.com/google/breakpad.git
 [submodule "tools/depot_tools"]
 	path = tools/depot_tools
 	url = https://chromium.googlesource.com/chromium/tools/depot_tools.git
+[submodule "libs/blake2"]
+	path = libs/blake2
+	url = https://github.com/BLAKE2/BLAKE2.git
+[submodule "themes/Qt-Frameless-Window-DarkStyle"]
+	path = themes/Qt-Frameless-Window-DarkStyle
+	url = https://github.com/Jorgen-VikingGod/Qt-Frameless-Window-DarkStyle.git

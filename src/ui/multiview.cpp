@@ -1,0 +1,154 @@
+#include "multiview.h"
+
+#include "ui_multiview.h"
+
+#include "consts.h"
+#include "preferences.h"
+#include "models/sacnsourcetablemodel.h"
+#include "models/csvmodelexport.h"
+#include "delegates/resettablecounterdelegate.h"
+
+#include <QFileDialog>
+#include <QStandardPaths>
+#include <QSortFilterProxyModel>
+
+MultiView::MultiView(QWidget* parent)
+  : QWidget(parent)
+  , ui(new Ui::MultiView)
+  , m_sourceTableModel(new SACNSourceTableModel(this))
+{
+  ui->setupUi(this);
+  QSortFilterProxyModel* sortProxy = new QSortFilterProxyModel(this);
+  sortProxy->setSourceModel(m_sourceTableModel);
+  ui->sourceTableView->setModel(sortProxy);
+  ui->sourceTableView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
+
+  ui->spinUniverseMin->setMinimum(MIN_SACN_UNIVERSE);
+  ui->spinUniverseMin->setMaximum(MAX_SACN_UNIVERSE);
+
+  ui->spinUniverseMax->setMinimum(MIN_SACN_UNIVERSE);
+  ui->spinUniverseMax->setMaximum(MAX_SACN_UNIVERSE);
+
+  ui->spinShort->setMaximum(800);
+  ui->spinShort->setValue(m_sourceTableModel->shortInterval());
+  connect(ui->spinShort, QOverload<int>::of(&QSpinBox::valueChanged), m_sourceTableModel, &SACNSourceTableModel::setShortInterval);
+
+  ui->spinLong->setMaximum(ui->spinShort->maximum());
+  ui->spinLong->setValue(m_sourceTableModel->longInterval());
+  connect(ui->spinLong, QOverload<int>::of(&QSpinBox::valueChanged), m_sourceTableModel, &SACNSourceTableModel::setLongInterval);
+
+  ui->spinStatic->setMaximum(ui->spinShort->maximum());
+  ui->spinStatic->setValue(m_sourceTableModel->staticInterval());
+  connect(ui->spinStatic, QOverload<int>::of(&QSpinBox::valueChanged), m_sourceTableModel, &SACNSourceTableModel::setStaticInterval);
+
+  // Maybe don't show the Secure column
+  ui->sourceTableView->setColumnHidden(SACNSourceTableModel::COL_PATHWAY_SECURE, !Preferences::Instance().GetPathwaySecureRx());
+
+  // Allow the user to temporarily rearrange the columns
+  ui->sourceTableView->horizontalHeader()->setSectionsMovable(true);
+
+  // Set the delegates for resettable counters
+  ui->sourceTableView->setItemDelegateForColumn(SACNSourceTableModel::COL_JUMPS, new ResettableCounterDelegate());
+  ui->sourceTableView->setItemDelegateForColumn(SACNSourceTableModel::COL_SEQ_ERR, new ResettableCounterDelegate());
+}
+
+MultiView::MultiView(int firstUniverse, QWidget* parent)
+  : MultiView(parent)
+{
+  ui->spinUniverseMin->setValue(firstUniverse);
+  ui->spinUniverseMax->setValue(firstUniverse + Preferences::Instance().GetUniversesListCount());
+}
+
+MultiView::~MultiView()
+{
+  delete ui;
+}
+
+void MultiView::on_btnStartStop_clicked(bool checked)
+{
+  if (checked)
+  {
+    ui->btnStartStop->setText(tr("Stop"));
+    ui->spinUniverseMin->setEnabled(false);
+    ui->spinUniverseMax->setEnabled(false);
+
+    // Clear and restart listening for the large number of universes
+    m_sourceTableModel->clear();
+
+    // Hold onto the old listeners so any overlaps will not be destructed
+    std::map<uint16_t, sACNManager::tListener> old_listeners;
+    old_listeners.swap(m_listeners);
+
+    const uint16_t minUniverse = static_cast<uint16_t>(ui->spinUniverseMin->value());
+    const uint16_t maxUniverse = static_cast<uint16_t>(ui->spinUniverseMax->value()) + 1;
+    for (uint16_t universe = minUniverse; universe < maxUniverse; ++universe)
+    {
+      auto listener = sACNManager::Instance().getListener(universe);
+      m_sourceTableModel->addListener(listener);
+      m_listeners.emplace(universe, listener);
+    }
+
+    // Reset the counters for all desired previously-known sources
+    m_sourceTableModel->resetCounters();
+
+    // Unused listeners will now go out of scope and be destroyed "later"
+  }
+  else
+  {
+    ui->btnStartStop->setText(tr("Start"));
+    ui->spinUniverseMin->setEnabled(true);
+    ui->spinUniverseMax->setEnabled(true);
+    m_sourceTableModel->pause();
+  }
+}
+
+QJsonObject MultiView::getJsonConfiguration() const
+{
+  QJsonObject result;
+  result.insert(QLatin1String("start"), ui->spinUniverseMin->value());
+  result.insert(QLatin1String("end"), ui->spinUniverseMax->value());
+
+  QJsonObject timing;
+  timing.insert(QLatin1String("short"), ui->spinShort->value());
+  timing.insert(QLatin1String("long"), ui->spinLong->value());
+  timing.insert(QLatin1String("static"), ui->spinStatic->value());
+  result.insert(QLatin1String("timing"), timing);
+  return result;
+}
+
+void MultiView::setJsonConfiguration(const QJsonObject& json)
+{
+  if (json.isEmpty())
+    return;
+
+  ui->spinUniverseMin->setValue(json[QLatin1String("start")].toInt(ui->spinUniverseMin->value()));
+  ui->spinUniverseMax->setValue(json[QLatin1String("end")].toInt(ui->spinUniverseMax->value()));
+
+  QJsonObject timing = json[QLatin1String("timing")].toObject();
+  ui->spinShort->setValue(timing[QLatin1String("short")].toInt(ui->spinShort->value()));
+  ui->spinLong->setValue(timing[QLatin1String("long")].toInt(ui->spinLong->value()));
+  ui->spinStatic->setValue(timing[QLatin1String("static")].toInt(ui->spinStatic->value()));
+}
+
+void MultiView::on_btnClearOffline_clicked()
+{
+  if (m_sourceTableModel)
+    m_sourceTableModel->clearOffline();
+}
+
+void MultiView::on_btnResetCounters_clicked()
+{
+  m_sourceTableModel->resetCounters();
+}
+
+void MultiView::on_btnExport_clicked()
+{
+  const QString filename = QFileDialog::getSaveFileName(this, tr("Export Sources Table"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), QStringLiteral("*.csv"));
+
+  if (filename.isEmpty())
+    return;
+
+  // Export as CSV
+  CsvModelExporter csv_export(m_sourceTableModel);
+  csv_export.saveAs(filename);
+}

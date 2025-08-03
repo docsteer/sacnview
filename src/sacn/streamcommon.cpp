@@ -40,7 +40,7 @@ Implementation of the common streaming ACN packing and parsing functions*/
 #include <string.h>
 
 #include "streamcommon.h"
-#include "sacndiscovery.h"
+#include "securesacn.h"
 #include "defpack.h"
 #include "VHD.h"
 
@@ -271,44 +271,53 @@ void SetStreamHeaderSequence(quint8* pbuf, quint8 seq, bool draft)
 /*
  * Given a buffer, validate that the stream header is correct.  If this returns
  * true, the header is validated, and the necessary values are filled in.  
- * source_space must be of size SOURCE_NAME_SPACE.
+ * source_name must be of size SOURCE_NAME_SPACE.
  * pdata is the offset into the buffer where the data is stored
  */
-e_ValidateStreamHeader ValidateStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
-              char* source_space, quint8 &priority,
-              quint8 &start_code, quint16 &synchronization,
-              quint8 &sequence, quint8 &options, quint16 &universe,
-              quint16 &slot_count, quint8* &pdata)
+e_ValidateStreamHeader ValidateStreamHeader(
+        const quint8* pbuf, size_t buflen,
+        quint32 &root_vector,
+        CID &source_cid, char* source_name, quint8 &priority,
+        quint8 &start_code, quint16 &synchronization,
+        quint8 &sequence, quint8 &options, quint16 &universe,
+        quint16 &slot_count, const quint8* &pdata)
 {
   if(!pbuf)
-     return e_ValidateStreamHeader::SteamHeader_Invalid;
+     return e_ValidateStreamHeader::StreamHeader_Invalid;
 
-  int root_vector = UpackBUint32(pbuf + ROOT_VECTOR_ADDR);
+  root_vector = UpackBUint32(pbuf + ROOT_VECTOR_ADDR);
   
   switch (root_vector)
   {
   case VECTOR_ROOT_E131_DATA:
-    if (VerifyStreamHeader(pbuf, buflen, source_cid, source_space,
+    if (VerifyStreamHeader(pbuf, buflen, source_cid, source_name,
         priority, start_code, synchronization, sequence,
         options, universe, slot_count, pdata))
-        return e_ValidateStreamHeader::SteamHeader_Ratified;
+        return e_ValidateStreamHeader::StreamHeader_Ratified;
     else
-        return e_ValidateStreamHeader::SteamHeader_Invalid;
+        return e_ValidateStreamHeader::StreamHeader_Invalid;
 
   case VECTOR_ROOT_E131_DATA_DRAFT:
     if (VerifyStreamHeaderForDraft(pbuf, buflen, source_cid,
-        source_space, priority, start_code,
+        source_name, priority, start_code,
         sequence, universe, slot_count, pdata))
-        return e_ValidateStreamHeader::SteamHeader_Draft;
+        return e_ValidateStreamHeader::StreamHeader_Draft;
     else
-        return e_ValidateStreamHeader::SteamHeader_Invalid;
+        return e_ValidateStreamHeader::StreamHeader_Invalid;
 
   case VECTOR_ROOT_E131_EXTENDED:
-      sACNDiscoveryRX::getInstance()->processPacket(pbuf, buflen);
-      return e_ValidateStreamHeader::SteamHeader_Extended;
+    return e_ValidateStreamHeader::StreamHeader_Extended;
+
+  case VECTOR_ROOT_E131_DATA_PATHWAY_SECURE:
+    if (PathwaySecure::VerifyStreamHeader(pbuf, buflen, source_cid, source_name,
+        priority, start_code, synchronization, sequence,
+        options, universe, slot_count, pdata))
+        return e_ValidateStreamHeader::StreamHeader_Pathway_Secure;
+    else
+        return e_ValidateStreamHeader::StreamHeader_Invalid;
 
   default:
-      return e_ValidateStreamHeader::SteamHeader_Unknown;
+      return e_ValidateStreamHeader::StreamHeader_Unknown;
   }
 }
 
@@ -316,11 +325,11 @@ e_ValidateStreamHeader ValidateStreamHeader(quint8* pbuf, uint buflen, CID &sour
  * helper function that does the actual validation of a header
  * that carries the post-ratification root vector
  */
-bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid, 
-			char* source_space, quint8 &priority, 
+bool VerifyStreamHeader(const quint8* pbuf, size_t buflen, CID &source_cid,
+            char* source_name, quint8 &priority,
             quint8 &start_code, quint16 &synchronization, quint8 &sequence,
 			quint8 &options, quint16 &universe,
-			quint16 &slot_count, quint8* &pdata)
+			quint16 &slot_count, const quint8* &pdata)
 {
   if(!pbuf)
      return false;
@@ -367,8 +376,8 @@ bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
   /* Init the parameters */
   source_cid.Unpack(pbuf + CID_ADDR);
   
-  strncpy(source_space, (char*)(pbuf + SOURCE_NAME_ADDR), SOURCE_NAME_SIZE);
-  source_space[SOURCE_NAME_SIZE-1] = '\0';
+  std::fill(source_name, source_name + SOURCE_NAME_SIZE, '\0');
+  std::string_view(reinterpret_cast<const char*>(pbuf + SOURCE_NAME_ADDR), SOURCE_NAME_SIZE).copy(source_name, SOURCE_NAME_SIZE - 1);
   priority = UpackBUint8(pbuf + PRIORITY_ADDR);
   start_code = UpackBUint8(pbuf + START_CODE_ADDR);
   synchronization = UpackBUint16(pbuf + SYNC_ADDR);
@@ -378,8 +387,14 @@ bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
   slot_count = UpackBUint16(pbuf + PROP_COUNT_ADDR) - 1;  //The property value count includes the start code byte
   pdata = pbuf + STREAM_HEADER_SIZE;
   
+  // Validate maximum slot count
+  if (slot_count > DMX_SLOT_MAX)
+    return false;
+
+  quint16 post_amble_size = UpackBUint16(pbuf + POSTAMBLE_SIZE_ADDR);
+  
   /*Do final length validation*/
-  if((pdata + slot_count) > (pbuf + buflen))
+  if((pdata + slot_count + post_amble_size) > (pbuf + buflen))
     return false;
   
   return true;
@@ -391,11 +406,12 @@ bool VerifyStreamHeader(quint8* pbuf, uint buflen, CID &source_cid,
  * This function is included to support legacy code from before 
  * ratification of the standard.
  */
-bool VerifyStreamHeaderForDraft(quint8* pbuf, uint buflen, CID &source_cid, 
-				char* source_space, quint8 &priority, 
-				quint8 &start_code, quint8 &sequence, 
-				quint16 &universe, quint16 &slot_count, 
-				quint8* &pdata)
+bool VerifyStreamHeaderForDraft(
+        const quint8* pbuf, size_t buflen,
+        CID &source_cid, char* source_name, quint8 &priority,
+        quint8 &start_code, quint8 &sequence,
+        quint16 &universe, quint16 &slot_count,
+        const quint8* &pdata)
 {
   if(!pbuf)
      return false;
@@ -405,7 +421,11 @@ bool VerifyStreamHeaderForDraft(quint8* pbuf, uint buflen, CID &source_cid,
   {
       return false;
   } 
-  if(UpackBUint16(pbuf) != RLP_PREAMBLE_SIZE)
+  if(UpackBUint16(pbuf + PREAMBLE_SIZE_ADDR) != RLP_PREAMBLE_SIZE)
+  {
+      return false;
+  }
+  if(UpackBUint16(pbuf + POSTAMBLE_SIZE_ADDR) != RLP_POSTAMBLE_SIZE)
   {
       return false;
   }
@@ -441,9 +461,9 @@ bool VerifyStreamHeaderForDraft(quint8* pbuf, uint buflen, CID &source_cid,
   /* Init the parameters */
   source_cid.Unpack(pbuf + CID_ADDR);
   
-  strncpy(source_space, (char*)(pbuf + SOURCE_NAME_ADDR), 
-	  DRAFT_SOURCE_NAME_SIZE);
-  source_space[DRAFT_SOURCE_NAME_SIZE-1] = '\0';
+  std::fill(source_name, source_name + SOURCE_NAME_SIZE, '\0');
+  std::string_view(reinterpret_cast<const char*>(pbuf + DRAFT_SOURCE_NAME_ADDR), DRAFT_SOURCE_NAME_SIZE).copy(source_name, DRAFT_SOURCE_NAME_SIZE - 1);
+
   priority = UpackBUint8(pbuf + DRAFT_PRIORITY_ADDR);
   if(priority == 0)
 	  priority = 100;  //The default priority if the source isn't using priority.

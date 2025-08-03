@@ -29,14 +29,13 @@ sACNDiscoveryTX::sACNDiscoveryTX() : QObject(),
     m_sendTimer(new QTimer(this))
 {
     // Socket
-    m_sendSock = new sACNTxSocket(Preferences::getInstance()->networkInterface(), this);
+    m_sendSock = new sACNTxSocket(Preferences::Instance().networkInterface(), this);
     m_sendSock->bind();
 
     // Setup packet send timer
     m_sendTimer->setObjectName("sACNDiscoveryTX");
     m_sendTimer->setSingleShot(false);
-    connect(m_sendTimer, SIGNAL(timeout()), this, SLOT(sendDiscoveryPacket()));
-    connect(this, SIGNAL(destroyed()), m_sendTimer, SLOT(deleteLater()));
+    connect(m_sendTimer, &QTimer::timeout, this, &sACNDiscoveryTX::sendDiscoveryPacket);
     m_sendTimer->start(0);
 }
 
@@ -44,6 +43,7 @@ sACNDiscoveryTX::~sACNDiscoveryTX()
 {
     // Send empty discovery packet
     sendDiscoveryPacket();
+    m_sendTimer->stop();
 }
 
 void sACNDiscoveryTX::sendDiscoveryPacket()
@@ -53,11 +53,11 @@ void sACNDiscoveryTX::sendDiscoveryPacket()
     m_sendTimer->setInterval(E131_UNIVERSE_DISCOVERY_INTERVAL);
 
     // Get list of all senders
-    auto senderList = sACNManager::getInstance()->getSenderList();
+    auto senderList = sACNManager::Instance().getSenderList();
 
     // Loop through all CIDs in senders list
     auto cidList = senderList.keys();
-    for (auto cid : cidList)
+    for (const auto &cid : cidList)
     {
         // Obtain list of universes for CID
         auto universeList = senderList[cid].keys();
@@ -67,7 +67,7 @@ void sACNDiscoveryTX::sendDiscoveryPacket()
         while (i.hasNext())
         {
             i.next();
-            if (!sACNManager::getInstance()->getSender(i.value(), cid)->isSending())
+            if (!sACNManager::Instance().getSender(i.value(), cid)->isSending())
                 i.remove();
         }
         if (universeList.isEmpty())
@@ -79,7 +79,7 @@ void sACNDiscoveryTX::sendDiscoveryPacket()
         // Get sender name associated with CID and first universe in list
         QString senderName;
         if (universeList.count() > 0)
-            senderName = sACNManager::getInstance()->getSender(universeList.front(), cid)->name();
+            senderName = sACNManager::Instance().getSender(universeList.front(), cid)->name();
 
         // Get page count
         uint8_t page_count = ceil((double)universeList.count() / UniversesPerPage);
@@ -97,6 +97,7 @@ void sACNDiscoveryTX::sendDiscoveryPacket()
             QByteArray pbuf(
                         E131_UNIVERSE_DISCOVERY_SIZE_MIN + (pageUniverseList.count() * sizeof(pageUniverseList[0]))
                         , 0x00);
+            const auto pbufSize = static_cast<unsigned int>(pbuf.size());
 
             // Root layer
             PackBUint16((quint8*)pbuf.data() + PREAMBLE_SIZE_ADDR, RLP_PREAMBLE_SIZE); // Preamble
@@ -104,28 +105,28 @@ void sACNDiscoveryTX::sendDiscoveryPacket()
             memcpy(pbuf.data() + ACN_IDENTIFIER_ADDR, ACN_IDENTIFIER, ACN_IDENTIFIER_SIZE); // ACN Ident
             VHD_PackFlags((quint8*)pbuf.data() + ROOT_FLAGS_AND_LENGTH_ADDR, false, false, false); // Flags
             VHD_PackLength((quint8*)pbuf.data() + ROOT_FLAGS_AND_LENGTH_ADDR,
-                           pbuf.size() - ROOT_FLAGS_AND_LENGTH_ADDR, false); // Length
+                           pbufSize - ROOT_FLAGS_AND_LENGTH_ADDR, false); // Length
             PackBUint32((quint8*)pbuf.data() + ROOT_VECTOR_ADDR, VECTOR_ROOT_E131_EXTENDED); // Vector
             cid.Pack((quint8*)pbuf.data() + CID_ADDR); // CID
 
             // Framing layer
             VHD_PackFlags((quint8*)pbuf.data() + FRAMING_FLAGS_AND_LENGTH_ADDR, false, false, false); // Flags
             VHD_PackLength((quint8*)pbuf.data() + FRAMING_FLAGS_AND_LENGTH_ADDR,
-                           pbuf.size() - FRAMING_FLAGS_AND_LENGTH_ADDR, false); // Length
+                           pbufSize - FRAMING_FLAGS_AND_LENGTH_ADDR, false); // Length
             PackBUint32((quint8*)pbuf.data() + FRAMING_VECTOR_ADDR, VECTOR_E131_EXTENDED_DISCOVERY); // Vector
             strncpy(pbuf.data() + SOURCE_NAME_ADDR, senderName.toLatin1().constData(), SOURCE_NAME_SIZE - 1); // Source Name
 
             // Universe discovery layer
             VHD_PackFlags((quint8*)pbuf.data() + DISCO_FLAGS_AND_LENGTH_ADDR, false, false, false); // Flags
             VHD_PackLength((quint8*)pbuf.data() + DISCO_FLAGS_AND_LENGTH_ADDR,
-                           pbuf.size() - DISCO_FLAGS_AND_LENGTH_ADDR, false); // Length
+                           pbufSize - DISCO_FLAGS_AND_LENGTH_ADDR, false); // Length
             PackBUint32((quint8*)pbuf.data() + DISCO_VECTOR_ADDR, VECTOR_UNIVERSE_DISCOVERY_UNIVERSE_LIST); // Vector
             PackBUint8((quint8*)pbuf.data() + DISCO_PAGE_ADDR, page); // Page
             PackBUint8((quint8*)pbuf.data() + DISCO_LAST_PAGE_ADDR, page_count - 1); // Page Count
             // Universe list
             quint16 idx = 0;
 
-            for (auto universe : pageUniverseList)
+            for (auto universe : std::as_const(pageUniverseList))
             {
                PackBUint16((quint8*)pbuf.data() + DISCO_LIST_UNIVERSE_ADDR + idx, universe);
                idx += sizeof(universe);
@@ -168,15 +169,15 @@ sACNDiscoveryRX::sACNDiscoveryRX() : QObject(),
     qDebug() << "DiscoveryRX : Starting listener";
     m_thread->setObjectName("sACNDiscoveryRX");
     m_listener->moveToThread(m_thread);
-    connect(m_thread, SIGNAL(started()), m_listener, SLOT(startReception()));
-    connect(m_thread, SIGNAL(finished()), m_listener, SLOT(deleteLater()));
-    connect(m_thread, SIGNAL(finished()), m_thread, SLOT(deleteLater()));
+    connect(m_thread, &QThread::started, m_listener, &sACNListener::startReception);
+    connect(m_thread, &QThread::finished, m_listener, &QObject::deleteLater);
+    connect(m_thread, &QThread::finished, m_thread, &QObject::deleteLater);
     m_thread->start();
 
     m_expiredTimer->setInterval(E131_UNIVERSE_DISCOVERY_INTERVAL + (E131_UNIVERSE_DISCOVERY_INTERVAL / 4)); // Expire after 125% of time
     m_expiredTimer->setObjectName("sACNDiscoveryRX Expired Timer");
     m_expiredTimer->setSingleShot(false);
-    connect(m_expiredTimer, SIGNAL(timeout()), this, SLOT(timeoutUniverses()));
+    connect(m_expiredTimer, &QTimer::timeout, this, &sACNDiscoveryRX::timeoutUniverses);
     m_expiredTimer->start();
 }
 
@@ -203,28 +204,25 @@ void sACNDiscoveryRX::timeoutUniverses()
             if (universeTimer.Expired())
             {
                 auto universe = source->Universe.key(universeTimer);
-                auto cidString = CID::CIDIntoQString(m_discoveryList.key(source));
+                const auto &cid = m_discoveryList.key(source);
                 if (source->Universe.remove(universe))
                 {
-                    qDebug() << "DiscoveryRX : Expired universe - CID" << cidString << ", universe" << universe;
-                    emit expiredUniverse(
-                                cidString,
-                                universe);
+                    qDebug() << "DiscoveryRX : Expired universe - CID" << CID::CIDIntoQString(cid) << ", universe" << universe;
+                    emit expiredUniverse(cid, universe);
                 }
             }
         }
         if (!source->Universe.count())
         {
-            auto cidString = CID::CIDIntoQString(m_discoveryList.key(source));
-            m_discoveryList.remove(
-                        m_discoveryList.key(source));
-            qDebug() << "DiscoveryRX : Expired Source - CID" << cidString;
-            emit expiredSource(cidString);
+            const auto &cid = m_discoveryList.key(source);
+            m_discoveryList.remove(cid);
+            qDebug() << "DiscoveryRX : Expired Source - CID" << CID::CIDIntoQString(cid);
+            emit expiredSource(cid);
         }
     }
 }
 
-void sACNDiscoveryRX::processPacket(quint8* pbuf, uint buflen)
+void sACNDiscoveryRX::processPacket(const quint8* pbuf, size_t buflen)
 {
     bool flag1, flag2, flag3;
     quint32 length;
@@ -257,7 +255,7 @@ void sACNDiscoveryRX::processPacket(quint8* pbuf, uint buflen)
     {
         m_discoveryList[cid] = new sACNSourceDetail;
         qDebug() << "DiscoveryRX : New source - CID" << CID::CIDIntoQString(cid);
-        emit newSource(CID::CIDIntoQString(cid));
+        emit newSource(cid);
     }
     m_discoveryList[cid]->Name = QString((char*)pbuf + SOURCE_NAME_ADDR);
 
@@ -277,10 +275,10 @@ void sACNDiscoveryRX::processPacket(quint8* pbuf, uint buflen)
             quint16 universe = UpackBUint16(pbuf + DISCO_LIST_UNIVERSE_ADDR + n);
             if (!m_discoveryList[cid]->Universe.contains(universe))
             {
-                qDebug() << "DiscoveryRX : New universe - CID" << CID::CIDIntoQString(cid) << ", universe" << universe;
-                emit newUniverse(CID::CIDIntoQString(cid), universe);
+                qDebug() << "DiscoveryRX : New universe - CID" << CID::CIDIntoQString(cid) << "universe" << universe;
+                emit newUniverse(cid, universe);
             }
-            m_discoveryList[cid]->Universe[universe].SetInterval(E131_UNIVERSE_DISCOVERY_INTERVAL);
+            m_discoveryList[cid]->Universe[universe].SetInterval(std::chrono::milliseconds(E131_UNIVERSE_DISCOVERY_INTERVAL));
         }
     }
     else

@@ -32,7 +32,8 @@
 // Non-static functions
 CID::CID()
 {
-	memset(m_cid, 0, CIDBYTES);
+    qRegisterMetaType<CID>("CID");
+    memset(m_cid, 0, CIDBYTES);
 }
 
 CID::~CID()
@@ -42,13 +43,15 @@ CID::~CID()
 
 CID::CID(const quint8* pCID)
 {
-	memcpy(m_cid, pCID, CIDBYTES);
+    CID();
+    memcpy(m_cid, pCID, CIDBYTES);
 }
 
 
 CID::CID(const CID& cid)
 {
-	memcpy(m_cid, cid.m_cid, CIDBYTES);
+    CID();
+    memcpy(m_cid, cid.m_cid, CIDBYTES);
 }
 
 CID& CID::operator=(const CID& cid)
@@ -156,7 +159,7 @@ CID CID::StringToCID(const char* ptext)
 //Translates a cid to a preallocated text string of 37 bytes (includes terminating NULL0
 void CID::CIDIntoString(const CID& cid, char* ptxt)
 {
-	sprintf(ptxt, "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
+	snprintf(ptxt, 37, "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
 			cid.m_cid[0], cid.m_cid[1], cid.m_cid[2], cid.m_cid[3], cid.m_cid[4],
 			cid.m_cid[5], cid.m_cid[6],	cid.m_cid[7], cid.m_cid[8],	cid.m_cid[9],
 			cid.m_cid[10], cid.m_cid[11], cid.m_cid[12], cid.m_cid[13], cid.m_cid[14],
@@ -170,16 +173,17 @@ QString CID::CIDIntoQString(const CID& cid)
     return QString(buffer);
 }
 
+CID::operator QString() const {
+    return CIDIntoQString(*this);
+}
 
 // Create a CID
 CID CID::CreateCid()
 {
-    QUuid uuid = QUuid::createUuid();
-    QByteArray bits = uuid.toByteArray();
+    const QUuid uuid = QUuid::createUuid();
+    const QByteArray bits = uuid.toRfc4122();
 
-    CID result;
-    memcpy(result.m_cid, bits.data(), CIDBYTES);
-    return result;
+    return CID(reinterpret_cast<const quint8*>(bits.data()));
 }
 
 DCID DCID::StringToDCID(const char* ptext)  

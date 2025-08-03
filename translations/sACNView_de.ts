@@ -25,7 +25,7 @@
     </message>
     <message>
         <location filename="../ui/addmultidialog.ui" line="118"/>
-        <location filename="../src/addmultidialog.cpp" line="74"/>
+        <location filename="../src/ui/addmultidialog.cpp" line="71"/>
         <source>(last universe will be %1)</source>
         <translation>(letzes Universum ist dann %1)</translation>
     </message>
@@ -61,7 +61,7 @@
     </message>
     <message>
         <location filename="../ui/addmultidialog.ui" line="296"/>
-        <location filename="../src/addmultidialog.cpp" line="85"/>
+        <location filename="../src/ui/addmultidialog.cpp" line="82"/>
         <source>Level</source>
         <translation>Niveau</translation>
     </message>
@@ -73,17 +73,17 @@
     </message>
     <message>
         <location filename="../ui/addmultidialog.ui" line="340"/>
-        <location filename="../src/addmultidialog.cpp" line="100"/>
+        <location filename="../src/ui/addmultidialog.cpp" line="98"/>
         <source>Rate</source>
         <translation>Tempo</translation>
     </message>
     <message>
-        <location filename="../src/addmultidialog.cpp" line="125"/>
+        <location filename="../src/ui/addmultidialog.cpp" line="124"/>
         <source>%1 Hz</source>
         <translation>%1 Hz</translation>
     </message>
     <message>
-        <location filename="../src/addmultidialog.cpp" line="187"/>
+        <location filename="../src/ui/addmultidialog.cpp" line="186"/>
         <source>Fade Rate %1 Hz</source>
         <translation>Überblendungsgechwindigkeit %1 Hz</translation>
     </message>
@@ -141,7 +141,7 @@
         <translation>Farbe, Adresse 3</translation>
     </message>
     <message>
-        <location filename="../src/bigdisplay.cpp" line="49"/>
+        <location filename="../src/ui/bigdisplay.cpp" line="43"/>
         <source>Big Display Universe %1</source>
         <translation>Große Anzeige Universum %1</translation>
     </message>
@@ -162,9 +162,8 @@
 <context>
     <name>CrashTest</name>
     <message>
-        <location filename="../ui/crash_test.ui" line="23"/>
         <source>sACNView Crash Tester</source>
-        <translation>sACNView Crash Tester</translation>
+        <translation type="vanished">sACNView Crash Tester</translation>
     </message>
 </context>
 <context>
@@ -203,6 +202,202 @@
         <location filename="../ui/flickerfinderinfoform.ui" line="160"/>
         <source>Flicker finder color codes addresses which change level over time.</source>
         <translation>Der &quot;Flicker Finder&quot; zeigt Adressen an, dessen Niveaus sich im Laufe der Zeit verändern.</translation>
+    </message>
+</context>
+<context>
+    <name>GlScopeWindow</name>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="41"/>
+        <location filename="../src/ui/glscopewindow.cpp" line="73"/>
+        <source>Scope</source>
+        <translation type="unfinished">Oszilloskop</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="80"/>
+        <source>Stop</source>
+        <translation type="unfinished">Stop</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="85"/>
+        <source>Start</source>
+        <translation type="unfinished">Start</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="94"/>
+        <source>Trigger Receive Views</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="101"/>
+        <source>Plot:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="104"/>
+        <source>All Packets</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="104"/>
+        <source>Level Changes</source>
+        <translation type="unfinished">Niveauänderungen</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="113"/>
+        <source>Trace Style:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="116"/>
+        <source>Line</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="116"/>
+        <source>Small Dots</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="116"/>
+        <source>Large Dots</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="122"/>
+        <source>Run For:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="128"/>
+        <source>s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="129"/>
+        <location filename="../src/ui/glscopewindow.cpp" line="145"/>
+        <source>Forever</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="139"/>
+        <source>Store:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="144"/>
+        <source>min</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="156"/>
+        <source>Vertical Scale:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="160"/>
+        <source>Percent</source>
+        <translation type="unfinished">Prozent</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="160"/>
+        <source>DMX8</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="160"/>
+        <source>DMX16</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="160"/>
+        <source>Delta Time</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="168"/>
+        <location filename="../src/ui/glscopewindow.cpp" line="192"/>
+        <source>ms</source>
+        <translation type="unfinished">ms</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="175"/>
+        <source>Time Scale:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="181"/>
+        <source>Elapsed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="183"/>
+        <source>Wallclock</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="206"/>
+        <source>Trigger:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="213"/>
+        <source>Free Run</source>
+        <translation type="unfinished">Freilaufend</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="215"/>
+        <source>Above</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="217"/>
+        <source>Below</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="219"/>
+        <source>Crossed Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="245"/>
+        <source>Channels</source>
+        <translation type="unfinished">Kreise</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="273"/>
+        <source>Add</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="278"/>
+        <source>Remove</source>
+        <translation type="unfinished">Entfernen</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="283"/>
+        <source>Remove All</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="292"/>
+        <source>Save</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="297"/>
+        <source>Load</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="555"/>
+        <source>Save Traces</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/glscopewindow.cpp" line="568"/>
+        <source>Load Traces</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -284,67 +479,67 @@
         <translation>Niveauformat</translation>
     </message>
     <message>
-        <location filename="../src/logwindow.cpp" line="22"/>
+        <location filename="../src/ui/logwindow.cpp" line="22"/>
         <source>Log - Universe %1</source>
         <translation>Log - Universum %1</translation>
     </message>
     <message>
-        <location filename="../src/logwindow.cpp" line="40"/>
+        <location filename="../src/ui/logwindow.cpp" line="40"/>
         <source>Byte</source>
         <translation>Byte</translation>
     </message>
     <message>
-        <location filename="../src/logwindow.cpp" line="44"/>
+        <location filename="../src/ui/logwindow.cpp" line="44"/>
         <source>Percent</source>
         <translation>Prozent</translation>
     </message>
     <message>
-        <location filename="../src/logwindow.cpp" line="48"/>
+        <location filename="../src/ui/logwindow.cpp" line="48"/>
         <source>Hex</source>
         <translation>Hex</translation>
     </message>
     <message>
-        <location filename="../src/logwindow.cpp" line="146"/>
+        <location filename="../src/ui/logwindow.cpp" line="146"/>
         <source>Source Found: %1 (%2)</source>
         <translation>Quelle Gefunden: %1 (%2)</translation>
     </message>
     <message>
-        <location filename="../src/logwindow.cpp" line="154"/>
+        <location filename="../src/ui/logwindow.cpp" line="154"/>
         <source>Source Resumed: %1 (%2)</source>
         <translation>Quelle Fortgesetzt: %1 (%2)</translation>
     </message>
     <message>
-        <location filename="../src/logwindow.cpp" line="162"/>
+        <location filename="../src/ui/logwindow.cpp" line="162"/>
         <source>Source Lost: %1 (%2)</source>
         <translation>Quelle Verloren: %1 (%2)</translation>
     </message>
     <message>
-        <location filename="../src/logwindow.h" line="57"/>
+        <location filename="../src/ui/logwindow.h" line="56"/>
         <source>ISO8601 w/Ms</source>
         <translation>ISO8601 mit Ms</translation>
     </message>
     <message>
-        <location filename="../src/logwindow.h" line="59"/>
+        <location filename="../src/ui/logwindow.h" line="57"/>
         <source>ISO8601</source>
         <translation>ISO8601</translation>
     </message>
     <message>
-        <location filename="../src/logwindow.h" line="60"/>
+        <location filename="../src/ui/logwindow.h" line="58"/>
         <source>US 12Hour (sACNView 1)</source>
         <translation>USA 12-Studen (sACNView 1)</translation>
     </message>
     <message>
-        <location filename="../src/logwindow.h" line="61"/>
+        <location filename="../src/ui/logwindow.h" line="59"/>
         <source>EU 12Hour</source>
         <translation>EU 12 Stunden</translation>
     </message>
     <message>
-        <location filename="../src/logwindow.h" line="71"/>
+        <location filename="../src/ui/logwindow.h" line="69"/>
         <source>[Level1],[Levelx]...[Level512]</source>
         <translation>[Niveau1],[Niveaux]...[Niveau512]</translation>
     </message>
     <message>
-        <location filename="../src/logwindow.h" line="72"/>
+        <location filename="../src/ui/logwindow.h" line="70"/>
         <source>[Chan]@[Level]</source>
         <translation>[Kreis]@[Niveau]</translation>
     </message>
@@ -357,120 +552,132 @@
         <translation>sACNView</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="110"/>
+        <location filename="../ui/mdimainwindow.ui" line="17"/>
+        <source>Number of universes to monitor</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/mdimainwindow.ui" line="108"/>
         <source>Universe List</source>
         <translation>Universenliste</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="172"/>
-        <location filename="../ui/mdimainwindow.ui" line="208"/>
-        <source>...</source>
-        <translation>...</translation>
-    </message>
-    <message>
-        <location filename="../ui/mdimainwindow.ui" line="148"/>
+        <location filename="../ui/mdimainwindow.ui" line="158"/>
         <source>Start at Universe</source>
         <translation>Beginnen bei Universum</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="136"/>
+        <location filename="../ui/mdimainwindow.ui" line="146"/>
         <source>All</source>
         <translation>Alle</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="256"/>
         <source>(-) Show Fewer</source>
-        <translation>(-) Weniger anzeigen</translation>
+        <translation type="vanished">(-) Weniger anzeigen</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="269"/>
         <source>Show More (+)</source>
-        <translation>Mehr anzeigen</translation>
+        <translation type="vanished">Mehr anzeigen</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="285"/>
+        <location filename="../ui/mdimainwindow.ui" line="279"/>
         <source>Discovered</source>
         <translation>Entdeckt</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="317"/>
+        <location filename="../ui/mdimainwindow.ui" line="302"/>
+        <source>Synchronization</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/mdimainwindow.ui" line="334"/>
         <source>ScopeView</source>
         <translation>Oszilloskopanzeige</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="320"/>
+        <location filename="../ui/mdimainwindow.ui" line="337"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Opens an oscilloscope style view of the levels of a set of addresses over time&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>Öffnet eine Ozilloskopanzeige, um die Niveaus von gewählten Adressen im Laufe der Zeit zu sehen</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="329"/>
+        <location filename="../ui/mdimainwindow.ui" line="346"/>
         <source>Snapshot</source>
         <translation>Snapshot</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="332"/>
+        <location filename="../ui/mdimainwindow.ui" line="349"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Opens a window allowing snapshot and playback of a universe of sACN levels&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>Öffnet ein Fenster in dem Schnappschüsse eines Universums gespeichert und wiedergegeben werden können</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="341"/>
+        <location filename="../ui/mdimainwindow.ui" line="358"/>
         <source>Tranmsit</source>
         <translation>Senden</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="344"/>
+        <location filename="../ui/mdimainwindow.ui" line="361"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Opens a window allowing transmission of a universe of sACN&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>Öffnet ein Fenster um ein sACN-Universum zu senden</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="353"/>
+        <location filename="../ui/mdimainwindow.ui" line="370"/>
         <source>Recieve</source>
         <translation>Empfangen</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="356"/>
+        <location filename="../ui/mdimainwindow.ui" line="373"/>
         <source>View a universe of sACN</source>
         <translation>Ein sACN-Universum sehen</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="368"/>
+        <location filename="../ui/mdimainwindow.ui" line="385"/>
         <source>Settings</source>
         <translation>Einstellungen</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="371"/>
+        <location filename="../ui/mdimainwindow.ui" line="388"/>
         <source>Configure application settings</source>
         <translation>Softwareeinstellungen konfigurieren</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="380"/>
+        <location filename="../ui/mdimainwindow.ui" line="397"/>
         <source>About</source>
         <translation>Info</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="383"/>
+        <location filename="../ui/mdimainwindow.ui" line="400"/>
         <source>About sACNView</source>
         <translation>Über sACNView</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="392"/>
+        <location filename="../ui/mdimainwindow.ui" line="409"/>
         <source>Send Multiple Universes</source>
         <translation>Mehrere Universen senden</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="395"/>
+        <location filename="../ui/mdimainwindow.ui" line="412"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open a window allowing easy setup of multiple sources of sACN data at once&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>Öffnet ein Fenster, um  mehrere sACN-Universen gleichzeitig zu senden</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="404"/>
+        <location filename="../ui/mdimainwindow.ui" line="421"/>
         <source>Playback</source>
         <translation>Wiedergabe</translation>
     </message>
     <message>
-        <location filename="../ui/mdimainwindow.ui" line="407"/>
+        <location filename="../ui/mdimainwindow.ui" line="424"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Playback data captured with Wireshark (or other tools that produce a PCAP file format). sACN Data will be played back with the same timing as when it was captured, allowing precise recreation of fades.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>Daten werden mit Wireshark erfasst (oder mit anderer Software, die eine PACP-Datei speichert). sACN Data wird mit ursprünglichem Timing wiedergegeben, um Überblendungen genau zu wiederholen</translation>
+    </message>
+    <message>
+        <location filename="../ui/mdimainwindow.ui" line="433"/>
+        <source>MultiView</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/mdimainwindow.ui" line="436"/>
+        <source>View Multiple Universes of received sACN</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -521,36 +728,102 @@
         <translation>Kontrolle</translation>
     </message>
     <message>
-        <location filename="../ui/multiuniverse.ui" line="85"/>
-        <location filename="../ui/multiuniverse.ui" line="96"/>
-        <source>...</source>
-        <translation>...</translation>
-    </message>
-    <message>
-        <location filename="../src/multiuniverse.cpp" line="175"/>
-        <location filename="../src/multiuniverse.cpp" line="429"/>
+        <location filename="../src/ui/multiuniverse.cpp" line="178"/>
+        <location filename="../src/ui/multiuniverse.cpp" line="433"/>
         <source>_%1</source>
         <translation>_%1</translation>
     </message>
     <message>
-        <location filename="../src/multiuniverse.cpp" line="318"/>
+        <location filename="../src/ui/multiuniverse.cpp" line="322"/>
         <source>Slower</source>
         <translation>Langsamer</translation>
     </message>
     <message>
-        <location filename="../src/multiuniverse.cpp" line="319"/>
+        <location filename="../src/ui/multiuniverse.cpp" line="323"/>
         <source>Faster</source>
         <translation>Schneller</translation>
     </message>
     <message>
-        <location filename="../src/multiuniverse.cpp" line="340"/>
+        <location filename="../src/ui/multiuniverse.cpp" line="344"/>
         <source>EU Date Style</source>
         <translation>EU Datumformat</translation>
     </message>
     <message>
-        <location filename="../src/multiuniverse.cpp" line="341"/>
+        <location filename="../src/ui/multiuniverse.cpp" line="345"/>
         <source>US Date Style</source>
         <translation>USA Datumformat</translation>
+    </message>
+</context>
+<context>
+    <name>MultiView</name>
+    <message>
+        <location filename="../ui/multiview.ui" line="20"/>
+        <source>Multi Universe View</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/multiview.ui" line="53"/>
+        <location filename="../ui/multiview.ui" line="190"/>
+        <location filename="../src/ui/multiview.cpp" line="93"/>
+        <source>Start</source>
+        <translation type="unfinished">Start</translation>
+    </message>
+    <message>
+        <location filename="../ui/multiview.ui" line="92"/>
+        <source>Static</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/multiview.ui" line="99"/>
+        <location filename="../ui/multiview.ui" line="116"/>
+        <location filename="../ui/multiview.ui" line="176"/>
+        <source> ms</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/multiview.ui" line="109"/>
+        <source>Long</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/multiview.ui" line="123"/>
+        <source>Short</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/multiview.ui" line="200"/>
+        <source>Time Summary</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/multiview.ui" line="210"/>
+        <source>End</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/multiview.ui" line="220"/>
+        <source>Clear Offline</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/multiview.ui" line="183"/>
+        <source>Reset Counters</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/multiview.ui" line="156"/>
+        <source>Export CSV...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/multiview.cpp" line="66"/>
+        <source>Stop</source>
+        <translation type="unfinished">Stop</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/multiview.cpp" line="141"/>
+        <source>Export Sources Table</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -594,73 +867,93 @@
         <translation>sACNView x ist verfügbar (Sie haben x).Möchten Sie aktualisieren?</translation>
     </message>
     <message>
-        <location filename="../ui/newversiondialog.ui" line="69"/>
+        <location filename="../ui/newversiondialog.ui" line="68"/>
         <source>Release notes:</source>
         <translation>Versionshinweise:</translation>
     </message>
     <message>
-        <location filename="../ui/newversiondialog.ui" line="104"/>
+        <location filename="../ui/newversiondialog.ui" line="100"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Ignore this version and don&apos;t remind me again&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/newversiondialog.ui" line="103"/>
+        <source>Ignore </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/newversiondialog.ui" line="113"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remind me about this version next time I open sACNView&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/newversiondialog.ui" line="116"/>
         <source>Remind me later</source>
         <translation>Erinner mich später</translation>
     </message>
     <message>
-        <location filename="../ui/newversiondialog.ui" line="114"/>
+        <location filename="../ui/newversiondialog.ui" line="126"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Install the new version now&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/newversiondialog.ui" line="129"/>
         <source>Install update</source>
         <translation>Update installieren</translation>
     </message>
     <message>
-        <location filename="../ui/newversiondialog.ui" line="136"/>
+        <location filename="../ui/newversiondialog.ui" line="151"/>
         <source>Downloading Update</source>
         <translation>Update wird heruntergeladen</translation>
     </message>
     <message>
-        <location filename="../ui/newversiondialog.ui" line="159"/>
-        <location filename="../src/versioncheck.cpp" line="51"/>
+        <location filename="../ui/newversiondialog.ui" line="174"/>
+        <location filename="../src/ui/newversiondialog.cpp" line="56"/>
         <source>Downloading %1 from %2</source>
         <translation>Herunterladen %1 von %2</translation>
     </message>
     <message>
-        <location filename="../ui/newversiondialog.ui" line="213"/>
+        <location filename="../ui/newversiondialog.ui" line="228"/>
         <source>Cancel download</source>
         <translation>Download stornieren</translation>
     </message>
     <message>
-        <location filename="../ui/newversiondialog.ui" line="223"/>
+        <location filename="../ui/newversiondialog.ui" line="238"/>
         <source>Exit and install</source>
         <translation>Beenden und installieren</translation>
     </message>
     <message>
-        <location filename="../src/versioncheck.cpp" line="38"/>
+        <location filename="../src/ui/newversiondialog.cpp" line="44"/>
         <source>sACNView %1 is available (you have %2). Would you like to download it now?</source>
         <translation>sACNView %1 ist verfügbar (Sie haben %2).Möchten Sie es jetzt herunterladen?</translation>
     </message>
     <message>
-        <location filename="../src/versioncheck.cpp" line="78"/>
+        <location filename="../src/ui/newversiondialog.cpp" line="82"/>
         <source>Could not open file %1 to save - please download and install manually</source>
         <translation>Datei %1 konnte nicht geöffnet werden. Bitte laden Sie sie manuell herunter</translation>
     </message>
     <message>
-        <location filename="../src/versioncheck.cpp" line="97"/>
+        <location filename="../src/ui/newversiondialog.cpp" line="101"/>
         <source>%1 of %2 bytes</source>
         <translation>%1 von %2 bytes</translation>
     </message>
     <message>
-        <location filename="../src/versioncheck.cpp" line="99"/>
+        <location filename="../src/ui/newversiondialog.cpp" line="103"/>
         <source>%1 of %2</source>
         <translation>%1 von %2</translation>
     </message>
     <message>
-        <location filename="../src/versioncheck.cpp" line="135"/>
+        <location filename="../src/ui/newversiondialog.cpp" line="141"/>
         <source>Error downloading : please try again</source>
         <translation>Download-Error: bitte nochmal probieren</translation>
     </message>
     <message>
-        <location filename="../src/versioncheck.cpp" line="163"/>
+        <location filename="../src/ui/newversiondialog.cpp" line="169"/>
         <source>Couldn&apos;t Run Installer</source>
         <translation>Installer konnte nicht laufen</translation>
     </message>
     <message>
-        <location filename="../src/versioncheck.cpp" line="163"/>
+        <location filename="../src/ui/newversiondialog.cpp" line="169"/>
         <source>Unable to run installer - please run %1</source>
         <translation>Installer kann nicht laufen - bitte starten Sie %1</translation>
     </message>
@@ -669,7 +962,7 @@
     <name>PcapPlayback</name>
     <message>
         <location filename="../ui/pcapplayback.ui" line="26"/>
-        <location filename="../src/pcapplayback.cpp" line="181"/>
+        <location filename="../src/pcap/pcapplayback.cpp" line="243"/>
         <source>PCap Playback</source>
         <translation>PCap-Wiedergabe</translation>
     </message>
@@ -719,29 +1012,44 @@
         <translation>Wiedergabe im Kreis?</translation>
     </message>
     <message>
-        <location filename="../src/pcapplayback.cpp" line="63"/>
+        <location filename="../src/pcap/pcapplayback.cpp" line="114"/>
+        <source>Pcap not found</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/pcap/pcapplayback.cpp" line="116"/>
+        <source>Pcap not found, please install Wireshark</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/pcap/pcapplayback.cpp" line="118"/>
+        <source>Libpcap not found, please install</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/pcap/pcapplayback.cpp" line="125"/>
         <source>Open Capture</source>
         <translation>Erfassung öffnen</translation>
     </message>
     <message>
-        <location filename="../src/pcapplayback.cpp" line="65"/>
+        <location filename="../src/pcap/pcapplayback.cpp" line="127"/>
         <source>PCap Files (*.pcap);; PCapNG Files (*.pcapng);; All files (*.*)</source>
         <translation>PCap Dateien (*.pcap);; PCapNG Dateien (*.pcapng);; All Dateien (*.*)</translation>
     </message>
     <message>
-        <location filename="../src/pcapplayback.cpp" line="77"/>
+        <location filename="../src/pcap/pcapplayback.cpp" line="139"/>
         <source>Error opening %1
 %2</source>
         <translation>Fehler beim Öffnen %1 %2</translation>
     </message>
     <message>
-        <location filename="../src/pcapplayback.cpp" line="88"/>
+        <location filename="../src/pcap/pcapplayback.cpp" line="150"/>
         <source>Error opening %1
 pcap_compile failed</source>
         <translation>Fehler beim Öffnen %1 pcap_compile Fehler</translation>
     </message>
     <message>
-        <location filename="../src/pcapplayback.cpp" line="93"/>
+        <location filename="../src/pcap/pcapplayback.cpp" line="155"/>
         <source>Error opening %1
 pcap_setfilter failed</source>
         <translation>Fehler beim Öffnen %1 pcap_setfilter Fehler</translation>
@@ -755,112 +1063,274 @@ pcap_setfilter failed</source>
         <translation>Einstellungen</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="41"/>
+        <location filename="../ui/preferencesdialog.ui" line="596"/>
+        <source>Allow Priorities to exceed 200 (E1.31:2016 6.2.3)*</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="666"/>
+        <source>Restore windows on restart</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="759"/>
+        <source>Save windows on exit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="766"/>
+        <source>Save windows now</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="773"/>
+        <source>Automatically start all receive windows after restoring</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="776"/>
+        <source>Autostart Receive</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="792"/>
         <source>Language*</source>
         <translation>Sprache*</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="165"/>
+        <location filename="../ui/preferencesdialog.ui" line="248"/>
         <source>Network Interface*</source>
         <translation>Netzwerkkarte*</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="177"/>
         <source>Listen on all interfaces (Send only on below)</source>
-        <translation>Auf alle Netzwerkkarten hören (nur auf folgenden senden)</translation>
+        <translation type="vanished">Auf alle Netzwerkkarten hören (nur auf folgenden senden)</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="65"/>
+        <location filename="../ui/preferencesdialog.ui" line="612"/>
         <source>Display Options</source>
         <translation>Anzeigeeinstellungen</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="135"/>
+        <location filename="../ui/preferencesdialog.ui" line="626"/>
         <source>Theme*</source>
         <translation>Motiv*</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="122"/>
         <source>Restore windows on application restart</source>
-        <translation>Bei Neustart Fenster wiederherstellen</translation>
+        <translation type="vanished">Bei Neustart Fenster wiederherstellen</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="109"/>
+        <location filename="../ui/preferencesdialog.ui" line="746"/>
         <source>Hexadecimal (00-FF)</source>
         <translation>Hexadezimal (00-FF)</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="96"/>
+        <location filename="../ui/preferencesdialog.ui" line="692"/>
         <source>Percent (0-100)</source>
         <translation>Prozent (0-100)</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="83"/>
+        <location filename="../ui/preferencesdialog.ui" line="727"/>
         <source>Decimal (0-255)</source>
         <translation>Dezimal (0-255)</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="197"/>
-        <source>Recieve Options</source>
-        <translation>Empfangseinstellungen</translation>
+        <location filename="../ui/preferencesdialog.ui" line="705"/>
+        <source>Floating Windows</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="215"/>
+        <source>Recieve Options</source>
+        <translation type="vanished">Empfangseinstellungen</translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="57"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Display DMX Data with the preview flag set, indented for use with visulizers only and not live &apos;stage&apos; ouput&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="60"/>
         <source>Display Blind/Visualizer Data</source>
         <translation>Blind/Visualizer-Info Anzeigen</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="228"/>
-        <source>Display sources with no DMX Data*</source>
-        <translation>Quellen anzeigen, wo kein DMX Data vorhanden ist*</translation>
+        <location filename="../ui/preferencesdialog.ui" line="83"/>
+        <source>Electronic Theatre Controls Extensions</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="257"/>
+        <location filename="../ui/preferencesdialog.ui" line="92"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable processing of Electronic Theatre Controls &amp;quot;Per-Channel [Address] Priority&amp;quot;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="95"/>
+        <source>Per-Address Priority (0xdd)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="113"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Display sources that are ONLY transmitting 0xdd frames. &lt;/p&gt;&lt;p&gt;I.e. Sources that are not currently transmitting DMX Data&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Display sources with no DMX Data*</source>
+        <translation type="vanished">Quellen anzeigen, wo kein DMX Data vorhanden ist*</translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="129"/>
+        <location filename="../ui/preferencesdialog.ui" line="340"/>
+        <source>Pathway Connectivity Extensions</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="138"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable processing of Pathway Connectivity &amp;quot;Secure DMX Protocol&amp;quot;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="141"/>
+        <source>Secure DMX</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="161"/>
+        <source>Password</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="177"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Password to be used to verifiy secured sources&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="198"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Only merge DMX data from secure sources&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="201"/>
+        <source>Display only secure data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="208"/>
+        <source>Sequence Time Window</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="214"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;For sources using time as a sequence, what is the maximum allowable window &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="220"/>
+        <source> ms</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="266"/>
+        <source>Listen on all interfaces (Send only on selected)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="292"/>
         <source>Transmit Options</source>
         <translation>Sendeeinstellungen</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="269"/>
+        <location filename="../ui/preferencesdialog.ui" line="586"/>
         <source>Default Source Name</source>
         <translation>Standard Quellenname</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="300"/>
+        <location filename="../ui/preferencesdialog.ui" line="391"/>
         <source>Allow rates to exceed E1.11 (E1.31:2016 6.6.1)*</source>
         <translation>Datenraten dürfen E1.11 (E1.31:2016 6.6.1) überschreiten</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="313"/>
+        <location filename="../ui/preferencesdialog.ui" line="39"/>
+        <source>Receive Options</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="73"/>
+        <source>Accept sources sending illegal priorities (&gt;200)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="76"/>
+        <source>Merge out-of-range Priorities</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="116"/>
+        <source>Display sources with no DMX Level Data*</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="330"/>
+        <source>Multicast TTL*</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="404"/>
         <source>Stop transmitting sACN after</source>
         <translation>sACN-Sendung unterbrechen nach</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="355"/>
+        <location filename="../ui/preferencesdialog.ui" line="461"/>
         <source>Hours</source>
         <translation>Stunden</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="393"/>
+        <location filename="../ui/preferencesdialog.ui" line="511"/>
         <source>Minutes</source>
         <translation>Minuten</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="431"/>
+        <location filename="../ui/preferencesdialog.ui" line="561"/>
         <source>Seconds</source>
         <translation>Sekunden</translation>
     </message>
     <message>
-        <location filename="../ui/preferencesdialog.ui" line="478"/>
+        <location filename="../ui/preferencesdialog.ui" line="349"/>
+        <source>Default Password</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="359"/>
+        <source>Sequence Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/preferencesdialog.cpp" line="38"/>
+        <source>Time</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/preferencesdialog.cpp" line="39"/>
+        <source>Volatile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/preferencesdialog.cpp" line="40"/>
+        <source>Non-Volatile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/preferencesdialog.ui" line="835"/>
         <source>*Application restart required on change  </source>
         <translation>*Bei Einstellungsänderung Neustart erforderlich  </translation>
     </message>
     <message>
-        <location filename="../src/preferencesdialog.cpp" line="181"/>
-        <source>Restart requied</source>
+        <location filename="../src/ui/preferencesdialog.cpp" line="263"/>
+        <source>Restart required</source>
         <translation>Neustart erforderlich</translation>
     </message>
     <message>
-        <location filename="../src/preferencesdialog.cpp" line="182"/>
+        <location filename="../src/ui/preferencesdialog.cpp" line="264"/>
         <source>To apply these preferences, you will need to restart the application. 
 sACNView will now close and restart</source>
         <translation>Um diese Einstellungen zu speichern, müssen Sie die Software neustarten.
@@ -870,33 +1340,22 @@ sACNView wird jezt schließen und neustarten</translation>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../src/main.cpp" line="82"/>
-        <source>This binary is intended for Windows XP only
-There are major issues mixed IPv4 and IPv6 enviroments
-
-Please ensure IPv6 is disabled</source>
-        <translation>Diese Binärdatei ist nur for Windows XP beabsichtig
-Es gibt große Probleme bei gemischten IPv4 und IPv6-Umgebungen
-
-Bitte sicherstellen, dass IPv6 ausgeschaltet ist</translation>
-    </message>
-    <message>
-        <location filename="../src/main.cpp" line="86"/>
-        <source>This binary is intended for Windows XP only</source>
-        <translation>Diese Binärdatei ist nur for Windows XP beabsichtig</translation>
-    </message>
-    <message>
-        <location filename="../src/main.cpp" line="143"/>
-        <source>Selected interface: %1</source>
-        <translation>Gewählte Netzwerkkarte: %1</translation>
-    </message>
-    <message>
         <location filename="../src/main.cpp" line="159"/>
+        <source>WORKING OFFLINE</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/main.cpp" line="164"/>
+        <source>Selected interface: %1 (%2)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/main.cpp" line="180"/>
         <source>Incoming connections to this application are blocked by the firewall</source>
         <translation>Eingehende Verbindungen mit dieser Software werden durch eine Firewall blockiert</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="163"/>
+        <location filename="../src/main.cpp" line="184"/>
         <source>Incoming connections to this application are restricted by the firewall</source>
         <translation>Eingehende Verbindungen mit dieser Software werden durch eine Firewall beschränkt</translation>
     </message>
@@ -951,255 +1410,546 @@ Bitte sicherstellen, dass IPv6 ausgeschaltet ist</translation>
         <translation>Fehler - nichts gewählt</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="48"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="49"/>
         <source>Manual</source>
         <translation>Manuell</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="49"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="50"/>
         <source>Ramp</source>
         <translation>Rampe</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="50"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="51"/>
+        <source>Inverse Ramp</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/sacn/sacneffectengine.h" line="52"/>
         <source>Sinewave</source>
         <translation>Sinusoid</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="51"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="53"/>
         <source>Chase (Snap)</source>
         <translation>Lauflicht (Cut)</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="52"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="54"/>
         <source>Chase (Ramp)</source>
         <translation>Lauflicht (Rampe)</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="53"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="55"/>
         <source>Chase (Sine)</source>
         <translation>Lauflicht (Sinus)</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="54"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="56"/>
         <source>Vertical Bars</source>
         <translation>Senkrechte Barren</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="55"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="57"/>
         <source>Horizontal Bars</source>
         <translation>Waagerechte Barren</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="56"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="58"/>
         <source>Text</source>
         <translation>Text</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacneffectengine.h" line="57"/>
+        <location filename="../src/sacn/sacneffectengine.h" line="59"/>
         <source>Date</source>
         <translation>Datum</translation>
     </message>
     <message>
-        <location filename="../src/preferences.h" line="75"/>
         <source>Light Theme</source>
-        <translation>Helles Thema</translation>
+        <translation type="vanished">Helles Thema</translation>
     </message>
     <message>
-        <location filename="../src/preferences.h" line="76"/>
         <source>Dark Theme</source>
-        <translation>Dunkles Thema</translation>
+        <translation type="vanished">Dunkles Thema</translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="32"/>
-        <source>Online</source>
-        <translation>Online</translation>
-    </message>
-    <message>
-        <location filename="../src/universeview.cpp" line="33"/>
-        <source>Offline</source>
-        <translation>Offline</translation>
-    </message>
-    <message>
-        <location filename="../src/universeview.cpp" line="41"/>
+        <location filename="../src/sacn/streamingacn.cpp" line="58"/>
         <source>Draft</source>
         <translation>Draft</translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="43"/>
+        <location filename="../src/sacn/streamingacn.cpp" line="60"/>
         <source>Release</source>
         <translation>Freigeben</translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="46"/>
+        <location filename="../src/sacn/streamingacn.cpp" line="62"/>
+        <source>Pathway Secure</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/sacn/streamingacn.cpp" line="64"/>
         <source>Unknown</source>
         <translation>Unbekennt</translation>
     </message>
     <message>
-        <location filename="../src/logwindow.cpp" line="255"/>
-        <source>Failed to start logging to file
+        <location filename="../src/ui/logwindow.cpp" line="255"/>
+        <source>Failed to start logging to file<byte value="xd"/>
 Error %1</source>
-        <translation>Felher bei Log-erstellung nach Datei
-Fehler %1</translation>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SACNListenerTableModel</name>
+    <message>
+        <location filename="../src/models/sacnlistenermodel.cpp" line="47"/>
+        <source>Universe</source>
+        <translation type="unfinished">Universum</translation>
     </message>
     <message>
-        <location filename="../src/xpwarning.h" line="14"/>
-        <source>This binary is intended for Windows XP only
-This feature is unavailable</source>
-        <translation>Diese Binärdatei ist nur for Windows XP beabsichtig
-Dieses Feature ist nicht verfügbar</translation>
+        <location filename="../src/models/sacnlistenermodel.cpp" line="48"/>
+        <source>Merges</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnlistenermodel.cpp" line="49"/>
+        <source>Unicast</source>
+        <translation type="unfinished">Unicast</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnlistenermodel.cpp" line="50"/>
+        <source>Multicast</source>
+        <translation type="unfinished">Multicast</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnlistenermodel.cpp" line="96"/>
+        <source>Unknown</source>
+        <translation type="unfinished">Unbekennt</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnlistenermodel.cpp" line="99"/>
+        <source>OK</source>
+        <translation type="unfinished">OK</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnlistenermodel.cpp" line="102"/>
+        <source>Failed</source>
+        <translation type="unfinished">Fehler</translation>
+    </message>
+</context>
+<context>
+    <name>SACNSourceTableModel</name>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="123"/>
+        <source>Offline</source>
+        <translation type="unfinished">Offline</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="124"/>
+        <source>No DMX</source>
+        <translation type="unfinished">Kein DMX</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="125"/>
+        <source>Online (Unstable)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="126"/>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="285"/>
+        <source>Online</source>
+        <translation type="unfinished">Online</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="135"/>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="164"/>
+        <source>N/A</source>
+        <translation type="unfinished">N/A</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="138"/>
+        <source>Yes (%1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="139"/>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="140"/>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="154"/>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="164"/>
+        <source>No</source>
+        <translation type="unfinished">Nein</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="140"/>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="156"/>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="168"/>
+        <source>Yes</source>
+        <translation type="unfinished">Ja</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="156"/>
+        <source>Ignored</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="158"/>
+        <source>Invalid</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="158"/>
+        <source>Ignored (Invalid)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="165"/>
+        <source>Bad Message Digest</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="166"/>
+        <source>Bad Sequence</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="167"/>
+        <source>Bad Password</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="284"/>
+        <source>Name</source>
+        <translation type="unfinished">Name</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="286"/>
+        <source>CID</source>
+        <translation type="unfinished">CID</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="287"/>
+        <source>Universe</source>
+        <translation type="unfinished">Universum</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="288"/>
+        <source>Priority</source>
+        <translation type="unfinished">Priorität</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="289"/>
+        <source>Sync</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="290"/>
+        <source>Preview</source>
+        <translation type="unfinished">Vorschau</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="291"/>
+        <source>IP Address</source>
+        <translation type="unfinished">IP-Adresse</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="292"/>
+        <source>FPS</source>
+        <translation type="unfinished">FPS</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="293"/>
+        <source>Times (ms)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="300"/>
+        <source>SeqErr</source>
+        <translation type="unfinished">SeqErr</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="301"/>
+        <source>Jumps</source>
+        <translation type="unfinished">Sprünge</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="302"/>
+        <source>Ver</source>
+        <translation type="unfinished">Vers.</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="303"/>
+        <source>Per-Address</source>
+        <translation type="unfinished">Per-Adresse</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="304"/>
+        <source>Slots</source>
+        <translation type="unfinished">Slots</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="305"/>
+        <source>Secure</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="306"/>
+        <source>Notes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="312"/>
+        <source>The human readable name the source has been given</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="313"/>
+        <source>Online status of the source</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="314"/>
+        <source>The Component IDentifier of the source, a Universally Unique Identifier</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="315"/>
+        <source>sACN Universe number (%1-%1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="316"/>
+        <source>Source priority %1 (ignore) to %2 (most important). Default %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="334"/>
+        <source>User notes. Not provided by the source</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="317"/>
+        <source>Does the source support Universe Synchronization?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="318"/>
+        <source>Indicates that the data in this packet is intended for use in visualization or media server preview applications and shall not be used to generate live output.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="319"/>
+        <source>The IP address of the source</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="320"/>
+        <source>Frames per Second, aka refresh rate of the DMX source</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="321"/>
+        <source>Range of packet intervals</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="322"/>
+        <source>Count of packet intervals &lt;%1ms</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="324"/>
+        <source>Count of packet intervals &gt;%1ms</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="326"/>
+        <source>Count of static packet intervals (&lt;%1ms)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="328"/>
+        <source>Number of packets which have received out of order</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="329"/>
+        <source>Number of packets which have been missed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="330"/>
+        <source>Protocol version</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="331"/>
+        <source>If the source supports Electronic Theatre Controls Per-Address extension, is the source transmitting per address priorities?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="332"/>
+        <source>Number of DMX Data slots the source is transmitting</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsourcetablemodel.cpp" line="333"/>
+        <source>If the source supports Pathways Secure DMX extension, is the password correct and the packet secure?</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ScopeModel</name>
+    <message>
+        <location filename="../src/widgets/glscopewidget.cpp" line="561"/>
+        <source>Universe</source>
+        <translation type="unfinished">Universum</translation>
+    </message>
+    <message>
+        <location filename="../src/widgets/glscopewidget.cpp" line="562"/>
+        <source>Address</source>
+        <translation type="unfinished">Adresse</translation>
+    </message>
+    <message>
+        <location filename="../src/widgets/glscopewidget.cpp" line="563"/>
+        <source>Colour</source>
+        <translation type="unfinished">Farbe</translation>
+    </message>
+    <message>
+        <location filename="../src/widgets/glscopewidget.cpp" line="564"/>
+        <source>Trigger</source>
+        <translation type="unfinished">Trigger</translation>
+    </message>
+    <message>
+        <location filename="../src/widgets/glscopewidget.cpp" line="565"/>
+        <source>Label</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/widgets/glscopewidget.cpp" line="702"/>
+        <source>sACN Universe</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/widgets/glscopewidget.cpp" line="707"/>
+        <source>DMX Address. MSB/LSB for 16bit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/widgets/glscopewidget.cpp" line="712"/>
+        <source>Trace color (#RRGGBB)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/widgets/glscopewidget.cpp" line="718"/>
+        <source>Trigger on this trace</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>ScopeWindow</name>
     <message>
-        <location filename="../ui/scopewindow.ui" line="20"/>
-        <location filename="../ui/scopewindow.ui" line="54"/>
         <source>Scope</source>
-        <translation>Oszilloskop</translation>
+        <translation type="vanished">Oszilloskop</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="62"/>
         <source>Stop</source>
-        <translation>Stop</translation>
+        <translation type="vanished">Stop</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="69"/>
         <source>Start</source>
-        <translation>Start</translation>
+        <translation type="vanished">Start</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="78"/>
         <source>Timebase</source>
-        <translation>Zeitbasis</translation>
+        <translation type="vanished">Zeitbasis</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="91"/>
         <source>1000 ms/div</source>
-        <translation>1000 ms/div</translation>
+        <translation type="vanished">1000 ms/div</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="101"/>
-        <location filename="../ui/scopewindow.ui" line="238"/>
         <source>Trigger</source>
-        <translation>Trigger</translation>
+        <translation type="vanished">Trigger</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="107"/>
         <source>Trigger Level:</source>
-        <translation>Triggerniveau:</translation>
+        <translation type="vanished">Triggerniveau:</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="128"/>
         <source>Free Run</source>
-        <translation>Freilaufend</translation>
+        <translation type="vanished">Freilaufend</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="133"/>
         <source>Rising Edge</source>
-        <translation>Steigende Flanke</translation>
+        <translation type="vanished">Steigende Flanke</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="138"/>
         <source>Falling Edge</source>
-        <translation>Fallende Flanke</translation>
+        <translation type="vanished">Fallende Flanke</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="146"/>
         <source>Trigger Delay:</source>
-        <translation>Triggerverzögerung:</translation>
+        <translation type="vanished">Triggerverzögerung:</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="162"/>
         <source>ms</source>
-        <translation>ms</translation>
+        <translation type="vanished">ms</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="178"/>
         <source>Channels</source>
-        <translation>Kreise</translation>
+        <translation type="vanished">Kreise</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="203"/>
-        <location filename="../ui/scopewindow.ui" line="208"/>
-        <location filename="../ui/scopewindow.ui" line="213"/>
         <source>New Row</source>
-        <translation>Neue Zeile</translation>
+        <translation type="vanished">Neue Zeile</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="218"/>
         <source>Universe</source>
-        <translation>Universum</translation>
+        <translation type="vanished">Universum</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="223"/>
         <source>Address</source>
-        <translation>Adresse</translation>
+        <translation type="vanished">Adresse</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="228"/>
         <source>Enabled</source>
-        <translation>Aktiviert</translation>
+        <translation type="vanished">Aktiviert</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="233"/>
         <source>Colour</source>
-        <translation>Farbe</translation>
+        <translation type="vanished">Farbe</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="243"/>
         <source>16-Bit</source>
-        <translation>16-bit</translation>
+        <translation type="vanished">16-bit</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="248"/>
-        <location filename="../ui/scopewindow.ui" line="253"/>
-        <location filename="../ui/scopewindow.ui" line="258"/>
-        <location filename="../ui/scopewindow.ui" line="263"/>
-        <location filename="../ui/scopewindow.ui" line="268"/>
-        <location filename="../ui/scopewindow.ui" line="273"/>
-        <location filename="../ui/scopewindow.ui" line="278"/>
-        <location filename="../ui/scopewindow.ui" line="283"/>
-        <location filename="../ui/scopewindow.ui" line="288"/>
-        <location filename="../ui/scopewindow.ui" line="293"/>
-        <location filename="../ui/scopewindow.ui" line="298"/>
-        <location filename="../ui/scopewindow.ui" line="303"/>
         <source>1</source>
-        <translation>1</translation>
+        <translation type="vanished">1</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="313"/>
         <source>Add</source>
-        <translation>Hinzufügen</translation>
+        <translation type="vanished">Hinzufügen</translation>
     </message>
     <message>
-        <location filename="../ui/scopewindow.ui" line="320"/>
         <source>Remove</source>
-        <translation>Entfernen</translation>
+        <translation type="vanished">Entfernen</translation>
     </message>
     <message>
-        <location filename="../src/scopewindow.cpp" line="99"/>
         <source>%1 ms/div</source>
-        <translation>%1 ms/div</translation>
+        <translation type="vanished">%1 ms/div</translation>
     </message>
     <message>
-        <location filename="../src/scopewindow.cpp" line="101"/>
         <source>%1 s/div</source>
-        <translation>%1 s/div</translation>
+        <translation type="vanished">%1 s/div</translation>
     </message>
     <message>
-        <location filename="../src/scopewindow.cpp" line="136"/>
-        <location filename="../src/scopewindow.cpp" line="261"/>
-        <location filename="../src/scopewindow.cpp" line="274"/>
         <source>Yes</source>
-        <translation>Ja</translation>
+        <translation type="vanished">Ja</translation>
     </message>
     <message>
-        <location filename="../src/scopewindow.cpp" line="158"/>
-        <location filename="../src/scopewindow.cpp" line="266"/>
-        <location filename="../src/scopewindow.cpp" line="279"/>
         <source>No</source>
-        <translation>Nein</translation>
+        <translation type="vanished">Nein</translation>
     </message>
 </context>
 <context>
@@ -1220,58 +1970,75 @@ Dieses Feature ist nicht verfügbar</translation>
         <translation>Priorität</translation>
     </message>
     <message>
-        <location filename="../ui/snapshot.ui" line="75"/>
-        <location filename="../ui/snapshot.ui" line="146"/>
-        <source>...</source>
-        <translation>...</translation>
-    </message>
-    <message>
-        <location filename="../ui/snapshot.ui" line="214"/>
+        <location filename="../ui/snapshot.ui" line="212"/>
         <source>Take All Snapshots</source>
         <translation>Alle Snapshots erfassen</translation>
     </message>
     <message>
-        <location filename="../src/snapshot.cpp" line="18"/>
+        <location filename="../src/ui/snapshot.cpp" line="19"/>
         <source>Playback All Snapshots</source>
         <translation>Alle Snapshots wiedergeben</translation>
     </message>
     <message>
-        <location filename="../src/snapshot.cpp" line="24"/>
+        <location filename="../src/ui/snapshot.cpp" line="25"/>
         <source>Stop All Playback</source>
         <translation>Alle Wiedergaben stoppen</translation>
     </message>
     <message>
-        <location filename="../src/snapshot.cpp" line="37"/>
+        <location filename="../src/ui/snapshot.cpp" line="38"/>
         <source>Add the universes you want to capture, then press Snapshot to capture a look</source>
         <translation>Fügen Sie die Universen hinzu, die Sie erfassen wollen, und drücken Sie dann auf Snapshot um eine Szene zu erfassen</translation>
     </message>
     <message>
-        <location filename="../src/snapshot.cpp" line="48"/>
+        <location filename="../src/ui/snapshot.cpp" line="49"/>
         <source>Capturing snapshot in...</source>
         <translation>Snapshot wird erfasst in...</translation>
     </message>
     <message>
-        <location filename="../src/snapshot.cpp" line="53"/>
+        <location filename="../src/ui/snapshot.cpp" line="54"/>
         <source>Press Play to playback snapshot</source>
         <translation>Drücken Sie auf Play, um einen Snapshot wiederzugeben</translation>
     </message>
     <message>
-        <location filename="../src/snapshot.cpp" line="56"/>
+        <location filename="../src/ui/snapshot.cpp" line="57"/>
         <source>Replaying Data</source>
         <translation>Daten werden wiedergegeben</translation>
     </message>
     <message>
-        <location filename="../src/snapshot.cpp" line="329"/>
+        <location filename="../src/ui/snapshot.cpp" line="112"/>
+        <source>Capture universes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/snapshot.cpp" line="113"/>
+        <source>List of capture universes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/snapshot.cpp" line="153"/>
+        <source>Warning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/snapshot.cpp" line="154"/>
+        <source>Adding a large number of universes<byte value="xd"/>
+may cause instability and take a long time<byte value="xd"/>
+<byte value="xd"/>
+Continue?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/snapshot.cpp" line="409"/>
         <source>All sources &lt;i&gt;match&lt;/i&gt; the background levels</source>
         <translation>Alle Quellen stimmen mit dem Hintergrundniveau überein</translation>
     </message>
     <message>
-        <location filename="../src/snapshot.cpp" line="334"/>
+        <location filename="../src/ui/snapshot.cpp" line="414"/>
         <source>Not all sources match the background levels</source>
         <translation>Nicht alle Quellen stimmen mit dem Hintergrundniveau überein</translation>
     </message>
     <message>
-        <location filename="../src/snapshot.cpp" line="104"/>
+        <location filename="../src/ui/snapshot.cpp" line="218"/>
         <source> - Snapshot</source>
         <translation> - Snapshot</translation>
     </message>
@@ -1288,177 +2055,156 @@ Dieses Feature ist nicht verfügbar</translation>
     <name>UniverseView</name>
     <message>
         <location filename="../ui/universeview.ui" line="14"/>
+        <location filename="../src/ui/universeview.cpp" line="116"/>
+        <location filename="../src/ui/universeview.cpp" line="341"/>
         <source>Universe View</source>
         <translation>Univerzenanzeige</translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="65"/>
+        <location filename="../ui/universeview.ui" line="128"/>
+        <source>Compare levels with another universe</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/universeview.ui" line="131"/>
+        <source>Start Compare Univ</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/universeview.ui" line="159"/>
         <source>Universe</source>
         <translation>Universum</translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="97"/>
+        <location filename="../ui/universeview.ui" line="188"/>
         <source>Start reception of sACN</source>
         <translation>sACN-Empfang starten</translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="100"/>
-        <location filename="../ui/universeview.ui" line="114"/>
-        <source>...</source>
-        <translation>...</translation>
-    </message>
-    <message>
-        <location filename="../ui/universeview.ui" line="111"/>
+        <location filename="../ui/universeview.ui" line="202"/>
         <source>Pause reception of sACN</source>
         <translation>sACN-Empfang unterbrechen</translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="133"/>
+        <location filename="../ui/universeview.ui" line="147"/>
         <source>Show Channel Priorities</source>
         <translation>Kreisprioritäten anzeigen</translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="149"/>
-        <location filename="../src/universeview.cpp" line="379"/>
+        <location filename="../ui/universeview.ui" line="93"/>
+        <location filename="../src/ui/universeview.cpp" line="191"/>
         <source>Start Flicker Finder</source>
         <translation>Flicker Finder starten</translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="162"/>
+        <location filename="../ui/universeview.ui" line="218"/>
+        <source>Clear Offline</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/universeview.ui" line="238"/>
         <source>Open Logging Window</source>
         <translation>Log-Fenster öffnen</translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="224"/>
-        <source>New Row</source>
-        <translation>Neue Zeile</translation>
+        <location filename="../ui/universeview.ui" line="225"/>
+        <source>Export Source List...</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/universeview.ui" line="229"/>
-        <source>Name</source>
-        <translation>Name</translation>
-    </message>
-    <message>
-        <location filename="../ui/universeview.ui" line="234"/>
-        <source>CID</source>
-        <translation>CID</translation>
-    </message>
-    <message>
-        <location filename="../ui/universeview.ui" line="239"/>
-        <source>Priority</source>
-        <translation>Priorität</translation>
-    </message>
-    <message>
-        <location filename="../ui/universeview.ui" line="244"/>
-        <source>Preview</source>
-        <translation>Vorschau</translation>
-    </message>
-    <message>
-        <location filename="../ui/universeview.ui" line="249"/>
-        <source>IP Address</source>
-        <translation>IP-Adresse</translation>
-    </message>
-    <message>
-        <location filename="../ui/universeview.ui" line="254"/>
-        <source>FPS</source>
-        <translation>FPS</translation>
-    </message>
-    <message>
-        <location filename="../ui/universeview.ui" line="259"/>
-        <source>SeqErr</source>
-        <translation>SeqErr</translation>
-    </message>
-    <message>
-        <location filename="../ui/universeview.ui" line="264"/>
-        <source>Jumps</source>
-        <translation>Sprünge</translation>
-    </message>
-    <message>
-        <location filename="../ui/universeview.ui" line="269"/>
-        <source>Online</source>
-        <translation>Online</translation>
-    </message>
-    <message>
-        <location filename="../ui/universeview.ui" line="274"/>
-        <source>Ver</source>
-        <translation>Vers.</translation>
-    </message>
-    <message>
-        <location filename="../ui/universeview.ui" line="279"/>
-        <source>Per-Address</source>
-        <translation>Per-Adresse</translation>
-    </message>
-    <message>
-        <location filename="../ui/universeview.ui" line="284"/>
-        <source>Slots</source>
-        <translation>Slots</translation>
-    </message>
-    <message>
-        <location filename="../src/universeview.cpp" line="150"/>
-        <source>N/A</source>
-        <translation>N/A</translation>
-    </message>
-    <message>
-        <location filename="../src/universeview.cpp" line="152"/>
-        <location filename="../src/universeview.cpp" line="173"/>
-        <source>Yes</source>
-        <translation>Ja</translation>
-    </message>
-    <message>
-        <location filename="../src/universeview.cpp" line="152"/>
-        <location filename="../src/universeview.cpp" line="173"/>
-        <source>No</source>
-        <translation>Nein</translation>
-    </message>
-    <message>
-        <location filename="../src/universeview.cpp" line="170"/>
-        <source>No DMX</source>
-        <translation>Kein DMX</translation>
-    </message>
-    <message>
-        <source>Errors binding to interface
-
-Results will be inaccurate
-Possible reasons include permission issues
-or other applications
-
+        <location filename="../src/ui/universeview.cpp" line="163"/>
+        <source>Errors binding to interface<byte value="xd"/>
+<byte value="xd"/>
+Results will be inaccurate<byte value="xd"/>
+Possible reasons include permission issues<byte value="xd"/>
+or other applications<byte value="xd"/>
+<byte value="xd"/>
 See diagnostics for more info</source>
-        <translation type="vanished">Fehler bei Verbindung mit der Schnittstelle
-
-Resultate werden ungenau sein
-Mögliche Ursachen sind Genehmigungsprobleme
-oder andere Programme
-
-Sehen Sie das Diagnostikfenster für weitere Informationen</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="320"/>
+        <location filename="../src/ui/universeview.cpp" line="124"/>
+        <source>Universe %1 Flicker</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/universeview.cpp" line="126"/>
+        <source>Comparing Universe %1 to %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/universeview.cpp" line="128"/>
+        <source>Universe %1 View</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/universeview.cpp" line="199"/>
+        <source>Stop Delta Finder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/universeview.cpp" line="201"/>
+        <source>Start Delta Finder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/universeview.cpp" line="267"/>
+        <source>Unknown</source>
+        <translation type="unfinished">Unbekennt</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/universeview.cpp" line="273"/>
+        <location filename="../src/ui/universeview.cpp" line="313"/>
+        <source>Unpatched</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/universeview.cpp" line="290"/>
         <source>Address : %1
 </source>
         <translation>Adresse : %1
 </translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="331"/>
+        <location filename="../src/ui/universeview.cpp" line="295"/>
         <source>Winning Source : %1 @ %2 (Priority %3)</source>
         <translation>Gewinnende Quelle : %1 @ %2 (Priorität %3)</translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="343"/>
+        <location filename="../src/ui/universeview.cpp" line="304"/>
         <source>
 Other Source : %1 @ %2 (Priority %3)</source>
         <translation>
 Andere Quellen : %1 @ %2 (Priorität %3)</translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="350"/>
+        <location filename="../src/ui/universeview.cpp" line="315"/>
         <source>No Sources</source>
         <translation>Keine Quellen</translation>
     </message>
     <message>
-        <location filename="../src/universeview.cpp" line="390"/>
+        <location filename="../src/ui/universeview.cpp" line="189"/>
         <source>Stop Flicker Finder</source>
         <translation>Flicker Finder unterbrechen</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/universeview.cpp" line="411"/>
+        <source>Export Sources Table</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>VersionCheck</name>
+    <message>
+        <location filename="../src/ui/newversiondialog.cpp" line="214"/>
+        <source>Version Check</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/newversiondialog.cpp" line="215"/>
+        <source>Error %1<byte value="xd"/>
+%2</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1469,95 +2215,112 @@ Andere Quellen : %1 @ %2 (Priorität %3)</translation>
         <translation>Über sACN View</translation>
     </message>
     <message>
-        <location filename="../ui/aboutdialog.ui" line="137"/>
+        <location filename="../ui/aboutdialog.ui" line="244"/>
         <source>Authors:</source>
         <translation>Autoren:</translation>
     </message>
     <message>
-        <location filename="../ui/aboutdialog.ui" line="153"/>
+        <location filename="../ui/aboutdialog.ui" line="215"/>
         <source>Date:</source>
         <translation>Datum:</translation>
     </message>
     <message>
-        <location filename="../ui/aboutdialog.ui" line="204"/>
+        <location filename="../ui/aboutdialog.ui" line="89"/>
+        <source>Check Now</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/aboutdialog.ui" line="96"/>
+        <source>Auto check for updates</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/aboutdialog.ui" line="186"/>
         <source>Version:</source>
         <translation>Version:</translation>
     </message>
     <message>
-        <location filename="../ui/aboutdialog.ui" line="220"/>
+        <location filename="../ui/aboutdialog.ui" line="231"/>
         <source>Translators:</source>
         <translation>Übersetzer:</translation>
     </message>
     <message>
-        <location filename="../ui/aboutdialog.ui" line="321"/>
+        <location filename="../ui/aboutdialog.ui" line="348"/>
         <source>Diagnostics</source>
         <translation>Diagnostik</translation>
     </message>
     <message>
-        <location filename="../src/aboutdialog.cpp" line="57"/>
-        <source>This application is provided under the &lt;a href=&quot;http://www.apache.org/licenses/LICENSE-2.0&quot;&gt;Apache License, version 2.0&lt;/a&gt;</source>
-        <translation>Diese Software wird unter &lt;a href=&quot;http://www.apache.org/licenses/LICENSE-2.0&quot;&gt;Apache License, version 2.0&lt;/a&gt; zur Verfügung gestellt</translation>
+        <location filename="../src/ui/aboutdialog.cpp" line="68"/>
+        <source>&lt;p&gt;This application is provided under the &lt;a href=&quot;http://www.apache.org/licenses/LICENSE-2.0&quot;&gt;Apache License, version 2.0&lt;/a&gt;&lt;/p&gt;</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/aboutdialog.cpp" line="59"/>
-        <source>This application uses the Qt Library, version %1, licensed under the &lt;a href=&quot;http://www.gnu.org/licenses/lgpl.html&quot;&gt;GNU LGPL&lt;/a&gt;</source>
-        <translation>Diese Software verwendet die Qt Bibliothek, Version %1, lizenziert unter &lt;a href=&quot;http://www.gnu.org/licenses/lgpl.html&quot;&gt;GNU LGPL&lt;/a&gt;</translation>
+        <location filename="../src/ui/aboutdialog.cpp" line="72"/>
+        <source>Licensed under the &lt;a href=&quot;http://www.gnu.org/licenses/lgpl.html&quot;&gt;GNU LGPL&lt;/a&gt;</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/aboutdialog.cpp" line="63"/>
-        <source>This application uses the pcap Library, version %1, licensed under the &lt;a href=&quot;https://opensource.org/licenses/BSD-3-Clause&quot;&gt;The 3-Clause BSD License&lt;/a&gt;</source>
-        <translation>Diese Software verwendet die pcap Bibliothek, Version %1, lizenziert unter &lt;a href=&quot;https://opensource.org/licenses/BSD-3-Clause&quot;&gt;The 3-Clause BSD License&lt;/a&gt;</translation>
+        <location filename="../src/ui/aboutdialog.cpp" line="76"/>
+        <source>Licenced commercially</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/aboutdialog.cpp" line="107"/>
+        <location filename="../src/ui/aboutdialog.cpp" line="79"/>
+        <source>&lt;p&gt;This application uses the Qt Library&lt;br&gt;Version %1&lt;br&gt;%2&lt;/p&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/aboutdialog.cpp" line="89"/>
+        <source>&lt;p&gt;This application uses &lt;a href=&quot;https://www.tcpdump.org/&quot;&gt;libpcap&lt;/a&gt;&lt;br&gt;%1&lt;br&gt;Licensed under the &lt;a href=&quot;https://opensource.org/licenses/BSD-3-Clause&quot;&gt;The 3-Clause BSD License&lt;/a&gt;&lt;/p&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/ui/aboutdialog.cpp" line="95"/>
+        <source>&lt;p&gt;This application uses &lt;a href=&quot;https://www.blake2.net/&quot;&gt;BLAKE2&lt;/a&gt;&lt;br&gt;Licensed under the &lt;a href=&quot;https://creativecommons.org/publicdomain/zero/1.0/&quot;&gt;Creative Commons Zero v1.0 Universal&lt;/a&gt;&lt;/p&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Universe %1</source>
-        <translation>Universum %1</translation>
+        <translation type="vanished">Universum %1</translation>
     </message>
     <message>
-        <location filename="../src/aboutdialog.cpp" line="113"/>
         <source>Merges per second</source>
-        <translation>Merges pro Sekunde</translation>
+        <translation type="vanished">Merges pro Sekunde</translation>
     </message>
     <message>
-        <location filename="../src/aboutdialog.cpp" line="120"/>
         <source>Bind status</source>
-        <translation>Verbindungsstand</translation>
+        <translation type="vanished">Verbindungsstand</translation>
     </message>
     <message>
-        <location filename="../src/aboutdialog.cpp" line="123"/>
         <source>Unicast</source>
-        <translation>Unicast</translation>
+        <translation type="vanished">Unicast</translation>
     </message>
     <message>
-        <location filename="../src/aboutdialog.cpp" line="127"/>
         <source>Multicast</source>
-        <translation>Multicast</translation>
+        <translation type="vanished">Multicast</translation>
     </message>
     <message>
-        <location filename="../src/aboutdialog.cpp" line="166"/>
         <source>Unknown</source>
-        <translation>Unbekennt</translation>
+        <translation type="vanished">Unbekennt</translation>
     </message>
     <message>
-        <location filename="../src/aboutdialog.cpp" line="169"/>
         <source>OK</source>
-        <translation>OK</translation>
+        <translation type="vanished">OK</translation>
     </message>
     <message>
-        <location filename="../src/aboutdialog.cpp" line="172"/>
         <source>Failed</source>
-        <translation>Fehler</translation>
+        <translation type="vanished">Fehler</translation>
     </message>
 </context>
 <context>
     <name>clsSnapshot</name>
     <message>
-        <location filename="../src/clssnapshot.h" line="69"/>
+        <location filename="../src/widgets/clssnapshot.h" line="69"/>
         <source>The snapshot &lt;i&gt;matches&lt;/i&gt; the other sources in this universe</source>
         <translation>Dieser Snapshot stimmt mit den anderen Quellen in diesem Universum überein</translation>
     </message>
     <message>
-        <location filename="../src/clssnapshot.h" line="70"/>
+        <location filename="../src/widgets/clssnapshot.h" line="70"/>
         <source>The snapshot &lt;i&gt;does not match&lt;/i&gt; the other sources in this universe</source>
         <translation>Dieser Snapshot stimmt nicht mit den anderen Quellen in diesem Universum überein</translation>
     </message>
@@ -1565,39 +2328,39 @@ Andere Quellen : %1 @ %2 (Priorität %3)</translation>
 <context>
     <name>pcapplaybacksender</name>
     <message>
-        <location filename="../src/pcapplaybacksender.cpp" line="60"/>
+        <location filename="../src/pcap/pcapplaybacksender.cpp" line="54"/>
         <source>%1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/pcapplaybacksender.cpp" line="101"/>
+        <location filename="../src/pcap/pcapplaybacksender.cpp" line="95"/>
         <source>%1
 %2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/pcapplaybacksender.cpp" line="116"/>
+        <location filename="../src/pcap/pcapplaybacksender.cpp" line="110"/>
         <source>Unable to open required interface
 %1</source>
         <translation>Benötigte Schnittstelle konnte nicht geöffnet werden
 %1</translation>
     </message>
     <message>
-        <location filename="../src/pcapplaybacksender.cpp" line="218"/>
+        <location filename="../src/pcap/pcapplaybacksender.cpp" line="214"/>
         <source>Error opening %1
 %2</source>
         <translation>Fehler bei der Öffnung von %1
 %2</translation>
     </message>
     <message>
-        <location filename="../src/pcapplaybacksender.cpp" line="230"/>
+        <location filename="../src/pcap/pcapplaybacksender.cpp" line="226"/>
         <source>Error opening %1
 pcap_compile failed</source>
         <translation>Fehler bei der Öffnung von %1
 pcap_compile failed</translation>
     </message>
     <message>
-        <location filename="../src/pcapplaybacksender.cpp" line="236"/>
+        <location filename="../src/pcap/pcapplaybacksender.cpp" line="232"/>
         <source>Error opening %1
 pcap_setfilter failed</source>
         <translation>Fehler bei der Öffnung von %1
@@ -1605,45 +2368,123 @@ pcap_setfilter failed</translation>
     </message>
 </context>
 <context>
-    <name>sACNManager</name>
+    <name>sACNDiscoveredSourceListModel</name>
     <message>
-        <location filename="../src/sacn/streamingacn.cpp" line="145"/>
-        <source>Unable to allocate listener object
-
-sACNView must close now</source>
-        <translation>Listener-object konnte nicht zugeteilt werden
-
-sACNView muss jetzt schließen</translation>
+        <location filename="../src/models/sacndiscoveredsourcelistmodel.cpp" line="260"/>
+        <source>No discovery sources found</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/sacn/streamingacn.cpp" line="218"/>
-        <source>Unable to allocate sender object
-
+        <location filename="../src/models/sacndiscoveredsourcelistmodel.cpp" line="263"/>
+        <source>Discovery relies upon
+E1-31:2016 universe discovery packets
+very few sources support this</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacndiscoveredsourcelistmodel.cpp" line="289"/>
+        <source>Error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacndiscoveredsourcelistmodel.cpp" line="290"/>
+        <source>Universe %1</source>
+        <translation type="unfinished">Universum %1</translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacndiscoveredsourcelistmodel.cpp" line="298"/>
+        <source>%1 (%2 universes)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>sACNManager</name>
+    <message>
+        <location filename="../src/sacn/streamingacn.cpp" line="254"/>
+        <source>Unable to allocate listener object<byte value="xd"/>
+<byte value="xd"/>
 sACNView must close now</source>
-        <translation>Sender-object konnte nicht zugeteilt werden
-
-sACNView muss jetzt schließen</translation>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/sacn/streamingacn.cpp" line="336"/>
+        <source>Unable to allocate sender object<byte value="xd"/>
+<byte value="xd"/>
+sACNView must close now</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>sACNSyncListModel</name>
+    <message>
+        <location filename="../src/models/sacnsynclistmodel.cpp" line="249"/>
+        <source>No known details</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsynclistmodel.cpp" line="251"/>
+        <source>Synchronisation relies upon
+E1-31:2016 universe synchronisation packets
+not all sources support or require this</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsynclistmodel.cpp" line="258"/>
+        <source>No known sources</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsynclistmodel.cpp" line="260"/>
+        <location filename="../src/models/sacnsynclistmodel.cpp" line="268"/>
+        <source>Synchronisation provides no discovery method
+A universe listener must already be present</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsynclistmodel.cpp" line="266"/>
+        <source>No known universes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsynclistmodel.cpp" line="413"/>
+        <source>Sync Address %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsynclistmodel.cpp" line="424"/>
+        <source>Synchroniser</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsynclistmodel.cpp" line="531"/>
+        <source>Synced Universes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/models/sacnsynclistmodel.cpp" line="585"/>
+        <source>Universe %1</source>
+        <translation type="unfinished">Universum %1</translation>
     </message>
 </context>
 <context>
     <name>sACNUniverseListModel</name>
     <message>
-        <location filename="../src/sacn/sacnuniverselistmodel.cpp" line="127"/>
+        <location filename="../src/models/sacnuniverselistmodel.cpp" line="130"/>
         <source>%1 (%2)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacnuniverselistmodel.cpp" line="135"/>
+        <location filename="../src/models/sacnuniverselistmodel.cpp" line="138"/>
         <source>Universe %1</source>
         <translation>Universum %1</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacnuniverselistmodel.cpp" line="144"/>
+        <location filename="../src/models/sacnuniverselistmodel.cpp" line="147"/>
         <source> -- Interface Error</source>
         <translation> -- Schnittstellenfehler</translation>
     </message>
     <message>
-        <location filename="../src/sacn/sacnuniverselistmodel.cpp" line="214"/>
+        <location filename="../src/models/sacnuniverselistmodel.cpp" line="221"/>
         <source>????</source>
         <translation></translation>
     </message>
@@ -1652,364 +2493,384 @@ sACNView muss jetzt schließen</translation>
     <name>transmitwindow</name>
     <message>
         <location filename="../ui/transmitwindow.ui" line="14"/>
-        <location filename="../src/transmitwindow.cpp" line="325"/>
+        <location filename="../src/ui/transmitwindow.cpp" line="361"/>
         <source>Transmit</source>
         <translation>Senden</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="139"/>
+        <location filename="../ui/transmitwindow.ui" line="135"/>
         <source>Source</source>
         <translation>Quelle</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="416"/>
+        <location filename="../ui/transmitwindow.ui" line="466"/>
         <source>Mode</source>
         <translation>Modus</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="460"/>
+        <location filename="../ui/transmitwindow.ui" line="510"/>
         <source>Multicast to</source>
         <translation>Multicast nach</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="444"/>
+        <location filename="../ui/transmitwindow.ui" line="494"/>
         <source>Unicast to</source>
         <translation>Unicast nach</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="482"/>
+        <location filename="../ui/transmitwindow.ui" line="532"/>
         <source>Blind-mode data</source>
         <translation>Blind-Modus Daten</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="333"/>
+        <location filename="../ui/transmitwindow.ui" line="352"/>
         <source>Per-Source</source>
         <translation>Per-Quelle</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="338"/>
+        <location filename="../ui/transmitwindow.ui" line="357"/>
         <source>Per-Address</source>
         <translation>Per-Adresse</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="320"/>
+        <location filename="../ui/transmitwindow.ui" line="339"/>
         <source>Priority Mode:</source>
         <translation>Prioritätsmodus:</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="388"/>
+        <location filename="../ui/transmitwindow.ui" line="407"/>
         <source>Priority:</source>
         <translation>Priorität:</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="268"/>
+        <location filename="../ui/transmitwindow.ui" line="287"/>
         <source>Universe:</source>
         <translation>Universum:</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="367"/>
+        <location filename="../ui/transmitwindow.ui" line="386"/>
         <source>Set up per-channel priorities</source>
         <translation>Per-Kreis Prioritäten konfigurieren</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="370"/>
-        <location filename="../ui/transmitwindow.ui" line="1693"/>
-        <location filename="../ui/transmitwindow.ui" line="1707"/>
+        <location filename="../ui/transmitwindow.ui" line="1743"/>
+        <location filename="../ui/transmitwindow.ui" line="1757"/>
         <source>...</source>
         <translation>...</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="181"/>
+        <location filename="../ui/transmitwindow.ui" line="177"/>
         <source>Protocol Version</source>
         <translation>Protokollversion</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="196"/>
+        <location filename="../ui/transmitwindow.ui" line="192"/>
         <source>Ratified</source>
         <translation>Ratified</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="215"/>
+        <location filename="../ui/transmitwindow.ui" line="211"/>
         <source>Draft</source>
         <translation>Draft</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="236"/>
+        <location filename="../ui/transmitwindow.ui" line="255"/>
         <source>Source Name:</source>
         <translation>Quellenname:</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="511"/>
-        <location filename="../ui/transmitwindow.ui" line="543"/>
-        <location filename="../src/transmitwindow.cpp" line="313"/>
+        <location filename="../ui/transmitwindow.ui" line="561"/>
+        <location filename="../ui/transmitwindow.ui" line="593"/>
+        <location filename="../src/ui/transmitwindow.cpp" line="349"/>
         <source>Start</source>
         <translation>Start</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="532"/>
+        <location filename="../ui/transmitwindow.ui" line="582"/>
         <source>Faders</source>
         <translation>Faders</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="552"/>
+        <location filename="../ui/transmitwindow.ui" line="602"/>
         <source>Start at :</source>
         <translation>Beginnen bei :</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="575"/>
+        <location filename="../ui/transmitwindow.ui" line="625"/>
         <source>Presets</source>
         <translation>Presets</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="750"/>
+        <location filename="../ui/transmitwindow.ui" line="800"/>
         <source>7</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="780"/>
+        <location filename="../ui/transmitwindow.ui" line="830"/>
         <source>8</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="810"/>
+        <location filename="../ui/transmitwindow.ui" line="860"/>
         <source>9</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="840"/>
+        <location filename="../ui/transmitwindow.ui" line="890"/>
         <source>4</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="870"/>
+        <location filename="../ui/transmitwindow.ui" line="920"/>
         <source>5</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="900"/>
+        <location filename="../ui/transmitwindow.ui" line="950"/>
         <source>6</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1116"/>
+        <location filename="../ui/transmitwindow.ui" line="1166"/>
         <source>AT</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1176"/>
+        <location filename="../ui/transmitwindow.ui" line="1226"/>
         <source>FULL</source>
         <translation>VOLL</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1050"/>
+        <location filename="../ui/transmitwindow.ui" line="1100"/>
         <source>CLEAR</source>
         <translation>LÖSCHEN</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1020"/>
-        <location filename="../ui/transmitwindow.ui" line="1756"/>
+        <location filename="../ui/transmitwindow.ui" line="1070"/>
+        <location filename="../ui/transmitwindow.ui" line="1806"/>
         <source>0</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="930"/>
+        <location filename="../ui/transmitwindow.ui" line="980"/>
         <source>1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="960"/>
+        <location filename="../ui/transmitwindow.ui" line="1010"/>
         <source>3</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="990"/>
+        <location filename="../ui/transmitwindow.ui" line="1040"/>
         <source>2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="686"/>
+        <location filename="../ui/transmitwindow.ui" line="736"/>
         <source>THRU</source>
         <translation>BIS</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="291"/>
+        <location filename="../ui/transmitwindow.ui" line="218"/>
+        <source>Pathway Connectivity Secure</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/transmitwindow.ui" line="225"/>
+        <source>Password</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/transmitwindow.ui" line="310"/>
         <source>Slot Count</source>
         <translation>Anzahl Slots</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="656"/>
+        <location filename="../ui/transmitwindow.ui" line="430"/>
+        <source>Min/Max FPS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/transmitwindow.ui" line="439"/>
+        <location filename="../ui/transmitwindow.ui" line="449"/>
+        <source> Hz</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ui/transmitwindow.ui" line="706"/>
         <source>-</source>
         <translation>-</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="716"/>
+        <location filename="../ui/transmitwindow.ui" line="766"/>
         <source>+</source>
         <translation>+</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1080"/>
+        <location filename="../ui/transmitwindow.ui" line="1130"/>
         <source>ENTER</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1146"/>
+        <location filename="../ui/transmitwindow.ui" line="1196"/>
         <source>ALL OFF</source>
         <translation>ALLES AUS</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1206"/>
+        <location filename="../ui/transmitwindow.ui" line="1256"/>
         <source>OFFSET</source>
         <translation>OFFSET</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1223"/>
+        <location filename="../ui/transmitwindow.ui" line="1273"/>
         <source>Channel Check</source>
         <translation>Kreischeck</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1288"/>
+        <location filename="../ui/transmitwindow.ui" line="1338"/>
         <source>Previous</source>
         <translation>Letze</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1333"/>
+        <location filename="../ui/transmitwindow.ui" line="1383"/>
         <source>Blink</source>
         <translation>Blinken</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1393"/>
+        <location filename="../ui/transmitwindow.ui" line="1443"/>
         <source>Next</source>
         <translation>Nächste</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1403"/>
+        <location filename="../ui/transmitwindow.ui" line="1453"/>
         <source>Fade Range</source>
         <translation>Bereich überblenden</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1459"/>
+        <location filename="../ui/transmitwindow.ui" line="1509"/>
         <source>thru</source>
         <translation>bis</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1512"/>
+        <location filename="../ui/transmitwindow.ui" line="1562"/>
         <source>Effect Type</source>
         <translation>Effektart</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1521"/>
+        <location filename="../ui/transmitwindow.ui" line="1571"/>
         <source>Manual</source>
         <translation>Manuell</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1534"/>
-        <location filename="../ui/transmitwindow.ui" line="1589"/>
+        <location filename="../ui/transmitwindow.ui" line="1584"/>
+        <location filename="../ui/transmitwindow.ui" line="1639"/>
         <source>Sinewave</source>
         <translation>Sinusoid</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1544"/>
-        <location filename="../ui/transmitwindow.ui" line="1602"/>
+        <location filename="../ui/transmitwindow.ui" line="1594"/>
+        <location filename="../ui/transmitwindow.ui" line="1652"/>
         <source>Ramp</source>
         <translation>Rampe</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1554"/>
+        <location filename="../ui/transmitwindow.ui" line="1604"/>
         <source>Chase</source>
         <translation>Lauflicht</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1579"/>
+        <location filename="../ui/transmitwindow.ui" line="1629"/>
         <source>Snap</source>
         <translation>Cut</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1612"/>
+        <location filename="../ui/transmitwindow.ui" line="1662"/>
         <source>Vertical Bars</source>
         <translation>Senkrechte Barren</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1619"/>
+        <location filename="../ui/transmitwindow.ui" line="1669"/>
         <source>Horizontal Bars</source>
         <translation>Waagerechte Barren</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1629"/>
+        <location filename="../ui/transmitwindow.ui" line="1679"/>
         <source>Text</source>
         <translation>Text</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1639"/>
+        <location filename="../ui/transmitwindow.ui" line="1689"/>
         <source>Date/Time</source>
         <translation>Datum/Zeit</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1662"/>
+        <location filename="../ui/transmitwindow.ui" line="1712"/>
         <source>Speed - 1Hz</source>
         <translation>Geschwindigkeit - 1Hz</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1783"/>
+        <location filename="../ui/transmitwindow.ui" line="1833"/>
         <source>Text to Scroll</source>
         <translation>Lauftext</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1808"/>
+        <location filename="../ui/transmitwindow.ui" line="1858"/>
         <source>sACN!</source>
         <translation>sACN!</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1857"/>
+        <location filename="../ui/transmitwindow.ui" line="1907"/>
         <source>EU Date Format (dd/mm/yy)</source>
         <translation>EU Datumformat (dd/mm/yy)</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1867"/>
+        <location filename="../ui/transmitwindow.ui" line="1917"/>
         <source>US Date Format (mm/ddd/yy)</source>
         <translation>USA Datumformat (mm/ddd/yy)</translation>
     </message>
     <message>
-        <location filename="../ui/transmitwindow.ui" line="1897"/>
+        <location filename="../ui/transmitwindow.ui" line="1947"/>
         <source>Grid Control</source>
         <translation>Gitternetz</translation>
     </message>
     <message>
-        <location filename="../src/transmitwindow.cpp" line="266"/>
+        <location filename="../src/ui/transmitwindow.cpp" line="285"/>
         <source>Multicast to %1</source>
         <translation>Multicast an %1</translation>
     </message>
     <message>
-        <location filename="../src/transmitwindow.cpp" line="318"/>
+        <location filename="../src/ui/transmitwindow.cpp" line="354"/>
         <source>Stop</source>
         <translation>Stop</translation>
     </message>
     <message>
-        <location filename="../src/transmitwindow.cpp" line="327"/>
+        <location filename="../src/ui/transmitwindow.cpp" line="363"/>
         <source> - Universe %1</source>
         <translation> - Universum %1</translation>
     </message>
     <message>
-        <location filename="../src/transmitwindow.cpp" line="329"/>
+        <location filename="../src/ui/transmitwindow.cpp" line="365"/>
         <source> - Not Active</source>
         <translation> - Nicht aktiv</translation>
     </message>
     <message>
-        <location filename="../src/transmitwindow.cpp" line="342"/>
+        <location filename="../src/ui/transmitwindow.cpp" line="378"/>
         <source>Invalid Unicast Address</source>
         <translation>Ungültige Unicast-Adresse</translation>
     </message>
     <message>
-        <location filename="../src/transmitwindow.cpp" line="343"/>
+        <location filename="../src/ui/transmitwindow.cpp" line="379"/>
         <source>Enter a valid unicast address</source>
         <translation>Geben Sie eine gültige Unicast-Adresse ein</translation>
     </message>
     <message>
-        <location filename="../src/transmitwindow.cpp" line="414"/>
+        <location filename="../src/ui/transmitwindow.cpp" line="466"/>
         <source>Per address priority universe %1</source>
         <translation>Per-Adresse Priorität Universum %1</translation>
     </message>
     <message>
-        <location filename="../src/transmitwindow.cpp" line="582"/>
+        <location filename="../src/ui/transmitwindow.cpp" line="649"/>
         <source>Fade Rate %1 Hz</source>
         <translation>Überblendungsgechwindigkeit %1 Hz</translation>
     </message>

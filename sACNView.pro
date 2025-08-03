@@ -13,8 +13,11 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 
-QT       += core gui network multimedia
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT       += core gui network multimedia widgets
+
+greaterThan(QT_MAJOR_VERSION, 5) {
+    QT   += openglwidgets
+}
 
 TARGET = sACNView
 TEMPLATE = app
@@ -26,8 +29,11 @@ macx {
     ICON = res/icon.icns
 }
 
-!msvc {
-    QMAKE_CXXFLAGS += -std=gnu++0x
+CONFIG += c++17
+
+win32 {
+    # Disable nmake inference rules as Qt-Frameless-Window-DarkStyle contains a main.cpp
+    CONFIG += no_batch
 }
 
 # Translations
@@ -59,21 +65,18 @@ unix {
     QMAKE_CXXFLAGS += -g
 }
 
-# Windows XP Special Build?
-win32 {
-    lessThan(QT_MAJOR_VERSION, 6):lessThan(QT_MINOR_VERSION, 7) {
-        QMAKE_LFLAGS_WINDOWS = /SUBSYSTEM:WINDOWS,5.01
-        DEFINES += _ATL_XP_TARGETING
-        DEFINES += VERSION=\\\"$$GIT_TAG-WindowsXP\\\"
-        TARGET_WINXP = 1
-        DEFINES += TARGET_WINXP
-    } else {
-        DEFINES += VERSION=\\\"$$GIT_TAG\\\"
-        TARGET_WINXP = 0
-    }
-} else {
-    DEFINES += VERSION=\\\"$$GIT_TAG\\\"
+# Qt5.15 is now the minimum supported
+lessThan(QT_MAJOR_VERSION, 5):{
+    error("Qt versions below 5 are unsupported")
 }
+equals(QT_MAJOR_VERSION, 5): {
+    lessThan(QT_MINOR_VERSION, 15): {
+        error("Qt versions below 5.15 are unsupported")
+    }
+}
+
+DEFINES += VERSION=\\\"$$GIT_TAG\\\"
+
 
 ## External Libs
 include(libs.pri)
@@ -82,103 +85,116 @@ include(libs.pri)
 
 INCLUDEPATH += src \
     src/sacn src/sacn/ACNShare \
-    src/widgets
+    src/widgets \
+    src/models \
+    src/ui
 
 ## Sources
 
 SOURCES += src/main.cpp\
-    src/widgets/monitorspinbox.cpp \
-    src/mdimainwindow.cpp \
-    src/scopewindow.cpp \
-    src/universeview.cpp \
+    src/sacn/securesacn.cpp \
+    src/widgets/steppedspinbox.cpp \
+    src/widgets/qpushbutton_rightclick.cpp \
+    src/widgets/qspinbox_resizetocontent.cpp \
+    src/ui/newversiondialog.cpp \
+    src/ui/mdimainwindow.cpp \
+    src/ui/glscopewindow.cpp \
+    src/ui/universeview.cpp \
+    src/ui/multiview.cpp \
+    src/sacn/sacnsynchronization.cpp \
+    src/models/sacnsynclistmodel.cpp \
     src/sacn/ACNShare/CID.cpp \
     src/sacn/ACNShare/ipaddr.cpp \
     src/sacn/ACNShare/tock.cpp \
     src/sacn/ACNShare/VHD.cpp \
     src/sacn/streamcommon.cpp \
-    src/nicselectdialog.cpp \
+    src/ui/nicselectdialog.cpp \
     src/sacn/streamingacn.cpp \
-    src/preferencesdialog.cpp \
+    src/ui/preferencesdialog.cpp \
     src/preferences.cpp \
     src/sacn/sacnlistener.cpp \
-    src/universedisplay.cpp \
-    src/transmitwindow.cpp \
+    src/widgets/universedisplay.cpp \
+    src/ui/transmitwindow.cpp \
     src/sacn/sacnsender.cpp \
-    src/configureperchanpriodlg.cpp \
-    src/gridwidget.cpp \
-    src/scopewidget.cpp \
-    src/aboutdialog.cpp \
+    src/ui/configureperchanpriodlg.cpp \
+    src/widgets/gridwidget.cpp \
+    src/widgets/glscopewidget.cpp \
+    src/ui/aboutdialog.cpp \
     src/sacn/sacneffectengine.cpp \
-    src/sacn/sacnuniverselistmodel.cpp \
-    src/snapshot.cpp \
+    src/models/sacnuniverselistmodel.cpp \
+    src/ui/snapshot.cpp \
     src/commandline.cpp \
-    src/multiuniverse.cpp \
-    src/flickerfinderinfoform.cpp \
+    src/ui/multiuniverse.cpp \
+    src/ui/flickerfinderinfoform.cpp \
     src/sacn/sacnsocket.cpp \
-    src/logwindow.cpp \
-    src/versioncheck.cpp \
-    src/sacn/firewallcheck.cpp \
-    src/bigdisplay.cpp \
-    src/addmultidialog.cpp \
-    src/theme/darkstyle.cpp \
+    src/ui/logwindow.cpp \
+    src/firewallcheck.cpp \
+    src/ui/bigdisplay.cpp \
+    src/ui/addmultidialog.cpp \
     src/ipc.cpp \
     src/sacn/sacndiscovery.cpp \
-    src/sacn/sacndiscoveredsourcelistmodel.cpp \
-    src/clssnapshot.cpp \
+    src/models/sacndiscoveredsourcelistmodel.cpp \
+    src/models/sacnsourcetablemodel.cpp \
+    src/models/csvmodelexport.cpp \
+    src/widgets/clssnapshot.cpp \
     src/sacn/fpscounter.cpp \
-    src/grideditwidget.cpp
+    src/widgets/grideditwidget.cpp
 
-HEADERS += src/mdimainwindow.h \
-    src/widgets/monitorspinbox.h \
-    src/scopewindow.h \
-    src/universeview.h \
+HEADERS += src/ui/mdimainwindow.h \
+    src/sacn/securesacn.h \
+    src/widgets/steppedspinbox.h \
+    src/widgets/qpushbutton_rightclick.h \
+    src/widgets/qspinbox_resizetocontent.h \
+    src/ui/newversiondialog.h \
+    src/ui/glscopewindow.h \
+    src/ui/universeview.h \
+    src/ui/multiview.h \
+    src/sacn/sacnsynchronization.h \
+    src/models/sacnsynclistmodel.h \
     src/sacn/ACNShare/CID.h \
     src/sacn/ACNShare/defpack.h \
     src/sacn/ACNShare/ipaddr.h \
     src/sacn/ACNShare/tock.h \
     src/sacn/ACNShare/VHD.h \
     src/sacn/streamcommon.h \
-    src/nicselectdialog.h \
+    src/ui/nicselectdialog.h \
     src/sacn/streamingacn.h \
-    src/preferencesdialog.h \
+    src/ui/preferencesdialog.h \
     src/preferences.h \
     src/sacn/sacnlistener.h \
-    src/universedisplay.h \
-    src/transmitwindow.h \
+    src/widgets/universedisplay.h \
+    src/ui/transmitwindow.h \
     src/consts.h \
     src/sacn/sacnsender.h \
-    src/configureperchanpriodlg.h \
-    src/gridwidget.h \
-    src/scopewidget.h \
-    src/aboutdialog.h \
+    src/ui/configureperchanpriodlg.h \
+    src/widgets/gridwidget.h \
+    src/widgets/glscopewidget.h \
+    src/ui/aboutdialog.h \
     src/sacn/sacneffectengine.h \
-    src/sacn/sacnuniverselistmodel.h \
-    src/snapshot.h \
+    src/models/sacnuniverselistmodel.h \
+    src/ui/snapshot.h \
     src/commandline.h \
     src/fontdata.h \
-    src/multiuniverse.h \
-    src/flickerfinderinfoform.h \
+    src/ui/multiuniverse.h \
+    src/ui/flickerfinderinfoform.h \
     src/sacn/sacnsocket.h \
-    src/logwindow.h \
-    src/versioncheck.h \
-    src/sacn/firewallcheck.h \
-    src/bigdisplay.h \ 
-    src/addmultidialog.h \
-    src/ethernetstrut.h \
-    src/theme/darkstyle.h \
-    src/xpwarning.h \
+    src/ui/logwindow.h \
+    src/firewallcheck.h \
+    src/ui/bigdisplay.h \
+    src/ui/addmultidialog.h \
     src/sacn/e1_11.h \
     src/ipc.h \
-    src/qt56.h \
     src/sacn/sacndiscovery.h \
-    src/sacn/sacndiscoveredsourcelistmodel.h \
-    src/clssnapshot.h \
+    src/models/sacndiscoveredsourcelistmodel.h \
+    src/models/sacnsourcetablemodel.h \
+    src/models/csvmodelexport.h \
+    src/widgets/clssnapshot.h \
     src/sacn/fpscounter.h \
-    src/grideditwidget.h
+    src/widgets/grideditwidget.h
 
 FORMS += ui/mdimainwindow.ui \
-    ui/scopewindow.ui \
     ui/universeview.ui \
+    ui/multiview.ui \
     ui/nicselectdialog.ui \
     ui/preferencesdialog.ui \
     ui/transmitwindow.ui \
@@ -192,11 +208,12 @@ FORMS += ui/mdimainwindow.ui \
     ui/newversiondialog.ui \
     ui/addmultidialog.ui
 
-RESOURCES += \
-    res/resources.qrc \
-    src/theme/darkstyle.qrc
+RESOURCES += res/resources.qrc
 
 RC_FILE = res/sacnview.rc
+
+## Themes
+include(themes.pri)
 
 ## Deploy
 include(deploy.pri)

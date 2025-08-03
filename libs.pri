@@ -2,62 +2,62 @@ LIBS_PATH = $$system_path($${_PRO_FILE_PWD_}/libs)
 
 # Breakpad
 BREAKPAD_PATH = $$system_path($${LIBS_PATH}/breakpad)
-BREAKPAD_PATH_TEMP = $$system_path($${BREAKPAD_PATH}/../src)
 DEPOT_TOOLS_PATH = $$system_path($${_PRO_FILE_PWD_}/tools/depot_tools)
-INCLUDEPATH += $$system_path($${BREAKPAD_PATH}/src)
+INCLUDEPATH += $$system_path($${BREAKPAD_PATH}/src/src)
 linux {
     DEFINES += USE_BREAKPAD
 
-    # Pull Breakpad dependencies
-    system(ln -s $$shell_quote($${BREAKPAD_PATH}) $$shell_quote($${BREAKPAD_PATH_TEMP}))
-    system(cd $$shell_quote($${LIBS_PATH}) && $$shell_quote($${_PRO_FILE_PWD_}/tools/depot_tools/gclient) sync)
-    system(rm $$shell_quote($${BREAKPAD_PATH_TEMP}))
-
+    # Fetch breakpad if required
+    system([ ! -d $$shell_quote($${BREAKPAD_PATH}) ] && mkdir $$shell_quote($${BREAKPAD_PATH}) && cd $$shell_quote($${BREAKPAD_PATH}) && PATH=$${DEPOT_TOOLS_PATH}:$PATH fetch breakpad)
+    # Update Breakpad
+    system(cd $$shell_quote($${BREAKPAD_PATH}) && PATH=$${DEPOT_TOOLS_PATH}:$PATH gclient sync)
     # Build
-    system(cd $${BREAKPAD_PATH} && ./configure && make && sudo make install)
+    system(cd $$shell_quote($${BREAKPAD_PATH}/src) && ./configure && make)
 
     LIBS += -L$${BREAKPAD_PATH}/src/src/client/linux -lbreakpad_client
-    INCLUDEPATH  += {BREAKPAD_PATH}/src/src/
+    # zlib
+    LIBS += -lz
 
     HEADERS += src/crash_handler.h \
-        src/crash_test.h
+        src/ui/crash_test.h
     SOURCES += src/crash_handler.cpp \
-        src/crash_test.cpp
+        src/ui/crash_test.cpp
     FORMS += ui/crash_test.ui
 }
 win32 {
     DEFINES += USE_BREAKPAD
 
-    # Pull Breakpad dependencies
-    system(mklink /j $$shell_quote($${BREAKPAD_PATH_TEMP}) $$shell_quote($${BREAKPAD_PATH}))
-    system(cmd /c for %A in ($$shell_quote($${DEPOT_TOOLS_PATH})) do %~sA\update_depot_tools.bat)
-    system(cd $${LIBS_PATH} && cmd /c for %A in ($$shell_quote($${DEPOT_TOOLS_PATH})) do %~sA\gclient sync)
-    system(rd $$shell_quote($${BREAKPAD_PATH_TEMP}) /Q)
+    # Config breakpad if required
+    system(if not exist $$shell_quote($${BREAKPAD_PATH}) ( mkdir $$shell_quote($${BREAKPAD_PATH}) && cd $$shell_quote($${BREAKPAD_PATH}) && $$shell_quote($${DEPOT_TOOLS_PATH}\fetch.bat) breakpad))
+    # Update Breakpad
+    system(cd $$shell_quote($${BREAKPAD_PATH}) && $$shell_quote($${DEPOT_TOOLS_PATH}\gclient.bat) sync)
 
     LIBS += -luser32
-    INCLUDEPATH  += {BREAKPAD_PATH}/src/
-    HEADERS += $${BREAKPAD_PATH}/src/common/windows/string_utils-inl.h \
-        $${BREAKPAD_PATH}/src/common/windows/guid_string.h \
-        $${BREAKPAD_PATH}/src/client/windows/handler/exception_handler.h \
-        $${BREAKPAD_PATH}/src/client/windows/common/ipc_protocol.h \
-        $${BREAKPAD_PATH}/src/google_breakpad/common/minidump_format.h \
-        $${BREAKPAD_PATH}/src/google_breakpad/common/breakpad_types.h \
-        $${BREAKPAD_PATH}/src/client/windows/crash_generation/crash_generation_client.h \
-        $${BREAKPAD_PATH}/src/common/scoped_ptr.h \
+    INCLUDEPATH  += {BREAKPAD_PATH}/src/src/
+    HEADERS += $${BREAKPAD_PATH}/src/src/common/windows/string_utils-inl.h \
+        $${BREAKPAD_PATH}/src/src/common/windows/guid_string.h \
+        $${BREAKPAD_PATH}/src/src/client/windows/handler/exception_handler.h \
+        $${BREAKPAD_PATH}/src/src/client/windows/common/ipc_protocol.h \
+        $${BREAKPAD_PATH}/src/src/google_breakpad/common/minidump_format.h \
+        $${BREAKPAD_PATH}/src/src/google_breakpad/common/breakpad_types.h \
+        $${BREAKPAD_PATH}/src/src/client/windows/crash_generation/crash_generation_client.h \
+        $${BREAKPAD_PATH}/src/src/common/scoped_ptr.h \
         src/crash_handler.h \
-        src/crash_test.h
-    SOURCES += $${BREAKPAD_PATH}/src/client/windows/handler/exception_handler.cc \
-        $${BREAKPAD_PATH}/src/common/windows/string_utils.cc \
-        $${BREAKPAD_PATH}/src/common/windows/guid_string.cc \
-        $${BREAKPAD_PATH}/src/client/windows/crash_generation/crash_generation_client.cc \
+        src/ui/crash_test.h
+    SOURCES += $${BREAKPAD_PATH}/src/src/client/windows/handler/exception_handler.cc \
+        $${BREAKPAD_PATH}/src/src/common/windows/string_utils.cc \
+        $${BREAKPAD_PATH}/src/src/common/windows/guid_string.cc \
+        $${BREAKPAD_PATH}/src/src/client/windows/crash_generation/crash_generation_client.cc \
         src/crash_handler.cpp \
-        src/crash_test.cpp
+        src/ui/crash_test.cpp
     FORMS += ui/crash_test.ui
 }
 macx {
     # Breakpad is disabled for MacOS as it has been superceded by Crashpad
     # see https://groups.google.com/a/chromium.org/forum/#!topic/chromium-dev/6eouc7q2j_g
     DEFINES -= USE_BREAKPAD
+    # zlib
+    LIBS += -lz
 }
 
 # Firewall Checker
@@ -67,8 +67,6 @@ win32 {
 
 #PCap/WinPcap
 win32 {
-    # Not for Windows XP Build
-    equals(TARGET_WINXP, 0) {
         PCAP_PATH = $${_PRO_FILE_PWD_}/libs/WinPcap-413-173-b4
         contains(QT_ARCH, i386) {
             LIBS += -L$${PCAP_PATH}/lib
@@ -78,20 +76,23 @@ win32 {
         LIBS += -lwpcap -lPacket
         INCLUDEPATH += $${PCAP_PATH}/Include
 
-        SOURCES += src/pcapplayback.cpp \
-            src/pcapplaybacksender.cpp
-        HEADERS += src/pcapplayback.h \
-            src/pcapplaybacksender.h
+        INCLUDEPATH += src/pcap/
+        SOURCES += src/pcap/pcapplayback.cpp \
+            src/pcap/pcapplaybacksender.cpp
+        HEADERS += src/pcap/pcapplayback.h \
+            src/pcap/pcapplaybacksender.h \
+            src/pcap/ethernetstrut.h
         FORMS += ui/pcapplayback.ui
-    }
 }
 !win32 {
     LIBS += -lpcap
 
-    SOURCES += src/pcapplayback.cpp \
-        src/pcapplaybacksender.cpp
-    HEADERS += src/pcapplayback.h \
-        src/pcapplaybacksender.h
+    INCLUDEPATH += src/pcap/
+    SOURCES += src/pcap/pcapplayback.cpp \
+        src/pcap/pcapplaybacksender.cpp
+    HEADERS += src/pcap/pcapplayback.h \
+        src/pcap/pcapplaybacksender.h \
+        src/pcap/ethernetstrut.h
     FORMS += ui/pcapplayback.ui
 }
 
@@ -116,9 +117,49 @@ win32 {
     equals(QT_MAJOR_VERSION, 5):equals(QT_MINOR_VERSION, 15) { #https://wiki.qt.io/Qt_5.15_Tools_and_Versions
         OPENSSL_VERS = 1.1.1g
     }
+    equals(QT_MAJOR_VERSION, 6):equals(QT_MINOR_VERSION, 2) { #https://wiki.qt.io/Qt_6.2_Tools_and_Versions
+        OPENSSL_VERS = 1.1.1q
+    }
     contains(QT_ARCH, i386) {
         OPENSSL_PATH = $${_PRO_FILE_PWD_}/libs/openssl-$${OPENSSL_VERS}-win32
     } else {
         OPENSSL_PATH = $${_PRO_FILE_PWD_}/libs/openssl-$${OPENSSL_VERS}-win64
     }
 }
+
+# Blake2
+contains(QT_ARCH, x86_64) {
+    # SSE Implementation
+    DEFINES += HAVE_SSE2
+    BLAKE2_PATH = $$system_path($${LIBS_PATH}/blake2/sse)
+    HEADERS += \
+        $${BLAKE2_PATH}/blake2b-load-sse2.h \
+        $${BLAKE2_PATH}/blake2b-load-sse41.h \
+        $${BLAKE2_PATH}/blake2b-round.h \
+        $${BLAKE2_PATH}/blake2-config.h \
+        $${BLAKE2_PATH}/blake2s-load-sse2.h \
+        $${BLAKE2_PATH}/blake2s-load-sse41.h \
+        $${BLAKE2_PATH}/blake2s-load-xop.h \
+        $${BLAKE2_PATH}/blake2s-round.h
+    SOURCES += \
+        $${BLAKE2_PATH}/blake2b.c \
+        $${BLAKE2_PATH}/blake2bp.c \
+        $${BLAKE2_PATH}/blake2s.c \
+        $${BLAKE2_PATH}/blake2sp.c \
+        $${BLAKE2_PATH}/blake2xb.c \
+        $${BLAKE2_PATH}/blake2xs.c
+} else {
+    # Standard Implimentation
+    BLAKE2_PATH = $$system_path($${LIBS_PATH}/blake2/ref)
+    SOURCES += \
+        $${BLAKE2_PATH}/blake2bp-ref.c \
+        $${BLAKE2_PATH}/blake2b-ref.c \
+        $${BLAKE2_PATH}/blake2sp-ref.c \
+        $${BLAKE2_PATH}/blake2s-ref.c \
+        $${BLAKE2_PATH}/blake2xb-ref.c \
+        $${BLAKE2_PATH}/blake2xs-ref.c
+}
+INCLUDEPATH  += $${BLAKE2_PATH}
+HEADERS += \
+    $${BLAKE2_PATH}/blake2.h
+    $${BLAKE2_PATH}/blake2-impl.h

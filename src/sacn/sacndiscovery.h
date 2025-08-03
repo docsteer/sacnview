@@ -10,7 +10,6 @@
 #include "sacnlistener.h"
 #include "CID.h"
 
-#define E131_UNIVERSE_DISCOVERY_INTERVAL 10000
 #define E131_UNIVERSE_DISCOVERY_SIZE_MIN 120
 #define E131_UNIVERSE_DISCOVERY_SIZE_MAX 1144
 
@@ -69,15 +68,15 @@ public:
 
     typedef QHash<CID, sACNSourceDetail*> tDiscoveryList;
 
-    void processPacket(quint8* pbuf, uint buflen);
-    tDiscoveryList getDiscoveryList() { return m_discoveryList; }
+    void processPacket(const quint8* pbuf, size_t buflen);
+    const tDiscoveryList &getDiscoveryList() const { return m_discoveryList; }
 
 signals:
-    void newSource(QString cid);
-    void newUniverse(QString cid, quint16 universe);
+    void newSource(CID cid);
+    void newUniverse(CID cid, quint16 universe);
 
-    void expiredSource(QString cid);
-    void expiredUniverse(QString cid, quint16 universe);
+    void expiredSource(CID cid);
+    void expiredUniverse(CID cid, quint16 universe);
 public slots:
 
 private slots:

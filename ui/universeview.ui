@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>878</width>
-    <height>490</height>
+    <width>872</width>
+    <height>494</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,6 +18,18 @@
     <normaloff>:/icons/univ_view.png</normaloff>:/icons/univ_view.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
+   <property name="leftMargin">
+    <number>6</number>
+   </property>
+   <property name="topMargin">
+    <number>6</number>
+   </property>
+   <property name="rightMargin">
+    <number>6</number>
+   </property>
+   <property name="bottomMargin">
+    <number>6</number>
+   </property>
    <item>
     <widget class="QSplitter" name="splitter_2">
      <property name="sizePolicy">
@@ -55,30 +67,109 @@
        </size>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <item>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="2" column="0" colspan="3">
+          <widget class="QPushButton" name="btnStartFlickerFinder">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Start Flicker Finder</string>
+           </property>
+           <property name="checkable">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2">
+          <widget class="QSpinBox" name="sbCompareUniverse">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>63999</number>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0" colspan="2">
+          <widget class="QPushButton" name="btnCompareUniverse">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Compare levels with another universe</string>
+           </property>
+           <property name="text">
+            <string>Start Compare Univ</string>
+           </property>
+           <property name="checkable">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="3">
+          <widget class="QPushButton" name="btnShowPriority">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Show Channel Priorities</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="3">
           <layout class="QHBoxLayout" name="horizontalLayout_2">
            <item>
             <widget class="QLabel" name="label">
              <property name="text">
               <string>Universe</string>
              </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
             </widget>
            </item>
            <item>
-            <widget class="QSpinBox" name="sbUniverse">
+            <widget class="QSpinBox_ResizeToContent" name="sbUniverse">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>75</width>
-               <height>0</height>
-              </size>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
@@ -97,7 +188,7 @@
               <string>Start reception of sACN</string>
              </property>
              <property name="text">
-              <string>...</string>
+              <string notr="true">...</string>
              </property>
              <property name="icon">
               <iconset resource="../res/resources.qrc">
@@ -111,7 +202,7 @@
               <string>Pause reception of sACN</string>
              </property>
              <property name="text">
-              <string>...</string>
+              <string notr="true">...</string>
              </property>
              <property name="icon">
               <iconset resource="../res/resources.qrc">
@@ -121,36 +212,21 @@
            </item>
           </layout>
          </item>
-         <item>
-          <widget class="QPushButton" name="btnShowPriority">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
+         <item row="7" column="0">
+          <widget class="QPushButton" name="btnClearOffline">
            <property name="text">
-            <string>Show Channel Priorities</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
+            <string>Clear Offline</string>
            </property>
           </widget>
          </item>
-         <item>
-          <widget class="QPushButton" name="btnStartFlickerFinder">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
+         <item row="7" column="1" colspan="2">
+          <widget class="QPushButton" name="btnExportSourceList">
            <property name="text">
-            <string>Start Flicker Finder</string>
+            <string>Export Source List...</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="6" column="0" colspan="3">
           <widget class="QPushButton" name="btnLogWindow">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -176,18 +252,12 @@
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
-         <widget class="QTableWidget" name="twSources">
+         <widget class="QTableView" name="tableView">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
           </property>
           <property name="horizontalScrollBarPolicy">
            <enum>Qt::ScrollBarAlwaysOn</enum>
@@ -198,14 +268,8 @@
           <property name="editTriggers">
            <set>QAbstractItemView::NoEditTriggers</set>
           </property>
-          <property name="tabKeyNavigation">
-           <bool>false</bool>
-          </property>
-          <property name="showDropIndicator" stdset="0">
-           <bool>false</bool>
-          </property>
-          <property name="dragDropOverwriteMode">
-           <bool>false</bool>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
           </property>
           <property name="selectionMode">
            <enum>QAbstractItemView::NoSelection</enum>
@@ -213,87 +277,15 @@
           <property name="selectionBehavior">
            <enum>QAbstractItemView::SelectRows</enum>
           </property>
+          <property name="sortingEnabled">
+           <bool>true</bool>
+          </property>
           <attribute name="verticalHeaderVisible">
            <bool>false</bool>
           </attribute>
           <attribute name="verticalHeaderDefaultSectionSize">
-           <number>21</number>
+           <number>24</number>
           </attribute>
-          <row>
-           <property name="text">
-            <string>New Row</string>
-           </property>
-          </row>
-          <column>
-           <property name="text">
-            <string>Name</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>CID</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Priority</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Sync</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Preview</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>IP Address</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>FPS</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>SeqErr</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Jumps</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Online</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Ver</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Per-Address</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Slots</string>
-           </property>
-          </column>
-          <item row="0" column="2">
-           <property name="text">
-            <string/>
-           </property>
-          </item>
          </widget>
          <widget class="QPlainTextEdit" name="teInfo">
           <property name="sizePolicy">
@@ -325,7 +317,7 @@
       <property name="sizePolicy">
        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
         <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
+        <verstretch>1</verstretch>
        </sizepolicy>
       </property>
       <property name="minimumSize">
@@ -360,6 +352,11 @@
    <extends>QWidget</extends>
    <header>universedisplay.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QSpinBox_ResizeToContent</class>
+   <extends>QSpinBox</extends>
+   <header>qspinbox_resizetocontent.h</header>
   </customwidget>
  </customwidgets>
  <resources>

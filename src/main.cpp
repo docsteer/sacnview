@@ -26,12 +26,16 @@
 #include <QStatusBar>
 #include <QStyleFactory>
 #include <QStandardPaths>
+#include <QStyleHints>
+#include <QSurfaceFormat>
+
+#include "themes.h"
 #include "sacnsender.h"
-#include "versioncheck.h"
+#include "newversiondialog.h"
 #include "firewallcheck.h"
 #include "ipc.h"
-#include "theme/darkstyle.h"
 #include "translations/translationdialog.h"
+
 #ifdef USE_BREAKPAD
     #include "crash_handler.h"
     #include "crash_test.h"
@@ -39,6 +43,20 @@
 
 int main(int argc, char *argv[])
 {
+    qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", QByteArray());
+    qputenv("QT_SCALE_FACTOR", QByteArray());
+#ifdef Q_OS_WIN
+    // Allow us to control our own Dark mode on Windows
+    qputenv("QT_QPA_PLATFORM", "windows:darkmode=0");
+#endif
+
+    // Share the OpenGL Contexts
+    QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+    {
+      QSurfaceFormat format;
+      QSurfaceFormat::setDefaultFormat(format);
+    }
+
     QApplication a(argc, argv);
 
     a.setApplicationName(APP_NAME);
@@ -57,50 +75,46 @@ int main(int argc, char *argv[])
     }
 #endif
 
+    // On MacOS, use the system provided theme
+    #ifdef Q_OS_MACOS
+    const auto hints = QGuiApplication::styleHints();
+    if (hints->colorScheme() == Qt::ColorScheme::Dark)
+    {
+        Preferences::Instance().SetTheme(Themes::DARK);
+    }
+    else
+    {
+        Preferences::Instance().SetTheme(Themes::LIGHT);
+    }
+    #endif
+
+
+    // Setup theme
+    Themes::apply(Preferences::Instance().GetTheme());
+
     // Setup Language
     {
-        TranslationDialog td(Preferences::getInstance()->GetLocale());
+        TranslationDialog td(Preferences::Instance().GetLocale());
         if (!td.LoadTranslation())
         {
             td.exec();
-            td.LoadTranslation(Preferences::getInstance()->GetLocale());
+            td.LoadTranslation(Preferences::Instance().GetLocale());
         }
     }
 
-    // Windows XP Support
-    #ifdef Q_OS_WIN
-        #if (TARGET_WINXP)
-            #pragma message("This binary is intended for Windows XP ONLY")
-            QSysInfo systemInfo;
-            QMessageBox msgBox;
-            msgBox.setStandardButtons(QMessageBox::Ok);
-            if (
-                (systemInfo.kernelVersion().startsWith(QString("5.1"))) // Windows XP 32bit
-                || (systemInfo.kernelVersion().startsWith(QString("5.2")))) // Windows XP 64bit
-            {
-                msgBox.setIcon(QMessageBox::Information);
-                msgBox.setText(QObject::tr("This binary is intended for Windows XP only\r\nThere are major issues mixed IPv4 and IPv6 enviroments\r\n\r\nPlease ensure IPv6 is disabled"));
-                msgBox.exec();
-            } else {
-                msgBox.setIcon(QMessageBox::Critical);
-                msgBox.setText(QObject::tr("This binary is intended for Windows XP only"));
-                msgBox.exec();
-                a.exit();
-                return -1;
-            }
-        #else
-            #pragma message("This binary is intended for Windows >= 7")
-        #endif
-    #endif
-
-    // Check web (if avaliable) for new version
-    VersionCheck version;
+    // Check web (if enabled) for new version
+    VersionCheck *versionCheck = nullptr;
+    if (Preferences::Instance().GetAutoCheckUpdates())
+    {
+      versionCheck = new VersionCheck();
+      versionCheck->checkForUpdate();
+    }
 
     // Setup interface
     bool newInterface = false;
     // Interface not avaliable, or last selection was offline/localhost
-    if (!Preferences::getInstance()->defaultInterfaceAvailable()
-            || Preferences::getInstance()->getInstance()->networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)
+    if (!Preferences::Instance().defaultInterfaceAvailable()
+            || Preferences::Instance().networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)
         )
     {
         NICSelectDialog d;
@@ -109,7 +123,7 @@ int main(int argc, char *argv[])
         switch (result) {
             case QDialog::Accepted:
             {
-                Preferences::getInstance()->setNetworkInterface(d.getSelectedInterface());
+                Preferences::Instance().setNetworkInterface(d.getSelectedInterface());
                 break;
             }
             case QDialog::Rejected:
@@ -122,19 +136,11 @@ int main(int argc, char *argv[])
         newInterface = true;
     }
 
-
-    a.setStyle(QStyleFactory::create("Fusion"));
-    if(Preferences::getInstance()->GetTheme() == Preferences::THEME_DARK)
-    {
-        a.setStyle(new DarkStyle);
-    }
-
-
     // Changed to heap rather than stack,
     // so that we can destroy before cleaning up the singletons
     MDIMainWindow *w = new MDIMainWindow();
-    w->restoreMdiWindows();
 
+#ifdef NDEBUG
     // Setup IPC
     IPC ipc(w);
     if (!ipc.isListening())
@@ -143,24 +149,41 @@ int main(int argc, char *argv[])
         delete w;
         return -1;
     }
+#endif
 
     // Show window
-    if(Preferences::getInstance()->GetSaveWindowLayout())
-        w->show();
+    if (Preferences::Instance().GetRestoreWindowLayout())
+    {
+      w->show();
+      w->restoreSubWindows();
+    }
     else
-        w->showMaximized();
+    {
+        if (Preferences::Instance().GetWindowMode() == WindowMode::Floating)
+        {
+            w->show();
+        }
+        else
+        {
+            w->showMaximized();
+        }
+    }
 
     // Show interface name on statusbar
-    if (Preferences::getInstance()->networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack))
-        w->statusBar()->showMessage(QObject::tr(" WORKING OFFLINE"));
+    if (Preferences::Instance().networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack))
+        w->statusBar()->showMessage(QObject::tr("WORKING OFFLINE"));
     else
-        w->statusBar()->showMessage(
-            QObject::tr("Selected interface: %1").arg(
-                Preferences::getInstance()->networkInterface().humanReadableName()));
+    {
+        const QNetworkInterface iface = Preferences::Instance().networkInterface();
+
+        w->statusBar()->showMessage(QObject::tr("Selected interface: %1 (%2)")
+                                        .arg(iface.humanReadableName())
+                                        .arg(Preferences::GetIPv4AddressString(iface)));
+    }
 
     // Check firewall if not newly selected
     if (!newInterface) {
-        foreach (QNetworkAddressEntry ifaceAddr, Preferences::getInstance()->networkInterface().addressEntries())
+        foreach (QNetworkAddressEntry ifaceAddr, Preferences::Instance().networkInterface().addressEntries())
         {
             if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol)
             {
@@ -183,14 +206,14 @@ int main(int argc, char *argv[])
 
     int result = a.exec();
 
-    w->saveMdiWindows();
     delete w;
+    delete versionCheck;
 
-    Preferences::getInstance()->savePreferences();
+    Preferences::Instance().savePreferences();
 
     CStreamServer::shutdown();
 
-    if(Preferences::getInstance()->RESTART_APP)
+    if(Preferences::Instance().GetRestartPending())
         QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
     return result;
 }

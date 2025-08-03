@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1193</width>
-    <height>693</height>
+    <height>748</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,14 +20,12 @@
   <property name="styleSheet">
    <string notr="true">QSlider::groove:horizontal {
 border: 1px solid #bbb;
-background: white;
 height: 10px;
 border-radius: 4px;
 }
 
 QSlider::groove:vertical {
 border: 1px solid #bbb;
-background: white;
 width: 10px;
 border-radius: 4px;
 }
@@ -54,14 +52,12 @@ border-radius: 4px;
 }
 
 QSlider::add-page:horizontal {
-background: #fff;
 border: 1px solid #777;
 height: 10px;
 border-radius: 4px;
 }
 
 QSlider::sub-page:vertical {
-background: #fff;
 border: 1px solid #777;
 width: 10px;
 border-radius: 4px;
@@ -128,7 +124,7 @@ border-radius: 4px;
       </property>
       <property name="minimumSize">
        <size>
-        <width>270</width>
+        <width>300</width>
         <height>0</height>
        </size>
       </property>
@@ -214,6 +210,29 @@ border-radius: 4px;
                <property name="text">
                 <string>Draft</string>
                </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="rbPathwaySecure">
+               <property name="text">
+                <string>Pathway Connectivity Secure</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="gbPathwaySecurePassword">
+               <property name="title">
+                <string>Password</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_14">
+                <item>
+                 <widget class="QLineEdit" name="lePathwaySecurePassword">
+                  <property name="maxLength">
+                   <number>32</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </widget>
              </item>
             </layout>
@@ -343,7 +362,7 @@ border-radius: 4px;
               <item>
                <widget class="QPushButton" name="btnEditPerChan">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -356,7 +375,7 @@ border-radius: 4px;
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>50</width>
+                  <width>75</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -367,7 +386,7 @@ border-radius: 4px;
                  <string>Set up per-channel priorities</string>
                 </property>
                 <property name="text">
-                 <string>...</string>
+                 <string notr="true">000-000...</string>
                 </property>
                </widget>
               </item>
@@ -404,6 +423,37 @@ border-radius: 4px;
                <set>Qt::AlignCenter</set>
               </property>
              </widget>
+            </item>
+            <item row="6" column="0">
+             <widget class="QLabel" name="label_9">
+              <property name="text">
+               <string>Min/Max FPS</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1">
+             <layout class="QHBoxLayout" name="horizontalLayout_11">
+              <item>
+               <widget class="QDoubleSpinBox" name="sbMinFPS">
+                <property name="suffix">
+                 <string> Hz</string>
+                </property>
+                <property name="value">
+                 <double>99.989999999999995</double>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="sbMaxFPS">
+                <property name="suffix">
+                 <string> Hz</string>
+                </property>
+                <property name="value">
+                 <double>99.989999999999995</double>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </item>
@@ -1415,8 +1465,8 @@ color: rgb(255, 85, 0);</string>
             </property>
             <property name="minimumSize">
              <size>
-              <width>106</width>
-              <height>86</height>
+              <width>102</width>
+              <height>82</height>
              </size>
             </property>
             <property name="focusPolicy">
@@ -1467,8 +1517,8 @@ color: rgb(255, 85, 0);</string>
            <widget class="QSpinBox" name="sbFadeRangeEnd">
             <property name="minimumSize">
              <size>
-              <width>106</width>
-              <height>86</height>
+              <width>102</width>
+              <height>82</height>
              </size>
             </property>
             <property name="focusPolicy">

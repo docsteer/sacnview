@@ -28,21 +28,115 @@
 
 static QElapsedTimer timer;
 
-//Initializes the tock layer.  Only needs to be called once per application
+// Gadget to enforce a single start
+struct TockStarter
+{
+    TockStarter()
+    {
+        timer.start();
+    }
+};
+
+// Initializes the tock layer. Only needs to be called once per application
 bool Tock_StartLib()
 {
-    timer.start();
-    return true;
+    static const TockStarter gadget;
+    return timer.isValid();
 }
 
 //Gets a tock representing the current time
 tock Tock_GetTock()
 {
-    return tock(timer.elapsed());
+    return tock(std::chrono::nanoseconds(timer.nsecsElapsed()));
 }
 
-//Shuts down the tock layer.
+// Shuts down the tock layer. No-Op on desktop platforms
 void Tock_StopLib()
 {
 
+}
+
+tock::tock():v(0) {}
+
+tock::resolution_t tock::Get() const
+{
+    return v;
+}
+
+void tock::Set(tock::resolution_t time)
+{
+    v = time;
+}
+
+bool operator>(const tock& t1, const tock& t2)
+{
+    return t1.v.count() - t2.v.count() > 0;
+}
+
+bool operator>=(const tock& t1, const tock& t2)
+{
+    return t1.v.count() - t2.v.count() >= 0;
+}
+
+bool operator==(const tock& t1, const tock& t2)
+{
+    return t1.v.count() - t2.v.count() == 0;
+}
+
+bool operator!=(const tock& t1, const tock& t2)
+{
+    return t1.v.count() - t2.v.count() != 0;
+}
+
+bool operator<(const tock& t1, const tock& t2)
+{
+    return t2.v.count() - t1.v.count() > 0;
+}
+
+bool operator<=(const tock& t1, const tock& t2)
+{
+    return t2.v.count() - t1.v.count() >= 0;
+}
+
+ttimer::ttimer():interval(0)
+{
+    Reset();
+}
+
+template <typename Rep, typename Period>
+ttimer::ttimer(std::chrono::duration<Rep, Period> interval) :
+    interval(interval)
+{
+    Reset();
+}
+
+void ttimer::SetInterval(tock::resolution_t interval)
+{
+    this->interval = interval;
+    Reset();
+}
+
+tock::resolution_t ttimer::GetInterval() const
+{
+    return interval;
+}
+
+void ttimer::Reset()
+{
+    tockout.Set(Tock_GetTock().Get() + interval);
+}
+
+bool ttimer::Expired() const
+{
+    return (Tock_GetTock().Get()) >= tockout.Get();
+}
+
+bool operator==(const ttimer& t1, const ttimer& t2)
+{
+    return ((t1.tockout == t2.tockout) && (t1.interval == t2.interval));
+}
+
+bool operator!=(const ttimer& t1, const ttimer& t2)
+{
+    return !(t1 == t2);
 }

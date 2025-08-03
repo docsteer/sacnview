@@ -61,7 +61,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QToolButton" name="btnRemoveRow">
+      <widget class="QPushButton" name="btnRemoveRow">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -72,7 +72,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>...</string>
+        <string/>
        </property>
        <property name="icon">
         <iconset resource="../res/resources.qrc">
@@ -135,7 +135,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QToolButton" name="btnAddRow">
+      <widget class="QPushButton_RightClick" name="btnAddRow">
        <property name="sizePolicy">
         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
          <horstretch>0</horstretch>
@@ -143,7 +143,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>...</string>
+        <string/>
        </property>
        <property name="icon">
         <iconset resource="../res/resources.qrc">
@@ -188,9 +188,7 @@
      </property>
      <property name="font">
       <font>
-       <family>Arial</family>
        <pointsize>36</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -262,6 +260,11 @@
    <class>Snapshot::InfoLbl</class>
    <extends>QLabel</extends>
    <header>snapshot.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QPushButton_RightClick</class>
+   <extends>QPushButton</extends>
+   <header>qpushbutton_rightclick.h</header>
   </customwidget>
  </customwidgets>
  <resources>

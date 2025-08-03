@@ -29,6 +29,8 @@
 #define _CID_H_
 
 #include <QtGlobal>
+#include <QMetaType>
+#include <QDataStream>
 
 class CID  
 {
@@ -56,12 +58,24 @@ public:
 	friend bool operator==(const CID& c1, const CID& c2);
 	friend bool operator!=(const CID& c1, const CID& c2);
 
+    friend QDataStream & operator<< (QDataStream &lhs, const CID& rhs)
+    {
+        lhs.writeRawData(reinterpret_cast<const char*>(rhs.m_cid), CIDBYTES);
+        return lhs;
+    }
+    friend QDataStream & operator>> (QDataStream &lhs, CID& rhs)
+    {
+        lhs.readRawData(reinterpret_cast<char*>(rhs.m_cid), CIDBYTES);
+        return lhs;
+    }
+
 	//Returns a CID based on the string. 
 	static CID StringToCID(const char* ptext);
 
 	//Translates a cid to a preallocated text string of 37 bytes, including the terminating NULL
 	static void CIDIntoString(const CID& cid, char* ptxt);
     static QString CIDIntoQString(const CID& cid);
+    operator QString() const;
 
     // Create a CID using the platforms UUID methods
     static CID CreateCid();
@@ -71,6 +85,7 @@ public:
 private:
     quint8 m_cid [CIDBYTES];
 };
+Q_DECLARE_METATYPE(CID);
 
 //Essentially the same type as a CID, but for a different semantic purpose
 //Just masks the CID type
@@ -120,4 +135,3 @@ bool operator!=(const DCID& d1, const DCID& d2);
 uint qHash(const CID& c);
 
 #endif // !defined(_CID_H_)
-

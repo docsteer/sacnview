@@ -1,0 +1,622 @@
+// Copyright 2023 Richard Thompson
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include "sacnsourcetablemodel.h"
+
+#include "preferences.h"
+
+#include "sacn/sacnlistener.h"
+
+SACNSourceTableModel::SACNSourceTableModel(QObject* parent)
+  : QAbstractTableModel(parent)
+{
+}
+
+SACNSourceTableModel::~SACNSourceTableModel()
+{
+}
+
+Qt::ItemFlags SACNSourceTableModel::flags(const QModelIndex& index) const
+{
+  Qt::ItemFlags result = QAbstractTableModel::flags(index);
+  if (index.column() == COL_NOTES)
+    result |= Qt::ItemIsEditable;
+  return result;
+}
+
+bool SACNSourceTableModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+  if (role != Qt::EditRole)
+    return false;
+
+  // Out of bounds
+  if (index.row() < 0 || index.row() >= m_rows.size())
+    return false;
+
+  // Sequence and Jump counters can be reset
+  switch (index.column())
+  {
+  default: break;
+  case COL_NOTES:
+  {
+    m_notes.insert(m_rows[index.row()].cid, value.toString());
+  } return true;
+  case COL_SEQ_ERR:
+      resetSequenceCounters();
+      break;
+  case COL_JUMPS:
+      resetJumpsCounters();
+    break;
+  }
+  return false;
+}
+
+QVariant SACNSourceTableModel::data(const QModelIndex& index, int role) const
+{
+  if (!index.isValid())
+    return QVariant();
+
+  if (index.row() >= rowCount())
+    return QVariant();
+
+  const RowData& rowData = m_rows[index.row()];
+
+  switch (role)
+  {
+  case Qt::EditRole:
+  case Qt::DisplayRole: return getDisplayData(rowData, index.column());
+
+  case Qt::BackgroundRole: return getBackgroundData(rowData, index.column());
+
+  case Qt::TextAlignmentRole:
+    switch (index.column())
+    {
+      // Text
+    case COL_NAME:
+    case COL_CID:
+    case COL_TIME_RANGE:
+      return static_cast<Qt::Alignment::Int>(Qt::AlignVCenter | Qt::AlignLeft);
+      // Numeric
+    case COL_UNIVERSE:
+    case COL_PRIO:
+    case COL_SYNC:
+    case COL_FPS:
+    case COL_TIME_SHORT:
+    case COL_TIME_LONG:
+    case COL_TIME_STATIC:
+    case COL_SEQ_ERR:
+    case COL_JUMPS:
+    case COL_SLOTS:
+      return static_cast<Qt::Alignment::Int>(Qt::AlignVCenter | Qt::AlignRight);
+      // Flag
+    case COL_ONLINE:
+    case COL_IP:
+    case COL_PREVIEW:
+    case COL_VER:
+    case COL_DD:
+    case COL_PATHWAY_SECURE:
+      return static_cast<Qt::Alignment::Int>(Qt::AlignCenter);
+    }
+  }
+  return QVariant();
+}
+
+
+QVariant SACNSourceTableModel::getDisplayData(const RowData& rowData, int column) const
+{
+  switch (column)
+  {
+  default: break;
+  case COL_NAME: return rowData.name;
+  case COL_ONLINE:
+  {
+    switch (rowData.online)
+    {
+    case SourceState::Offline: return tr("Offline");
+    case SourceState::NoDmx: return tr("No DMX");
+    case SourceState::Unstable: return tr("Online (Unstable)");
+    case SourceState::Stable: return tr("Online");
+    }
+    return QStringLiteral("??");
+  }
+  case COL_CID: return QVariant::fromValue(CID::CIDIntoQString(rowData.cid));
+  case COL_UNIVERSE: return rowData.universe;
+  case COL_PRIO: return rowData.per_address == SourcePriority::PerUniverse ? QString::number(rowData.priority) : QStringLiteral("[%1]").arg(rowData.priority);
+  case COL_SYNC:
+    if (rowData.protocol_version == sACNProtocolDraft)
+      return tr("N/A");
+    else
+      return (rowData.sync_universe != 0
+        ? QString(tr("Yes (%1)")).arg(rowData.sync_universe)
+        : tr("No"));
+  case COL_PREVIEW: return (rowData.preview ? tr("Yes") : tr("No"));
+  case COL_IP: return rowData.ip.toString();
+  case COL_FPS: return QStringLiteral("%1Hz").arg(QString::number(rowData.fps, 'f', 2));
+  case COL_TIME_RANGE:
+  case COL_TIME_SHORT:
+  case COL_TIME_LONG:
+  case COL_TIME_STATIC:
+    return getTimingSummary(rowData, column);
+  case COL_SEQ_ERR: return rowData.seq_err;
+  case COL_JUMPS: return rowData.jumps;
+  case COL_VER: return GetProtocolVersionString(rowData.protocol_version);
+  case COL_DD:
+    switch (rowData.per_address)
+    {
+    case SourcePriority::PerUniverse: return tr("No");
+    case SourcePriority::PerAddress:
+      return (Preferences::Instance().GetETCDD() ? tr("Yes") : tr("Ignored"));
+    case SourcePriority::PerAddressInvalid:
+      return (Preferences::Instance().GetETCDD() ? tr("Invalid") : tr("Ignored (Invalid)"));
+    }
+  case COL_SLOTS: return rowData.slot_count;
+  case COL_PATHWAY_SECURE:
+    switch (rowData.security)
+    {
+    case SourceSecure::None: return (Preferences::Instance().GetPathwaySecureRxDataOnly() ? tr("No") : tr("N/A"));
+    case SourceSecure::BadDigest: return tr("Bad Message Digest");
+    case SourceSecure::BadSequence: return tr("Bad Sequence");
+    case SourceSecure::BadPassword: return tr("Bad Password");
+    case SourceSecure::Yes: return tr("Yes");
+    }
+    break;
+  case COL_NOTES: return m_notes.value(rowData.cid);
+  }
+  return QVariant();
+}
+
+QVariant SACNSourceTableModel::getBackgroundData(const RowData& rowData, int column) const
+{
+  switch (column)
+  {
+  default: break;
+  case COL_NAME:
+  case COL_CID:
+    return Preferences::Instance().colorForCID(rowData.cid);
+  case COL_ONLINE: switch (rowData.online)
+  {
+  default:
+  case SourceState::Offline: return Preferences::Instance().colorForStatus(Preferences::Status::Bad);
+  case SourceState::NoDmx: return Preferences::Instance().colorForStatus(Preferences::Status::Warning);
+  case SourceState::Unstable: return Preferences::Instance().colorForStatus(Preferences::Status::Warning);
+  case SourceState::Stable: return Preferences::Instance().colorForStatus(Preferences::Status::Good);
+  }
+  case COL_PATHWAY_SECURE:
+    switch (rowData.security)
+    {
+    case SourceSecure::None: return (Preferences::Instance().GetPathwaySecureRxDataOnly() ? Preferences::Instance().colorForStatus(Preferences::Status::Bad) : QColor(Qt::transparent));
+    default:
+    case SourceSecure::BadDigest: return Preferences::Instance().colorForStatus(Preferences::Status::Bad);
+    case SourceSecure::BadSequence: return Preferences::Instance().colorForStatus(Preferences::Status::Warning);
+    case SourceSecure::BadPassword: return Preferences::Instance().colorForStatus(Preferences::Status::Warning);
+    case SourceSecure::Yes: return Preferences::Instance().colorForStatus(Preferences::Status::Good);
+    }
+    break;
+  case COL_PRIO:
+    if (rowData.priority > MAX_SACN_PRIORITY || rowData.per_address == SourcePriority::PerAddressInvalid)
+      return Preferences::Instance().colorForStatus(Preferences::Status::Bad);
+    break;
+  case COL_DD:
+    if (rowData.per_address == SourcePriority::PerAddressInvalid)
+      return Preferences::Instance().colorForStatus(Preferences::Status::Bad);
+
+  case COL_UNIVERSE:
+  case COL_SYNC:
+  case COL_PREVIEW:
+  case COL_IP:
+  case COL_FPS:
+  case COL_SEQ_ERR:
+  case COL_JUMPS:
+  case COL_VER:
+  case COL_SLOTS:
+    break;
+  }
+
+  return QVariant();
+}
+
+QVariant SACNSourceTableModel::getTimingSummary(const RowData& rowData, int column) const
+{
+  const FpsCounter::Histogram& histogram = rowData.histogram;
+  if (histogram.empty())
+    return QStringLiteral("-");
+
+  if (column == COL_TIME_RANGE)
+  {
+    // Min - max
+    return QStringLiteral("%1-%2").arg(std::chrono::milliseconds(histogram.begin()->first).count()).arg(std::chrono::milliseconds(histogram.rbegin()->first).count());
+  }
+
+  if (!rowData.countValid)
+  {
+    // And count of interesting ranges
+    rowData.shortCount = 0;
+    rowData.longCount = 0;
+    rowData.staticCount = 0;
+    for (const auto& item : histogram)
+    {
+      // Times are rounded up, don't count anything twice
+      if (item.first <= m_shortInterval)
+        rowData.shortCount += item.second;
+      else if (item.first > m_staticInterval)
+        rowData.staticCount += item.second;
+      else if (item.first > m_longInterval)
+        rowData.longCount += item.second;
+    }
+    // It is now valid
+    rowData.countValid = true;
+  }
+
+  switch (column)
+  {
+  default: break;
+  case COL_TIME_SHORT: return static_cast<quint64>(rowData.shortCount);
+  case COL_TIME_LONG:return static_cast<quint64>(rowData.longCount);
+  case COL_TIME_STATIC:return static_cast<quint64>(rowData.staticCount);
+  }
+  return QVariant();
+}
+
+void SACNSourceTableModel::RefreshAllTimingData()
+{
+  emit headerDataChanged(Qt::Horizontal, TimingDetailColumns.front(), TimingDetailColumns.back());
+  emit dataChanged(index(0, TimingDetailColumns.front()), index(rowCount() - 1, TimingDetailColumns.back()));
+}
+
+QVariant SACNSourceTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+  if (orientation == Qt::Horizontal)
+  {
+    switch (role)
+    {
+    case Qt::DisplayRole:
+      switch (section)
+      {
+      default: break;
+      case COL_NAME: return tr("Name");
+      case COL_ONLINE: return tr("Online");
+      case COL_CID: return tr("CID");
+      case COL_UNIVERSE: return tr("Universe");
+      case COL_PRIO: return tr("Priority");
+      case COL_SYNC: return tr("Sync");
+      case COL_PREVIEW: return tr("Preview");
+      case COL_IP: return tr("IP Address");
+      case COL_FPS: return tr("FPS");
+      case COL_TIME_RANGE: return tr("Times (ms)");
+      case COL_TIME_SHORT: return QStringLiteral("<%1ms")
+        .arg(std::chrono::milliseconds(m_shortInterval).count());
+      case COL_TIME_LONG: return QStringLiteral(">%1ms")
+        .arg(std::chrono::milliseconds(m_longInterval).count());
+      case COL_TIME_STATIC: return QStringLiteral(">%1ms")
+        .arg(std::chrono::milliseconds(m_staticInterval).count());
+      case COL_SEQ_ERR: return tr("SeqErr");
+      case COL_JUMPS: return tr("Jumps");
+      case COL_VER: return tr("Ver");
+      case COL_DD: return tr("Per-Address");
+      case COL_SLOTS: return tr("Slots");
+      case COL_PATHWAY_SECURE: return tr("Secure");
+      case COL_NOTES: return tr("Notes");
+      } break;
+    case Qt::ToolTipRole:
+      switch (section)
+      {
+      default: break;
+      case COL_NAME: return tr("The human readable name the source has been given");
+      case COL_ONLINE: return tr("Online status of the source");
+      case COL_CID: return tr("The Component IDentifier of the source, a Universally Unique Identifier");
+      case COL_UNIVERSE: return tr("sACN Universe number (%1-%1)").arg(MIN_SACN_UNIVERSE).arg(MAX_SACN_UNIVERSE);
+      case COL_PRIO: return tr("Source priority %1 (ignore) to %2 (most important). Default %1").arg(MIN_SACN_PRIORITY).arg(MAX_SACN_PRIORITY).arg(DEFAULT_SACN_PRIORITY);
+      case COL_SYNC: return tr("Does the source support Universe Synchronization?");
+      case COL_PREVIEW: return tr("Indicates that the data in this packet is intended for use in visualization or media server preview applications and shall not be used to generate live output.");
+      case COL_IP: return tr("The IP address of the source");
+      case COL_FPS: return tr("Frames per Second, aka refresh rate of the DMX source");
+      case COL_TIME_RANGE: return tr("Range of packet intervals");
+      case COL_TIME_SHORT: return tr("Count of packet intervals <%1ms")
+        .arg(std::chrono::milliseconds(m_shortInterval).count());
+      case COL_TIME_LONG: return tr("Count of packet intervals >%1ms")
+        .arg(std::chrono::milliseconds(m_longInterval).count());
+      case COL_TIME_STATIC: return tr("Count of static packet intervals (<%1ms)")
+        .arg(std::chrono::milliseconds(m_staticInterval).count());
+      case COL_SEQ_ERR: return tr("Number of packets which have received out of order");
+      case COL_JUMPS: return tr("Number of packets which have been missed");
+      case COL_VER: return tr("Protocol version");
+      case COL_DD: return tr("If the source supports Electronic Theatre Controls Per-Address extension, is the source transmitting per address priorities?");
+      case COL_SLOTS: return tr("Number of DMX Data slots the source is transmitting");
+      case COL_PATHWAY_SECURE: return tr("If the source supports Pathways Secure DMX extension, is the password correct and the packet secure?");
+      case COL_NOTES: return tr("User notes. Not provided by the source");
+      }
+      break;
+    }
+  }
+  return QVariant();
+}
+
+void SACNSourceTableModel::setShortInterval(int millisec)
+{
+  if (millisec == shortInterval())
+    return;
+
+  m_shortInterval = std::chrono::milliseconds(millisec);
+
+  RefreshAllTimingData();
+}
+
+void SACNSourceTableModel::setLongInterval(int millisec)
+{
+  if (millisec == longInterval())
+    return;
+
+  m_longInterval = std::chrono::milliseconds(millisec);
+
+  RefreshAllTimingData();
+}
+
+void SACNSourceTableModel::setStaticInterval(int millisec)
+{
+  if (millisec == longInterval())
+    return;
+
+  m_staticInterval = std::chrono::milliseconds(millisec);
+
+  RefreshAllTimingData();
+}
+
+void SACNSourceTableModel::addListener(const sACNManager::tListener& listener)
+{
+  if (!listener)
+    return;
+
+  // Start listening for new sources
+  connect(listener.data(), &sACNListener::sourceFound, this, &SACNSourceTableModel::sourceOnline);
+  connect(listener.data(), &sACNListener::sourceLost, this, &SACNSourceTableModel::sourceChanged);
+  connect(listener.data(), &sACNListener::sourceChanged, this, &SACNSourceTableModel::sourceChanged);
+
+  // Now add pre-existing sources
+  for (int i = 0; i < listener->sourceCount(); i++)
+  {
+    sourceOnline(listener->source(i));
+  }
+  m_listeners.push_back(listener);
+}
+
+void SACNSourceTableModel::pause()
+{
+  // Stop listening (queued events will still happen)
+  for (size_t i = 0; i < m_listeners.size(); ++i)
+  {
+    sACNManager::tListener listener(m_listeners[i]);
+    if (listener)
+      disconnect(listener.data(), nullptr, this, nullptr);
+  }
+}
+
+void SACNSourceTableModel::restart()
+{
+  // Restart listening on all still extant universes
+  for (auto it = m_listeners.begin(); it != m_listeners.end(); /**/)
+  {
+    sACNManager::tListener listener(*it);
+    if (listener)
+    {
+      connect(listener.data(), &sACNListener::sourceFound, this, &SACNSourceTableModel::sourceOnline);
+      connect(listener.data(), &sACNListener::sourceLost, this, &SACNSourceTableModel::sourceChanged);
+      connect(listener.data(), &sACNListener::sourceChanged, this, &SACNSourceTableModel::sourceChanged);
+      ++it;
+    }
+    else
+    {
+      // Remove nulled weak pointers
+      it = m_listeners.erase(it);
+    }
+  }
+}
+
+void SACNSourceTableModel::clear()
+{
+  pause();
+  m_listeners.clear();
+
+  // Clear the model
+  beginResetModel();
+  m_rows.clear();
+  m_sourceToTableRow.clear();
+  endResetModel();
+}
+
+void SACNSourceTableModel::clearOffline()
+{
+  if (m_listeners.empty())
+  {
+    clear();
+    return;
+  }
+
+  // Clear the model and repopulate with the valid sources
+  beginResetModel();
+  m_rows.clear();
+  m_sourceToTableRow.clear();
+
+  // Now re-add pre-existing list sources and remove dead listeners
+  for (auto it = m_listeners.begin(); it != m_listeners.end(); /*iterate below*/)
+  {
+    const sACNManager::tListener listener = it->toStrongRef();
+    if (listener)
+    {
+      for (int i = 0; i < listener->sourceCount(); i++)
+      {
+        sACNSource* source = listener->source(i);
+        if (source->src_valid)
+        {
+          m_sourceToTableRow[source] = static_cast<int>(m_rows.size());
+          m_rows.emplace_back(source);
+        }
+      }
+      ++it;
+    }
+    else
+    {
+      it = m_listeners.erase(it);
+    }
+  }
+  endResetModel();
+}
+
+void SACNSourceTableModel::resetTimeSummaryCounters()
+{
+  for (auto it = m_sourceToTableRow.begin(); it != m_sourceToTableRow.end(); ++it)
+  {
+    it.key()->fpscounter.ClearHistogram();
+  }
+  for (auto& row : m_rows)
+  {
+    row.histogram.clear();
+  }
+  emit dataChanged(index(0, TimingDetailColumns.front()), index(rowCount() - 1, TimingDetailColumns.back()));
+}
+
+void SACNSourceTableModel::resetSequenceCounters()
+{
+  for (auto it = m_sourceToTableRow.begin(); it != m_sourceToTableRow.end(); ++it)
+  {
+    it.key()->resetSeqErr();
+  }
+  for (auto& row : m_rows)
+  {
+    row.seq_err = 0;
+  }
+  emit dataChanged(index(0, COL_SEQ_ERR), index(rowCount() - 1, COL_SEQ_ERR));
+}
+
+void SACNSourceTableModel::resetJumpsCounters()
+{
+  for (auto it = m_sourceToTableRow.begin(); it != m_sourceToTableRow.end(); ++it)
+  {
+    it.key()->resetJumps();
+  }
+  for (auto& row : m_rows)
+  {
+    row.jumps = 0;
+  }
+  emit dataChanged(index(0, COL_JUMPS), index(rowCount() - 1, COL_JUMPS));
+}
+
+void SACNSourceTableModel::resetCounters()
+{
+  for (auto it = m_sourceToTableRow.begin(); it != m_sourceToTableRow.end(); ++it)
+  {
+    it.key()->resetSeqErr();
+    it.key()->resetJumps();
+    it.key()->fpscounter.ClearHistogram();
+  }
+  for (auto& row : m_rows)
+  {
+    row.seq_err = 0;
+    row.jumps = 0;
+    row.histogram.clear();
+  }
+  emit dataChanged(index(0, TimingDetailColumns.front()), index(rowCount() - 1, COL_JUMPS));
+}
+
+void SACNSourceTableModel::sourceChanged(sACNSource* source)
+{
+  if (!source)
+    return;
+
+  const int row_num = m_sourceToTableRow.value(source, -1);
+  if (row_num < 0)
+  {
+    sourceOnline(source);
+    return;
+  }
+
+  // Update and signal
+  m_rows[row_num].Update(source);
+  emit dataChanged(index(row_num, COL_SOURCE_UPDATE_BEGIN), index(row_num, COL_SOURCE_UPDATE_END));
+}
+
+void SACNSourceTableModel::sourceOnline(sACNSource* source)
+{
+  if (!source || !source->src_valid)
+    return;
+
+  const int row = static_cast<int>(m_rows.size());
+  beginInsertRows(QModelIndex(), row, row);
+  m_sourceToTableRow[source] = row;
+  m_rows.emplace_back(source);
+  endInsertRows();
+}
+
+SACNSourceTableModel::RowData::RowData(const sACNSource* source)
+{
+  Update(source);
+}
+
+void SACNSourceTableModel::RowData::Update(const sACNSource* source)
+{
+  if (!source)
+    return;
+
+  name = source->name;
+  cid = source->src_cid;
+  universe = source->universe;
+  protocol_version = source->protocol_version;
+  ip = source->ip;
+  fps = source->fpscounter.FPS();
+  seq_err = source->seqErr;
+  jumps = source->jumps;
+  if (source->src_valid)
+  {
+    if (source->doing_dmx)
+      online = source->src_stable ? online = SourceState::Stable : online = SourceState::Unstable;
+    else
+      online = SourceState::NoDmx;
+  }
+  else
+  {
+    online = SourceState::Offline;
+  }
+
+  if (source->protocol_version == sACNProtocolPathwaySecure) {
+    if (source->pathway_secure.isSecure()) {
+      security = SourceSecure::Yes;
+    }
+    else {
+      if (!source->pathway_secure.passwordOk) {
+        security = SourceSecure::BadPassword;
+      }
+      else if (!source->pathway_secure.sequenceOk) {
+        security = SourceSecure::BadSequence;
+      }
+      else if (!source->pathway_secure.digestOk) {
+        security = SourceSecure::BadDigest;
+      }
+    }
+  }
+
+  sync_universe = source->synchronization;
+  slot_count = source->slot_count;
+  priority = source->priority;
+  preview = source->isPreview;
+  if (source->doing_per_channel)
+  {
+    // Validate the priorities
+    per_address = source->HasInvalidPriority() ? SourcePriority::PerAddressInvalid : SourcePriority::PerAddress;
+  }
+  else
+  {
+    per_address = SourcePriority::PerUniverse;
+  }
+  histogram = source->fpscounter.GetHistogram();
+  countValid = false;
+}

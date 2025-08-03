@@ -241,30 +241,30 @@ void CIPAddr::AddrIntoString(const CIPAddr& addr, char* ptxt, bool showport, boo
 	if(addr.IsV4Address())
 	{
 		if(showint)
-			sprintf(ptxt, "%d.%d.%d.%d:%d,%d", addrb[12], addrb[13], addrb[14], addrb[15], addr.GetIPPort(), addr.GetNetInterface());
+			snprintf(ptxt, ADDRSTRINGBYTES, "%d.%d.%d.%d:%d,%d", addrb[12], addrb[13], addrb[14], addrb[15], addr.GetIPPort(), addr.GetNetInterface());
 		else if(showport)
-			sprintf(ptxt, "%d.%d.%d.%d:%d", addrb[12], addrb[13], addrb[14], addrb[15], addr.GetIPPort());
+			snprintf(ptxt, ADDRSTRINGBYTES, "%d.%d.%d.%d:%d", addrb[12], addrb[13], addrb[14], addrb[15], addr.GetIPPort());
 		else
-			sprintf(ptxt, "%d.%d.%d.%d", addrb[12], addrb[13], addrb[14], addrb[15]);
+			snprintf(ptxt, ADDRSTRINGBYTES, "%d.%d.%d.%d", addrb[12], addrb[13], addrb[14], addrb[15]);
 	}
 	else
 	{
 		if(showint)
-			sprintf(ptxt, "[%04X:%04X:%04X:%04X:%04X:%04X:%04X:%04X]:%d,%d",
+			snprintf(ptxt, ADDRSTRINGBYTES, "[%04X:%04X:%04X:%04X:%04X:%04X:%04X:%04X]:%d,%d",
 					UpackBUint16(addrb), UpackBUint16(addrb + 2),
 					UpackBUint16(addrb + 4), UpackBUint16(addrb + 6),
 					UpackBUint16(addrb + 8), UpackBUint16(addrb + 10),
 					UpackBUint16(addrb + 12), UpackBUint16(addrb + 14),
 					addr.GetIPPort(), addr.GetNetInterface());
 		else if(showport)
-			sprintf(ptxt, "[%04X:%04X:%04X:%04X:%04X:%04X:%04X:%04X]:%d",
+			snprintf(ptxt, ADDRSTRINGBYTES, "[%04X:%04X:%04X:%04X:%04X:%04X:%04X:%04X]:%d",
 					UpackBUint16(addrb), UpackBUint16(addrb + 2),
 					UpackBUint16(addrb + 4), UpackBUint16(addrb + 6),
 					UpackBUint16(addrb + 8), UpackBUint16(addrb + 10),
 					UpackBUint16(addrb + 12), UpackBUint16(addrb + 14),
 					addr.GetIPPort());
 		else
-			sprintf(ptxt, "[%04X:%04X:%04X:%04X:%04X:%04X:%04X:%04X]",
+			snprintf(ptxt, ADDRSTRINGBYTES, "[%04X:%04X:%04X:%04X:%04X:%04X:%04X:%04X]",
 					UpackBUint16(addrb), UpackBUint16(addrb + 2),
 					UpackBUint16(addrb + 4), UpackBUint16(addrb + 6),
 					UpackBUint16(addrb + 8), UpackBUint16(addrb + 10),
@@ -279,3 +279,4 @@ QHostAddress CIPAddr::ToQHostAddress() const
         return QHostAddress(this->GetV4Address());
     return QHostAddress();
 }
+
