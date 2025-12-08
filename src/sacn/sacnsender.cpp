@@ -44,11 +44,13 @@ const auto tickLoopPriority = QThread::LowestPriority;
 sACNSentUniverse::sACNSentUniverse(int universe) :
     m_isSending(false),
     m_handle(0),
+    m_slotData(nullptr),
     m_slotCount(DMX_SLOT_MAX),
     m_priority(100),
     m_name("New Source"),
     m_universe(universe),
     m_priorityMode(PriorityMode::PER_SOURCE),
+    m_perChannelPriorities(nullptr),
     m_version(sACNProtocolRelease),
     m_checkTimeoutTimer(Q_NULLPTR),
     m_synchronization(NOT_SYNCHRONIZED_VALUE),
@@ -101,14 +103,10 @@ void sACNSentUniverse::startSending(bool preview)
     // Per-Address (0xdd) server
     if(m_priorityMode == PriorityMode::PER_ADDRESS)
     {
-        quint8 *pslots;
         streamServer->CreateUniverse(
                     m_cid, qPrintable(m_name), m_priority, NOT_SYNCHRONIZED_VALUE, options, STARTCODE_PRIORITY,
-                    m_universe, m_slotCount, pslots, m_priorityHandle, E1_11::MIN_REFRESH_RATE_HZ, m_maxSendFreq,
+                    m_universe, m_slotCount, m_perChannelPriorities, m_priorityHandle, E1_11::MIN_REFRESH_RATE_HZ, m_maxSendFreq,
                     unicastAddress, m_version);
-        memcpy(pslots,
-               m_perChannelPriorities,
-               std::min(static_cast<size_t>(m_slotCount), sizeof(m_perChannelPriorities)));
         streamServer->SetUniverseDirty(m_priorityHandle);
     }
 
@@ -239,7 +237,12 @@ void sACNSentUniverse::setPriorityMode(PriorityMode mode)
 
 void sACNSentUniverse::setPerChannelPriorities(quint8 *priorities)
 {
-   memcpy(m_perChannelPriorities, priorities, sizeof(m_perChannelPriorities));
+    if (m_perChannelPriorities != nullptr
+        && isSending()
+        && m_priorityMode == PriorityMode::PER_ADDRESS) {
+        memcpy(m_perChannelPriorities, priorities, MAX_DMX_ADDRESS);
+        CStreamServer::getInstance()->SetUniverseDirty(m_priorityHandle);
+    }
 }
 
 void sACNSentUniverse::setPerSourcePriority(quint8 priority)

@@ -80,7 +80,11 @@ public slots:
     void setPriorityMode(PriorityMode mode);
     /**
      * @brief setPerChannelPriorities - sets the per-channel priority data for the source
-     * @param priorities - a pointer to an array of priority values, must be 512 bytes
+     *
+     * The new priorities are only sent if setPriorityMode() was previously called with PER_ADDRESS.
+     *
+     * @param priorities - a pointer to an array of priority values, must be 512 bytes. This array
+     * is copied to the sender's internal buffer.
      */
     void setPerChannelPriorities(quint8 *priorities);
     /**
@@ -223,7 +227,7 @@ private:
     // Priority mode
     PriorityMode m_priorityMode;
     // Per-channel priorities
-    quint8 m_perChannelPriorities[MAX_DMX_ADDRESS];
+    quint8* m_perChannelPriorities;
     // Unicast
     QHostAddress m_unicastAddress;
     // Protocol Version
