@@ -62,6 +62,7 @@ protected slots:
     void doBlink();
     void on_sbFadeRangeStart_valueChanged(int value);
     void on_sbFadeRangeEnd_valueChanged(int value);
+    void on_cbFadeRangePap_toggled(bool checked);
     void radioFadeMode_toggled(QAbstractButton *id, bool checked);
     void on_slFadeLevel_valueChanged(int value);
     void on_btnFxPause_pressed();
@@ -101,6 +102,7 @@ private:
     void setLevel(int address, int value);
     void updatePerChanPriorityButton();
     void updateChanCheckPap(int address);
+    void updateFadeRangePap();
     Ui::transmitwindow *ui = nullptr;
     ConfigurePerChanPrioDlg *m_perChannelDialog = nullptr;
     QList<QSlider *> m_sliders;

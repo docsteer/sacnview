@@ -64,6 +64,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent)
     ui->sbFadeRangeStart->setMaximum(m_slotCount);
     ui->sbFadeRangeStart->setValue(MIN_DMX_ADDRESS);
     ui->sbFadeRangeStart->setWrapping(true);
+    ui->vlFadeRangeOptions->setAlignment(ui->cbFadeRangePap, Qt::AlignHCenter);
 
     ui->leSourceName->setText(Preferences::Instance().GetDefaultTransmitName());
 
@@ -485,6 +486,7 @@ void transmitwindow::on_cbPriorityMode_currentIndexChanged(int index)
         ui->sbPriority->setSuffix(QStringLiteral(")"));
         ui->btnEditPerChan->setEnabled(true);
         ui->cbCcPap->setEnabled(true);
+        ui->cbFadeRangePap->setEnabled(true);
     }
     else
     {
@@ -492,6 +494,7 @@ void transmitwindow::on_cbPriorityMode_currentIndexChanged(int index)
         ui->sbPriority->setSuffix(QString());
         ui->btnEditPerChan->setEnabled(false);
         ui->cbCcPap->setEnabled(false);
+        ui->cbFadeRangePap->setEnabled(false);
     }
 }
 
@@ -658,6 +661,7 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
 
         case tabEffects:
         {
+            updateFadeRangePap();
             QMetaObject::invokeMethod(
                         m_fxEngine,"run");
             break;
@@ -687,6 +691,7 @@ void transmitwindow::on_sbFadeRangeStart_valueChanged(int value)
     {
         ui->sbFadeRangeEnd->setValue(value);
     }
+    updateFadeRangePap();
 
     if(m_fxEngine)
     {
@@ -700,10 +705,24 @@ void transmitwindow::on_sbFadeRangeEnd_valueChanged(int value)
     {
         ui->sbFadeRangeStart->setValue(value);
     }
+    updateFadeRangePap();
 
     if(m_fxEngine)
     {
         m_fxEngine->setRange(ui->sbFadeRangeStart->value()-1, ui->sbFadeRangeEnd->value()-1);
+    }
+}
+
+void transmitwindow::on_cbFadeRangePap_toggled(bool checked)
+{
+    if (!m_sender) {
+        return;
+    }
+
+    if (checked) {
+        updateFadeRangePap();
+    } else {
+        m_sender->setPerChannelPriorities(m_perAddressPriorities.data());
     }
 }
 
@@ -970,4 +989,23 @@ void transmitwindow::updateChanCheckPap(int address)
     std::array<quint8, MAX_DMX_ADDRESS> ccPap{0};
     ccPap[address] = m_perAddressPriorities[address];
     m_sender->setPerChannelPriorities(ccPap.data());
+}
+
+void transmitwindow::updateFadeRangePap()
+{
+    if (ui->cbPriorityMode->currentIndex() != static_cast<int>(PriorityMode::PER_ADDRESS)
+        || !ui->cbFadeRangePap->isChecked()) {
+        // Per-address-priority not in use.
+        return;
+    }
+
+    // Clamp address range.
+    const int start = std::max(1, ui->sbFadeRangeStart->value()) - 1;
+    const int end = std::min(static_cast<int>(m_slotCount), ui->sbFadeRangeEnd->value()) - 1;
+
+    std::array<quint8, MAX_DMX_ADDRESS> fadeRangePap{0};
+    for (int address = start; address <= end; ++address) {
+        fadeRangePap[address] = m_perAddressPriorities[address];
+    }
+    m_sender->setPerChannelPriorities(fadeRangePap.data());
 }

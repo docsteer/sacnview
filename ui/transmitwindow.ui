@@ -1508,20 +1508,34 @@ color: rgb(255, 85, 0);</string>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_6">
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">font: 12pt &quot;Arial&quot;;</string>
-            </property>
-            <property name="text">
-             <string>thru</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
+           <layout class="QVBoxLayout" name="vlFadeRangeOptions">
+            <item>
+             <widget class="QLabel" name="label_6">
+              <property name="focusPolicy">
+               <enum>Qt::FocusPolicy::NoFocus</enum>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">font: 12pt &quot;Arial&quot;;</string>
+              </property>
+              <property name="text">
+               <string>thru</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignmentFlag::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="cbFadeRangePap">
+              <property name="toolTip">
+               <string>Tell receivers to ignore addresses other than the one being checked using Per-Address-Priority.</string>
+              </property>
+              <property name="text">
+               <string>Mask others</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
            <widget class="QSpinBox" name="sbFadeRangeEnd">
