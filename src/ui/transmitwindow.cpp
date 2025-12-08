@@ -484,12 +484,14 @@ void transmitwindow::on_cbPriorityMode_currentIndexChanged(int index)
         ui->sbPriority->setPrefix(QStringLiteral("("));
         ui->sbPriority->setSuffix(QStringLiteral(")"));
         ui->btnEditPerChan->setEnabled(true);
+        ui->cbCcPap->setEnabled(true);
     }
     else
     {
         ui->sbPriority->setPrefix(QString());
         ui->sbPriority->setSuffix(QString());
         ui->btnEditPerChan->setEnabled(false);
+        ui->cbCcPap->setEnabled(false);
     }
 }
 
@@ -507,6 +509,11 @@ void transmitwindow::on_btnCcNext_pressed()
         m_sender->setLevelRange(MIN_DMX_ADDRESS - 1, m_slotCount - 1, 0);
         m_sender->setLevel(value - 1, ui->slChannelCheck->value());
     }
+}
+
+void transmitwindow::on_cbCcPap_toggled(bool checked)
+{
+    // TODO: Implement.
 }
 
 void transmitwindow::on_btnCcPrev_pressed()

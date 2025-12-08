@@ -1353,6 +1353,16 @@ color: rgb(255, 85, 0);</string>
            </spacer>
           </item>
           <item>
+           <widget class="QCheckBox" name="cbCcPap">
+            <property name="toolTip">
+             <string>Tell receivers to ignore addresses other than the one being checked using Per-Address-Priority.</string>
+            </property>
+            <property name="text">
+             <string>Mask others</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QSlider" name="slChannelCheck">
             <property name="focusPolicy">
              <enum>Qt::NoFocus</enum>

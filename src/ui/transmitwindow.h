@@ -52,6 +52,7 @@ protected slots:
     void on_sbFadersStart_valueChanged(int address);
     void on_btnCcPrev_pressed();
     void on_btnCcNext_pressed();
+    void on_cbCcPap_toggled(bool checked);
     void on_lcdNumber_valueChanged(int value);
     void on_lcdNumber_toggleOff();
     void on_tabWidget_currentChanged(int index);
