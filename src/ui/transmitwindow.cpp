@@ -404,14 +404,13 @@ void transmitwindow::on_btnStart_pressed()
         m_sender->setSlotCount(ui->sbSlotCount->value());
         m_sender->setName(ui->leSourceName->text());
         m_sender->setUniverse(ui->sbUniverse->value());
-        
+
         // Always use the universe priority value
         m_sender->setPerSourcePriority(ui->sbPriority->value());
 
         if(ui->cbPriorityMode->currentIndex() == static_cast<int>(PriorityMode::PER_ADDRESS))
         {
             m_sender->setPriorityMode(PriorityMode::PER_ADDRESS);
-            m_sender->setPerChannelPriorities(m_perAddressPriorities.data());
         }
         else
         {
@@ -423,9 +422,10 @@ void transmitwindow::on_btnStart_pressed()
         m_sender->startSending(ui->cbBlind->isChecked());
 
         setUniverseOptsEnabled(false);
-        on_tabWidget_currentChanged(ui->tabWidget->currentIndex());
 
         m_sender->setLevel(m_levels.data(), static_cast<int>(std::min(m_levels.size(), static_cast<size_t>(m_slotCount) - 1)));
+        m_sender->setPerChannelPriorities(m_perAddressPriorities.data());
+        on_tabWidget_currentChanged(ui->tabWidget->currentIndex());
     }
 
     updateTitle();
@@ -506,14 +506,13 @@ void transmitwindow::on_btnCcNext_pressed()
 
     if(m_sender)
     {
+        // Update levels.
         m_sender->setLevelRange(MIN_DMX_ADDRESS - 1, m_slotCount - 1, 0);
         m_sender->setLevel(value - 1, ui->slChannelCheck->value());
-    }
-}
 
-void transmitwindow::on_cbCcPap_toggled(bool checked)
-{
-    // TODO: Implement.
+        // Update priorities if requested.
+        updateChanCheckPap(value - 1);
+    }
 }
 
 void transmitwindow::on_btnCcPrev_pressed()
@@ -527,8 +526,25 @@ void transmitwindow::on_btnCcPrev_pressed()
 
     if(m_sender)
     {
+        // Update levels.
         m_sender->setLevelRange(MIN_DMX_ADDRESS - 1, m_slotCount - 1, 0);
         m_sender->setLevel(value - 1, ui->slChannelCheck->value());
+
+        // Update priorities if requested.
+        updateChanCheckPap(value - 1);
+    }
+}
+
+void transmitwindow::on_cbCcPap_toggled(bool checked)
+{
+    if (!m_sender) {
+        return;
+    }
+
+    if (checked) {
+        updateChanCheckPap(ui->lcdNumber->value() - 1);
+    } else {
+        m_sender->setPerChannelPriorities(m_perAddressPriorities.data());
     }
 }
 
@@ -536,8 +552,12 @@ void transmitwindow::on_lcdNumber_valueChanged(int value)
 {
     if(m_sender)
     {
+        // Update levels.
         m_sender->setLevelRange(0, m_slotCount - 1, 0);
         m_sender->setLevel(value-1, ui->slChannelCheck->value());
+
+        // Update priorities if requested.
+        updateChanCheckPap(value - 1);
     }
 }
 
@@ -613,6 +633,7 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
     QMetaObject::invokeMethod(
                 m_fxEngine,"pause");
     m_sender->setLevelRange(0, m_slotCount-1, 0);
+    m_sender->setPerChannelPriorities(m_perAddressPriorities.data());
 
     switch (index)
     {
@@ -620,6 +641,7 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
         {
             auto address = ui->lcdNumber->value() - 1;
             m_sender->setLevel(address, ui->slChannelCheck->value());
+            updateChanCheckPap(address);
 
             ui->lcdNumber->setFocus();
             break;
@@ -932,3 +954,20 @@ void transmitwindow::on_sbMaxFPS_editingFinished()
         ui->sbMaxFPS->setValue(ui->sbMinFPS->value());
 }
 
+void transmitwindow::updateChanCheckPap(int address)
+{
+    Q_ASSERT(address < DMX_SLOT_MAX);
+    if (address >= m_slotCount) {
+        return;
+    }
+
+    if (ui->cbPriorityMode->currentIndex() != static_cast<int>(PriorityMode::PER_ADDRESS)
+        || !ui->cbCcPap->isChecked()) {
+        // Per-address-priority not in use.
+        return;
+    }
+
+    std::array<quint8, MAX_DMX_ADDRESS> ccPap{0};
+    ccPap[address] = m_perAddressPriorities[address];
+    m_sender->setPerChannelPriorities(ccPap.data());
+}

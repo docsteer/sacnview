@@ -100,6 +100,7 @@ private:
     void updateTitle();
     void setLevel(int address, int value);
     void updatePerChanPriorityButton();
+    void updateChanCheckPap(int address);
     Ui::transmitwindow *ui = nullptr;
     ConfigurePerChanPrioDlg *m_perChannelDialog = nullptr;
     QList<QSlider *> m_sliders;
