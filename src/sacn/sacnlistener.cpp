@@ -52,7 +52,10 @@ sACNListener::sACNListener(int universe, QObject *parent)
 
 sACNListener::~sACNListener()
 {
-  m_initalSampleTimer->deleteLater();
+    if (m_initalSampleTimer)
+    {
+        m_initalSampleTimer->deleteLater();
+    }
   killTimer(m_mergeTimerId);
   qDebug() << this << ": stopping";
 }
