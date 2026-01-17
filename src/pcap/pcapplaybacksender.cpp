@@ -140,18 +140,16 @@ void pcapplaybacksender::run()
                 /*
                  * Send to wire
                  *
+                 * From NPcap 1.70 onwards there isn't a clear indication of success or not
+                 * so just always assume send was successful - see
+                 * https://github.com/nmap/npcap/issues/638
+                 * 
                  * We use libpcap to retain sender IP and MAC when sending on the wire
                  * MULITICAST_LOOP is not enabled, so this is not recived by me.
                  * we need a seperate action to display this locally
                 */
-                if (pcap_sendpacket(m_pcap_out, pkt_data, pkt_header->caplen) == 0) {
-                    emit packetSent();
-                } else {
-                    emit error(QString("%1").arg(pcap_geterr(m_pcap_out)));
-                    m_running = false;
-                    emit sendingFinished();
-                    return;
-                }
+                pcap_sendpacket(m_pcap_out, pkt_data, pkt_header->caplen);
+                emit packetSent();
 
                 /* Send to me
                  *
