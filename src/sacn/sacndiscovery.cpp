@@ -183,8 +183,9 @@ sACNDiscoveryRX::sACNDiscoveryRX() : QObject(),
 
 sACNDiscoveryRX::~sACNDiscoveryRX()
 {
-    qDeleteAll(m_discoveryList);
     m_thread->exit();
+    m_thread->wait();
+    qDeleteAll(m_discoveryList);
 }
 
 void sACNDiscoveryRX::timeoutUniverses()
