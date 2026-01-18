@@ -133,7 +133,8 @@
       "name": "windows-x64-release-installer",
       "displayName": "x64 Installer",
       "description": "Windows (64-bit) MSVC build preset with Installer",
-      "configurePreset": "windows-x64-release-installer"
+      "configurePreset": "windows-x64-release-installer",
+      "configuration": "Release"
     },
     {
       "name": "macos-release",
