@@ -35,7 +35,7 @@ jobs:
             artifact: ./out/build/linux-x64-release/package/*
 
           - os: windows-latest
-            qt: '6.8.2'
+            qt: '6.8.3'
             qt_modules: 'qtmultimedia'
             installer_setup: |
               Invoke-WebRequest -Uri "https://nsis.sourceforge.io/mediawiki/images/e/e0/NSIS_Simple_Firewall_Plugin_Unicode_1.21.zip" -OutFile "NSIS_Simple_Firewall_Plugin_Unicode.zip"
