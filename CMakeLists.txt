@@ -245,6 +245,8 @@ if(MSVC)
     target_link_libraries(sACNView PRIVATE ${PCAP_LIBS})
     target_link_libraries(sACNView PRIVATE delayimp)
     target_link_options(sACNView PRIVATE "/DELAYLOAD:wpcap.dll")
+
+    set_target_properties(sACNView PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=%PATH%;${Qt6_DIR}/../../../bin")
 endif()
 
 if(UNIX)
