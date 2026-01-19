@@ -16,8 +16,8 @@
 #ifndef GRIDWIDGET_H
 #define GRIDWIDGET_H
 
-#include <QWidget>
 #include <QList>
+#include <QWidget>
 
 /**
  * @brief The GridWidget class provides a control for a grid of 512 numeric values, with
@@ -27,16 +27,17 @@ class GridWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit GridWidget(QWidget *parent = Q_NULLPTR);
 
-    void setAllCellColor(const QColor& color);
-    void setCellColor(int cell, const QColor &color);
+    explicit GridWidget(QWidget * parent = Q_NULLPTR);
+
+    void setAllCellColor(const QColor & color);
+    void setCellColor(int cell, const QColor & color);
     /**
      * @brief setCellValue - sets the value for a cell
      * @param cell - The cell number to set, 0-511
      * @param value - The string value to set
      */
-    void setCellValue(int cell, const QString &value);
+    void setCellValue(int cell, const QString & value);
     /**
      * @brief cellValue returns the value of the specified cell
      * @param cell - which cell, 0-511
@@ -51,7 +52,7 @@ public:
     /**
       * @brief setMultiSelect sets whether multiple cells can be selected at once
       **/
-    void setMultiSelect(bool value) {m_allowMultiSelect = value;}
+    void setMultiSelect(bool value) { m_allowMultiSelect = value; }
 signals:
     // The user changed the selected address. -1 means no selected address
     void selectedCellsChanged(QList<int> selectedCells);
@@ -59,25 +60,29 @@ signals:
     void cellDoubleClick(quint16 address);
 
 protected:
-    virtual void paintEvent(QPaintEvent *event) override;
+
+    virtual void paintEvent(QPaintEvent * event) override;
     virtual QSize minimumSizeHint() const override;
     virtual QSize sizeHint() const override;
-    virtual void mousePressEvent(QMouseEvent *event) override;
-    virtual void mouseMoveEvent(QMouseEvent *event) override;
-    virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
-    virtual bool event(QEvent *event) override;
-    virtual void keyPressEvent(QKeyEvent *event) override;
+    virtual void mousePressEvent(QMouseEvent * event) override;
+    virtual void mouseMoveEvent(QMouseEvent * event) override;
+    virtual void mouseDoubleClickEvent(QMouseEvent * event) override;
+    virtual bool event(QEvent * event) override;
+    virtual void keyPressEvent(QKeyEvent * event) override;
 
     // Returns the cell under point, -1 for none
-    int cellHitTest(const QPoint &point);
+    int cellHitTest(const QPoint & point);
 
 private:
+
     QList<int> m_selectedAddresses;
     QVector<QColor> m_colors;
     QStringList m_values;
     bool m_allowMultiSelect = false;
     QPoint m_lastClickPoint;
+
 protected:
+
     int m_cellHeight;
 };
 

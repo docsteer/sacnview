@@ -16,9 +16,9 @@
 #ifndef GRIDEDITWIDGET_H
 #define GRIDEDITWIDGET_H
 
+#include "gridwidget.h"
 #include <QObject>
 #include <QWidget>
-#include "gridwidget.h"
 
 /**
  * @brief The GridEditWidget class provides a widget, based on the grid widget, which allows
@@ -28,15 +28,20 @@ class GridEditWidget : public GridWidget
 {
     Q_OBJECT
 public:
-    GridEditWidget(QWidget *parent = Q_NULLPTR);
-    void setMinimum(int min) {m_minimum = min;}
-    void setMaximum(int max) {m_maximum = max;}
+
+    GridEditWidget(QWidget * parent = Q_NULLPTR);
+    void setMinimum(int min) { m_minimum = min; }
+    void setMaximum(int max) { m_maximum = max; }
     void setAllValues(int value);
 signals:
     void levelsSet(QList<QPair<int, int>> setLevels);
+
 protected:
-    virtual void wheelEvent(QWheelEvent *event);
+
+    virtual void wheelEvent(QWheelEvent * event);
+
 private:
+
     int m_minimum = 0;
     int m_maximum = 100;
 };

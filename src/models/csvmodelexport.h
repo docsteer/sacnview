@@ -19,22 +19,24 @@
 class CsvModelExporter
 {
 public:
-  explicit CsvModelExporter() {}
-  explicit CsvModelExporter(const QAbstractItemModel* model);
 
-  void setModel(const QAbstractItemModel* model) { m_model = model; }
-  void setRootIndex(const QModelIndex& index) { m_rootIndex = index; }
+    explicit CsvModelExporter() {}
+    explicit CsvModelExporter(const QAbstractItemModel * model);
 
-  bool saveAs(const QString& filename) const;
+    void setModel(const QAbstractItemModel * model) { m_model = model; }
+    void setRootIndex(const QModelIndex & index) { m_rootIndex = index; }
+
+    bool saveAs(const QString & filename) const;
 
 private:
-  const QAbstractItemModel* m_model = nullptr;
-  QPersistentModelIndex m_rootIndex;
 
-  QLatin1String m_sep = QLatin1String(",");
-  QLatin1String m_recordSep = QLatin1String("\r\n");
-  QChar m_quote = QLatin1Char('"');
-  QString m_escapedQuote = QLatin1String("\"\"");
+    const QAbstractItemModel * m_model = nullptr;
+    QPersistentModelIndex m_rootIndex;
 
-  QString& formatField(QString& field) const;
+    QLatin1String m_sep = QLatin1String(",");
+    QLatin1String m_recordSep = QLatin1String("\r\n");
+    QChar m_quote = QLatin1Char('"');
+    QString m_escapedQuote = QLatin1String("\"\"");
+
+    QString & formatField(QString & field) const;
 };

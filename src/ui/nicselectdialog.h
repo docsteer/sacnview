@@ -20,8 +20,9 @@
 #include <QHostAddress>
 #include <QNetworkInterface>
 
-namespace Ui {
-class NICSelectDialog;
+namespace Ui
+{
+    class NICSelectDialog;
 }
 
 class NICSelectDialog : public QDialog
@@ -29,16 +30,19 @@ class NICSelectDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit NICSelectDialog(QWidget *parent = 0);
+
+    explicit NICSelectDialog(QWidget * parent = 0);
     ~NICSelectDialog();
-    QNetworkInterface getSelectedInterface() const {return m_selectedInterface;};
+    QNetworkInterface getSelectedInterface() const { return m_selectedInterface; };
 protected slots:
     void on_listWidget_itemSelectionChanged();
     void on_btnSelect_pressed();
     void on_btnWorkOffline_pressed();
     void on_listWidget_doubleClicked();
+
 private:
-    Ui::NICSelectDialog *ui;
+
+    Ui::NICSelectDialog * ui;
     QNetworkInterface m_selectedInterface;
     QList<QNetworkInterface> m_interfaceList;
 };

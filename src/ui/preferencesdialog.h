@@ -22,32 +22,34 @@
 
 class QRadioButton;
 
-
-namespace Ui {
-  class PreferencesDialog;
+namespace Ui
+{
+    class PreferencesDialog;
 }
 
 class PreferencesDialog : public QDialog
 {
-  Q_OBJECT
+    Q_OBJECT
 
 public:
-  explicit PreferencesDialog(QWidget* parent = 0);
-  ~PreferencesDialog();
 
-  Q_SIGNAL void storeWindowLayoutNow();
+    explicit PreferencesDialog(QWidget * parent = 0);
+    ~PreferencesDialog();
+
+    Q_SIGNAL void storeWindowLayoutNow();
 
 protected:
-  void showEvent(QShowEvent* e) override;
+
+    void showEvent(QShowEvent * e) override;
 
 private slots:
-  void on_buttonBox_accepted();
+    void on_buttonBox_accepted();
 
 private:
-  Ui::PreferencesDialog* ui;
-  QList<QNetworkInterface> m_interfaceList;
-  TranslationDialog* m_translation;
 
+    Ui::PreferencesDialog * ui;
+    QList<QNetworkInterface> m_interfaceList;
+    TranslationDialog * m_translation;
 };
 
 #endif // PREFERENCESDIALOG_H

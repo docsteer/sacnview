@@ -15,33 +15,33 @@
 
 #define QT_SHAREDPOINTER_TRACK_POINTERS 1
 
+#include "consts.h"
 #include "mdimainwindow.h"
 #include "nicselectdialog.h"
 #include "preferences.h"
-#include "consts.h"
 #include <QApplication>
+#include <QMessageBox>
 #include <QNetworkInterface>
 #include <QProcess>
-#include <QMessageBox>
+#include <QStandardPaths>
 #include <QStatusBar>
 #include <QStyleFactory>
-#include <QStandardPaths>
 #include <QStyleHints>
 #include <QSurfaceFormat>
 
-#include "themes.h"
-#include "sacnsender.h"
-#include "newversiondialog.h"
 #include "firewallcheck.h"
 #include "ipc.h"
+#include "newversiondialog.h"
+#include "sacnsender.h"
+#include "themes.h"
 #include "translations/translationdialog.h"
 
 #ifdef USE_BREAKPAD
-    #include "crash_handler.h"
-    #include "crash_test.h"
+# include "crash_handler.h"
+# include "crash_test.h"
 #endif
 
-int main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", QByteArray());
     qputenv("QT_SCALE_FACTOR", QByteArray());
@@ -53,8 +53,8 @@ int main(int argc, char *argv[])
     // Share the OpenGL Contexts
     QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
     {
-      QSurfaceFormat format;
-      QSurfaceFormat::setDefaultFormat(format);
+        QSurfaceFormat format;
+        QSurfaceFormat::setDefaultFormat(format);
     }
 
     QApplication a(argc, argv);
@@ -69,14 +69,15 @@ int main(int argc, char *argv[])
     Breakpad::CrashHandler::instance()->Init(QStandardPaths::writableLocation(QStandardPaths::TempLocation));
 
     // Breakpad Crash Tester
-    if (qApp->arguments().contains("CRASHTEST", Qt::CaseInsensitive)) {
-        CrashTest *crashwindow = new CrashTest;
+    if (qApp->arguments().contains("CRASHTEST", Qt::CaseInsensitive))
+    {
+        CrashTest * crashwindow = new CrashTest;
         crashwindow->show();
     }
 #endif
 
-    // On MacOS, use the system provided theme
-    #ifdef Q_OS_MACOS
+// On MacOS, use the system provided theme
+#ifdef Q_OS_MACOS
     const auto hints = QGuiApplication::styleHints();
     if (hints->colorScheme() == Qt::ColorScheme::Dark)
     {
@@ -86,8 +87,7 @@ int main(int argc, char *argv[])
     {
         Preferences::Instance().SetTheme(Themes::LIGHT);
     }
-    #endif
-
+#endif
 
     // Setup theme
     Themes::apply(Preferences::Instance().GetTheme());
@@ -103,24 +103,24 @@ int main(int argc, char *argv[])
     }
 
     // Check web (if enabled) for new version
-    VersionCheck *versionCheck = nullptr;
+    VersionCheck * versionCheck = nullptr;
     if (Preferences::Instance().GetAutoCheckUpdates())
     {
-      versionCheck = new VersionCheck();
-      versionCheck->checkForUpdate();
+        versionCheck = new VersionCheck();
+        versionCheck->checkForUpdate();
     }
 
     // Setup interface
     bool newInterface = false;
     // Interface not avaliable, or last selection was offline/localhost
     if (!Preferences::Instance().defaultInterfaceAvailable()
-            || Preferences::Instance().networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack)
-        )
+        || Preferences::Instance().networkInterface().flags().testFlag(QNetworkInterface::IsLoopBack))
     {
         NICSelectDialog d;
         int result = d.exec();
 
-        switch (result) {
+        switch (result)
+        {
             case QDialog::Accepted:
             {
                 Preferences::Instance().setNetworkInterface(d.getSelectedInterface());
@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
 
     // Changed to heap rather than stack,
     // so that we can destroy before cleaning up the singletons
-    MDIMainWindow *w = new MDIMainWindow();
+    MDIMainWindow * w = new MDIMainWindow();
 
 #ifdef NDEBUG
     // Setup IPC
@@ -154,8 +154,8 @@ int main(int argc, char *argv[])
     // Show window
     if (Preferences::Instance().GetRestoreWindowLayout())
     {
-      w->show();
-      w->restoreSubWindows();
+        w->show();
+        w->restoreSubWindows();
     }
     else
     {
@@ -176,13 +176,15 @@ int main(int argc, char *argv[])
     {
         const QNetworkInterface iface = Preferences::Instance().networkInterface();
 
-        w->statusBar()->showMessage(QObject::tr("Selected interface: %1 (%2)")
-                                        .arg(iface.humanReadableName())
-                                        .arg(Preferences::GetIPv4AddressString(iface)));
+        w->statusBar()->showMessage(
+            QObject::tr("Selected interface: %1 (%2)")
+                .arg(iface.humanReadableName())
+                .arg(Preferences::GetIPv4AddressString(iface)));
     }
 
     // Check firewall if not newly selected
-    if (!newInterface) {
+    if (!newInterface)
+    {
         foreach (QNetworkAddressEntry ifaceAddr, Preferences::Instance().networkInterface().addressEntries())
         {
             if (ifaceAddr.ip().protocol() == QAbstractSocket::IPv4Protocol)
@@ -191,14 +193,19 @@ int main(int argc, char *argv[])
                 QMessageBox msgBox;
                 msgBox.setIcon(QMessageBox::Warning);
                 msgBox.setStandardButtons(QMessageBox::Ok);
-                if (fw.allowed == false) {
+                if (fw.allowed == false)
+                {
                     msgBox.setText(QObject::tr("Incoming connections to this application are blocked by the firewall"));
                     msgBox.exec();
-                } else {
-                    if (fw.restricted == true) {
-                        msgBox.setText(QObject::tr("Incoming connections to this application are restricted by the firewall"));
+                }
+                else
+                {
+                    if (fw.restricted == true)
+                    {
+                        msgBox.setText(
+                            QObject::tr("Incoming connections to this application are restricted by the firewall"));
                         msgBox.exec();
-                   }
+                    }
                 }
             }
         }
@@ -213,7 +220,6 @@ int main(int argc, char *argv[])
 
     CStreamServer::shutdown();
 
-    if(Preferences::Instance().GetRestartPending())
-        QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
+    if (Preferences::Instance().GetRestartPending()) QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
     return result;
 }

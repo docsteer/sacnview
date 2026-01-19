@@ -1,13 +1,14 @@
 #ifndef LOGWINDOW_H
 #define LOGWINDOW_H
 
-#include <QWidget>
-#include <QList>
-#include <QFile>
 #include "sacnlistener.h"
+#include <QFile>
+#include <QList>
+#include <QWidget>
 
-namespace Ui {
-class LogWindow;
+namespace Ui
+{
+    class LogWindow;
 }
 
 class LogWindow : public QWidget
@@ -15,14 +16,15 @@ class LogWindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit LogWindow(int universe, QWidget *parent = 0);
+
+    explicit LogWindow(int universe, QWidget * parent = 0);
     ~LogWindow();
 
 private slots:
     void onLevelsChanged();
-    void onSourceFound(sACNSource *source);
-    void onSourceResume(sACNSource *source);
-    void onSourceLost(sACNSource *source);
+    void onSourceFound(sACNSource * source);
+    void onSourceResume(sACNSource * source);
+    void onSourceLost(sACNSource * source);
 
     void on_btnCopyClipboard_pressed();
     void on_btnClear_pressed();
@@ -36,18 +38,20 @@ private slots:
     void on_pbLogToFile_clicked();
 
 private:
-    Ui::LogWindow *ui;
+
+    Ui::LogWindow * ui;
 
     sACNManager::tListener m_listener;
 
-    QFile *m_file;
-    QTextStream *m_fileStream;
+    QFile * m_file;
+    QTextStream * m_fileStream;
     void closeLogFile();
     bool openLogFile();
 
-    void appendLogLine(QString &line);
+    void appendLogLine(QString & line);
 
-    struct sTimeFormat {
+    struct sTimeFormat
+    {
         QString friendlyName;
         QString strFormat;
         Qt::DateFormat dateFormat;
@@ -59,7 +63,8 @@ private:
         {tr("EU 12Hour"), "d/M/yyyy h:mm:ss AP", (Qt::DateFormat)NULL},
     };
 
-    struct sDisplayFormat {
+    struct sDisplayFormat
+    {
         QString friendlyName;
         QString format;
         QChar seperator;
@@ -70,13 +75,12 @@ private:
         {tr("[Chan]@[Level]"), "{CHAN}@{LEVEL} ", QChar(' '), true},
     };
 
-    enum eLevelFormat {
+    enum eLevelFormat
+    {
         levelFormatByte,
         levelFormatPercent,
         levelFormatHex
     };
 };
-
-
 
 #endif // LOGWINDOW_H

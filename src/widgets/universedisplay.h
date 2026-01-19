@@ -16,9 +16,9 @@
 #ifndef UNIVERSEDISPLAY_H
 #define UNIVERSEDISPLAY_H
 
-#include "sacnlistener.h"
-#include "gridwidget.h"
 #include "consts.h"
+#include "gridwidget.h"
+#include "sacnlistener.h"
 
 #include <array>
 
@@ -26,7 +26,8 @@ class UniverseDisplay : public GridWidget
 {
     Q_OBJECT
 public:
-    explicit UniverseDisplay(QWidget *parent = 0);
+
+    explicit UniverseDisplay(QWidget * parent = 0);
     virtual ~UniverseDisplay() {}
 
     static constexpr int NO_UNIVERSE = 0;
@@ -40,24 +41,28 @@ public:
     Q_SLOT void setFlickerFinder(bool on);
     Q_SIGNAL void flickerFinderChanged();
 
-    Q_PROPERTY(bool showChannelPriority READ showChannelPriority WRITE setShowChannelPriority NOTIFY showChannelPriorityChanged)
+    Q_PROPERTY(
+        bool showChannelPriority READ showChannelPriority WRITE setShowChannelPriority NOTIFY
+            showChannelPriorityChanged)
     bool showChannelPriority() const { return m_showChannelPriority; }
     Q_SLOT void setShowChannelPriority(bool enable);
     Q_SIGNAL void showChannelPriorityChanged(bool enable);
 
-    Q_PROPERTY(int compareToUniverse READ getCompareToUniverse WRITE setCompareToUniverse NOTIFY compareToUniverseChanged)
+    Q_PROPERTY(
+        int compareToUniverse READ getCompareToUniverse WRITE setCompareToUniverse NOTIFY compareToUniverseChanged)
     int getCompareToUniverse() const { return m_compareListener ? m_compareListener->universe() : NO_UNIVERSE; }
     Q_SLOT void setCompareToUniverse(int otherUniverse);
     Q_SIGNAL void compareToUniverseChanged();
 
-    Q_PROPERTY(qint64 stableCompareTime READ getStableCompareTime WRITE setStableCompareTime NOTIFY stableCompareTimeChanged)
-    qint64 getStableCompareTime() const {      return m_stableCompareTime;    }
+    Q_PROPERTY(
+        qint64 stableCompareTime READ getStableCompareTime WRITE setStableCompareTime NOTIFY stableCompareTimeChanged)
+    qint64 getStableCompareTime() const { return m_stableCompareTime; }
     Q_SLOT void setStableCompareTime(qint64 milliseconds);
     Q_SIGNAL void stableCompareTimeChanged();
 
-    static const QColor &flickerHigherColor();
-    static const QColor &flickerLowerColor();
-    static const QColor &flickerChangedColor();
+    static const QColor & flickerHigherColor();
+    static const QColor & flickerLowerColor();
+    static const QColor & flickerChangedColor();
 
 public slots:
     void pause();
@@ -67,14 +72,17 @@ private slots:
     void compareLevelsChanged();
 
 protected:
-    void timerEvent(QTimerEvent* ev) override;
+
+    void timerEvent(QTimerEvent * ev) override;
 
 private:
+
     void updateCellHeight();
     void updateUniverseCompare();
     void updateUniverseCompareTimer();
 
 private:
+
     sACNManager::tListener m_listener;
     sACNMergedSourceList m_sources;
     // Flicker and delta finder backing stores

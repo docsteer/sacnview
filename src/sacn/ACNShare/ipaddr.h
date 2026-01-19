@@ -32,10 +32,10 @@
 #ifndef _IPADDR_H_
 #define _IPADDR_H_
 
-#include <QtGlobal>
 #include <QHostAddress>
+#include <QtGlobal>
 
-//The run-time identifier of a NIC interface, used wherever a NIC needs to be identified.  
+//The run-time identifier of a NIC interface, used wherever a NIC needs to be identified.
 typedef int netintid;
 const netintid NETID_INVALID = -1;
 
@@ -45,63 +45,65 @@ typedef quint32 IPv4;
 class CIPAddr
 {
 public:
-	enum {
-		ADDRBYTES = 16,	//The number of bytes in a v6 address
-		ADDRSTRINGBYTES =  60  //The maximum number of bytes in a ipaddress string, INCLUDING terminating NULL
-	};
-	
-	CIPAddr();			//The default is an all zero address and port, invalid interface
-	CIPAddr(netintid id, IPPort port, IPv4 addr);  //Construct from a port, v4 address, and interface
-    CIPAddr(netintid id, IPPort port, const quint8* addr);  //Construct from a port, v6 address, and interface
-	CIPAddr(const CIPAddr& addr);
-    CIPAddr(const QHostAddress &address); // Construct from a QHostAddress
-	virtual ~CIPAddr();
 
-	CIPAddr& operator=(const CIPAddr& addr);
-	friend bool operator<(const CIPAddr& a1, const CIPAddr& a2);
-	friend bool operator==(const CIPAddr& a1, const CIPAddr& a2);
-	friend bool operator!=(const CIPAddr& a1, const CIPAddr& a2);
+    enum
+    {
+        ADDRBYTES = 16, //The number of bytes in a v6 address
+        ADDRSTRINGBYTES = 60 //The maximum number of bytes in a ipaddress string, INCLUDING terminating NULL
+    };
 
-	void SetNetInterface(netintid id);
-	netintid GetNetInterface() const;
+    CIPAddr(); //The default is an all zero address and port, invalid interface
+    CIPAddr(netintid id, IPPort port, IPv4 addr); //Construct from a port, v4 address, and interface
+    CIPAddr(netintid id, IPPort port, const quint8 * addr); //Construct from a port, v6 address, and interface
+    CIPAddr(const CIPAddr & addr);
+    CIPAddr(const QHostAddress & address); // Construct from a QHostAddress
+    virtual ~CIPAddr();
 
-	void SetIPPort(IPPort port);
-	IPPort GetIPPort() const;
+    CIPAddr & operator=(const CIPAddr & addr);
+    friend bool operator<(const CIPAddr & a1, const CIPAddr & a2);
+    friend bool operator==(const CIPAddr & a1, const CIPAddr & a2);
+    friend bool operator!=(const CIPAddr & a1, const CIPAddr & a2);
 
-	bool IsV4Address() const;
-	void SetV4Address(IPv4 addr);
-	IPv4 GetV4Address() const;
-    void SetV6Address(const quint8* addr);
-    const quint8* GetV6Address() const;
+    void SetNetInterface(netintid id);
+    netintid GetNetInterface() const;
 
-	bool IsMulticastAddress() const;
+    void SetIPPort(IPPort port);
+    IPPort GetIPPort() const;
 
-	//Returns an address based on the string, which must be of one of the following forms:
-	//d.d.d.d		for ipv4 address
-	//d.d.d.d:d		for ipv4 address and port
-	//d.d.d.d:d,d	for ipv4 address: port, network interface
-	//[x:x:x:x:x:x:x:x]		for ipv6 address
-	//[x:x:x:x:x:x:x:x]:d	for ipv6 address and port
-	//[x:x:x:x:x:x:x:x]:d,d	for ipv6 address: port, network interface
-	static CIPAddr StringToAddr(const char* ptext);
+    bool IsV4Address() const;
+    void SetV4Address(IPv4 addr);
+    IPv4 GetV4Address() const;
+    void SetV6Address(const quint8 * addr);
+    const quint8 * GetV6Address() const;
 
-	//Translates an address to a preallocated text string of ADDRSTRINGBYTES, including the terminating NULL
-	//Prints it in the forms listed for StringToAddr
-	//Note that if showint is true, showport is assumed to be true
-	static void AddrIntoString(const CIPAddr& addr, char* ptxt, bool showport, bool showint);
+    bool IsMulticastAddress() const;
+
+    //Returns an address based on the string, which must be of one of the following forms:
+    //d.d.d.d		for ipv4 address
+    //d.d.d.d:d		for ipv4 address and port
+    //d.d.d.d:d,d	for ipv4 address: port, network interface
+    //[x:x:x:x:x:x:x:x]		for ipv6 address
+    //[x:x:x:x:x:x:x:x]:d	for ipv6 address and port
+    //[x:x:x:x:x:x:x:x]:d,d	for ipv6 address: port, network interface
+    static CIPAddr StringToAddr(const char * ptext);
+
+    //Translates an address to a preallocated text string of ADDRSTRINGBYTES, including the terminating NULL
+    //Prints it in the forms listed for StringToAddr
+    //Note that if showint is true, showport is assumed to be true
+    static void AddrIntoString(const CIPAddr & addr, char * ptxt, bool showport, bool showint);
 
     // Converts the address to a QHostAddress
     QHostAddress ToQHostAddress() const;
+
 private:
-	netintid m_netid;
-	IPPort m_port;
-    quint8 m_addr [ADDRBYTES];  //Address in big endian format -- upper bytes all 0's for ipv4
+
+    netintid m_netid;
+    IPPort m_port;
+    quint8 m_addr[ADDRBYTES]; //Address in big endian format -- upper bytes all 0's for ipv4
 };
 
-bool operator<(const CIPAddr& a1, const CIPAddr& a2);
-bool operator==(const CIPAddr& a1, const CIPAddr& a2);
-bool operator!=(const CIPAddr& a1, const CIPAddr& a2);
+bool operator<(const CIPAddr & a1, const CIPAddr & a2);
+bool operator==(const CIPAddr & a1, const CIPAddr & a2);
+bool operator!=(const CIPAddr & a1, const CIPAddr & a2);
 
 #endif
-
-

@@ -3,16 +3,16 @@
 
 #include <QPushButton>
 
-CrashTest::CrashTest(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::CrashTest)
+CrashTest::CrashTest(QWidget * parent)
+    : QDialog(parent), ui(new Ui::CrashTest)
 {
     ui->setupUi(this);
 
     m_signalMapper = new QSignalMapper(this);
 
-    for (uint n = 0; n < numOfCrashMethods; n++) {
-        QPushButton *b = new QPushButton(this);
+    for (uint n = 0; n < numOfCrashMethods; n++)
+    {
+        QPushButton * b = new QPushButton(this);
         b->setText(QString("Method %1").arg(n));
         connect(b, &QPushButton::clicked, m_signalMapper, QOverload<>::of(&QSignalMapper::map));
         m_signalMapper->setMapping(b, n);
@@ -30,7 +30,8 @@ CrashTest::~CrashTest()
 
 void CrashTest::crashMethod(const int id)
 {
-    switch (id) {
+    switch (id)
+    {
         default:
         case 0:
         {
@@ -39,14 +40,13 @@ void CrashTest::crashMethod(const int id)
         }
         case 1:
         {
-            void* jump = nullptr;
-            ((void(*)())jump)();
+            void * jump = nullptr;
+            ((void (*)())jump)();
             break;
         }
         case 2:
         {
-            *((int*) 0) = 0;
+            *((int *)0) = 0;
         }
     }
-
 }

@@ -50,25 +50,29 @@ class ttimer;
 //Initializes the tock layer.  Only needs to be called once per application,
 //but can be called multiple times as long as there is an equal number of
 //Tock_StopLib() calls.
-bool Tock_StartLib();  
-tock Tock_GetTock();   //Gets a tock representing the current time
-void Tock_StopLib();   //Shuts down the tock layer.
+bool Tock_StartLib();
+tock Tock_GetTock(); //Gets a tock representing the current time
+void Tock_StopLib(); //Shuts down the tock layer.
 
-//This is the actual tock 
+//This is the actual tock
 class tock
 {
 public:
+
     typedef std::chrono::nanoseconds resolution_t;
 
-	//construction and copying
-	tock();
-    tock(const tock&) = default;
-    tock(tock&&) = default;
-    tock& operator=(const tock&) = default;
-    tock& operator=(tock&&) = default;
+    //construction and copying
+    tock();
+    tock(const tock &) = default;
+    tock(tock &&) = default;
+    tock & operator=(const tock &) = default;
+    tock & operator=(tock &&) = default;
 
-    template <typename Rep, typename Period>
-    tock(std::chrono::duration<Rep, Period> duration) { v = duration; }
+    template<typename Rep, typename Period>
+    tock(std::chrono::duration<Rep, Period> duration)
+    {
+        v = duration;
+    }
 
     //Returns the number of nanoseconds that this tock represents
     resolution_t Get() const;
@@ -77,45 +81,48 @@ public:
     void Set(resolution_t time);
 
 protected:
+
     resolution_t v;
 
-    friend bool operator>(const tock& t1, const tock& t2);
-    friend bool operator>=(const tock& t1, const tock& t2);
-    friend bool operator==(const tock& t1, const tock& t2);
-    friend bool operator!=(const tock& t1, const tock& t2);
-    friend bool operator<(const tock& t1, const tock& t2);
-    friend bool operator<=(const tock& t1, const tock& t2);
-    friend quint32 operator-(const tock& t1, const tock& t2);
+    friend bool operator>(const tock & t1, const tock & t2);
+    friend bool operator>=(const tock & t1, const tock & t2);
+    friend bool operator==(const tock & t1, const tock & t2);
+    friend bool operator!=(const tock & t1, const tock & t2);
+    friend bool operator<(const tock & t1, const tock & t2);
+    friend bool operator<=(const tock & t1, const tock & t2);
+    friend quint32 operator-(const tock & t1, const tock & t2);
 };
 
 //The class used for simple expiration tracking
 class ttimer
 {
 public:
-	//construction/setup
-	ttimer();				//Will immediately time out if timeout isn't set
-    ttimer(const ttimer&) = default;
-    ttimer(ttimer&&) = default;
-    ttimer& operator=(const ttimer&) = default;
-    ttimer& operator=(ttimer&&) = default;
-    template <typename Rep, typename Period>
-    ttimer(std::chrono::duration<Rep, Period> interval);	//The duration before the timer will time out
 
-    void SetInterval(tock::resolution_t interval);	//Sets a new timeout interval and resets the timer
+    //construction/setup
+    ttimer(); //Will immediately time out if timeout isn't set
+    ttimer(const ttimer &) = default;
+    ttimer(ttimer &&) = default;
+    ttimer & operator=(const ttimer &) = default;
+    ttimer & operator=(ttimer &&) = default;
+    template<typename Rep, typename Period>
+    ttimer(std::chrono::duration<Rep, Period> interval); //The duration before the timer will time out
 
-    tock::resolution_t GetInterval() const;			//Returns the current timeout interval
+    void SetInterval(tock::resolution_t interval); //Sets a new timeout interval and resets the timer
 
-	void Reset();	//Resets the timer, using the current timeout interval
+    tock::resolution_t GetInterval() const; //Returns the current timeout interval
+
+    void Reset(); //Resets the timer, using the current timeout interval
 
     //Returns true if the timer has expired
     //Call Reset() to use this timer again for a new interval.
     bool Expired() const;
 
-    friend bool operator==(const ttimer& t1, const ttimer& t2);
-    friend bool operator!=(const ttimer& t1, const ttimer& t2);
+    friend bool operator==(const ttimer & t1, const ttimer & t2);
+    friend bool operator!=(const ttimer & t1, const ttimer & t2);
 
 protected:
+
     tock::resolution_t interval;
-	tock tockout;
+    tock tockout;
 };
 #endif /*_TOCK_H*/

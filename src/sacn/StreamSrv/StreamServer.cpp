@@ -47,7 +47,7 @@
 /*                                                                         */
 /* The user of this software agrees to indemnify and hold ETC, its         */
 /* affiliates, and contributors harmless from and against any and all      */
-/* claims, damages, and suits that are in any way connected to or arising  */ 
+/* claims, damages, and suits that are in any way connected to or arising  */
 /* out of, either in whole or in part, this software or the user's use of  */
 /* this software.                                                          */
 /*                                                                         */
@@ -57,61 +57,57 @@
 
 #include <vector>
 
-#include "deftypes.h"
 #include "cid.h"
+#include "deftypes.h"
 #include "ipaddr.h"
-#include "tock.h"
-#include "streamserver.h"
 #include "streamcommon.h"
+#include "streamserver.h"
+#include "tock.h"
 
-CStreamServer::CStreamServer(SOCKET sendsock): m_sendsock(sendsock)
-{
-}
+CStreamServer::CStreamServer(SOCKET sendsock)
+    : m_sendsock(sendsock)
+{}
 
 CStreamServer::~CStreamServer()
 {
-	//Clean up the sequence numbers
-	for(seqiter it3 = m_seqmap.begin(); it3 != m_seqmap.end(); ++it3)
-		if(it3->second.second)
-			delete it3->second.second;
+    //Clean up the sequence numbers
+    for (seqiter it3 = m_seqmap.begin(); it3 != m_seqmap.end(); ++it3)
+        if (it3->second.second) delete it3->second.second;
 }
 
-
-//Returns a pointer to the storage location for the universe, adding if 
+//Returns a pointer to the storage location for the universe, adding if
 //need be.
 //The newly-added location contains sequence number 0.
-uint1* CStreamServer::GetPSeq(uint2 universe)
+uint1 * CStreamServer::GetPSeq(uint2 universe)
 {
-	seqiter it = m_seqmap.find(universe);
-	if(it != m_seqmap.end())
-	{
-		++it->second.first;
-		return it->second.second;
-	}
-	uint1 * p = new uint1;
-	if(!p)
-		return NULL;
-	*p = 0;
-	m_seqmap.insert(std::pair<uint2, seqref>(universe, seqref(1, p)));
-	return p;
+    seqiter it = m_seqmap.find(universe);
+    if (it != m_seqmap.end())
+    {
+        ++it->second.first;
+        return it->second.second;
+    }
+    uint1 * p = new uint1;
+    if (!p) return NULL;
+    *p = 0;
+    m_seqmap.insert(std::pair<uint2, seqref>(universe, seqref(1, p)));
+    return p;
 }
 
-//Removes a reference to the storage location for the universe, removing 
+//Removes a reference to the storage location for the universe, removing
 //completely if need be.
 void CStreamServer::RemovePSeq(uint2 universe)
 {
-	seqiter it = m_seqmap.find(universe);
-	if(it != m_seqmap.end())
-	{
-		--it->second.first;
-		if(it->second.first <= 0)
-		{
-			delete it->second.second;
-			m_seqmap.erase(it);
-		}
-	}
+    seqiter it = m_seqmap.find(universe);
+    if (it != m_seqmap.end())
+    {
+        --it->second.first;
+        if (it->second.first <= 0)
+        {
+            delete it->second.second;
+            m_seqmap.erase(it);
+        }
+    }
 }
-
 
 //Must be called at your DMX rate -- usually 22 or 23 ms
 //Yes, MUST be called at your DMX rate.  This function processes the inactivity timers,
@@ -120,62 +116,61 @@ void CStreamServer::RemovePSeq(uint2 universe)
 // you offline.  The absolute minumum rate that this function can be called is 10hz (every 100ms).
 // Sends out any Dirty universes, universes that have hit their send_interval,
 // and depending on how you created each universe performs the DMX inactivity logic.
-//This function returns the current number of valid universes in the system.  
+//This function returns the current number of valid universes in the system.
 //This function also handles sending the extra packets with the terminated flag set, and destroys
 // the universe for you, so call this function for at least a few more cycles after you
 // call DestroyUniverse (or until tick returns 0 if you know you aren't creating any more universes)
 //NOT THREAD SAFE
 int CStreamServer::Tick()
 {
-	int valid_count = 0;
-	for(verseiter it = m_multiverse.begin(); it != m_multiverse.end(); ++it)
-	{
-		if(it->psend)
-			++valid_count;
+    int valid_count = 0;
+    for (verseiter it = m_multiverse.begin(); it != m_multiverse.end(); ++it)
+    {
+        if (it->psend) ++valid_count;
 
-		//If this has been send 3 times (or more?) with a termination flag
-		//then it's time to kill it
-		if(it->num_terminates >= 3)
-		{
-			DoDestruction(it->handle);
-		}
+        //If this has been send 3 times (or more?) with a termination flag
+        //then it's time to kill it
+        if (it->num_terminates >= 3)
+        {
+            DoDestruction(it->handle);
+        }
 
-		//If valid, either a dirty, inactivity count < 3 (if we're using that logic), or send_interval will cause a send
-		if(it->psend && (it->isdirty || 
-							 (it->waited_for_dirty && 
-							    ((!it->ignore_inactivity && it->inactive_count < 3) || 
-							     it->send_interval.Expired()))))
-		{
-			//Before the send, properly reset state
-			if(it->isdirty)
-				it->inactive_count = 0;  //To recover from inactivity
-			else if(it->inactive_count < 3)  //We don't want the Expired case to reset the inactivity count
-				++it->inactive_count;
-	  
-			//Add the sequence number and send
-			uint1* pseq = it->pseq;
-			if(pseq)
-			{
-				SetStreamHeaderSequence(it->psend, *pseq);
-				++*pseq;
-			}
-			else
-				SetStreamHeaderSequence(it->psend, 0);
+        //If valid, either a dirty, inactivity count < 3 (if we're using that logic), or send_interval will cause a send
+        if (it->psend
+            && (it->isdirty
+                || (it->waited_for_dirty
+                    && ((!it->ignore_inactivity && it->inactive_count < 3) || it->send_interval.Expired()))))
+        {
+            //Before the send, properly reset state
+            if (it->isdirty)
+                it->inactive_count = 0; //To recover from inactivity
+            else if (it->inactive_count < 3) //We don't want the Expired case to reset the inactivity count
+                ++it->inactive_count;
 
-			sendto(m_sendsock, (char*)it->psend, it->sendsize, 0, (sockaddr*)&(it->sendaddr), sizeof(sockaddr_in));
-					
-			if(GetStreamTerminated(it->psend))
-			{
-				it->num_terminates++;
-			}
+            //Add the sequence number and send
+            uint1 * pseq = it->pseq;
+            if (pseq)
+            {
+                SetStreamHeaderSequence(it->psend, *pseq);
+                ++*pseq;
+            }
+            else
+                SetStreamHeaderSequence(it->psend, 0);
 
-			//Finally, set the timing/dirtiness for the next interval
-			it->isdirty = false;
-			it->send_interval.Reset();
-		}
-	}
+            sendto(m_sendsock, (char *)it->psend, it->sendsize, 0, (sockaddr *)&(it->sendaddr), sizeof(sockaddr_in));
 
-	return valid_count;
+            if (GetStreamTerminated(it->psend))
+            {
+                it->num_terminates++;
+            }
+
+            //Finally, set the timing/dirtiness for the next interval
+            it->isdirty = false;
+            it->send_interval.Reset();
+        }
+    }
+
+    return valid_count;
 }
 
 //Use this to create a universe for a source cid, startcode, etc.
@@ -192,71 +187,78 @@ int CStreamServer::Tick()
 //Also: If you want to change any of these parameters, you can call CreateUniverse again with the
 //      same start_code and universe.  It will destroy and reallocate pslots, however.
 //NOT THREAD SAFE
-bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_name, uint1 priority, uint2 reserved, uint1 options, uint1 start_code, 
-							         uint2 universe, uint2 slot_count, uint1*& pslots, uint& handle,
-										bool ignore_inactivity_logic, uint send_intervalms)
+bool CStreamServer::CreateUniverse(
+    const CID & source_cid,
+    const char * source_name,
+    uint1 priority,
+    uint2 reserved,
+    uint1 options,
+    uint1 start_code,
+    uint2 universe,
+    uint2 slot_count,
+    uint1 *& pslots,
+    uint & handle,
+    bool ignore_inactivity_logic,
+    uint send_intervalms)
 {
-	if(universe == 0)
-		return false;
+    if (universe == 0) return false;
 
-   //Before we attempt to create the universe, make sure we can create the buffer.
-	uint sendsize = STREAM_HEADER_SIZE + slot_count;
-	uint1* pbuf = new uint1 [sendsize];
-	if(!pbuf)
-		return false;
-	memset(pbuf, 0, sendsize);
+    //Before we attempt to create the universe, make sure we can create the buffer.
+    uint sendsize = STREAM_HEADER_SIZE + slot_count;
+    uint1 * pbuf = new uint1[sendsize];
+    if (!pbuf) return false;
+    memset(pbuf, 0, sendsize);
 
-	//Find an empty spot for the universe 
-	bool found = false;
-	for(uint i = 0; i < m_multiverse.size(); ++i)
-	{
-		if(m_multiverse[i].number == universe && 
-			m_multiverse[i].start_code == start_code)
-		{
-			found = true;
-			handle = i;
-			//get rid of the old one first
-			DoDestruction(i);
-			break;
-		}
-		if(!found && m_multiverse[i].psend == NULL)
-		{
-			found = true;
-			handle = i;
-			//			break;
-		}
-	}
-	if(!found)
-	{
-		struct universe tmp;
-		handle = m_multiverse.size();
-		m_multiverse.push_back(tmp);
-	}
+    //Find an empty spot for the universe
+    bool found = false;
+    for (uint i = 0; i < m_multiverse.size(); ++i)
+    {
+        if (m_multiverse[i].number == universe && m_multiverse[i].start_code == start_code)
+        {
+            found = true;
+            handle = i;
+            //get rid of the old one first
+            DoDestruction(i);
+            break;
+        }
+        if (!found && m_multiverse[i].psend == NULL)
+        {
+            found = true;
+            handle = i;
+            //			break;
+        }
+    }
+    if (!found)
+    {
+        struct universe tmp;
+        handle = m_multiverse.size();
+        m_multiverse.push_back(tmp);
+    }
 
-	//Init/reinit the state
-	m_multiverse[handle].number = universe;
-	m_multiverse[handle].handle = handle;
-	m_multiverse[handle].start_code = start_code;
-	m_multiverse[handle].isdirty = false;
-	m_multiverse[handle].waited_for_dirty = false;
-	m_multiverse[handle].num_terminates=0;
-	m_multiverse[handle].ignore_inactivity = ignore_inactivity_logic;
-	m_multiverse[handle].inactive_count = 0;
-	m_multiverse[handle].send_interval.SetInterval(send_intervalms);
-	m_multiverse[handle].pseq = GetPSeq(universe);
+    //Init/reinit the state
+    m_multiverse[handle].number = universe;
+    m_multiverse[handle].handle = handle;
+    m_multiverse[handle].start_code = start_code;
+    m_multiverse[handle].isdirty = false;
+    m_multiverse[handle].waited_for_dirty = false;
+    m_multiverse[handle].num_terminates = 0;
+    m_multiverse[handle].ignore_inactivity = ignore_inactivity_logic;
+    m_multiverse[handle].inactive_count = 0;
+    m_multiverse[handle].send_interval.SetInterval(send_intervalms);
+    m_multiverse[handle].pseq = GetPSeq(universe);
 
-	CIPAddr addr;
-	GetUniverseAddress(universe, addr);
-	memset(&m_multiverse[handle].sendaddr, 0, sizeof(m_multiverse[handle].sendaddr));
-	m_multiverse[handle].sendaddr.sin_family = AF_INET;
-	m_multiverse[handle].sendaddr.sin_port = htons(addr.GetIPPort());
-	m_multiverse[handle].sendaddr.sin_addr.s_addr = htonl(addr.GetV4Address());
+    CIPAddr addr;
+    GetUniverseAddress(universe, addr);
+    memset(&m_multiverse[handle].sendaddr, 0, sizeof(m_multiverse[handle].sendaddr));
+    m_multiverse[handle].sendaddr.sin_family = AF_INET;
+    m_multiverse[handle].sendaddr.sin_port = htons(addr.GetIPPort());
+    m_multiverse[handle].sendaddr.sin_addr.s_addr = htonl(addr.GetV4Address());
 
-	InitStreamHeader(pbuf, source_cid, source_name, priority, reserved, options, start_code, universe, slot_count);
-	m_multiverse[handle].psend = pbuf;
-	m_multiverse[handle].sendsize = sendsize;
-	pslots = pbuf + STREAM_HEADER_SIZE;
-	return true;
+    InitStreamHeader(pbuf, source_cid, source_name, priority, reserved, options, start_code, universe, slot_count);
+    m_multiverse[handle].psend = pbuf;
+    m_multiverse[handle].sendsize = sendsize;
+    pslots = pbuf + STREAM_HEADER_SIZE;
+    return true;
 }
 
 //After you add data to the data buffer, call this to trigger the data send on
@@ -265,50 +267,49 @@ bool CStreamServer::CreateUniverse(const CID& source_cid, const char* source_nam
 //NOT THREAD SAFE
 void CStreamServer::SetUniverseDirty(uint handle)
 {
-	m_multiverse[handle].isdirty = true;
-	m_multiverse[handle].waited_for_dirty = true;
+    m_multiverse[handle].isdirty = true;
+    m_multiverse[handle].waited_for_dirty = true;
 }
 
-//In the event that you want to send out a message for a particular 
-//universe (and start code) in between ticks, call this function.  
-//This does not affect the dirty bit for the universe, inactivity count, 
+//In the event that you want to send out a message for a particular
+//universe (and start code) in between ticks, call this function.
+//This does not affect the dirty bit for the universe, inactivity count,
 //etc, and the tick will still operate normally when called.
 //This is not thread safe with Tick -- Don't call when Tick is called
 void CStreamServer::SendUniverseNow(uint handle)
 {
-	//Basically, a copy of the sending part of Tick
+    //Basically, a copy of the sending part of Tick
 
-	universe* puni = &m_multiverse[handle];
-	uint1* pseq = puni->pseq;
-	if(pseq)
-	{
-		SetStreamHeaderSequence(puni->psend, *pseq);
+    universe * puni = &m_multiverse[handle];
+    uint1 * pseq = puni->pseq;
+    if (pseq)
+    {
+        SetStreamHeaderSequence(puni->psend, *pseq);
 
-		++*pseq;
-		//Never use a 0 sequence number after the first time
-		if(0 == *pseq)
-			++*pseq;
-	}
-	else
-		SetStreamHeaderSequence(puni->psend, 0);
+        ++*pseq;
+        //Never use a 0 sequence number after the first time
+        if (0 == *pseq) ++*pseq;
+    }
+    else
+        SetStreamHeaderSequence(puni->psend, 0);
 
-	sendto(m_sendsock, (char*)puni->psend, puni->sendsize, 0, (sockaddr*)&(puni->sendaddr), sizeof(sockaddr_in));
+    sendto(m_sendsock, (char *)puni->psend, puni->sendsize, 0, (sockaddr *)&(puni->sendaddr), sizeof(sockaddr_in));
 }
 
-//Use this to destroy a priority universe.  
+//Use this to destroy a priority universe.
 void CStreamServer::DEBUG_DESTROY_PRIORITY_UNIVERSE(uint handle)
 {
-  DoDestruction(handle);
+    DoDestruction(handle);
 }
 
-//Use this to destroy a universe.  
+//Use this to destroy a universe.
 //this does invalidate the pslots array that CreateUniverse returned, so do not access
 //that memory after or during this call.
 //Not Thread Safe -- Don't call when Tick is called
 void CStreamServer::DestroyUniverse(uint handle)
 {
-  SetStreamTerminated(m_multiverse[handle].psend, true);
-  /*
+    SetStreamTerminated(m_multiverse[handle].psend, true);
+    /*
 	if(m_multiverse[handle].psend)
 	{
 		delete [] m_multiverse[handle].psend;
@@ -319,36 +320,36 @@ void CStreamServer::DestroyUniverse(uint handle)
   */
 }
 
-//Perform the logical destruction and cleanup of a universe and its related 
+//Perform the logical destruction and cleanup of a universe and its related
 //objects.
 void CStreamServer::DoDestruction(uint handle)
 {
-  if(m_multiverse[handle].psend)
+    if (m_multiverse[handle].psend)
     {
-      m_multiverse[handle].num_terminates = 0;
-      delete [] m_multiverse[handle].psend;
-      m_multiverse[handle].psend = NULL;
-      //      m_multiverse[handle].wheretosend.clear();
-      
-      RemovePSeq(m_multiverse[handle].number);
-      m_multiverse[handle].pseq = NULL;
+        m_multiverse[handle].num_terminates = 0;
+        delete[] m_multiverse[handle].psend;
+        m_multiverse[handle].psend = NULL;
+        //      m_multiverse[handle].wheretosend.clear();
+
+        RemovePSeq(m_multiverse[handle].number);
+        m_multiverse[handle].pseq = NULL;
     }
 }
 
 /*DEBUG USAGE ONLY --causes packets to be "dropped" on a particular universe*/
 void CStreamServer::DEBUG_DROP_PACKET(uint handle, uint1 decrement)
 {
-	*(m_multiverse[handle].pseq) = *(m_multiverse[handle].pseq) - decrement;  //-= causes size problem
+    *(m_multiverse[handle].pseq) = *(m_multiverse[handle].pseq) - decrement; //-= causes size problem
 }
 
 //sets the preview_data bit of the options field
 void CStreamServer::OptionsPreviewData(uint handle, bool preview)
 {
-  SetPreviewData(m_multiverse[handle].psend, preview);
+    SetPreviewData(m_multiverse[handle].psend, preview);
 }
 
 //sets the stream_terminated bit of the options field
 void CStreamServer::OptionsStreamTerminated(uint handle, bool terminated)
 {
-  SetStreamTerminated(m_multiverse[handle].psend, terminated);
+    SetStreamTerminated(m_multiverse[handle].psend, terminated);
 }

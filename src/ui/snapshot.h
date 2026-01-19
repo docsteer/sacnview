@@ -1,22 +1,24 @@
 #ifndef SNAPSHOT_H
 #define SNAPSHOT_H
 
-#include <QWidget>
-#include <QLabel>
-#include <QSoundEffect>
-#include "streamingacn.h"
 #include "clssnapshot.h"
 #include "consts.h"
+#include "streamingacn.h"
+#include <QLabel>
+#include <QSoundEffect>
+#include <QWidget>
 
-namespace Ui {
-class Snapshot;
+namespace Ui
+{
+    class Snapshot;
 }
 
 class Snapshot : public QWidget
 {
     Q_OBJECT
 public:
-    explicit Snapshot(int firstUniverse = MIN_SACN_UNIVERSE, QWidget *parent = Q_NULLPTR);
+
+    explicit Snapshot(int firstUniverse = MIN_SACN_UNIVERSE, QWidget * parent = Q_NULLPTR);
     ~Snapshot();
 
     enum state
@@ -35,7 +37,8 @@ public:
     class PlaybackBtn : public QToolButton
     {
     public:
-        PlaybackBtn(QWidget *parent = Q_NULLPTR);
+
+        PlaybackBtn(QWidget * parent = Q_NULLPTR);
 
         void setPlay();
         void setPause();
@@ -44,10 +47,11 @@ public:
     class InfoLbl : public QLabel
     {
     public:
-        InfoLbl(QWidget *parent = Q_NULLPTR);
+
+        InfoLbl(QWidget * parent = Q_NULLPTR);
 
         void setText(Snapshot::state state);
-        void setText(const QString &t) { QLabel::setText(t); }
+        void setText(const QString & t) { QLabel::setText(t); }
     };
 
 protected slots:
@@ -62,14 +66,18 @@ protected slots:
     void senderStopped();
     void senderStarted();
     void updateMatchIcon();
+
 protected:
-    virtual void resizeEvent(QResizeEvent *event);
+
+    virtual void resizeEvent(QResizeEvent * event);
 
 private slots:
     void on_tableWidget_itemSelectionChanged();
 
 private:
-    enum {
+
+    enum
+    {
         COL_BUTTON,
         COL_UNIVERSE,
         COL_PRIORITY,
@@ -83,15 +91,13 @@ private:
     void saveSnapshot();
     void playSnapshot();
     void stopSnapshot();
-    Ui::Snapshot *ui;
-    QTimer *m_countdown;
+    Ui::Snapshot * ui;
+    QTimer * m_countdown;
     state m_state;
     QSoundEffect *m_camera, *m_beep;
-    QList<clsSnapshot*> m_snapshots;
+    QList<clsSnapshot *> m_snapshots;
     quint16 m_firstUniverse;
     CID m_cid;
 };
-
-
 
 #endif // SNAPSHOT_H

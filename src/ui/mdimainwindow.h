@@ -16,11 +16,11 @@
 #ifndef MDIMAINWINDOW_H
 #define MDIMAINWINDOW_H
 
-#include <QMainWindow>
-#include "themes/themes.h"
-#include "sacnuniverselistmodel.h"
 #include "sacndiscoveredsourcelistmodel.h"
 #include "sacnsynclistmodel.h"
+#include "sacnuniverselistmodel.h"
+#include "themes/themes.h"
+#include <QMainWindow>
 
 #include "preferences.h"
 
@@ -28,81 +28,87 @@ class PreferencesDialog;
 
 class QMdiArea;
 
-namespace Ui {
-  class MDIMainWindow;
+namespace Ui
+{
+    class MDIMainWindow;
 }
 
 class MDIMainWindow : public QMainWindow
 {
-  Q_OBJECT
+    Q_OBJECT
 
 public:
-  explicit MDIMainWindow(QWidget* parent = 0);
-  ~MDIMainWindow();
+
+    explicit MDIMainWindow(QWidget * parent = 0);
+    ~MDIMainWindow();
 
 protected:
-  void showEvent(QShowEvent* ev) override;
-  void closeEvent(QCloseEvent* ev) override;
+
+    void showEvent(QShowEvent * ev) override;
+    void closeEvent(QCloseEvent * ev) override;
 
 public:
-  QWidget* showWidgetAsSubWindow(QWidget* w);
-  Q_SLOT void saveSubWindows() const;
-  Q_SLOT void restoreSubWindows();
 
-  /// Start all receiver views
-  Q_SLOT void startReceiverViews();
-  /// Stop all receiver views
-  Q_SLOT void stopReceiverViews();
+    QWidget * showWidgetAsSubWindow(QWidget * w);
+    Q_SLOT void saveSubWindows() const;
+    Q_SLOT void restoreSubWindows();
+
+    /// Start all receiver views
+    Q_SLOT void startReceiverViews();
+    /// Stop all receiver views
+    Q_SLOT void stopReceiverViews();
 
 protected slots:
-  void on_actionScopeView_triggered(bool checked);
-  void on_actionRecieve_triggered(bool checked);
-  void on_actionMultiView_triggered(bool checked);
-  void on_actionTranmsit_triggered(bool checked);
-  void on_actionSettings_triggered(bool checked);
-  void on_actionSnapshot_triggered(bool checked);
-  void on_btnUnivListBack_pressed();
-  void on_btnUnivListForward_pressed();
-  void on_sbUniverseList_valueChanged(int value);
+    void on_actionScopeView_triggered(bool checked);
+    void on_actionRecieve_triggered(bool checked);
+    void on_actionMultiView_triggered(bool checked);
+    void on_actionTranmsit_triggered(bool checked);
+    void on_actionSettings_triggered(bool checked);
+    void on_actionSnapshot_triggered(bool checked);
+    void on_btnUnivListBack_pressed();
+    void on_btnUnivListForward_pressed();
+    void on_sbUniverseList_valueChanged(int value);
 
-  void universeDoubleClick(const QModelIndex& index);
-  void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
+    void universeDoubleClick(const QModelIndex & index);
+    void rowsAboutToBeRemoved(const QModelIndex & parent, int start, int end);
 
 private slots:
-  void on_actionAbout_triggered(bool checked);
+    void on_actionAbout_triggered(bool checked);
 
-  void on_actionMultiUniverse_triggered();
+    void on_actionMultiUniverse_triggered();
 
-  void on_actionPCAPPlayback_triggered();
+    void on_actionPCAPPlayback_triggered();
 
-  void on_sbUniversesCount_editingFinished();
+    void on_sbUniversesCount_editingFinished();
 
-  void subWindowRemoved();
+    void subWindowRemoved();
 
-  void applyPrefs();
+    void applyPrefs();
+
 private:
-  Ui::MDIMainWindow* ui = nullptr;
-  sACNUniverseListModel* m_model = nullptr;
-  sACNDiscoveredSourceListModel* m_modelDiscovered = nullptr;
-  sACNDiscoveredSourceListProxy* m_proxyDiscovered = nullptr;
-  sACNSyncListModel* m_modelSync = nullptr;
-  sACNSyncListModel::proxy* m_proxySync = nullptr;
 
-  // Dock/centralWidget
-  QMdiArea* m_mdiArea = nullptr;
-  // Floating windows
-  QWidgetList m_subWindows;
+    Ui::MDIMainWindow * ui = nullptr;
+    sACNUniverseListModel * m_model = nullptr;
+    sACNDiscoveredSourceListModel * m_modelDiscovered = nullptr;
+    sACNDiscoveredSourceListProxy * m_proxyDiscovered = nullptr;
+    sACNSyncListModel * m_modelSync = nullptr;
+    sACNSyncListModel::proxy * m_proxySync = nullptr;
 
-  WindowMode m_currentWindowMode = WindowMode::COUNT;
+    // Dock/centralWidget
+    QMdiArea * m_mdiArea = nullptr;
+    // Floating windows
+    QWidgetList m_subWindows;
 
-  // Dialogs
-  PreferencesDialog* m_prefDialog = nullptr;
+    WindowMode m_currentWindowMode = WindowMode::COUNT;
 
-  int getSelectedUniverse() const;
-  QWidget* addMdiWidget(QWidget* w);
-  QWidget* addFloatWidget(QWidget* w);
+    // Dialogs
+    PreferencesDialog * m_prefDialog = nullptr;
 
-  static void StoreWidgetGeometry(const QWidget* window, const QWidget* widget, QList<SubWindowInfo>& result);
+    int getSelectedUniverse() const;
+    QWidget * addMdiWidget(QWidget * w);
+    QWidget * addFloatWidget(QWidget * w);
+
+    static void StoreWidgetGeometry(const QWidget * window, const QWidget * widget, QList<SubWindowInfo> & result);
 };
 
 #endif // MDIMAINWINDOW_H

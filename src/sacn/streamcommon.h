@@ -101,7 +101,7 @@
 /*
  * common sizes
  */
-//You'd think this would be 125, wouldn't you?  
+//You'd think this would be 125, wouldn't you?
 //But it's not.  It's not because the start code is squeaked in
 //right before the actual DMX512-A data.
 #define STREAM_HEADER_SIZE 126
@@ -119,7 +119,7 @@
  * data definitions
  */
 // Root
-#define ACN_IDENTIFIER "ASC-E1.17\0\0\0"	
+#define ACN_IDENTIFIER "ASC-E1.17\0\0\0"
 #define VECTOR_ROOT_E131_DATA 0x00000004
 #define VECTOR_ROOT_E131_EXTENDED 0x00000008
 // Draft v0.2
@@ -159,7 +159,7 @@
 #define STARTCODE_DMX 0
 //The payload is the per-channel priority (0-200),
 //where 0 means "ignore my values on this channel"
-#define STARTCODE_PRIORITY 0xDD     
+#define STARTCODE_PRIORITY 0xDD
 
 // Special universes
 #define E131_DISCOVERY_UNIVERSE 64214
@@ -170,10 +170,10 @@
 #define E131_DATA_KEEP_ALIVE_INTERVAL_MIN 800 // 800 mS
 #define E131_DATA_KEEP_ALIVE_INTERVAL_MAX 1000 // 1000 mS
 // We'll go with min +25% of the difference between max and min
-static constexpr float E131_DATA_KEEP_ALIVE_FREQUENCY = 1000 /
-        (static_cast<float>(E131_DATA_KEEP_ALIVE_INTERVAL_MIN) +
-         (static_cast<float>(E131_DATA_KEEP_ALIVE_INTERVAL_MAX) - static_cast<float>(E131_DATA_KEEP_ALIVE_INTERVAL_MIN)) / 4);
-
+static constexpr float E131_DATA_KEEP_ALIVE_FREQUENCY = 1000
+    / (static_cast<float>(E131_DATA_KEEP_ALIVE_INTERVAL_MIN)
+       + (static_cast<float>(E131_DATA_KEEP_ALIVE_INTERVAL_MAX) - static_cast<float>(E131_DATA_KEEP_ALIVE_INTERVAL_MIN))
+           / 4);
 
 /*** Functions ***/
 
@@ -181,23 +181,35 @@ static constexpr float E131_DATA_KEEP_ALIVE_FREQUENCY = 1000 /
  * Given a buffer, initialize the header, based on the data slot count, 
  * cid, etc. The buffer must be at least STREAM_HEADER_SIZE bytes long
  */
-void InitStreamHeader(quint8* pbuf, const CID &source_cid, 
-              const char* source_name, quint8 priority, quint16 synchronization,
-		      quint8 options, quint8 start_code, quint16 universe, 
-		      quint16 slot_count);
+void InitStreamHeader(
+    quint8 * pbuf,
+    const CID & source_cid,
+    const char * source_name,
+    quint8 priority,
+    quint16 synchronization,
+    quint8 options,
+    quint8 start_code,
+    quint16 universe,
+    quint16 slot_count);
 /*
  * Given a buffer, initialize the header, based on the data slot count, 
  * cid, etc. The buffer must be at least STREAM_HEADER_SIZE bytes long
  * This function is included to support legacy code from before 
  * ratification of the standard.
  */
-void InitStreamHeaderForDraft(quint8* pbuf, const CID &source_cid,
-                              const char* source_name, quint8 priority, quint16 reserved,
-                              quint8 options, quint8 start_code, quint16 universe,
-                              quint16 slot_count);
+void InitStreamHeaderForDraft(
+    quint8 * pbuf,
+    const CID & source_cid,
+    const char * source_name,
+    quint8 priority,
+    quint16 reserved,
+    quint8 options,
+    quint8 start_code,
+    quint16 universe,
+    quint16 slot_count);
 
 /* Given an initialized buffer, change the sequence number to... */
-void SetStreamHeaderSequence(quint8* pbuf, quint8 seq, bool draft);
+void SetStreamHeaderSequence(quint8 * pbuf, quint8 seq, bool draft);
 
 /*
  * Given a buffer, validate that the stream header is correct.  If this returns
@@ -215,23 +227,37 @@ enum e_ValidateStreamHeader
     StreamHeader_Unknown
 };
 e_ValidateStreamHeader ValidateStreamHeader(
-        const quint8* pbuf, size_t buflen,
-        quint32 &root_vector,
-        CID &source_cid, char* source_sp, quint8 &priority,
-        quint8 &start_code, quint16 &synchronization, quint8 &sequence,
-        quint8 &options, quint16 &universe,
-        quint16 &slot_count, const quint8* &pdata);
+    const quint8 * pbuf,
+    size_t buflen,
+    quint32 & root_vector,
+    CID & source_cid,
+    char * source_sp,
+    quint8 & priority,
+    quint8 & start_code,
+    quint16 & synchronization,
+    quint8 & sequence,
+    quint8 & options,
+    quint16 & universe,
+    quint16 & slot_count,
+    const quint8 *& pdata);
 
 /*
  * helper function that does the actual validation of a header
  * that carries the post-ratification root vector
  */
 bool VerifyStreamHeader(
-        const quint8 *pbuf, size_t buflen,
-        CID &source_cid, char* source_name, quint8 &priority,
-        quint8 &start_code, quint16 &synchronization, quint8 &sequence,
-        quint8 &options, quint16 &universe,
-        quint16 &slot_count, const quint8* &pdata);
+    const quint8 * pbuf,
+    size_t buflen,
+    CID & source_cid,
+    char * source_name,
+    quint8 & priority,
+    quint8 & start_code,
+    quint16 & synchronization,
+    quint8 & sequence,
+    quint8 & options,
+    quint16 & universe,
+    quint16 & slot_count,
+    const quint8 *& pdata);
 /*
  * helper function that does the actual validation of a header
  * that carries the early draft's root vector
@@ -239,69 +265,72 @@ bool VerifyStreamHeader(
  * ratification of the standard.
  */
 bool VerifyStreamHeaderForDraft(
-        const quint8* pbuf, size_t buflen,
-        CID &source_cid, char* source_space, quint8 &priority,
-        quint8 &start_code, quint8 &sequence,
-        quint16 &universe, quint16 &slot_count,
-        const quint8* &pdata);
+    const quint8 * pbuf,
+    size_t buflen,
+    CID & source_cid,
+    char * source_space,
+    quint8 & priority,
+    quint8 & start_code,
+    quint8 & sequence,
+    quint16 & universe,
+    quint16 & slot_count,
+    const quint8 *& pdata);
 
 /*
  * Returns true if contains draft root vector value
  */
-bool isDraft(quint8* pbuf);
+bool isDraft(quint8 * pbuf);
 
 /*
  * Helper function
  * Check framing vector
  * Returns true if vector is expected type
  */
-bool checkFramingVector(quint8* pbuf, quint8 expectedVector);
+bool checkFramingVector(quint8 * pbuf, quint8 expectedVector);
 
 /*
  * Helper function
  * Set a bit in the option field
  */
-void setOptionBit(quint8 mask, quint8* pbuf, bool value);
+void setOptionBit(quint8 mask, quint8 * pbuf, bool value);
 
 /*
  * Helper function
  * Get a bit in the option field
  */
-bool getOptionBit(quint8 mask, quint8* pbuf);
+bool getOptionBit(quint8 mask, quint8 * pbuf);
 
 /* 
  * toggles the preview_data bit of the options field to either 1 or 0
  */
-void SetPreviewData(quint8* pbuf, bool preview);
+void SetPreviewData(quint8 * pbuf, bool preview);
 
 /*
  * Returns the preview_data bit of the options field
  */
-bool GetPreviewData(quint8* pbuf);
+bool GetPreviewData(quint8 * pbuf);
 
 /* 
  * toggles the stream_terminated bit of the options field to either 1 or 0
  */
-void SetStreamTerminated(quint8* pbuf, bool terminated);
+void SetStreamTerminated(quint8 * pbuf, bool terminated);
 
 /* 
  * returns the stream_terminated bit of the options field
  */
-bool GetStreamTerminated(quint8* pbuf);
+bool GetStreamTerminated(quint8 * pbuf);
 
 /*
  * toggles the Force_Synchronization bit of the options field to either 1 or 0
  */
-void SetForceSync(quint8* pbuf, bool terminated);
+void SetForceSync(quint8 * pbuf, bool terminated);
 
 /*
  * returns the Force_Synchronization bit of the options field
  */
-bool GetForceSync(quint8* pbuf);
+bool GetForceSync(quint8 * pbuf);
 
 /*Fills in the multicast address and port (not netiface) to use for listening to or sending on a universe*/
-void GetUniverseAddress(quint16 universe, CIPAddr& addr);
-
+void GetUniverseAddress(quint16 universe, CIPAddr & addr);
 
 #endif //_STREAMCOMMON_H_
-

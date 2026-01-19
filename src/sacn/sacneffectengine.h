@@ -16,16 +16,18 @@
 #ifndef SACNEFFECTENGINE_H
 #define SACNEFFECTENGINE_H
 
-#include <QObject>
-#include <QImage>
-#include <QPixmap>
 #include "sacnsender.h"
+#include <QImage>
+#include <QObject>
+#include <QPixmap>
 
 class sACNEffectEngine : public QObject
 {
     Q_OBJECT
 public:
-    enum FxMode {
+
+    enum FxMode
+    {
         FxManual,
         FxRamp,
         FxInverseRamp,
@@ -39,12 +41,14 @@ public:
         FxDate
     };
 
-    enum DateStyle {
+    enum DateStyle
+    {
         dsUSA,
         dsEU
     };
 
-    static const QStringList FxModeDescriptions() {
+    static const QStringList FxModeDescriptions()
+    {
         QList<QString> ret;
         ret.insert(FxManual, QObject::tr("Manual"));
         ret.insert(FxRamp, QObject::tr("Ramp"));
@@ -63,9 +67,9 @@ public:
     explicit sACNEffectEngine(sACNManager::tSender sender);
     virtual ~sACNEffectEngine();
     //void setSender(sACNSentUniverse *sender);
-    QString text() { return m_text;}
-    sACNEffectEngine::FxMode mode() { return m_mode;}
-    qreal rate() { return m_rate;}
+    QString text() { return m_text; }
+    sACNEffectEngine::FxMode mode() { return m_mode; }
+    qreal rate() { return m_rate; }
 signals:
     void setLevel(quint16 address, quint8 value);
     void setLevel(quint16 start, quint16 end, quint8 value);
@@ -96,10 +100,12 @@ public slots:
 private slots:
     void timerTick();
     void slotCountChanged();
+
 private:
-    QThread *m_thread;
-    sACNSentUniverse *m_sender;
-    QTimer *m_timer;
+
+    QThread * m_thread;
+    sACNSentUniverse * m_sender;
+    QTimer * m_timer;
     FxMode m_mode;
     DateStyle m_dateStyle;
     QString m_text;
@@ -111,7 +117,7 @@ private:
     quint8 m_data;
     quint8 m_manualLevel;
     QImage m_renderedImage;
-    quint8 *m_image;
+    quint8 * m_image;
     size_t m_imageWidth;
 
     // Render a single line of variable width text

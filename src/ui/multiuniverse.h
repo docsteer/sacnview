@@ -16,16 +16,16 @@
 #ifndef MULTIUNIVERSE_H
 #define MULTIUNIVERSE_H
 
-#include <QWidget>
+#include "consts.h"
+#include "sacneffectengine.h"
+#include "streamingacn.h"
 #include <QLabel>
 #include <QSignalMapper>
-#include "consts.h"
-#include "streamingacn.h"
-#include "sacneffectengine.h"
-#include "consts.h"
+#include <QWidget>
 
-namespace Ui {
-class MultiUniverse;
+namespace Ui
+{
+    class MultiUniverse;
 }
 
 class MultiUniverse : public QWidget
@@ -33,7 +33,8 @@ class MultiUniverse : public QWidget
     Q_OBJECT
 
 public:
-    explicit MultiUniverse(int firstUniverse = MIN_SACN_UNIVERSE, QWidget *parent = 0);
+
+    explicit MultiUniverse(int firstUniverse = MIN_SACN_UNIVERSE, QWidget * parent = 0);
     ~MultiUniverse();
 private slots:
     void on_btnAddRow_pressed();
@@ -46,18 +47,20 @@ private slots:
     void endChanged(int value);
     void fxChanged(int value);
     void enableChanged(bool enable);
-    void removeWidgetFromIndex(QObject *o);
+    void removeWidgetFromIndex(QObject * o);
     void controlSliderMoved(int value);
     void controlComboChanged(int value);
     void priorityChanged(int value);
     void senderTimedout(int index);
+
 private:
-    Ui::MultiUniverse *ui;
-    QList <sACNManager::tSender> m_senders;
-    QList <sACNEffectEngine *> m_fxEngines;
-    QHash<QWidget*, sACNEffectEngine *> m_widgetToFxEngine;
-    QHash<QWidget*, sACNSentUniverse *> m_widgetToSender;
-    QHash<QWidget*, QLabel *> m_widgetToLevelLabel;
+
+    Ui::MultiUniverse * ui;
+    QList<sACNManager::tSender> m_senders;
+    QList<sACNEffectEngine *> m_fxEngines;
+    QHash<QWidget *, sACNEffectEngine *> m_widgetToFxEngine;
+    QHash<QWidget *, sACNSentUniverse *> m_widgetToSender;
+    QHash<QWidget *, QLabel *> m_widgetToLevelLabel;
     int m_firstUniverse;
     enum
     {
@@ -70,11 +73,19 @@ private:
         COL_PRIORITY,
         COL_CONTROL
     };
-    QSignalMapper *m_timeoutMapper;
+    QSignalMapper * m_timeoutMapper;
 
     void setupControl(int row, sACNEffectEngine::FxMode mode, int value);
-    void addSource(int universe, int min_address, int max_address, sACNEffectEngine::FxMode mode,
-           QString name, bool startSending, int level = 0, qreal rate = 10.0, int priority = DEFAULT_SACN_PRIORITY);
+    void addSource(
+        int universe,
+        int min_address,
+        int max_address,
+        sACNEffectEngine::FxMode mode,
+        QString name,
+        bool startSending,
+        int level = 0,
+        qreal rate = 10.0,
+        int priority = DEFAULT_SACN_PRIORITY);
 };
 
 #endif // MULTIUNIVERSE_H

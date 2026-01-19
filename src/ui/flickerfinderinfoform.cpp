@@ -14,13 +14,12 @@
 // limitations under the License.
 
 #include "flickerfinderinfoform.h"
+#include "preferences.h"
 #include "ui_flickerfinderinfoform.h"
 #include "universedisplay.h"
-#include "preferences.h"
 
-FlickerFinderInfoForm::FlickerFinderInfoForm(QWidget *parent)
-    : QDialog(parent)
-    , ui(new Ui::FlickerFinderInfoForm)
+FlickerFinderInfoForm::FlickerFinderInfoForm(QWidget * parent)
+    : QDialog(parent), ui(new Ui::FlickerFinderInfoForm)
 {
     ui->setupUi(this);
     QPalette p = ui->wLower->palette();
@@ -34,7 +33,7 @@ FlickerFinderInfoForm::FlickerFinderInfoForm(QWidget *parent)
 
 FlickerFinderInfoForm::~FlickerFinderInfoForm()
 {
-    if(ui->cbDontShowAgain->isChecked())
+    if (ui->cbDontShowAgain->isChecked())
     {
         Preferences::Instance().setFlickerFinderShowInfo(false);
     }

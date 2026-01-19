@@ -18,16 +18,13 @@
 
 #include <QTimerEvent>
 
-UniverseDisplay::UniverseDisplay(QWidget *parent)
-    : GridWidget(parent)
-    , m_sources(MAX_DMX_ADDRESS, sACNMergedAddress())
-{
-}
+UniverseDisplay::UniverseDisplay(QWidget * parent)
+    : GridWidget(parent), m_sources(MAX_DMX_ADDRESS, sACNMergedAddress())
+{}
 
 void UniverseDisplay::setShowChannelPriority(bool enable)
 {
-    if (m_showChannelPriority == enable)
-        return;
+    if (m_showChannelPriority == enable) return;
     m_showChannelPriority = enable;
     emit showChannelPriorityChanged(enable);
     updateCellHeight();
@@ -37,8 +34,7 @@ void UniverseDisplay::setShowChannelPriority(bool enable)
 
 void UniverseDisplay::setStableCompareTime(qint64 milliseconds)
 {
-    if (m_stableCompareTime == milliseconds)
-        return;
+    if (m_stableCompareTime == milliseconds) return;
 
     m_stableCompareTime = milliseconds;
 
@@ -47,47 +43,53 @@ void UniverseDisplay::setStableCompareTime(qint64 milliseconds)
     emit stableCompareTimeChanged();
 }
 
-const QColor &UniverseDisplay::flickerHigherColor()
+const QColor & UniverseDisplay::flickerHigherColor()
 {
-    switch (Preferences::Instance().GetTheme()) {
-    default:
-    case Themes::LIGHT: {
-        static const QColor highLight(0x8d, 0x32, 0xfd);
-        return highLight;
-    }
-    case Themes::DARK:
-        static const QColor highDark(0x46, 0x19, 0x7e);
-        return highDark;
+    switch (Preferences::Instance().GetTheme())
+    {
+        default:
+        case Themes::LIGHT:
+        {
+            static const QColor highLight(0x8d, 0x32, 0xfd);
+            return highLight;
+        }
+        case Themes::DARK: static const QColor highDark(0x46, 0x19, 0x7e); return highDark;
     }
 }
 
-const QColor &UniverseDisplay::flickerLowerColor()
+const QColor & UniverseDisplay::flickerLowerColor()
 {
-    switch (Preferences::Instance().GetTheme()) {
-    default:
-    case Themes::LIGHT: {
-        static const QColor lowLight(0x04, 0xfd, 0x44);
-        return lowLight;
-    }
-    case Themes::DARK: {
-        static const QColor lowDark(0x02, 0x7e, 0x22);
-        return lowDark;
-    }
+    switch (Preferences::Instance().GetTheme())
+    {
+        default:
+        case Themes::LIGHT:
+        {
+            static const QColor lowLight(0x04, 0xfd, 0x44);
+            return lowLight;
+        }
+        case Themes::DARK:
+        {
+            static const QColor lowDark(0x02, 0x7e, 0x22);
+            return lowDark;
+        }
     }
 }
 
-const QColor &UniverseDisplay::flickerChangedColor()
+const QColor & UniverseDisplay::flickerChangedColor()
 {
-    switch (Preferences::Instance().GetTheme()) {
-    default:
-    case Themes::LIGHT: {
-        static const QColor changeLight(0xfb, 0x09, 0x09);
-        return changeLight;
-    }
-    case Themes::DARK: {
-        static const QColor changeDark(0x7d, 0x04, 0x04);
-        return changeDark;
-    }
+    switch (Preferences::Instance().GetTheme())
+    {
+        default:
+        case Themes::LIGHT:
+        {
+            static const QColor changeLight(0xfb, 0x09, 0x09);
+            return changeLight;
+        }
+        case Themes::DARK:
+        {
+            static const QColor changeDark(0x7d, 0x04, 0x04);
+            return changeDark;
+        }
     }
 }
 
@@ -111,14 +113,12 @@ void UniverseDisplay::setUniverse(int universe)
 void UniverseDisplay::pause()
 {
     m_listener->disconnect(this);
-    if (m_compareListener)
-      m_compareListener->disconnect(this);
+    if (m_compareListener) m_compareListener->disconnect(this);
 }
 
 void UniverseDisplay::levelsChanged()
 {
-    if (!m_listener)
-        return;
+    if (!m_listener) return;
 
     if (m_compareListener)
     {
@@ -128,8 +128,7 @@ void UniverseDisplay::levelsChanged()
 
         for (size_t i = 0; i < newSources.size(); ++i)
         {
-            if (newSources[i].level != m_sources[i].level)
-                m_compareTimestamp[i] = timestamp;
+            if (newSources[i].level != m_sources[i].level) m_compareTimestamp[i] = timestamp;
         }
         std::swap(newSources, m_sources);
 
@@ -139,7 +138,7 @@ void UniverseDisplay::levelsChanged()
 
     m_sources = m_listener->mergedLevels();
 
-    const Preferences& pref = Preferences::Instance();
+    const Preferences & pref = Preferences::Instance();
     for (int i = 0; i < m_sources.count(); ++i)
     {
         if (m_sources[i].winningSource && i < m_sources[i].winningSource->slot_count)
@@ -151,19 +150,19 @@ void UniverseDisplay::levelsChanged()
                 cellText.append(QString::number(m_sources[i].winningSource->priority_array[i]));
             }
 
-            if(m_flickerFinder)
+            if (m_flickerFinder)
             {
-                if(m_sources[i].level > m_compareLevels[i])
+                if (m_sources[i].level > m_compareLevels[i])
                 {
                     setCellColor(i, flickerHigherColor());
                     m_compareDifference[i] = 1;
                 }
-                else if( m_sources[i].level < m_compareLevels[i])
+                else if (m_sources[i].level < m_compareLevels[i])
                 {
                     setCellColor(i, flickerLowerColor());
                     m_compareDifference[i] = 1;
                 }
-                else if(m_compareDifference[i] != 0)
+                else if (m_compareDifference[i] != 0)
                 {
                     setCellColor(i, flickerChangedColor());
                 }
@@ -186,8 +185,7 @@ void UniverseDisplay::levelsChanged()
 
 void UniverseDisplay::compareLevelsChanged()
 {
-    if (!m_compareListener)
-        return;
+    if (!m_compareListener) return;
 
     std::array<int, MAX_DMX_ADDRESS> newLevels = m_compareListener->mergedLevelsOnly();
     const qint64 timestamp = sACNManager::elapsed();
@@ -195,8 +193,7 @@ void UniverseDisplay::compareLevelsChanged()
     // Mark approx timestamp of compare level changes
     for (size_t i = 0; i < newLevels.size(); ++i)
     {
-        if (newLevels[i] != m_compareLevels[i])
-            m_compareTimestamp[i] = timestamp;
+        if (newLevels[i] != m_compareLevels[i]) m_compareTimestamp[i] = timestamp;
     }
 
     // Swap and update
@@ -204,7 +201,7 @@ void UniverseDisplay::compareLevelsChanged()
     updateUniverseCompare();
 }
 
-void UniverseDisplay::timerEvent(QTimerEvent* ev)
+void UniverseDisplay::timerEvent(QTimerEvent * ev)
 {
     if (ev->timerId() == m_compareTimer)
     {
@@ -215,15 +212,14 @@ void UniverseDisplay::timerEvent(QTimerEvent* ev)
 void UniverseDisplay::updateCellHeight()
 {
     m_cellHeight = m_showChannelPriority ? (18 * 2) : 18;
-    if (m_compareListener)
-        m_cellHeight += 18;
+    if (m_compareListener) m_cellHeight += 18;
 }
 
 void UniverseDisplay::updateUniverseCompare()
 {
-    const Preferences& pref = Preferences::Instance();
+    const Preferences & pref = Preferences::Instance();
     const qint64 nowElapsed = sACNManager::elapsed();
-  
+
     // Compare slots if the level has been static for long enough
     for (int i = 0; i < m_sources.count(); ++i)
     {
@@ -244,7 +240,7 @@ void UniverseDisplay::updateUniverseCompare()
             }
         }
 
-      setCellValue(i, cellText);
+        setCellValue(i, cellText);
     }
     update();
 }
@@ -259,17 +255,14 @@ void UniverseDisplay::updateUniverseCompareTimer()
     }
 
     // Start looking for static out-of-sync levels if appropriate
-    if (m_compareListener)
-        m_compareTimer = startTimer(static_cast<int>(m_stableCompareTime / 4));
+    if (m_compareListener) m_compareTimer = startTimer(static_cast<int>(m_stableCompareTime / 4));
 }
 
 void UniverseDisplay::setFlickerFinder(bool on)
 {
-    if (!m_listener)
-        return;
+    if (!m_listener) return;
 
-    if (!on && !m_flickerFinder)
-        return;
+    if (!on && !m_flickerFinder) return;
 
     m_flickerFinder = on;
     if (on)
@@ -292,13 +285,11 @@ void UniverseDisplay::setFlickerFinder(bool on)
 
 void UniverseDisplay::setCompareToUniverse(int otherUniverse)
 {
-    if (!m_listener)
-        return;
+    if (!m_listener) return;
 
     if (otherUniverse == NO_UNIVERSE)
     {
-        if (getCompareToUniverse() == NO_UNIVERSE)
-          return;
+        if (getCompareToUniverse() == NO_UNIVERSE) return;
 
         m_compareListener.clear();
         levelsChanged();
@@ -315,8 +306,7 @@ void UniverseDisplay::setCompareToUniverse(int otherUniverse)
         m_compareListener = sACNManager::Instance().getListener(otherUniverse);
         connect(m_compareListener.data(), &sACNListener::levelsChanged, this, &UniverseDisplay::compareLevelsChanged);
         // Was it already running?
-        if (m_compareListener->sourceCount() > 0)
-            compareLevelsChanged();
+        if (m_compareListener->sourceCount() > 0) compareLevelsChanged();
     }
 
     updateUniverseCompareTimer();

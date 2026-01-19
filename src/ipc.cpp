@@ -2,24 +2,26 @@
 #include "consts.h"
 #include <QString>
 
-#define TIME_OUT (500)    // 500ms
+#define TIME_OUT (500) // 500ms
 
-IPC::IPC(MDIMainWindow *w, QObject* parent):
-    QObject(parent),
-    main_window(w)
+IPC::IPC(MDIMainWindow * w, QObject * parent)
+    : QObject(parent), main_window(w)
 {
     m_pipe = new QLocalServer(this);
 
     // Test if already open
     QLocalSocket socket;
     socket.connectToServer(APP_NAME, QIODevice::ReadWrite);
-    if(socket.waitForConnected(TIME_OUT)) {
+    if (socket.waitForConnected(TIME_OUT))
+    {
         // Already open, send bring to foreground command
         qDebug() << "Instance already open, setting that to foreground";
         socket.write(QByteArray("FOREGROUND"));
         socket.flush();
         socket.waitForBytesWritten(TIME_OUT);
-    } else {
+    }
+    else
+    {
         // Create new
         m_pipe->removeServer(APP_NAME);
         m_pipe->listen(APP_NAME);
@@ -36,7 +38,7 @@ IPC::~IPC()
 
 void IPC::newConnection()
 {
-    IPC_Client *ipcClient = new IPC_Client(m_pipe->nextPendingConnection());
+    IPC_Client * ipcClient = new IPC_Client(m_pipe->nextPendingConnection());
     connect(ipcClient, &IPC_Client::foreground, this, &IPC::foreground);
 }
 
@@ -47,13 +49,8 @@ void IPC::foreground()
     main_window->raise();
 }
 
-
-
-
-IPC_Client::IPC_Client(QLocalSocket *client, QObject *parent):
-    QObject(parent),
-    m_client(client),
-    m_sender()
+IPC_Client::IPC_Client(QLocalSocket * client, QObject * parent)
+    : QObject(parent), m_client(client), m_sender()
 {
     connect(m_client, &QLocalSocket::disconnected, this, &IPC_Client::deleteLater);
     connect(m_client, &QLocalSocket::readyRead, this, &IPC_Client::readyRead);
@@ -68,8 +65,7 @@ IPC_Client::IPC_Client(QLocalSocket *client, QObject *parent):
 IPC_Client::~IPC_Client()
 {
     qDebug() << "IPC" << qint64(m_client) << ": Disconnected";
-    if(m_sender)
-        m_sender->deleteLater();
+    if (m_sender) m_sender->deleteLater();
 }
 
 void IPC_Client::readyRead()
@@ -89,7 +85,8 @@ void IPC_Client::readyRead()
      * They have requested that this instance comes for foreground
      *
      */
-    if (l_data[0] == "FOREGROUND") {
+    if (l_data[0] == "FOREGROUND")
+    {
         emit foreground();
         return;
     }
@@ -126,12 +123,10 @@ void IPC_Client::readyRead()
         int universe = l_data[1].toInt();
         QString sourceName = l_data[2];
         QByteArray levels = data.mid(
-                l_data[0].size() + 1 +
-                l_data[1].size() + 1 +
-                l_data[2].size() + 1,
-                MAX_DMX_ADDRESS);
+            l_data[0].size() + 1 + l_data[1].size() + 1 + l_data[2].size() + 1,
+            MAX_DMX_ADDRESS);
 
-        if(!m_sender)
+        if (!m_sender)
         {
             m_sender = new sACNSentUniverse(universe);
         }
@@ -148,8 +143,7 @@ void IPC_Client::readyRead()
             m_sender->setName(sourceName);
         }
 
-        if (m_sender->isSending() == false)
-            m_sender->startSending(true);
+        if (m_sender->isSending() == false) m_sender->startSending(true);
 
         for (quint16 n = 0; n < levels.length(); n++)
         {

@@ -16,15 +16,16 @@
 #ifndef UNIVERSEVIEW_H
 #define UNIVERSEVIEW_H
 
-#include <QWidget>
 #include "consts.h"
 #include "streamingacn.h"
+#include <QWidget>
 
 class sACNListener;
 class SACNSourceTableModel;
 
-namespace Ui {
-class UniverseView;
+namespace Ui
+{
+    class UniverseView;
 }
 
 class sACNSource;
@@ -34,7 +35,8 @@ class UniverseView : public QWidget
     Q_OBJECT
 
 public:
-    explicit UniverseView(int universe = MIN_SACN_UNIVERSE, QWidget *parent = 0);
+
+    explicit UniverseView(int universe = MIN_SACN_UNIVERSE, QWidget * parent = 0);
     ~UniverseView();
 
     // Trigger API
@@ -42,13 +44,13 @@ public:
     Q_SLOT void stopRx() { on_btnPause_clicked(); }
 
     Q_INVOKABLE QJsonObject getJsonConfiguration() const;
-    Q_INVOKABLE void setJsonConfiguration(const QJsonObject& json);
+    Q_INVOKABLE void setJsonConfiguration(const QJsonObject & json);
 
 protected slots:
     void refreshTitle();
     void on_btnGo_clicked();
     void on_btnPause_clicked();
-    void sourceChanged(sACNSource *source);
+    void sourceChanged(sACNSource * source);
     void levelsChanged();
     void selectedAddressChanged(int address);
     void selectedAddressesChanged(QList<int> addresses);
@@ -65,26 +67,28 @@ protected slots:
     void onCompareUniverseChanged();
 
 protected:
-    virtual void resizeEvent(QResizeEvent *event);
-    virtual void showEvent(QShowEvent *event);
+
+    virtual void resizeEvent(QResizeEvent * event);
+    virtual void showEvent(QShowEvent * event);
 
     void startListening(int universe);
 
 private:
+
     void resizeColumns();
     bool m_bindWarningShown = false;
     void checkBind();
 
     void updateButtons(bool running);
 
-    QString prioText(const sACNSource *source, quint8 address) const;
+    QString prioText(const sACNSource * source, quint8 address) const;
 
-    Ui::UniverseView *ui = nullptr;
-    SACNSourceTableModel* m_sourceTableModel = nullptr;
+    Ui::UniverseView * ui = nullptr;
+    SACNSourceTableModel * m_sourceTableModel = nullptr;
     static constexpr int NO_SELECTED_ADDRESS = -1;
     int m_selectedAddress = NO_SELECTED_ADDRESS;
     sACNManager::tListener m_listener;
-    QWidget *m_parentWindow = nullptr;
+    QWidget * m_parentWindow = nullptr;
     bool m_displayDDOnlySource = true;
 };
 

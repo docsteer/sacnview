@@ -2,18 +2,15 @@
 #include "ui_logwindow.h"
 
 #include "consts.h"
-#include <QDateTime>
 #include <QClipboard>
-#include <QScrollBar>
+#include <QDateTime>
 #include <QFileDialog>
-#include <QStandardPaths>
 #include <QMessageBox>
+#include <QScrollBar>
+#include <QStandardPaths>
 
-LogWindow::LogWindow(int universe, QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::LogWindow),
-    m_file(Q_NULLPTR),
-    m_fileStream(Q_NULLPTR)
+LogWindow::LogWindow(int universe, QWidget * parent)
+    : QWidget(parent), ui(new Ui::LogWindow), m_file(Q_NULLPTR), m_fileStream(Q_NULLPTR)
 
 {
     ui->setupUi(this);
@@ -23,30 +20,24 @@ LogWindow::LogWindow(int universe, QWidget *parent) :
     m_listener = sACNManager::Instance().getListener(universe);
 
     /* Time and Date formats */
-    for(const auto &item : lTimeFormat)
+    for (const auto & item : lTimeFormat)
     {
         ui->cbTimeFormat->addItem(item.friendlyName);
     }
 
     /* Display formats */
-    for(const auto &item : lDisplayFormat)
+    for (const auto & item : lDisplayFormat)
     {
         ui->cbDisplayFormat->addItem(item.friendlyName);
     }
 
     /* Level format */
     // Byte
-    ui->cbLevelFormat->addItem(
-                tr("Byte"),
-                eLevelFormat::levelFormatByte);
+    ui->cbLevelFormat->addItem(tr("Byte"), eLevelFormat::levelFormatByte);
     // Percent
-    ui->cbLevelFormat->addItem(
-                tr("Percent"),
-                eLevelFormat::levelFormatPercent);
+    ui->cbLevelFormat->addItem(tr("Percent"), eLevelFormat::levelFormatPercent);
     // Hex
-    ui->cbLevelFormat->addItem(
-                tr("Hex"),
-                eLevelFormat::levelFormatHex);
+    ui->cbLevelFormat->addItem(tr("Hex"), eLevelFormat::levelFormatHex);
 
     // Setup callbacks
     on_cbLevels_clicked(ui->cbLevels->isChecked());
@@ -59,17 +50,20 @@ LogWindow::~LogWindow()
     delete ui;
 }
 
-void LogWindow::appendLogLine(QString &line) {
+void LogWindow::appendLogLine(QString & line)
+{
 
     // Prepend Time and date
-    if (lTimeFormat[ui->cbTimeFormat->currentIndex()].strFormat.isEmpty()) {
+    if (lTimeFormat[ui->cbTimeFormat->currentIndex()].strFormat.isEmpty())
+    {
         auto timeFormat = lTimeFormat[ui->cbTimeFormat->currentIndex()].dateFormat;
         line.prepend(QString("%1: ").arg(QDateTime::currentDateTime().toString(timeFormat)));
-    } else {
+    }
+    else
+    {
         auto timeFormat = lTimeFormat[ui->cbTimeFormat->currentIndex()].strFormat;
         line.prepend(QString("%1: ").arg(QDateTime::currentDateTime().toString(timeFormat)));
     }
-
 
     // Log to window
     if (ui->cbLogToWindow->isChecked())
@@ -80,7 +74,7 @@ void LogWindow::appendLogLine(QString &line) {
         if (ui->lvLog->count() > ui->sbLogtoWindowLimit->value())
         {
             auto removeCount = ui->lvLog->count() - ui->sbLogtoWindowLimit->value();
-            ui->lvLog->model()->removeRows(0,removeCount);
+            ui->lvLog->model()->removeRows(0, removeCount);
         }
     }
 
@@ -100,40 +94,35 @@ void LogWindow::onLevelsChanged()
 
     QString logLine;
     logLine.reserve(MAX_DMX_ADDRESS * levelFormat.size());
-    for(int i=0; i<list.count(); i++)
+    for (int i = 0; i < list.count(); i++)
     {
         sACNMergedAddress a = list.at(i);
 
         // Only display changed?
-        if (onlyChanged && !a.changedSinceLastMerge)
-            continue;
+        if (onlyChanged && !a.changedSinceLastMerge) continue;
 
         // Format level value
         QString levelValue;
-        switch (ui->cbLevelFormat->currentData().toInt()) {
+        switch (ui->cbLevelFormat->currentData().toInt())
+        {
             default:
-            case eLevelFormat::levelFormatByte:
-                levelValue = QString::number(a.level);
-            break;
+            case eLevelFormat::levelFormatByte: levelValue = QString::number(a.level); break;
             case eLevelFormat::levelFormatPercent:
-                {
-                    quint8 percent = ((double)a.level / std::numeric_limits<uchar>::max() ) * 100;
-                    levelValue = QString::number(percent);
-                }
+            {
+                quint8 percent = ((double)a.level / std::numeric_limits<uchar>::max()) * 100;
+                levelValue = QString::number(percent);
+            }
             break;
-            case eLevelFormat::levelFormatHex:
-                levelValue = QString::number(a.level, 16);
-            break;
+            case eLevelFormat::levelFormatHex: levelValue = QString::number(a.level, 16); break;
         }
 
         // Format chan and/or level display
         QString levelData = levelFormat;
-        levelData.replace("{CHAN}", QString::number((i+1)));
+        levelData.replace("{CHAN}", QString::number((i + 1)));
         levelData.replace("{LEVEL}", levelValue);
 
         // Seperator
-        if (i != list.count() - 1)
-            levelData.append(seperator);
+        if (i != list.count() - 1) levelData.append(seperator);
 
         // Write
         logLine.append(levelData);
@@ -142,35 +131,33 @@ void LogWindow::onLevelsChanged()
     appendLogLine(logLine);
 }
 
-void LogWindow::onSourceFound(sACNSource *source) {
-    QString logLine = tr("Source Found: %1 (%2)")
-            .arg(source->name)
-            .arg(source->ip.toString());
+void LogWindow::onSourceFound(sACNSource * source)
+{
+    QString logLine = tr("Source Found: %1 (%2)").arg(source->name).arg(source->ip.toString());
 
     appendLogLine(logLine);
 }
 
-void LogWindow::onSourceResume(sACNSource *source) {
-    QString logLine = tr("Source Resumed: %1 (%2)")
-            .arg(source->name)
-            .arg(source->ip.toString());
+void LogWindow::onSourceResume(sACNSource * source)
+{
+    QString logLine = tr("Source Resumed: %1 (%2)").arg(source->name).arg(source->ip.toString());
 
     appendLogLine(logLine);
 }
 
-void LogWindow::onSourceLost(sACNSource *source) {
-    QString logLine = tr("Source Lost: %1 (%2)")
-            .arg(source->name)
-            .arg(source->ip.toString());
+void LogWindow::onSourceLost(sACNSource * source)
+{
+    QString logLine = tr("Source Lost: %1 (%2)").arg(source->name).arg(source->ip.toString());
 
     appendLogLine(logLine);
 }
 
 void LogWindow::on_btnCopyClipboard_pressed()
 {
-    QClipboard *clipboard = QGuiApplication::clipboard();
+    QClipboard * clipboard = QGuiApplication::clipboard();
     QStringList list;
-    for (  auto item : ui->lvLog->selectionModel()->selectedIndexes() ) {
+    for (auto item : ui->lvLog->selectionModel()->selectedIndexes())
+    {
         list << item.data().toString();
     }
     clipboard->setText(list.join("\n"));
@@ -183,9 +170,12 @@ void LogWindow::on_btnClear_pressed()
 
 void LogWindow::on_cbLevels_clicked(bool checked)
 {
-    if (checked) {
+    if (checked)
+    {
         connect(m_listener.data(), &sACNListener::levelsChanged, this, &LogWindow::onLevelsChanged);
-    } else {
+    }
+    else
+    {
         disconnect(m_listener.data(), &sACNListener::levelsChanged, this, &LogWindow::onLevelsChanged);
     }
 }
@@ -197,7 +187,9 @@ void LogWindow::on_cbSources_clicked(bool checked)
         connect(m_listener.data(), &sACNListener::sourceFound, this, &LogWindow::onSourceFound);
         connect(m_listener.data(), &sACNListener::sourceResumed, this, &LogWindow::onSourceResume);
         connect(m_listener.data(), &sACNListener::sourceLost, this, &LogWindow::onSourceLost);
-    } else {
+    }
+    else
+    {
         disconnect(m_listener.data(), &sACNListener::sourceFound, this, &LogWindow::onSourceFound);
         disconnect(m_listener.data(), &sACNListener::sourceResumed, this, &LogWindow::onSourceResume);
         disconnect(m_listener.data(), &sACNListener::sourceLost, this, &LogWindow::onSourceLost);
@@ -210,7 +202,8 @@ void LogWindow::on_cbDisplayFormat_currentIndexChanged(int index)
     ui->cbOnlyChanged->setChecked(lDisplayFormat[index].onlyChangedAllowed);
 }
 
-bool LogWindow::openLogFile() {
+bool LogWindow::openLogFile()
+{
     closeLogFile();
 
     // Setup dialog box
@@ -223,13 +216,16 @@ bool LogWindow::openLogFile() {
     dialog.setFileMode(QFileDialog::AnyFile);
     dialog.setViewMode(QFileDialog::Detail);
     dialog.setAcceptMode(QFileDialog::AcceptSave);
-    if(dialog.exec())
+    if (dialog.exec())
     {
         fileName = dialog.selectedFiles().at(0);
-        if(fileName.isEmpty()) {
+        if (fileName.isEmpty())
+        {
             return false;
         }
-    } else {
+    }
+    else
+    {
         return false;
     }
 
@@ -258,7 +254,8 @@ bool LogWindow::openLogFile() {
     return false;
 }
 
-void LogWindow::closeLogFile() {
+void LogWindow::closeLogFile()
+{
     delete m_fileStream;
     delete m_file;
 

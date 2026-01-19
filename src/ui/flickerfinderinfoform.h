@@ -18,8 +18,9 @@
 
 #include <QDialog>
 
-namespace Ui {
-class FlickerFinderInfoForm;
+namespace Ui
+{
+    class FlickerFinderInfoForm;
 }
 
 class FlickerFinderInfoForm : public QDialog
@@ -27,11 +28,13 @@ class FlickerFinderInfoForm : public QDialog
     Q_OBJECT
 
 public:
-    explicit FlickerFinderInfoForm(QWidget *parent = 0);
+
+    explicit FlickerFinderInfoForm(QWidget * parent = 0);
     ~FlickerFinderInfoForm();
 
 private:
-    Ui::FlickerFinderInfoForm *ui;
+
+    Ui::FlickerFinderInfoForm * ui;
 };
 
 #endif // FLICKERFINDERINFOFORM_H
