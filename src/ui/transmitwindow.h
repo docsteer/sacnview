@@ -16,21 +16,22 @@
 #ifndef TRANSMITWINDOW_H
 #define TRANSMITWINDOW_H
 
-#include <QWidget>
-#include <QtGui>
+#include "consts.h"
+#include "streamingacn.h"
 #include <QLabel>
 #include <QSlider>
 #include <QToolButton>
+#include <QWidget>
+#include <QtGui>
 #include <array>
-#include "consts.h"
-#include "streamingacn.h"
 
 class sACNSentUniverse;
 class sACNEffectEngine;
 class ConfigurePerChanPrioDlg;
 
-namespace Ui {
-class transmitwindow;
+namespace Ui
+{
+    class transmitwindow;
 }
 
 class transmitwindow : public QWidget
@@ -38,7 +39,8 @@ class transmitwindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit transmitwindow(int universe = MIN_SACN_UNIVERSE, QWidget *parent = Q_NULLPTR);
+
+    explicit transmitwindow(int universe = MIN_SACN_UNIVERSE, QWidget * parent = Q_NULLPTR);
     ~transmitwindow();
     static const int BLINK_TIME = 1000;
     static const int NUM_SLIDERS = 24;
@@ -63,7 +65,7 @@ protected slots:
     void on_sbFadeRangeStart_valueChanged(int value);
     void on_sbFadeRangeEnd_valueChanged(int value);
     void on_cbFadeRangePap_toggled(bool checked);
-    void radioFadeMode_toggled(QAbstractButton *id, bool checked);
+    void radioFadeMode_toggled(QAbstractButton * id, bool checked);
     void on_slFadeLevel_valueChanged(int value);
     void on_btnFxPause_pressed();
     void on_btnFxStart_pressed();
@@ -71,7 +73,7 @@ protected slots:
     void presetButtonPressed();
     void recordButtonPressed(bool on);
     void setLevels(QSet<int> addresses, int level);
-    void dateMode_toggled(QAbstractButton* id, bool checked);
+    void dateMode_toggled(QAbstractButton * id, bool checked);
     void sourceTimeout();
     void setLevelList(QList<QPair<int, int>> levelList);
 private slots:
@@ -89,6 +91,7 @@ private slots:
     void onConfigurePerChanPrioDlgFinished(int result);
 
 private:
+
     enum TABS
     {
         tabSliders,
@@ -103,17 +106,17 @@ private:
     void updatePerChanPriorityButton();
     void updateChanCheckPap(int address);
     void updateFadeRangePap();
-    Ui::transmitwindow *ui = nullptr;
-    ConfigurePerChanPrioDlg *m_perChannelDialog = nullptr;
+    Ui::transmitwindow * ui = nullptr;
+    ConfigurePerChanPrioDlg * m_perChannelDialog = nullptr;
     QList<QSlider *> m_sliders;
     QList<QToolButton *> m_presetButtons;
     sACNManager::tSender m_sender;
     quint16 m_slotCount = 0;
     std::array<quint8, MAX_DMX_ADDRESS> m_perAddressPriorities = {};
     std::array<quint8, MAX_DMX_ADDRESS> m_levels = {};
-    QTimer* m_blinkTimer = nullptr;
+    QTimer * m_blinkTimer = nullptr;
     bool m_blink = false;
-    sACNEffectEngine *m_fxEngine = nullptr;
+    sACNEffectEngine * m_fxEngine = nullptr;
     bool m_recordMode = false;
 };
 

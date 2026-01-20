@@ -18,14 +18,13 @@
 
 #include <QColor>
 
-#define APP_NAME        "sACNView"
+#define APP_NAME "sACNView"
 static const QStringList AUTHORS = {
-  QStringLiteral("Tom Steer"),
-  QStringLiteral("Marcus Birkin"),
-  QStringLiteral("Hans Hinrichsen"),
-  QStringLiteral("Matt Kerr"),
-  QStringLiteral("Richard Thompson")
-};
+    QStringLiteral("Tom Steer"),
+    QStringLiteral("Marcus Birkin"),
+    QStringLiteral("Hans Hinrichsen"),
+    QStringLiteral("Matt Kerr"),
+    QStringLiteral("Richard Thompson")};
 
 // If this is a full release, only show the newer version message for other full releases
 // If this is prerelease, show all newer versions
@@ -46,7 +45,7 @@ constexpr int PRIORITYPRESET_COUNT = 5;
 
 constexpr uint8_t MIN_SACN_PRIORITY = 0;
 constexpr uint8_t MAX_SACN_PRIORITY = 200;
-constexpr uint8_t MAX_SACN_BAD_PRIORITY = 255;  // Max possible illegal value
+constexpr uint8_t MAX_SACN_BAD_PRIORITY = 255; // Max possible illegal value
 constexpr uint8_t DEFAULT_SACN_PRIORITY = 100;
 
 constexpr uint8_t MIN_SACN_LEVEL = 0;
@@ -57,35 +56,32 @@ constexpr int MAX_SACN_TRANSMIT_TIME_SEC = 1000000;
 #define DEFAULT_SOURCE_NAME "sACNView"
 constexpr int MAX_SOURCE_NAME_LEN = 63;
 
-
 enum class PriorityMode
 {
-  PER_SOURCE,
-  PER_ADDRESS
+    PER_SOURCE,
+    PER_ADDRESS
 };
 
 // A table of values to draw a 0-255 sinewave
 static const unsigned char sinetable[] = {
-    0,  0,  0,  0,  0,  1,  1,  2,  2,  3,  4,  5,  6,  7,  8,  9,  10, 12, 13, 14, 16, 17, 19,
-    21, 22, 24, 26, 28, 30, 32, 34, 37, 39, 41, 43, 46, 48, 51, 53, 56, 59, 61, 64, 67, 69, 72,
-    75, 78, 81, 84, 87, 90, 93, 96, 99,102,105,108,111,114,118, 121,124,127,127,130,133,136,140,
-    143,146,149,152,155,158,161,164,167,170,173,176,179,182,185,187,190,193,195,198,201,203,206,
-    208,211,213,215,217,220,222,224,226,228,230,232,233,235,237,238,240,241,242,244,245,246,247,
-    248,249,250,251,252,252,253,253,254,254,254,254,254,254,254,254,254,254,253,253,252,252,251,
-    250,250,249,248,247,246,244,243,242,240,239,237,236,234,232,231,229,227,225,223,221,219,216,
-    214,212,209,207,204,202,199,197,194,191,189,186,183,180,177,175,172,169,166,163,160,157,154,
-    150,147,144,141,138,135,132,129,125,122,119,116,113,110,107,104,100,97, 94, 91, 88, 85, 82,
-    79, 77, 74, 71, 68, 65, 63, 60, 57, 55, 52, 50, 47, 45, 42, 40, 38, 35, 33, 31, 29, 27, 25,
-    23, 22, 20, 18, 17, 15, 14, 12, 11, 10,  8,  7,  6,  5,  4,  4,  3,  2, 2,  1,  1,  0,  0,
-    0,  0,  0,
+    0,   0,   0,   0,   0,   1,   1,   2,   2,   3,   4,   5,   6,   7,   8,   9,   10,  12,  13,  14,  16,  17,
+    19,  21,  22,  24,  26,  28,  30,  32,  34,  37,  39,  41,  43,  46,  48,  51,  53,  56,  59,  61,  64,  67,
+    69,  72,  75,  78,  81,  84,  87,  90,  93,  96,  99,  102, 105, 108, 111, 114, 118, 121, 124, 127, 127, 130,
+    133, 136, 140, 143, 146, 149, 152, 155, 158, 161, 164, 167, 170, 173, 176, 179, 182, 185, 187, 190, 193, 195,
+    198, 201, 203, 206, 208, 211, 213, 215, 217, 220, 222, 224, 226, 228, 230, 232, 233, 235, 237, 238, 240, 241,
+    242, 244, 245, 246, 247, 248, 249, 250, 251, 252, 252, 253, 253, 254, 254, 254, 254, 254, 254, 254, 254, 254,
+    254, 253, 253, 252, 252, 251, 250, 250, 249, 248, 247, 246, 244, 243, 242, 240, 239, 237, 236, 234, 232, 231,
+    229, 227, 225, 223, 221, 219, 216, 214, 212, 209, 207, 204, 202, 199, 197, 194, 191, 189, 186, 183, 180, 177,
+    175, 172, 169, 166, 163, 160, 157, 154, 150, 147, 144, 141, 138, 135, 132, 129, 125, 122, 119, 116, 113, 110,
+    107, 104, 100, 97,  94,  91,  88,  85,  82,  79,  77,  74,  71,  68,  65,  63,  60,  57,  55,  52,  50,  47,
+    45,  42,  40,  38,  35,  33,  31,  29,  27,  25,  23,  22,  20,  18,  17,  15,  14,  12,  11,  10,  8,   7,
+    6,   5,   4,   4,   3,   2,   2,   1,   1,   0,   0,   0,   0,   0,
 };
 
-
 // Conversion table to convert 0-255 to percent
-static const unsigned char HTOPT[] =
-{
+static const unsigned char HTOPT[] = {
     0,  1,  1,  1,  2,  2,  2,  3,  3,  4,  4,  4,  5,  5,  5,  6, /* 00 - 0f */
-    6,  7,  7,  7,  8,  8,  9,  9,  9, 10, 10, 11, 11, 11, 12, 12, /* 10 - 1f */
+    6,  7,  7,  7,  8,  8,  9,  9,  9,  10, 10, 11, 11, 11, 12, 12, /* 10 - 1f */
     13, 13, 13, 14, 14, 15, 15, 15, 16, 16, 16, 17, 17, 18, 18, 18, /* 20 - 2f */
     19, 19, 20, 20, 20, 21, 21, 22, 22, 22, 23, 23, 24, 24, 24, 25, /* 30 - 3f */
     25, 25, 26, 26, 27, 27, 27, 28, 28, 29, 29, 29, 30, 30, 31, 31, /* 40 - 4f */
@@ -99,29 +95,23 @@ static const unsigned char HTOPT[] =
     75, 76, 76, 76, 77, 77, 78, 78, 78, 79, 79, 80, 80, 80, 81, 81, /* c0 - cf */
     82, 82, 82, 83, 83, 84, 84, 84, 85, 85, 85, 86, 86, 87, 87, 87, /* d0 - df */
     88, 88, 89, 89, 89, 90, 90, 91, 91, 91, 92, 92, 93, 93, 93, 94, /* e0 - ef */
-    94, 95, 95, 95, 96, 96, 96, 97, 97, 98, 98, 98, 99, 99, 99,100  /* f0 - ff */
+    94, 95, 95, 95, 96, 96, 96, 97, 97, 98, 98, 98, 99, 99, 99, 100 /* f0 - ff */
 };
 
 // Conversion table to convert percent to 0-255 values
-static const unsigned char PTOHT[] =
-{
-    0x00, 0x03, 0x05, 0x08, 0x0a, 0x0d, 0x0f, 0x12, 0x14, 0x17,  /*  0 -  9 */
-    0x1a, 0x1c, 0x1f, 0x21, 0x24, 0x26, 0x29, 0x2b, 0x2e, 0x30,  /* 10 - 19 */
-    0x33, 0x36, 0x38, 0x3b, 0x3d, 0x40, 0x42, 0x45, 0x47, 0x4a,  /* 20 - 29 */
-    0x4d, 0x4f, 0x52, 0x54, 0x57, 0x59, 0x5c, 0x5e, 0x61, 0x63,  /* 30 - 39 */
-    0x66, 0x69, 0x6b, 0x6e, 0x70, 0x73, 0x75, 0x78, 0x7a, 0x7d,  /* 40 - 49 */
-    0x80, 0x82, 0x85, 0x87, 0x8a, 0x8c, 0x8f, 0x91, 0x94, 0x96,  /* 50 - 59 */
-    0x99, 0x9c, 0x9e, 0xa1, 0xa3, 0xa6, 0xa8, 0xab, 0xad, 0xb0,  /* 60 - 69 */
-    0xb3, 0xb5, 0xb8, 0xba, 0xbd, 0xbf, 0xc2, 0xc4, 0xc7, 0xc9,  /* 70 - 79 */
-    0xcc, 0xcf, 0xd1, 0xd4, 0xd6, 0xd9, 0xdb, 0xde, 0xe0, 0xe3,  /* 80 - 89 */
-    0xe6, 0xe8, 0xeb, 0xed, 0xf0, 0xf2, 0xf5, 0xf7, 0xfa, 0xfc,  /* 90 - 99 */
-    0xff
-};
-
+static const unsigned char PTOHT[] = {0x00, 0x03, 0x05, 0x08, 0x0a, 0x0d, 0x0f, 0x12, 0x14, 0x17, /*  0 -  9 */
+                                      0x1a, 0x1c, 0x1f, 0x21, 0x24, 0x26, 0x29, 0x2b, 0x2e, 0x30, /* 10 - 19 */
+                                      0x33, 0x36, 0x38, 0x3b, 0x3d, 0x40, 0x42, 0x45, 0x47, 0x4a, /* 20 - 29 */
+                                      0x4d, 0x4f, 0x52, 0x54, 0x57, 0x59, 0x5c, 0x5e, 0x61, 0x63, /* 30 - 39 */
+                                      0x66, 0x69, 0x6b, 0x6e, 0x70, 0x73, 0x75, 0x78, 0x7a, 0x7d, /* 40 - 49 */
+                                      0x80, 0x82, 0x85, 0x87, 0x8a, 0x8c, 0x8f, 0x91, 0x94, 0x96, /* 50 - 59 */
+                                      0x99, 0x9c, 0x9e, 0xa1, 0xa3, 0xa6, 0xa8, 0xab, 0xad, 0xb0, /* 60 - 69 */
+                                      0xb3, 0xb5, 0xb8, 0xba, 0xbd, 0xbf, 0xc2, 0xc4, 0xc7, 0xc9, /* 70 - 79 */
+                                      0xcc, 0xcf, 0xd1, 0xd4, 0xd6, 0xd9, 0xdb, 0xde, 0xe0, 0xe3, /* 80 - 89 */
+                                      0xe6, 0xe8, 0xeb, 0xed, 0xf0, 0xf2, 0xf5, 0xf7, 0xfa, 0xfc, /* 90 - 99 */
+                                      0xff};
 
 // Fade rates for the fade fx
-static const QList<qreal> FX_FADE_RATES({
- 0.5,1,2,5,10,25,44,50,75,100,500 });
+static const QList<qreal> FX_FADE_RATES({0.5, 1, 2, 5, 10, 25, 44, 50, 75, 100, 500});
 
 #endif // CONSTS_H
-

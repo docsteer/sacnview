@@ -1,11 +1,12 @@
 #ifndef PCAPPLAYBACK_H
 #define PCAPPLAYBACK_H
 
-#include <QWidget>
 #include "pcapplaybacksender.h"
+#include <QWidget>
 
-namespace Ui {
-class PcapPlayback;
+namespace Ui
+{
+    class PcapPlayback;
 }
 
 class PcapPlayback : public QWidget
@@ -13,7 +14,8 @@ class PcapPlayback : public QWidget
     Q_OBJECT
 
 public:
-    explicit PcapPlayback(QWidget *parent = 0);
+
+    explicit PcapPlayback(QWidget * parent = 0);
     ~PcapPlayback();
 
     static bool foundLibPcap();
@@ -31,9 +33,10 @@ private slots:
     void on_btnReset_clicked();
 
 private:
-    Ui::PcapPlayback *ui;
 
-    pcapplaybacksender *sender;
+    Ui::PcapPlayback * ui;
+
+    pcapplaybacksender * sender;
 
     void openThread();
     void closeThread();

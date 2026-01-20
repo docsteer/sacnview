@@ -1,42 +1,41 @@
 #include "securesacn.h"
-#include "streamcommon.h"
 #include "defpack.h"
 #include "preferences.h"
+#include "streamcommon.h"
 
 #include "blake2.h"
 #include <QDataStream>
+#include <QDateTime>
 #include <QThread>
 #include <string.h>
-#include <QDateTime>
 
-PathwaySecure::Password::Password(QString password) :
-    password(password),
-    fingerprint(RootLayer::PostAmble::FINGERPRINT_SIZE, 0x00)
+PathwaySecure::Password::Password(QString password)
+    : password(password), fingerprint(RootLayer::PostAmble::FINGERPRINT_SIZE, 0x00)
 {
     // Trim/Pass password as required
     this->password.resize(Password::SIZE, QChar(0x00));
 
     // Generate fingerprint
     blake2s(
-        this->fingerprint.data(), this->fingerprint.size(), // Resultant fingerprint
-        this->password.toUtf8().constData(), this->password.size(), // We are hashing the password
-        nullptr, 0); // No Key
+        this->fingerprint.data(),
+        this->fingerprint.size(), // Resultant fingerprint
+        this->password.toUtf8().constData(),
+        this->password.size(), // We are hashing the password
+        nullptr,
+        0); // No Key
 }
 
-bool PathwaySecure::RootLayer::PostAmble::GetBuffer(quint8 *inbuf, size_t buflen, quint8 **outbuf)
+bool PathwaySecure::RootLayer::PostAmble::GetBuffer(quint8 * inbuf, size_t buflen, quint8 ** outbuf)
 {
     *outbuf = nullptr;
 
-    if(!inbuf)
-       return false;
+    if (!inbuf) return false;
 
-    if (buflen < STREAM_HEADER_SIZE)
-        return false;
+    if (buflen < STREAM_HEADER_SIZE) return false;
 
     const quint16 slot_count = UpackBUint16(inbuf + PROP_COUNT_ADDR) - 1;
     const quint16 addr = STREAM_HEADER_SIZE + slot_count;
-    if (buflen != addr + RootLayer::POSTAMBLE_SIZE)
-        return false;
+    if (buflen != addr + RootLayer::POSTAMBLE_SIZE) return false;
 
     *outbuf = inbuf + addr;
     return true;
@@ -48,7 +47,12 @@ PathwaySecure::Sequence::Sequence()
     QByteArray ba = Preferences::Instance().GetPathwaySecureSequenceMap();
     QDataStream ds(&ba, QIODevice::ReadOnly);
     ds >> last[type_nonvolatile];
-    qDebug() << "PathwaySecure" << QThread::currentThreadId() << ": Loaded" << last[type_nonvolatile].size() << "Non-volatile sequence value(s)";
+    qDebug()
+        << "PathwaySecure"
+        << QThread::currentThreadId()
+        << ": Loaded"
+        << last[type_nonvolatile].size()
+        << "Non-volatile sequence value(s)";
 
     // Load boot count, and increase
     bootCount = Preferences::Instance().GetPathwaySecureRxSequenceBootCount() + 1;
@@ -56,13 +60,18 @@ PathwaySecure::Sequence::Sequence()
 }
 
 PathwaySecure::Sequence::~Sequence()
-{    
+{
     // Store non volatile sequence numbers
     QByteArray ba;
     QDataStream ds(&ba, QIODevice::WriteOnly);
     ds << last[type_nonvolatile];
     Preferences::Instance().SetPathwaySecureSequenceMap(ba);
-    qDebug() << "PathwaySecure" << QThread::currentThreadId() << ": Saved" << last[type_nonvolatile].size() << "Non-volatile sequence value(s)";
+    qDebug()
+        << "PathwaySecure"
+        << QThread::currentThreadId()
+        << ": Saved"
+        << last[type_nonvolatile].size()
+        << "Non-volatile sequence value(s)";
 
     // Save boot count
     Preferences::Instance().SetPathwaySecureRxSequenceBootCount(bootCount);
@@ -72,7 +81,7 @@ PathwaySecure::Sequence::~Sequence()
     Preferences::Instance().savePreferences();
 }
 
-bool PathwaySecure::Sequence::validate(const CID &cid, type_t type, value_t value, bool expired)
+bool PathwaySecure::Sequence::validate(const CID & cid, type_t type, value_t value, bool expired)
 {
     const value_t last_value = last[type][cid];
     last[type][cid] = value;
@@ -82,10 +91,10 @@ bool PathwaySecure::Sequence::validate(const CID &cid, type_t type, value_t valu
      * but was that because we've just send this?
      * Check if the sender is local, and if so account for this
      */
-    if (diff == 0) {
+    if (diff == 0)
+    {
         const auto localSenders = sACNManager::Instance().getSenderList();
-        if (localSenders.count(cid))
-            --diff;
+        if (localSenders.count(cid)) --diff;
     }
 
     switch (type)
@@ -100,10 +109,9 @@ bool PathwaySecure::Sequence::validate(const CID &cid, type_t type, value_t valu
             {
                 const auto window = Preferences::Instance().GetPathwaySecureRxSequenceTimeWindow();
                 const decltype(diff) time_diff = QDateTime::currentMSecsSinceEpoch() - value;
-                if (abs(time_diff) > window)
-                    return false;
+                if (abs(time_diff) > window) return false;
             }
-        break;
+            break;
 
         case type_volatile:
             /*
@@ -111,8 +119,7 @@ bool PathwaySecure::Sequence::validate(const CID &cid, type_t type, value_t valu
              * initialize the sequence field to 1 before beginning transmission of a stream. For each successive packet
              * the sender shall increment the sequence field.
              */
-            if (expired)
-                diff = 0 - value; // Reset sequence for expired sources
+            if (expired) diff = 0 - value; // Reset sequence for expired sources
             break;
 
         case type_nonvolatile:
@@ -125,22 +132,22 @@ bool PathwaySecure::Sequence::validate(const CID &cid, type_t type, value_t valu
              */
             break;
 
-        default:
-            return false;
+        default: return false;
     }
 
     // Sequence order ok?
-    const bool sequence_ok =
-            diff != std::clamp(diff, static_cast<qint64>(Sequence::value_t::MINIMUM), static_cast<qint64>(Sequence::value_t::MAXIMUM));
+    const bool sequence_ok = diff
+        != std::clamp(diff,
+                      static_cast<qint64>(Sequence::value_t::MINIMUM),
+                      static_cast<qint64>(Sequence::value_t::MAXIMUM));
 
     return sequence_ok;
 }
 
-PathwaySecure::Sequence::value_t PathwaySecure::Sequence::next(const CID &cid, type_t type)
+PathwaySecure::Sequence::value_t PathwaySecure::Sequence::next(const CID & cid, type_t type)
 {
     value_t value = 0;
-    if (!last[type].contains(cid))
-        last[type][cid] = 0;
+    if (!last[type].contains(cid)) last[type][cid] = 0;
 
     switch (type)
     {
@@ -181,126 +188,143 @@ PathwaySecure::Sequence::value_t PathwaySecure::Sequence::next(const CID &cid, t
 }
 
 bool PathwaySecure::VerifyStreamHeader(
-        const quint8* pbuf, size_t buflen,
-        CID &source_cid, char* source_name,
-        quint8 &priority, quint8 &start_code,
-        quint16 &synchronization, quint8 &sequence,
-        quint8 &options, quint16 &universe,
-        quint16 &slot_count, const quint8* &pdata)
+    const quint8 * pbuf,
+    size_t buflen,
+    CID & source_cid,
+    char * source_name,
+    quint8 & priority,
+    quint8 & start_code,
+    quint16 & synchronization,
+    quint8 & sequence,
+    quint8 & options,
+    quint16 & universe,
+    quint16 & slot_count,
+    const quint8 *& pdata)
 {
-    if(!pbuf)
-        return false;
+    if (!pbuf) return false;
 
     /* Check amble size and root vector */
-    if (buflen < ROOT_VECTOR_ADDR + sizeof(RootLayer::RootLayer::VECTOR))
-        return false;
-    if (UpackBUint16(pbuf + PREAMBLE_SIZE_ADDR) != RootLayer::PREAMBLE_SIZE)
-        return false;
-    if (UpackBUint16(pbuf + POSTAMBLE_SIZE_ADDR) != RootLayer::POSTAMBLE_SIZE)
-        return false;
-    if (UpackBUint32(pbuf + ROOT_VECTOR_ADDR) != RootLayer::VECTOR)
-        return false;
+    if (buflen < ROOT_VECTOR_ADDR + sizeof(RootLayer::RootLayer::VECTOR)) return false;
+    if (UpackBUint16(pbuf + PREAMBLE_SIZE_ADDR) != RootLayer::PREAMBLE_SIZE) return false;
+    if (UpackBUint16(pbuf + POSTAMBLE_SIZE_ADDR) != RootLayer::POSTAMBLE_SIZE) return false;
+    if (UpackBUint32(pbuf + ROOT_VECTOR_ADDR) != RootLayer::VECTOR) return false;
 
     /* Verify header as if release version. The stock VerifyStreamHeader assumes root vector is VECTOR_ROOT_E131_DATA */
     return ::VerifyStreamHeader(
-                pbuf, buflen,
-                source_cid, source_name,
-                priority, start_code,
-                synchronization, sequence,
-                options, universe,
-                slot_count, pdata);
+        pbuf,
+        buflen,
+        source_cid,
+        source_name,
+        priority,
+        start_code,
+        synchronization,
+        sequence,
+        options,
+        universe,
+        slot_count,
+        pdata);
 }
 
 void PathwaySecure::InitStreamHeader(
-                quint8* pbuf, const CID &source_cid,
-                const char* source_name, quint8 priority,
-                quint16 synchronization, quint8 options,
-                quint8 start_code, quint16 universe,
-                quint16 slot_count)
+    quint8 * pbuf,
+    const CID & source_cid,
+    const char * source_name,
+    quint8 priority,
+    quint16 synchronization,
+    quint8 options,
+    quint8 start_code,
+    quint16 universe,
+    quint16 slot_count)
 {
     // Init header for release version
     ::InitStreamHeader(
-                pbuf, source_cid,
-                source_name, priority,
-                synchronization, options,
-                start_code, universe,
-                slot_count);
+        pbuf,
+        source_cid,
+        source_name,
+        priority,
+        synchronization,
+        options,
+        start_code,
+        universe,
+        slot_count);
 
     // Update root layer
     PackBUint16(pbuf + PREAMBLE_SIZE_ADDR, RootLayer::PREAMBLE_SIZE);
     PackBUint16(pbuf + POSTAMBLE_SIZE_ADDR, RootLayer::POSTAMBLE_SIZE);
-    PackBUint32(pbuf + ROOT_VECTOR_ADDR,  RootLayer::VECTOR);
+    PackBUint32(pbuf + ROOT_VECTOR_ADDR, RootLayer::VECTOR);
 }
 
-bool PathwaySecure::VerifyStreamSecurity(const quint8* pbuf, size_t buflen, password_t password, sACNSource &source)
+bool PathwaySecure::VerifyStreamSecurity(const quint8 * pbuf, size_t buflen, password_t password, sACNSource & source)
 {
-    auto &instance = getInstance();
-    if(!pbuf)
-       return false;
+    auto & instance = getInstance();
+    if (!pbuf) return false;
 
     source.pathway_secure.passwordOk = false;
     source.pathway_secure.digestOk = false;
     source.pathway_secure.sequenceOk = false;
 
-    const quint8* post_amble_buf = nullptr;
-    if (!RootLayer::PostAmble::GetBuffer(
-                const_cast<quint8*>(pbuf), buflen, const_cast<quint8**>(&post_amble_buf)))
+    const quint8 * post_amble_buf = nullptr;
+    if (!RootLayer::PostAmble::GetBuffer(const_cast<quint8 *>(pbuf), buflen, const_cast<quint8 **>(&post_amble_buf)))
         return false;
 
-    if (!post_amble_buf)
-        return false;
+    if (!post_amble_buf) return false;
 
-    const QByteArray key_fingerprint =
-            Upack(post_amble_buf + RootLayer::PostAmble::FINGERPRINT_ADDR, RootLayer::PostAmble::FINGERPRINT_SIZE);
-    const Sequence::type_t sequence_type =
-            static_cast<Sequence::type_t>(UpackBUint8(post_amble_buf + RootLayer::PostAmble::SEQUENCE_TYPE_ADDR));
-    const Sequence::value_t sequence =
-            UpackBN<Sequence::value_t>(post_amble_buf + RootLayer::PostAmble::SEQUENCE_ADDR, RootLayer::PostAmble::SEQUENCE_SIZE);
-    const QByteArray message_digest =
-            Upack(post_amble_buf + RootLayer::PostAmble::MESSAGE_DIGEST_ADDR, RootLayer::PostAmble::MESSAGE_DIGEST_SIZE);
+    const QByteArray key_fingerprint = Upack(
+        post_amble_buf + RootLayer::PostAmble::FINGERPRINT_ADDR,
+        RootLayer::PostAmble::FINGERPRINT_SIZE);
+    const Sequence::type_t sequence_type = static_cast<Sequence::type_t>(
+        UpackBUint8(post_amble_buf + RootLayer::PostAmble::SEQUENCE_TYPE_ADDR));
+    const Sequence::value_t sequence = UpackBN<Sequence::value_t>(
+        post_amble_buf + RootLayer::PostAmble::SEQUENCE_ADDR,
+        RootLayer::PostAmble::SEQUENCE_SIZE);
+    const QByteArray message_digest = Upack(
+        post_amble_buf + RootLayer::PostAmble::MESSAGE_DIGEST_ADDR,
+        RootLayer::PostAmble::MESSAGE_DIGEST_SIZE);
 
     // Verify Key Fingerprint
     source.pathway_secure.passwordOk = password.getFingerprint() == key_fingerprint;
-    if (!source.pathway_secure.passwordOk)
-        return false;
+    if (!source.pathway_secure.passwordOk) return false;
 
     // Verify Sequence
-    source.pathway_secure.sequenceOk = instance.sequence.validate(source.src_cid, sequence_type, sequence, source.active.Expired());
-    if (!source.pathway_secure.sequenceOk)
-        return false;
+    source.pathway_secure.sequenceOk = instance.sequence
+                                           .validate(source.src_cid, sequence_type, sequence, source.active.Expired());
+    if (!source.pathway_secure.sequenceOk) return false;
 
     // Verify Message Digest
     QByteArray expected_message_digest(RootLayer::PostAmble::MESSAGE_DIGEST_SIZE, 0x00);
     blake2s(
-        expected_message_digest.data(), expected_message_digest.size(), // Resultant Message Digest
-        pbuf, buflen - RootLayer::PostAmble::MESSAGE_DIGEST_SIZE, // Payload, sans Message Digest
-        password.getPassword().toUtf8().constData(), password.getPassword().size()); // Password
+        expected_message_digest.data(),
+        expected_message_digest.size(), // Resultant Message Digest
+        pbuf,
+        buflen - RootLayer::PostAmble::MESSAGE_DIGEST_SIZE, // Payload, sans Message Digest
+        password.getPassword().toUtf8().constData(),
+        password.getPassword().size()); // Password
     source.pathway_secure.digestOk = (expected_message_digest == message_digest);
-    if (!source.pathway_secure.digestOk)
-        return false;
+    if (!source.pathway_secure.digestOk) return false;
 
     return source.pathway_secure.isSecure();
 }
 
-bool PathwaySecure::ApplyStreamSecurity(quint8* pbuf, size_t buflen, const CID &cid, const password_t &password)
+bool PathwaySecure::ApplyStreamSecurity(quint8 * pbuf, size_t buflen, const CID & cid, const password_t & password)
 {
-    auto &instance = getInstance();
+    auto & instance = getInstance();
 
-    quint8* post_amble_buf = nullptr;
-    if (!RootLayer::PostAmble::GetBuffer(pbuf, buflen, &post_amble_buf))
-        return false;
+    quint8 * post_amble_buf = nullptr;
+    if (!RootLayer::PostAmble::GetBuffer(pbuf, buflen, &post_amble_buf)) return false;
 
-    if (!post_amble_buf)
-        return false;
+    if (!post_amble_buf) return false;
 
     // Key Fingerprint
     const auto key_fingerprint = password.getFingerprint();
-    if (key_fingerprint.size() !=  RootLayer::PostAmble::FINGERPRINT_SIZE)
-        return false;
-    Pack(post_amble_buf + RootLayer::PostAmble::FINGERPRINT_ADDR, RootLayer::PostAmble::FINGERPRINT_SIZE, key_fingerprint);
+    if (key_fingerprint.size() != RootLayer::PostAmble::FINGERPRINT_SIZE) return false;
+    Pack(
+        post_amble_buf + RootLayer::PostAmble::FINGERPRINT_ADDR,
+        RootLayer::PostAmble::FINGERPRINT_SIZE,
+        key_fingerprint);
 
     // Sequence Type
-    const Sequence::type_t sequence_type = static_cast<Sequence::type_t>(Preferences::Instance().GetPathwaySecureTxSequenceType());
+    const Sequence::type_t sequence_type = static_cast<Sequence::type_t>(
+        Preferences::Instance().GetPathwaySecureTxSequenceType());
     PackBUint8(post_amble_buf + RootLayer::PostAmble::SEQUENCE_TYPE_ADDR, sequence_type);
 
     // Sequence Value
@@ -310,10 +334,16 @@ bool PathwaySecure::ApplyStreamSecurity(quint8* pbuf, size_t buflen, const CID &
     // Message Digest
     QByteArray message_digest(RootLayer::PostAmble::MESSAGE_DIGEST_SIZE, 0x00);
     blake2s(
-        message_digest.data(), message_digest.size(), // Resultant Message Digest
-        pbuf, buflen - RootLayer::PostAmble::MESSAGE_DIGEST_SIZE, // Payload, sans Message Digest
-        password.getPassword().toUtf8().constData(), password.getPassword().size()); // Password
-    Pack(post_amble_buf + RootLayer::PostAmble::MESSAGE_DIGEST_ADDR, RootLayer::PostAmble::MESSAGE_DIGEST_SIZE, message_digest);
+        message_digest.data(),
+        message_digest.size(), // Resultant Message Digest
+        pbuf,
+        buflen - RootLayer::PostAmble::MESSAGE_DIGEST_SIZE, // Payload, sans Message Digest
+        password.getPassword().toUtf8().constData(),
+        password.getPassword().size()); // Password
+    Pack(
+        post_amble_buf + RootLayer::PostAmble::MESSAGE_DIGEST_ADDR,
+        RootLayer::PostAmble::MESSAGE_DIGEST_SIZE,
+        message_digest);
 
     return true;
 }

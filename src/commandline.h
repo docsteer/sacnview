@@ -1,18 +1,19 @@
 #ifndef COMMANDLINE_H
 #define COMMANDLINE_H
 
+#include <QLCDNumber>
 #include <QObject>
-#include <QWidget>
 #include <QPlainTextEdit>
 #include <QStack>
-#include <QLCDNumber>
-#include <QTimer>
 #include <QString>
+#include <QTimer>
+#include <QWidget>
 
 class CommandLine : public QObject
 {
     Q_OBJECT
 public:
+
     // Strings
     const QString K_THRU() { return QObject::tr("THRU"); }
     const QString K_OFFSET() { return QObject::tr("OFFSET"); }
@@ -24,11 +25,12 @@ public:
 
     const QString E_SYNTAX() { return QObject::tr("Error - syntax error"); }
     const QString E_RANGE() { return QObject::tr("Error - number out of range"); }
-    const QString E_NO_SELECTION() {return QObject::tr("Error - no selection"); }
+    const QString E_NO_SELECTION() { return QObject::tr("Error - no selection"); }
 
-    explicit CommandLine(QObject *parent = nullptr);
+    explicit CommandLine(QObject * parent = nullptr);
 
-    enum Key {
+    enum Key
+    {
         K0,
         K1,
         K2,
@@ -50,19 +52,20 @@ public:
         ALL_OFF
     };
 
-
     QString text();
     QString errorText() { return m_errorText; }
     void processKey(Key value);
     QSet<int> addresses() { return m_addresses; }
     int level() { return m_level; }
+
 private:
+
     enum stackState
     {
-            stChannel,
-            stLevels,
-            stReady,
-            stError,
+        stChannel,
+        stLevels,
+        stReady,
+        stError,
     };
     struct stackFlags
     {
@@ -74,20 +77,21 @@ private:
     QString m_text;
     QString m_errorText;
     void processStack();
-    void getSelection(QSet<int> *selection, int *numberEntry, int *startRange, int offset, stackFlags flags);
+    void getSelection(QSet<int> * selection, int * numberEntry, int * startRange, int offset, stackFlags flags);
     QSet<int> m_addresses;
     int m_level;
     bool m_terminated;
     QStack<Key> m_previousKeyStack;
     QStack<Key> m_keyStack;
-    QTimer *m_clearKeyTimer;
+    QTimer * m_clearKeyTimer;
 };
 
 class CommandLineWidget : public QTextEdit
 {
     Q_OBJECT
 public:
-    CommandLineWidget(QWidget *parent = 0);
+
+    CommandLineWidget(QWidget * parent = 0);
 public slots:
     void key1() { processKey(CommandLine::K1); }
     void key2() { processKey(CommandLine::K2); }
@@ -110,15 +114,19 @@ public slots:
     void keyAllOff() { processKey(CommandLine::ALL_OFF); }
 signals:
     void setLevels(QSet<int> addreses, int level);
+
 protected:
-    virtual void keyPressEvent(QKeyEvent *e);
+
+    virtual void keyPressEvent(QKeyEvent * e);
 private slots:
     void flashCursor();
+
 private:
+
     CommandLine m_commandLine;
     void updateText();
     void processKey(CommandLine::Key);
-    QTimer *m_cursorTimer;
+    QTimer * m_cursorTimer;
     bool m_cursorState;
 };
 
@@ -126,12 +134,15 @@ class EditableLCDNumber : public QLCDNumber
 {
     Q_OBJECT
 public:
-    EditableLCDNumber(QWidget *parent);
+
+    EditableLCDNumber(QWidget * parent);
 signals:
     void valueChanged(int);
     void toggleOff();
+
 protected:
-    virtual void keyPressEvent(QKeyEvent *event);
+
+    virtual void keyPressEvent(QKeyEvent * event);
 };
 
 #endif // COMMANDLINE_H

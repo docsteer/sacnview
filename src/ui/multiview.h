@@ -23,33 +23,36 @@
 class sACNListener;
 class SACNSourceTableModel;
 
-namespace Ui {
-  class MultiView;
+namespace Ui
+{
+    class MultiView;
 }
 
 class MultiView : public QWidget
 {
-  Q_OBJECT
+    Q_OBJECT
 public:
-  explicit MultiView(QWidget* parent = 0);
-  explicit MultiView(int firstUniverse, QWidget* parent = 0);
-  ~MultiView();
 
-  // Trigger API
-  Q_SLOT void startRx() { on_btnStartStop_clicked(true); }
-  Q_SLOT void stopRx() { on_btnStartStop_clicked(false); }
+    explicit MultiView(QWidget * parent = 0);
+    explicit MultiView(int firstUniverse, QWidget * parent = 0);
+    ~MultiView();
 
-  Q_INVOKABLE QJsonObject getJsonConfiguration() const;
-  Q_INVOKABLE void setJsonConfiguration(const QJsonObject& json);
+    // Trigger API
+    Q_SLOT void startRx() { on_btnStartStop_clicked(true); }
+    Q_SLOT void stopRx() { on_btnStartStop_clicked(false); }
+
+    Q_INVOKABLE QJsonObject getJsonConfiguration() const;
+    Q_INVOKABLE void setJsonConfiguration(const QJsonObject & json);
 
 protected slots:
-  void on_btnStartStop_clicked(bool checked);
-  void on_btnClearOffline_clicked();
-  void on_btnResetCounters_clicked();
-  void on_btnExport_clicked();
+    void on_btnStartStop_clicked(bool checked);
+    void on_btnClearOffline_clicked();
+    void on_btnResetCounters_clicked();
+    void on_btnExport_clicked();
 
 private:
-  Ui::MultiView* ui = nullptr;
-  SACNSourceTableModel* m_sourceTableModel = nullptr;
-  std::map<uint16_t, sACNManager::tListener> m_listeners;
+
+    Ui::MultiView * ui = nullptr;
+    SACNSourceTableModel * m_sourceTableModel = nullptr;
+    std::map<uint16_t, sACNManager::tListener> m_listeners;
 };

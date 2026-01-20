@@ -16,23 +16,22 @@
 #include "transmitwindow.h"
 #include "ui_transmitwindow.h"
 
-#include "consts.h"
-#include "sacn/ACNShare/ipaddr.h"
-#include "sacn/streamingacn.h"
-#include "sacn/sacneffectengine.h"
 #include "configureperchanpriodlg.h"
+#include "consts.h"
 #include "preferences.h"
+#include "sacn/ACNShare/ipaddr.h"
+#include "sacn/sacneffectengine.h"
+#include "sacn/streamingacn.h"
 #include <QButtonGroup>
-#include <QToolButton>
 #include <QMessageBox>
+#include <QToolButton>
 
-const char* FADERLABELFORMAT = "<b>%1</b><br>%2";
-const char* FADERADDRESSPROP = "ADDRESS";
-const char* FADERLABELPROP = "LABEL*";
+const char * FADERLABELFORMAT = "<b>%1</b><br>%2";
+const char * FADERADDRESSPROP = "ADDRESS";
+const char * FADERLABELPROP = "LABEL*";
 
-transmitwindow::transmitwindow(int universe, QWidget *parent)
-  : QWidget(parent)
-  , ui(new Ui::transmitwindow)
+transmitwindow::transmitwindow(int universe, QWidget * parent)
+    : QWidget(parent), ui(new Ui::transmitwindow)
 {
     ui->setupUi(this);
 
@@ -69,7 +68,7 @@ transmitwindow::transmitwindow(int universe, QWidget *parent)
     ui->leSourceName->setText(Preferences::Instance().GetDefaultTransmitName());
 
     ui->dlFadeRate->setMinimum(0);
-    ui->dlFadeRate->setMaximum(static_cast<int>(FX_FADE_RATES.count()-1));
+    ui->dlFadeRate->setMaximum(static_cast<int>(FX_FADE_RATES.count() - 1));
     ui->dlFadeRate->setValue(0);
 
     ui->tabWidget->setCurrentIndex(0);
@@ -81,18 +80,18 @@ transmitwindow::transmitwindow(int universe, QWidget *parent)
     ui->btnFxPause->setEnabled(false);
 
     // Create preset buttons
-    QHBoxLayout *layout = new QHBoxLayout();
-    for(int i=0; i<PRESET_COUNT; i++)
+    QHBoxLayout * layout = new QHBoxLayout();
+    for (int i = 0; i < PRESET_COUNT; i++)
     {
-        QToolButton *button = new QToolButton(this);
-        button->setText(QString::number(i+1));
+        QToolButton * button = new QToolButton(this);
+        button->setText(QString::number(i + 1));
         button->setMinimumSize(16, 16);
         button->setFocusPolicy(Qt::FocusPolicy::NoFocus);
         layout->addWidget(button);
         m_presetButtons << button;
         connect(button, &QAbstractButton::pressed, this, &transmitwindow::presetButtonPressed);
     }
-    QToolButton *recordButton = new QToolButton(this);
+    QToolButton * recordButton = new QToolButton(this);
     m_presetButtons << recordButton;
     recordButton->setCheckable(true);
     recordButton->setIcon(QIcon(":/icons/record.png"));
@@ -103,27 +102,27 @@ transmitwindow::transmitwindow(int universe, QWidget *parent)
 
     // Create faders
     uint16_t sliderAddress = 0;
-    QVBoxLayout *mainLayout = new QVBoxLayout();
-    for(int row=0; row<2; row++)
+    QVBoxLayout * mainLayout = new QVBoxLayout();
+    for (int row = 0; row < 2; row++)
     {
-        QHBoxLayout *rowLayout = new QHBoxLayout();
-        for(int col=0; col<NUM_SLIDERS/2; col++)
+        QHBoxLayout * rowLayout = new QHBoxLayout();
+        for (int col = 0; col < NUM_SLIDERS / 2; col++)
         {
-            QVBoxLayout *faderVb = new QVBoxLayout();
-            QSlider *slider = new QSlider(this);
+            QVBoxLayout * faderVb = new QVBoxLayout();
+            QSlider * slider = new QSlider(this);
             m_sliders << slider;
             slider->setProperty(FADERADDRESSPROP, sliderAddress);
             slider->setMinimum(MIN_SACN_LEVEL);
             slider->setMaximum(MAX_SACN_LEVEL);
             connect(slider, &QSlider::valueChanged, this, &transmitwindow::on_sliderMoved);
-            QLabel *label = new QLabel(this);
+            QLabel * label = new QLabel(this);
             slider->setProperty(FADERLABELPROP, QVariant::fromValue(label));
             label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
             label->setMinimumWidth(25);
             label->setText(QString(FADERLABELFORMAT)
-                .arg(sliderAddress + 1)
-                .arg(Preferences::Instance().GetFormattedValue(m_levels.at(sliderAddress))));
-            QHBoxLayout *sliderLayout = new QHBoxLayout(); // This keeps the sliders horizontally centered
+                               .arg(sliderAddress + 1)
+                               .arg(Preferences::Instance().GetFormattedValue(m_levels.at(sliderAddress))));
+            QHBoxLayout * sliderLayout = new QHBoxLayout(); // This keeps the sliders horizontally centered
             sliderLayout->addWidget(slider);
             faderVb->addLayout(sliderLayout);
             faderVb->addWidget(label);
@@ -147,7 +146,6 @@ transmitwindow::transmitwindow(int universe, QWidget *parent)
     ui->tabWidget->adjustSize();
     mainLayout->update();
 
-
     adjustSize();
     updateGeometry();
 
@@ -167,8 +165,12 @@ transmitwindow::transmitwindow(int universe, QWidget *parent)
     QTimer::singleShot(30, Qt::CoarseTimer, this, &transmitwindow::fixSize);
 
     // Set up effect radio buttons
-    QButtonGroup *effectGroup = new QButtonGroup(this);
-    connect(effectGroup, QOverload<QAbstractButton*, bool>::of(&QButtonGroup::buttonToggled), this, &transmitwindow::radioFadeMode_toggled);
+    QButtonGroup * effectGroup = new QButtonGroup(this);
+    connect(
+        effectGroup,
+        QOverload<QAbstractButton *, bool>::of(&QButtonGroup::buttonToggled),
+        this,
+        &transmitwindow::radioFadeMode_toggled);
     effectGroup->addButton(ui->rbFadeManual);
     effectGroup->addButton(ui->rbFadeRamp);
     effectGroup->addButton(ui->rbFadeSine);
@@ -178,13 +180,21 @@ transmitwindow::transmitwindow(int universe, QWidget *parent)
     effectGroup->addButton(ui->rbDateTime);
     effectGroup->addButton(ui->rbChase);
 
-    QButtonGroup *effectDateGroup = new QButtonGroup(this);
-    connect(effectDateGroup, QOverload<QAbstractButton*, bool>::of(&QButtonGroup::buttonToggled), this, &transmitwindow::dateMode_toggled);
+    QButtonGroup * effectDateGroup = new QButtonGroup(this);
+    connect(
+        effectDateGroup,
+        QOverload<QAbstractButton *, bool>::of(&QButtonGroup::buttonToggled),
+        this,
+        &transmitwindow::dateMode_toggled);
     effectDateGroup->addButton(ui->rbEuDate);
     effectDateGroup->addButton(ui->rbUsDate);
 
-    QButtonGroup *effectChaseGroup = new QButtonGroup(this);
-    connect(effectChaseGroup, QOverload<QAbstractButton*, bool>::of(&QButtonGroup::buttonToggled), this, &transmitwindow::radioFadeMode_toggled);
+    QButtonGroup * effectChaseGroup = new QButtonGroup(this);
+    connect(
+        effectChaseGroup,
+        QOverload<QAbstractButton *, bool>::of(&QButtonGroup::buttonToggled),
+        this,
+        &transmitwindow::radioFadeMode_toggled);
     effectChaseGroup->addButton(ui->rbChaseRamp);
     effectChaseGroup->addButton(ui->rbChaseSine);
     effectChaseGroup->addButton(ui->rbChaseSnap);
@@ -194,12 +204,15 @@ transmitwindow::transmitwindow(int universe, QWidget *parent)
     ui->lePathwaySecurePassword->setText(Preferences::Instance().GetPathwaySecureTxPassword());
 
     // Minimum FPS
-    if (!Preferences::Instance().GetTXRateOverride()) {
+    if (!Preferences::Instance().GetTXRateOverride())
+    {
         ui->sbMinFPS->setMinimum(E1_11::MIN_REFRESH_RATE_HZ);
         ui->sbMinFPS->setMaximum(E1_11::MAX_REFRESH_RATE_HZ);
         ui->sbMaxFPS->setMinimum(E1_11::MIN_REFRESH_RATE_HZ);
         ui->sbMaxFPS->setMaximum(E1_11::MAX_REFRESH_RATE_HZ);
-    } else {
+    }
+    else
+    {
         ui->sbMinFPS->setMinimum(static_cast<float>(E1_11::MIN_REFRESH_RATE_HZ) / 2);
         ui->sbMinFPS->setMaximum(std::numeric_limits<decltype(ui->sbMinFPS->value())>::max());
         ui->sbMaxFPS->setMinimum(static_cast<float>(E1_11::MIN_REFRESH_RATE_HZ) / 2);
@@ -239,19 +252,37 @@ transmitwindow::transmitwindow(int universe, QWidget *parent)
 
     connect(ui->gridControl, &GridEditWidget::levelsSet, this, &transmitwindow::setLevelList);
 
-    if(!m_sender)
+    if (!m_sender)
     {
         m_sender = sACNManager::Instance().getSender(ui->sbUniverse->value());
         connect(m_sender.data(), &sACNSentUniverse::sendingTimeout, this, &transmitwindow::sourceTimeout);
     }
-    if(!m_fxEngine)
+    if (!m_fxEngine)
     {
         m_fxEngine = new sACNEffectEngine(m_sender);
         connect(m_fxEngine, &sACNEffectEngine::fxLevelChange, ui->slFadeLevel, &QSlider::setValue);
         connect(m_fxEngine, &sACNEffectEngine::textImageChanged, ui->lblTextImage, &QLabel::setPixmap);
-        connect(m_fxEngine, &sACNEffectEngine::running, this, [this]() { ui->btnFxStart->setEnabled(false); ui->btnFxPause->setEnabled(true); }, Qt::QueuedConnection);
-        connect(m_fxEngine, &sACNEffectEngine::paused, this, [this]() { ui->btnFxStart->setEnabled(true); ui->btnFxPause->setEnabled(false); } , Qt::QueuedConnection);
-        m_fxEngine->setRange(ui->sbFadeRangeStart->value()-1, ui->sbFadeRangeEnd->value()-1);
+        connect(
+            m_fxEngine,
+            &sACNEffectEngine::running,
+            this,
+            [this]()
+            {
+                ui->btnFxStart->setEnabled(false);
+                ui->btnFxPause->setEnabled(true);
+            },
+            Qt::QueuedConnection);
+        connect(
+            m_fxEngine,
+            &sACNEffectEngine::paused,
+            this,
+            [this]()
+            {
+                ui->btnFxStart->setEnabled(true);
+                ui->btnFxPause->setEnabled(false);
+            },
+            Qt::QueuedConnection);
+        m_fxEngine->setRange(ui->sbFadeRangeStart->value() - 1, ui->sbFadeRangeEnd->value() - 1);
         ui->btnFxStart->setEnabled(true);
     }
 }
@@ -266,9 +297,8 @@ void transmitwindow::fixSize()
 
 transmitwindow::~transmitwindow()
 {
-    if(m_sender)
-        m_sender->deleteLater();
-    if(m_fxEngine)
+    if (m_sender) m_sender->deleteLater();
+    if (m_fxEngine)
     {
         m_fxEngine->deleteLater();
     }
@@ -288,22 +318,20 @@ void transmitwindow::on_sbUniverse_valueChanged(int value)
 
 void transmitwindow::on_sliderMoved(int value)
 {
-    auto slider = qobject_cast<QSlider*>(sender());
-    if (!slider)
-        return;
-    const auto index = m_sliders.indexOf(qobject_cast<QSlider*>(sender()));
-    if(index<0) return;
+    auto slider = qobject_cast<QSlider *>(sender());
+    if (!slider) return;
+    const auto index = m_sliders.indexOf(qobject_cast<QSlider *>(sender()));
+    if (index < 0) return;
 
     bool ok;
     auto address = slider->property(FADERADDRESSPROP).toUInt(&ok);
-    if (!ok && address >= m_levels.size())
-        return;
+    if (!ok && address >= m_levels.size()) return;
 
-    QLabel *label = slider->property(FADERLABELPROP).value<QLabel*>();
-    if (label) {
-        label->setText(QString(FADERLABELFORMAT)
-            .arg(address+1)
-            .arg(Preferences::Instance().GetFormattedValue(value)));
+    QLabel * label = slider->property(FADERLABELPROP).value<QLabel *>();
+    if (label)
+    {
+        label->setText(
+            QString(FADERLABELFORMAT).arg(address + 1).arg(Preferences::Instance().GetFormattedValue(value)));
     }
 
     setLevel(address, value);
@@ -311,7 +339,7 @@ void transmitwindow::on_sliderMoved(int value)
 
 void transmitwindow::on_sbFadersStart_valueChanged(int address)
 {
-    for (const auto &slider : std::as_const(m_sliders))
+    for (const auto & slider : std::as_const(m_sliders))
     {
         slider->blockSignals(true);
 
@@ -324,11 +352,11 @@ void transmitwindow::on_sbFadersStart_valueChanged(int address)
         slider->setValue(level);
 
         // Address/level text display
-        QLabel *label = slider->property(FADERLABELPROP).value<QLabel*>();
-        if (label) {
-            label->setText(QString(FADERLABELFORMAT)
-                .arg(address)
-                .arg(Preferences::Instance().GetFormattedValue(level)));
+        QLabel * label = slider->property(FADERLABELPROP).value<QLabel *>();
+        if (label)
+        {
+            label->setText(
+                QString(FADERLABELFORMAT).arg(address).arg(Preferences::Instance().GetFormattedValue(level)));
         }
 
         if (static_cast<size_t>(address) < m_levels.size())
@@ -345,7 +373,7 @@ void transmitwindow::setUniverseOptsEnabled(bool enabled)
     ui->frSourceOpts->setEnabled(enabled);
     ui->cbBlind->setEnabled(enabled ? ui->rbRatified->isChecked() : false);
 
-    if(enabled)
+    if (enabled)
     {
         ui->btnStart->setText(tr("Start"));
         on_cbPriorityMode_currentIndexChanged(ui->cbPriorityMode->currentIndex());
@@ -354,7 +382,6 @@ void transmitwindow::setUniverseOptsEnabled(bool enabled)
     {
         ui->btnStart->setText(tr("Stop"));
     }
-
 }
 
 void transmitwindow::updateTitle()
@@ -371,30 +398,30 @@ void transmitwindow::on_btnStart_pressed()
 {
     QHostAddress unicast;
     // Check settings
-    if(ui->rbUnicast->isChecked())
+    if (ui->rbUnicast->isChecked())
     {
         unicast = QHostAddress(ui->leUnicastAddress->text());
-        if(unicast.isNull())
+        if (unicast.isNull())
         {
-            QMessageBox::warning(this, tr("Invalid Unicast Address"),
-                                 tr("Enter a valid unicast address"));
+            QMessageBox::warning(this, tr("Invalid Unicast Address"), tr("Enter a valid unicast address"));
             return;
         }
     }
 
     m_sender->setUnicastAddress(unicast);
-    if(ui->rbRatified->isChecked())
+    if (ui->rbRatified->isChecked())
         m_sender->setProtocolVersion(StreamingACNProtocolVersion::sACNProtocolRelease);
     else if (ui->rbDraft->isChecked())
         m_sender->setProtocolVersion(StreamingACNProtocolVersion::sACNProtocolDraft);
-    else if (ui->rbPathwaySecure->isChecked()) {
+    else if (ui->rbPathwaySecure->isChecked())
+    {
         m_sender->setProtocolVersion(StreamingACNProtocolVersion::sACNProtocolPathwaySecure);
         m_sender->setSecurePassword(ui->lePathwaySecurePassword->text());
     }
     else
         m_sender->setProtocolVersion(StreamingACNProtocolVersion::sACNProtocolUnknown);
 
-    if(m_sender->isSending())
+    if (m_sender->isSending())
     {
         m_sender->stopSending();
         on_btnFxPause_pressed();
@@ -409,7 +436,7 @@ void transmitwindow::on_btnStart_pressed()
         // Always use the universe priority value
         m_sender->setPerSourcePriority(ui->sbPriority->value());
 
-        if(ui->cbPriorityMode->currentIndex() == static_cast<int>(PriorityMode::PER_ADDRESS))
+        if (ui->cbPriorityMode->currentIndex() == static_cast<int>(PriorityMode::PER_ADDRESS))
         {
             m_sender->setPriorityMode(PriorityMode::PER_ADDRESS);
         }
@@ -424,7 +451,9 @@ void transmitwindow::on_btnStart_pressed()
 
         setUniverseOptsEnabled(false);
 
-        m_sender->setLevel(m_levels.data(), static_cast<int>(std::min(m_levels.size(), static_cast<size_t>(m_slotCount) - 1)));
+        m_sender->setLevel(
+            m_levels.data(),
+            static_cast<int>(std::min(m_levels.size(), static_cast<size_t>(m_slotCount) - 1)));
         m_sender->setPerChannelPriorities(m_perAddressPriorities.data());
         on_tabWidget_currentChanged(ui->tabWidget->currentIndex());
     }
@@ -436,7 +465,7 @@ void transmitwindow::on_slFadeLevel_valueChanged(int value)
 {
     ui->lblFadeLevel->setText(Preferences::Instance().GetFormattedValue(value));
 
-    if(m_fxEngine)
+    if (m_fxEngine)
     {
         m_fxEngine->setManualLevel(value);
     }
@@ -444,24 +473,21 @@ void transmitwindow::on_slFadeLevel_valueChanged(int value)
 
 void transmitwindow::on_btnFxPause_pressed()
 {
-    if(m_fxEngine)
-        m_fxEngine->pause();
+    if (m_fxEngine) m_fxEngine->pause();
 }
 
 void transmitwindow::on_btnFxStart_pressed()
 {
-    if(m_fxEngine)
-        m_fxEngine->run();
+    if (m_fxEngine) m_fxEngine->run();
 }
-
 
 void transmitwindow::on_btnEditPerChan_clicked()
 {
     if (m_perChannelDialog == nullptr)
     {
-      m_perChannelDialog = new ConfigurePerChanPrioDlg(this);
-      m_perChannelDialog->setModal(true);
-      connect(m_perChannelDialog, &QDialog::finished, this, &transmitwindow::onConfigurePerChanPrioDlgFinished);
+        m_perChannelDialog = new ConfigurePerChanPrioDlg(this);
+        m_perChannelDialog->setModal(true);
+        connect(m_perChannelDialog, &QDialog::finished, this, &transmitwindow::onConfigurePerChanPrioDlgFinished);
     }
 
     m_perChannelDialog->setWindowTitle(tr("Per address priority universe %1").arg(ui->sbUniverse->value()));
@@ -502,12 +528,11 @@ void transmitwindow::on_btnCcNext_pressed()
 {
     int value = ui->lcdNumber->value();
 
-    if(++value>m_slotCount)
-        value = MIN_DMX_ADDRESS;
+    if (++value > m_slotCount) value = MIN_DMX_ADDRESS;
 
     ui->lcdNumber->display(value);
 
-    if(m_sender)
+    if (m_sender)
     {
         // Update levels.
         m_sender->setLevelRange(MIN_DMX_ADDRESS - 1, m_slotCount - 1, 0);
@@ -522,12 +547,11 @@ void transmitwindow::on_btnCcPrev_pressed()
 {
     int value = ui->lcdNumber->value();
 
-    if(--value<MIN_DMX_ADDRESS)
-        value = m_slotCount;
+    if (--value < MIN_DMX_ADDRESS) value = m_slotCount;
 
     ui->lcdNumber->display(value);
 
-    if(m_sender)
+    if (m_sender)
     {
         // Update levels.
         m_sender->setLevelRange(MIN_DMX_ADDRESS - 1, m_slotCount - 1, 0);
@@ -540,24 +564,28 @@ void transmitwindow::on_btnCcPrev_pressed()
 
 void transmitwindow::on_cbCcPap_toggled(bool checked)
 {
-    if (!m_sender) {
+    if (!m_sender)
+    {
         return;
     }
 
-    if (checked) {
+    if (checked)
+    {
         updateChanCheckPap(ui->lcdNumber->value() - 1);
-    } else {
+    }
+    else
+    {
         m_sender->setPerChannelPriorities(m_perAddressPriorities.data());
     }
 }
 
 void transmitwindow::on_lcdNumber_valueChanged(int value)
 {
-    if(m_sender)
+    if (m_sender)
     {
         // Update levels.
         m_sender->setLevelRange(0, m_slotCount - 1, 0);
-        m_sender->setLevel(value-1, ui->slChannelCheck->value());
+        m_sender->setLevel(value - 1, ui->slChannelCheck->value());
 
         // Update priorities if requested.
         updateChanCheckPap(value - 1);
@@ -566,7 +594,7 @@ void transmitwindow::on_lcdNumber_valueChanged(int value)
 
 void transmitwindow::on_lcdNumber_toggleOff()
 {
-    if(ui->slChannelCheck->value()==0)
+    if (ui->slChannelCheck->value() == 0)
     {
         ui->slChannelCheck->setValue(ui->slChannelCheck->maximum());
     }
@@ -580,26 +608,24 @@ void transmitwindow::on_slChannelCheck_valueChanged(int value)
 {
     int address = ui->lcdNumber->value();
 
-    if(m_sender)
+    if (m_sender)
     {
-        m_sender->setLevel(address-1, value);
+        m_sender->setLevel(address - 1, value);
     }
 }
 
 void transmitwindow::on_btnCcBlink_pressed()
 {
-    if(m_blinkTimer->isActive())
+    if (m_blinkTimer->isActive())
     {
         m_blinkTimer->stop();
         int address = ui->lcdNumber->value();
         ui->blinkIndicator->setPixmap(QPixmap());
-        if(m_sender)
-                m_sender->setLevel(address-1, ui->slChannelCheck->value());
+        if (m_sender) m_sender->setLevel(address - 1, ui->slChannelCheck->value());
     }
     else
     {
         m_blinkTimer->start();
-
     }
 
     QFont font = ui->btnCcBlink->font();
@@ -612,30 +638,26 @@ void transmitwindow::doBlink()
     int address = ui->lcdNumber->value();
     m_blink = !m_blink;
 
-    if(m_blink)
+    if (m_blink)
     {
         ui->blinkIndicator->setPixmap(QPixmap(":/icons/record.png"));
-        if(m_sender)
-            m_sender->setLevel(address-1, ui->slChannelCheck->value());
+        if (m_sender) m_sender->setLevel(address - 1, ui->slChannelCheck->value());
     }
     else
     {
         ui->blinkIndicator->setPixmap(QPixmap());
-        if(m_sender)
-                m_sender->setLevel(address-1, 0);
+        if (m_sender) m_sender->setLevel(address - 1, 0);
     }
 }
 
 void transmitwindow::on_tabWidget_currentChanged(int index)
 {
     // Don't do anything if we aren't actively sending
-    if(!m_sender)
-        return;
+    if (!m_sender) return;
 
     // Stop FX, and clear output
-    QMetaObject::invokeMethod(
-                m_fxEngine,"pause");
-    m_sender->setLevelRange(0, m_slotCount-1, 0);
+    QMetaObject::invokeMethod(m_fxEngine, "pause");
+    m_sender->setLevelRange(0, m_slotCount - 1, 0);
     m_sender->setPerChannelPriorities(m_perAddressPriorities.data());
 
     switch (index)
@@ -662,8 +684,7 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
         case tabEffects:
         {
             updateFadeRangePap();
-            QMetaObject::invokeMethod(
-                        m_fxEngine,"run");
+            QMetaObject::invokeMethod(m_fxEngine, "run");
             break;
         }
 
@@ -672,8 +693,8 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
             // Reassert levels
             m_sender->setLevel(m_levels.data(), static_cast<int>(m_levels.size()));
             break;
+        }
     }
-}
 }
 
 void transmitwindow::on_dlFadeRate_valueChanged(int value)
@@ -681,137 +702,137 @@ void transmitwindow::on_dlFadeRate_valueChanged(int value)
     qreal rate = FX_FADE_RATES[value];
     ui->lblFadeSpeed->setText(tr("Fade Rate %1 Hz").arg(rate));
 
-    if(m_fxEngine)
-        m_fxEngine->setRate(rate);
+    if (m_fxEngine) m_fxEngine->setRate(rate);
 }
 
 void transmitwindow::on_sbFadeRangeStart_valueChanged(int value)
 {
-    if(value>ui->sbFadeRangeEnd->value())
+    if (value > ui->sbFadeRangeEnd->value())
     {
         ui->sbFadeRangeEnd->setValue(value);
     }
     updateFadeRangePap();
 
-    if(m_fxEngine)
+    if (m_fxEngine)
     {
-        m_fxEngine->setRange(ui->sbFadeRangeStart->value()-1, ui->sbFadeRangeEnd->value()-1);
+        m_fxEngine->setRange(ui->sbFadeRangeStart->value() - 1, ui->sbFadeRangeEnd->value() - 1);
     }
 }
 
 void transmitwindow::on_sbFadeRangeEnd_valueChanged(int value)
 {
-    if(value<ui->sbFadeRangeStart->value())
+    if (value < ui->sbFadeRangeStart->value())
     {
         ui->sbFadeRangeStart->setValue(value);
     }
     updateFadeRangePap();
 
-    if(m_fxEngine)
+    if (m_fxEngine)
     {
-        m_fxEngine->setRange(ui->sbFadeRangeStart->value()-1, ui->sbFadeRangeEnd->value()-1);
+        m_fxEngine->setRange(ui->sbFadeRangeStart->value() - 1, ui->sbFadeRangeEnd->value() - 1);
     }
 }
 
 void transmitwindow::on_cbFadeRangePap_toggled(bool checked)
 {
-    if (!m_sender) {
+    if (!m_sender)
+    {
         return;
     }
 
-    if (checked) {
+    if (checked)
+    {
         updateFadeRangePap();
-    } else {
+    }
+    else
+    {
         m_sender->setPerChannelPriorities(m_perAddressPriorities.data());
     }
 }
 
-void transmitwindow::radioFadeMode_toggled(QAbstractButton* id, bool checked)
+void transmitwindow::radioFadeMode_toggled(QAbstractButton * id, bool checked)
 {
     Q_UNUSED(id);
     Q_UNUSED(checked)
 
-    if(ui->rbFadeManual->isChecked())
+    if (ui->rbFadeManual->isChecked())
     {
-        QMetaObject::invokeMethod(
-                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxManual));
+        QMetaObject::invokeMethod(m_fxEngine, "setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxManual));
         ui->swFx->setCurrentIndex(0);
     }
-    if(ui->rbFadeRamp->isChecked())
+    if (ui->rbFadeRamp->isChecked())
     {
-        QMetaObject::invokeMethod(
-                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxRamp));
+        QMetaObject::invokeMethod(m_fxEngine, "setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxRamp));
         ui->swFx->setCurrentIndex(0);
     }
-    if(ui->rbFadeSine->isChecked())
+    if (ui->rbFadeSine->isChecked())
     {
-        QMetaObject::invokeMethod(
-                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxSinewave));
+        QMetaObject::invokeMethod(m_fxEngine, "setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxSinewave));
         ui->swFx->setCurrentIndex(0);
     }
-    if(ui->rbVerticalBars->isChecked())
+    if (ui->rbVerticalBars->isChecked())
     {
         QMetaObject::invokeMethod(
-                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxVerticalBar));
+            m_fxEngine,
+            "setMode",
+            Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxVerticalBar));
         ui->swFx->setCurrentIndex(0);
     }
-    if(ui->rbHorizBars->isChecked())
+    if (ui->rbHorizBars->isChecked())
     {
         QMetaObject::invokeMethod(
-                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxHorizontalBar));
+            m_fxEngine,
+            "setMode",
+            Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxHorizontalBar));
         ui->swFx->setCurrentIndex(0);
     }
-    if(ui->rbText->isChecked())
+    if (ui->rbText->isChecked())
     {
-        QMetaObject::invokeMethod(
-                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxText));
-        QMetaObject::invokeMethod(
-                    m_fxEngine,"setText", Q_ARG(QString, ui->leScrollText->text()));
+        QMetaObject::invokeMethod(m_fxEngine, "setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxText));
+        QMetaObject::invokeMethod(m_fxEngine, "setText", Q_ARG(QString, ui->leScrollText->text()));
         ui->swFx->setCurrentIndex(1);
     }
-    if(ui->rbDateTime->isChecked())
+    if (ui->rbDateTime->isChecked())
     {
-        QMetaObject::invokeMethod(
-                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxDate));
+        QMetaObject::invokeMethod(m_fxEngine, "setMode", Q_ARG(sACNEffectEngine::FxMode, sACNEffectEngine::FxDate));
         ui->swFx->setCurrentIndex(2);
     }
     ui->fChaseOptions->setEnabled(ui->rbChase->isChecked());
-    if(ui->rbChase->isChecked())
+    if (ui->rbChase->isChecked())
     {
         sACNEffectEngine::FxMode mode;
         if (ui->rbChaseRamp->isChecked())
             mode = sACNEffectEngine::FxChaseRamp;
         else if (ui->rbChaseSnap->isChecked())
-             mode = sACNEffectEngine::FxChaseSnap;
+            mode = sACNEffectEngine::FxChaseSnap;
         else if (ui->rbChaseSine->isChecked())
-             mode = sACNEffectEngine::FxChaseSine;
-        QMetaObject::invokeMethod(
-                    m_fxEngine,"setMode", Q_ARG(sACNEffectEngine::FxMode, mode));
+            mode = sACNEffectEngine::FxChaseSine;
+        QMetaObject::invokeMethod(m_fxEngine, "setMode", Q_ARG(sACNEffectEngine::FxMode, mode));
         ui->swFx->setCurrentIndex(0);
     }
 }
 
 void transmitwindow::on_leScrollText_textChanged(const QString & text)
 {
-    if(m_fxEngine)
-        m_fxEngine->setText(text);
+    if (m_fxEngine) m_fxEngine->setText(text);
 }
-
 
 void transmitwindow::presetButtonPressed()
 {
-    QToolButton *btn = dynamic_cast<QToolButton *>(sender());
-    if(!btn) return;
+    QToolButton * btn = dynamic_cast<QToolButton *>(sender());
+    if (!btn) return;
 
     const auto index = static_cast<int>(m_presetButtons.indexOf(btn));
 
-    if(m_recordMode)
+    if (m_recordMode)
     {
         // Record a preset
-        Preferences::Instance().SetPreset(QByteArray(reinterpret_cast<const char*>(m_levels.data()), static_cast<int>(m_levels.size())), index);
+        Preferences::Instance().SetPreset(
+            QByteArray(reinterpret_cast<const char *>(m_levels.data()), static_cast<int>(m_levels.size())),
+            index);
         m_recordMode = false;
 
-        foreach(QToolButton *btn, m_presetButtons)
+        foreach (QToolButton * btn, m_presetButtons)
         {
             btn->setStyleSheet(QString(""));
             btn->setChecked(false);
@@ -822,24 +843,23 @@ void transmitwindow::presetButtonPressed()
         // Play back a preset
         QByteArray baPreset = Preferences::Instance().GetPreset(index);
         uint16_t address = 0;
-        for (uint8_t level : std::as_const(baPreset))
-            setLevel(address++, level);
+        for (uint8_t level : std::as_const(baPreset)) setLevel(address++, level);
     }
 }
 
 void transmitwindow::recordButtonPressed(bool on)
 {
     m_recordMode = on;
-    if(m_recordMode)
+    if (m_recordMode)
     {
-        foreach(QToolButton *btn, m_presetButtons)
+        foreach (QToolButton * btn, m_presetButtons)
         {
             if (!btn->isChecked()) btn->setStyleSheet(QString("background-color: red;"));
         }
     }
     else
     {
-        foreach(QToolButton *btn, m_presetButtons)
+        foreach (QToolButton * btn, m_presetButtons)
         {
             btn->setStyleSheet(QString(""));
         }
@@ -848,27 +868,31 @@ void transmitwindow::recordButtonPressed(bool on)
 
 void transmitwindow::setLevels(QSet<int> addresses, int level)
 {
-    foreach(int addr, addresses)
+    foreach (int addr, addresses)
     {
         addr -= 1; // Convert to 0-based
         setLevel(addr, level);
     }
 }
 
-void transmitwindow::dateMode_toggled(QAbstractButton* id, bool checked)
+void transmitwindow::dateMode_toggled(QAbstractButton * id, bool checked)
 {
     Q_UNUSED(id);
     Q_UNUSED(checked);
 
-    if(ui->rbEuDate->isChecked())
+    if (ui->rbEuDate->isChecked())
     {
         QMetaObject::invokeMethod(
-                    m_fxEngine,"setDateStyle", Q_ARG(sACNEffectEngine::DateStyle, sACNEffectEngine::dsEU));
+            m_fxEngine,
+            "setDateStyle",
+            Q_ARG(sACNEffectEngine::DateStyle, sACNEffectEngine::dsEU));
     }
     else
     {
         QMetaObject::invokeMethod(
-                    m_fxEngine,"setDateStyle", Q_ARG(sACNEffectEngine::DateStyle, sACNEffectEngine::dsUSA));
+            m_fxEngine,
+            "setDateStyle",
+            Q_ARG(sACNEffectEngine::DateStyle, sACNEffectEngine::dsUSA));
     }
 }
 
@@ -894,10 +918,12 @@ void transmitwindow::on_sbSlotCount_valueChanged(int arg1)
     Q_ASSERT(arg1 <= MAX_DMX_ADDRESS);
     m_slotCount = arg1;
 
-    ui->sbFadeRangeStart->setValue(std::min(static_cast<decltype(m_slotCount)>(ui->sbFadeRangeStart->value()), m_slotCount));
+    ui->sbFadeRangeStart->setValue(
+        std::min(static_cast<decltype(m_slotCount)>(ui->sbFadeRangeStart->value()), m_slotCount));
     ui->sbFadeRangeStart->setMaximum(m_slotCount);
 
-    ui->sbFadeRangeEnd->setValue(std::min(static_cast<decltype(m_slotCount)>(ui->sbFadeRangeEnd->value()), m_slotCount));
+    ui->sbFadeRangeEnd->setValue(
+        std::min(static_cast<decltype(m_slotCount)>(ui->sbFadeRangeEnd->value()), m_slotCount));
     ui->sbFadeRangeEnd->setMaximum(m_slotCount);
 
     ui->sbFadersStart->setMinimum(MIN_DMX_ADDRESS);
@@ -913,14 +939,14 @@ void transmitwindow::setLevel(int address, int value)
 
     ui->gridControl->setCellValue(address, Preferences::Instance().GetFormattedValue(value));
 
-    if(m_sender)
-        m_sender->setLevel(address, value);
+    if (m_sender) m_sender->setLevel(address, value);
 
-    for (const auto &slider : std::as_const(m_sliders))
+    for (const auto & slider : std::as_const(m_sliders))
     {
         bool ok;
         auto sliderAddr = slider->property(FADERADDRESSPROP).toUInt(&ok);
-        if (ok && sliderAddr == static_cast<unsigned int>(address)) {
+        if (ok && sliderAddr == static_cast<unsigned int>(address))
+        {
             slider->setValue(value);
             break;
         }
@@ -933,10 +959,8 @@ void transmitwindow::updatePerChanPriorityButton()
     uint8_t max = 0;
     for (uint8_t val : m_perAddressPriorities)
     {
-        if (min > val)
-            min = val;
-        if (max < val)
-            max = val;
+        if (min > val) min = val;
+        if (max < val) max = val;
     }
     ui->btnEditPerChan->setText(QStringLiteral("%1-%2...").arg(min).arg(max));
 }
@@ -944,15 +968,14 @@ void transmitwindow::updatePerChanPriorityButton()
 void transmitwindow::setLevelList(QList<QPair<int, int>> levelList)
 {
     // Levels are in localized format, need to convert
-    for (const auto& i : levelList)
+    for (const auto & i : levelList)
     {
-        if(Preferences::Instance().GetDisplayFormat() == DisplayFormat::PERCENT)
+        if (Preferences::Instance().GetDisplayFormat() == DisplayFormat::PERCENT)
             setLevel(i.first, PTOHT[i.second]);
         else
             setLevel(i.first, i.second);
     }
 }
-
 
 void transmitwindow::on_rbPathwaySecure_toggled(bool checked)
 {
@@ -962,26 +985,25 @@ void transmitwindow::on_rbPathwaySecure_toggled(bool checked)
 void transmitwindow::on_sbMinFPS_editingFinished()
 {
     // Don't go greater than MaxFPS
-    if (ui->sbMinFPS->value() > ui->sbMaxFPS->value())
-        ui->sbMinFPS->setValue(ui->sbMaxFPS->value());
+    if (ui->sbMinFPS->value() > ui->sbMaxFPS->value()) ui->sbMinFPS->setValue(ui->sbMaxFPS->value());
 }
 
 void transmitwindow::on_sbMaxFPS_editingFinished()
 {
     // Don't go less than MinFPS
-    if (ui->sbMaxFPS->value() < ui->sbMinFPS->value())
-        ui->sbMaxFPS->setValue(ui->sbMinFPS->value());
+    if (ui->sbMaxFPS->value() < ui->sbMinFPS->value()) ui->sbMaxFPS->setValue(ui->sbMinFPS->value());
 }
 
 void transmitwindow::updateChanCheckPap(int address)
 {
     Q_ASSERT(address < DMX_SLOT_MAX);
-    if (address >= m_slotCount) {
+    if (address >= m_slotCount)
+    {
         return;
     }
 
-    if (ui->cbPriorityMode->currentIndex() != static_cast<int>(PriorityMode::PER_ADDRESS)
-        || !ui->cbCcPap->isChecked()) {
+    if (ui->cbPriorityMode->currentIndex() != static_cast<int>(PriorityMode::PER_ADDRESS) || !ui->cbCcPap->isChecked())
+    {
         // Per-address-priority not in use.
         return;
     }
@@ -994,7 +1016,8 @@ void transmitwindow::updateChanCheckPap(int address)
 void transmitwindow::updateFadeRangePap()
 {
     if (ui->cbPriorityMode->currentIndex() != static_cast<int>(PriorityMode::PER_ADDRESS)
-        || !ui->cbFadeRangePap->isChecked()) {
+        || !ui->cbFadeRangePap->isChecked())
+    {
         // Per-address-priority not in use.
         return;
     }
@@ -1004,7 +1027,8 @@ void transmitwindow::updateFadeRangePap()
     const int end = std::min(static_cast<int>(m_slotCount), ui->sbFadeRangeEnd->value()) - 1;
 
     std::array<quint8, MAX_DMX_ADDRESS> fadeRangePap{0};
-    for (int address = start; address <= end; ++address) {
+    for (int address = start; address <= end; ++address)
+    {
         fadeRangePap[address] = m_perAddressPriorities[address];
     }
     m_sender->setPerChannelPriorities(fadeRangePap.data());

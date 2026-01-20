@@ -1,21 +1,22 @@
 #ifndef CLSSNAPSHOT_H
 #define CLSSNAPSHOT_H
 
-#include <QObject>
-#include <QSpinBox>
-#include <QToolButton>
-#include <QMap>
-#include <QSoundEffect>
-#include <QLabel>
-#include "streamingacn.h"
 #include "sacnlistener.h"
 #include "sacnsender.h"
+#include "streamingacn.h"
+#include <QLabel>
+#include <QMap>
+#include <QObject>
+#include <QSoundEffect>
+#include <QSpinBox>
+#include <QToolButton>
 
 class clsSnapshot : public QWidget
 {
     Q_OBJECT
 public:
-    explicit clsSnapshot(quint16 universe, CID cid, QString name, QWidget *parent = nullptr);
+
+    explicit clsSnapshot(quint16 universe, CID cid, QString name, QWidget * parent = nullptr);
     ~clsSnapshot();
 
     void takeSnapshot();
@@ -26,19 +27,20 @@ public:
 
     bool isPlaying() { return (m_sender ? m_sender->isSending() : false); }
 
-    quint16 getUniverse() {return m_universe;}
+    quint16 getUniverse() { return m_universe; }
     void setUniverse(quint16 universe);
 
-    quint8 getPriority() {return m_priority;}
+    quint8 getPriority() { return m_priority; }
     void setPriority(quint8 priority);
 
-    QSpinBox *getSbUniverse() {return m_sbUniverse;}
-    QSpinBox *getSbPriority() {return m_sbPriority;}
-    QWidget *getControlWidget() {return m_controlWidget;}
+    QSpinBox * getSbUniverse() { return m_sbUniverse; }
+    QSpinBox * getSbPriority() { return m_sbPriority; }
+    QWidget * getControlWidget() { return m_controlWidget; }
 
-    bool isMatching() const {return m_backgroundMatches;}
+    bool isMatching() const { return m_backgroundMatches; }
 
-    enum e_icons {
+    enum e_icons
+    {
         ICON_NONE,
         ICON_PLAY,
         ICON_PAUSE,
@@ -49,10 +51,10 @@ public:
         {ICON_NONE, QIcon()},
         {ICON_PLAY, QIcon(":/icons/play.png")},
         {ICON_PAUSE, QIcon(":/icons/pause.png")},
-        {ICON_SNAPSHOT, QIcon(":/icons/snapshot.png")}
-    };
+        {ICON_SNAPSHOT, QIcon(":/icons/snapshot.png")}};
 
-    enum e_statusIcons {
+    enum e_statusIcons
+    {
         STATUSICON_NONE,
         STATUSICON_MATCHING,
         STATUSICON_NOTMATCHING
@@ -61,14 +63,12 @@ public:
     const QMap<e_statusIcons, QPixmap> statusIcons{
         {STATUSICON_NONE, QPixmap()},
         {STATUSICON_MATCHING, QPixmap(":/icons/ledgreen.png")},
-        {STATUSICON_NOTMATCHING, QPixmap(":/icons/ledred.png")}
-    };
+        {STATUSICON_NOTMATCHING, QPixmap(":/icons/ledred.png")}};
 
     const QMap<e_statusIcons, QString> statusIconTooltips{
         {STATUSICON_NONE, QString()},
         {STATUSICON_MATCHING, tr("The snapshot <i>matches</i> the other sources in this universe")},
-        {STATUSICON_NOTMATCHING, tr("The snapshot <i>does not match</i> the other sources in this universe")}
-    };
+        {STATUSICON_NOTMATCHING, tr("The snapshot <i>does not match</i> the other sources in this universe")}};
 
 signals:
     void senderStarted();
@@ -85,6 +85,7 @@ private slots:
     void levelsChanged();
 
 private:
+
     void updateIcons();
 
     quint16 m_universe;
@@ -92,15 +93,15 @@ private:
     CID m_cid;
 
     QByteArray m_levelData;
-    QSpinBox* m_sbUniverse;
-    QSpinBox* m_sbPriority;
-    QToolButton* m_btnPlayback;
-    QLabel* m_lblStatus;
-    QWidget *m_controlWidget;
+    QSpinBox * m_sbUniverse;
+    QSpinBox * m_sbPriority;
+    QToolButton * m_btnPlayback;
+    QLabel * m_lblStatus;
+    QWidget * m_controlWidget;
     sACNManager::tSender m_sender;
     sACNManager::tListener m_listener;
 
-    QSoundEffect *m_camera;
+    QSoundEffect * m_camera;
 
     bool m_backgroundMatches;
 };

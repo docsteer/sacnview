@@ -19,11 +19,16 @@ class ResettableCounterDelegate : public QStyledItemDelegate
     Q_OBJECT
 
 public:
-    void paint(QPainter* painter, const QStyleOptionViewItem& option,
-        const QModelIndex& index) const override;
 
-    bool editorEvent(QEvent* event, QAbstractItemModel* model,
-        const QStyleOptionViewItem& option, const QModelIndex& index) override;
+    void paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
+
+    bool editorEvent(
+        QEvent * event,
+        QAbstractItemModel * model,
+        const QStyleOptionViewItem & option,
+        const QModelIndex & index) override;
+
 protected:
-    void initStyleOption(QStyleOptionViewItem *option, const QModelIndex& index) const override;
+
+    void initStyleOption(QStyleOptionViewItem * option, const QModelIndex & index) const override;
 };

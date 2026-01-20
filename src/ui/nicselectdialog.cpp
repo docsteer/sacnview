@@ -14,35 +14,34 @@
 // limitations under the License.
 
 #include "nicselectdialog.h"
-#include "ui_nicselectdialog.h"
 #include "preferences.h"
-#include <QNetworkInterface>
+#include "ui_nicselectdialog.h"
 #include <QMessageBox>
+#include <QNetworkInterface>
 
-NICSelectDialog::NICSelectDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::NICSelectDialog)
+NICSelectDialog::NICSelectDialog(QWidget * parent)
+    : QDialog(parent), ui(new Ui::NICSelectDialog)
 {
     ui->setupUi(this);
     m_selectedInterface = QNetworkInterface();
 
     QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
-    for (const QNetworkInterface &interface : interfaces)
+    for (const QNetworkInterface & interface : interfaces)
     {
         // We want interfaces which are up, IPv4, and can multicast
-        if (Preferences::Instance().interfaceSuitable(interface)) {
+        if (Preferences::Instance().interfaceSuitable(interface))
+        {
             QString ipString;
-            foreach (QNetworkAddressEntry e, interface.addressEntries()) {
-                if(e.ip().protocol() == QAbstractSocket::IPv4Protocol) {
-                    if(!ipString.isEmpty())
-                        ipString.append(",");
+            foreach (QNetworkAddressEntry e, interface.addressEntries())
+            {
+                if (e.ip().protocol() == QAbstractSocket::IPv4Protocol)
+                {
+                    if (!ipString.isEmpty()) ipString.append(",");
                     ipString.append(e.ip().toString());
                 }
             }
 
-            ui->listWidget->addItem(QString("%1 (%2)")
-                                    .arg(interface.humanReadableName())
-                                    .arg(ipString));
+            ui->listWidget->addItem(QString("%1 (%2)").arg(interface.humanReadableName()).arg(ipString));
 
             m_interfaceList << interface;
         }
@@ -68,9 +67,8 @@ void NICSelectDialog::on_listWidget_itemSelectionChanged()
     // Show select if not loopback
     qDebug() << ui->listWidget->currentRow();
     ui->btnSelect->setEnabled(
-                !m_interfaceList[ui->listWidget->currentRow()].flags().testFlag(QNetworkInterface::IsLoopBack));
+        !m_interfaceList[ui->listWidget->currentRow()].flags().testFlag(QNetworkInterface::IsLoopBack));
 }
-
 
 void NICSelectDialog::on_btnSelect_pressed()
 {
@@ -83,8 +81,7 @@ void NICSelectDialog::on_btnWorkOffline_pressed()
     // Select localhost
     for (auto interface : m_interfaceList)
     {
-        if (interface.flags().testFlag(QNetworkInterface::IsLoopBack))
-            m_selectedInterface = interface;
+        if (interface.flags().testFlag(QNetworkInterface::IsLoopBack)) m_selectedInterface = interface;
         accept();
         return;
     }

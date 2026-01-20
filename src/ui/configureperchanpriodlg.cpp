@@ -14,13 +14,12 @@
 // limitations under the License.
 
 #include "configureperchanpriodlg.h"
-#include "ui_configureperchanpriodlg.h"
 #include "consts.h"
 #include "preferences.h"
+#include "ui_configureperchanpriodlg.h"
 
-ConfigurePerChanPrioDlg::ConfigurePerChanPrioDlg(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::ConfigurePerChanPrioDlg)
+ConfigurePerChanPrioDlg::ConfigurePerChanPrioDlg(QWidget * parent)
+    : QDialog(parent), ui(new Ui::ConfigurePerChanPrioDlg)
 {
     ui->setupUi(this);
     ui->sbPriority->setMinimum(MIN_SACN_PRIORITY);
@@ -34,10 +33,10 @@ ConfigurePerChanPrioDlg::ConfigurePerChanPrioDlg(QWidget *parent) :
     ui->sbPriority->setWrapping(true);
     ui->sbSetAll->setWrapping(true);
 
-    for(int i=0; i<PRIORITYPRESET_COUNT; i++)
+    for (int i = 0; i < PRIORITYPRESET_COUNT; i++)
     {
-        QToolButton *presetButton = new QToolButton(ui->presetWidget);
-        presetButton->setText(QString::number(i+1));
+        QToolButton * presetButton = new QToolButton(ui->presetWidget);
+        presetButton->setText(QString::number(i + 1));
         ui->presetWidget->layout()->addWidget(presetButton);
         connect(presetButton, &QToolButton::pressed, this, &ConfigurePerChanPrioDlg::presetButtonPressed);
         m_presetButtons << presetButton;
@@ -52,51 +51,48 @@ ConfigurePerChanPrioDlg::~ConfigurePerChanPrioDlg()
     delete ui;
 }
 
-void SetCell(GridEditWidget* widget, int cell, uint8_t value)
+void SetCell(GridEditWidget * widget, int cell, uint8_t value)
 {
-  widget->setCellValue(cell, QString::number(value));
-  widget->setCellColor(cell, value > MAX_SACN_PRIORITY ?
-    Preferences::Instance().colorForStatus(Preferences::Status::Bad) :
-    QColor());
-
+    widget->setCellValue(cell, QString::number(value));
+    widget->setCellColor(
+        cell,
+        value > MAX_SACN_PRIORITY ? Preferences::Instance().colorForStatus(Preferences::Status::Bad) : QColor());
 }
 
-void ConfigurePerChanPrioDlg::setData(quint8 *data)
+void ConfigurePerChanPrioDlg::setData(quint8 * data)
 {
     memcpy(m_data, data, MAX_DMX_ADDRESS);
     for (int i = 0; i < MAX_DMX_ADDRESS; i++)
     {
-      SetCell(ui->widget, i, m_data[i]);
+        SetCell(ui->widget, i, m_data[i]);
     }
     ui->widget->update();
 }
 
-quint8 *ConfigurePerChanPrioDlg::data()
+quint8 * ConfigurePerChanPrioDlg::data()
 {
-    for(int i=0; i<MAX_DMX_ADDRESS; i++)
-        m_data[i] = ui->widget->cellValue(i).toInt();
+    for (int i = 0; i < MAX_DMX_ADDRESS; i++) m_data[i] = ui->widget->cellValue(i).toInt();
     return m_data;
 }
 
 void ConfigurePerChanPrioDlg::on_btnSetAll_pressed()
 {
-    for(int i=0; i<512; i++)
-        SetCell(ui->widget, i, ui->sbSetAll->value());
+    for (int i = 0; i < 512; i++) SetCell(ui->widget, i, ui->sbSetAll->value());
     ui->widget->update();
 }
 
 void ConfigurePerChanPrioDlg::on_widget_selectedCellsChanged(QList<int> cells)
 {
-    ui->sbPriority->setEnabled(cells.count()>0);
-    ui->btnSet->setEnabled(cells.count()>0);
+    ui->sbPriority->setEnabled(cells.count() > 0);
+    ui->btnSet->setEnabled(cells.count() > 0);
     m_selectedCells = cells;
 }
 
 void ConfigurePerChanPrioDlg::on_btnPresetRec_toggled(bool on)
 {
-    for(auto button: m_presetButtons)
+    for (auto button : m_presetButtons)
     {
-        if(on)
+        if (on)
             button->setStyleSheet("background-color: red");
         else
             button->setStyleSheet("");
@@ -105,16 +101,15 @@ void ConfigurePerChanPrioDlg::on_btnPresetRec_toggled(bool on)
 
 void ConfigurePerChanPrioDlg::presetButtonPressed()
 {
-    QToolButton *button = dynamic_cast<QToolButton *>(sender());
-    if(!button) return;
+    QToolButton * button = dynamic_cast<QToolButton *>(sender());
+    if (!button) return;
     const auto index = static_cast<int>(m_presetButtons.indexOf(button));
 
-    if(ui->btnPresetRec->isChecked())
+    if (ui->btnPresetRec->isChecked())
     {
         // Record the preset
         QByteArray preset;
-        for(int i=0; i<MAX_DMX_ADDRESS; i++)
-            preset.append(ui->widget->cellValue(i).toInt() & 0xFF);
+        for (int i = 0; i < MAX_DMX_ADDRESS; i++) preset.append(ui->widget->cellValue(i).toInt() & 0xFF);
         Preferences::Instance().SetPriorityPreset(preset, index);
 
         ui->btnPresetRec->setChecked(false);
@@ -127,10 +122,8 @@ void ConfigurePerChanPrioDlg::presetButtonPressed()
     }
 }
 
-
 void ConfigurePerChanPrioDlg::on_btnSet_pressed()
 {
-    for(int i : m_selectedCells)
-        SetCell(ui->widget, i, ui->sbPriority->value());
+    for (int i : m_selectedCells) SetCell(ui->widget, i, ui->sbPriority->value());
     ui->widget->update();
 }

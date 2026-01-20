@@ -16,11 +16,12 @@
 #ifndef ADDMULTIDIALOG_H
 #define ADDMULTIDIALOG_H
 
-#include <QDialog>
 #include "sacneffectengine.h"
+#include <QDialog>
 
-namespace Ui {
-class AddMultiDialog;
+namespace Ui
+{
+    class AddMultiDialog;
 }
 
 class AddMultiDialog : public QDialog
@@ -28,7 +29,8 @@ class AddMultiDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit AddMultiDialog(QWidget *parent = 0);
+
+    explicit AddMultiDialog(QWidget * parent = 0);
     ~AddMultiDialog();
 
     int startUniverse();
@@ -47,10 +49,11 @@ private slots:
     void on_slLevel_sliderMoved(int value);
     void on_slLevel_valueChanged(int value);
     void on_dlFadeRate_valueChanged(int value);
-private:
-    Ui::AddMultiDialog *ui;
-    void setupFxControl();
 
+private:
+
+    Ui::AddMultiDialog * ui;
+    void setupFxControl();
 };
 
 #endif // ADDMULTIDIALOG_H

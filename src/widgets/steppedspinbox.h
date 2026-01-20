@@ -18,22 +18,24 @@
 
 class SteppedSpinBox : public QSpinBox
 {
-  Q_OBJECT
+    Q_OBJECT
 
 public:
-  explicit SteppedSpinBox(QWidget* parent = nullptr);
 
-  /**
+    explicit SteppedSpinBox(QWidget * parent = nullptr);
+
+    /**
    * @brief Set the list of step values
    * @param steps List of step values. Must be sorted min to max and contain no duplicates
    * @param setRange True: also set the min & max to the step min/max
   */
-  void setStepList(const QVector<int>& steps, bool setRange = true);
-  /// Get the list of step values
-  const QVector<int>& stepList() const { return m_stepList; }
+    void setStepList(const QVector<int> & steps, bool setRange = true);
+    /// Get the list of step values
+    const QVector<int> & stepList() const { return m_stepList; }
 
-  void stepBy(int steps) override;
+    void stepBy(int steps) override;
 
 protected:
-  QVector<int> m_stepList;
+
+    QVector<int> m_stepList;
 };

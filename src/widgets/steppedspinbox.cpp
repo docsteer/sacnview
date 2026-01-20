@@ -14,51 +14,50 @@
 
 #include "steppedspinbox.h"
 
-SteppedSpinBox::SteppedSpinBox(QWidget* parent)
-  : QSpinBox(parent)
-{
-}
+SteppedSpinBox::SteppedSpinBox(QWidget * parent)
+    : QSpinBox(parent)
+{}
 
-void SteppedSpinBox::setStepList(const QVector<int>& steps, bool setLimits)
+void SteppedSpinBox::setStepList(const QVector<int> & steps, bool setLimits)
 {
-  m_stepList = steps;
-  if (setLimits && !steps.empty())
-  {
-    setRange(m_stepList.front(), m_stepList.back());
-  }
+    m_stepList = steps;
+    if (setLimits && !steps.empty())
+    {
+        setRange(m_stepList.front(), m_stepList.back());
+    }
 }
 
 void SteppedSpinBox::stepBy(int steps)
 {
-  if (!m_stepList.empty())
-  {
-    const int currentValue = value();
-    // Step up or down to the next available step
-    if (steps > 0)
+    if (!m_stepList.empty())
     {
-      // Find first step greater than current value
-      auto it = std::upper_bound(m_stepList.begin(), m_stepList.end(), currentValue);
-      if (it != m_stepList.end())
-      {
-        setValue((*it));
-        return;
-      }
-    }
-    else if (steps < 0)
-    {
-      // Find first step greater or equal to current value
-      auto it = std::lower_bound(m_stepList.begin(), m_stepList.end(), currentValue);
+        const int currentValue = value();
+        // Step up or down to the next available step
+        if (steps > 0)
+        {
+            // Find first step greater than current value
+            auto it = std::upper_bound(m_stepList.begin(), m_stepList.end(), currentValue);
+            if (it != m_stepList.end())
+            {
+                setValue((*it));
+                return;
+            }
+        }
+        else if (steps < 0)
+        {
+            // Find first step greater or equal to current value
+            auto it = std::lower_bound(m_stepList.begin(), m_stepList.end(), currentValue);
 
-      if (it != m_stepList.begin())
-      {
-        // Go back one tick
-        --it;
-        setValue((*it));
-        return;
-      }
+            if (it != m_stepList.begin())
+            {
+                // Go back one tick
+                --it;
+                setValue((*it));
+                return;
+            }
+        }
     }
-  }
 
-  // Do the default up/down step
-  QSpinBox::stepBy(steps);
+    // Do the default up/down step
+    QSpinBox::stepBy(steps);
 }

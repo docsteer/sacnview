@@ -13,13 +13,15 @@
 // limitations under the License.
 
 #include <QApplication>
-#include <QPainter>
 #include <QMouseEvent>
+#include <QPainter>
 
 #include "resettablecounterdelegate.h"
 
-void ResettableCounterDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option,
-    const QModelIndex& index) const
+void ResettableCounterDelegate::paint(
+    QPainter * painter,
+    const QStyleOptionViewItem & option,
+    const QModelIndex & index) const
 {
     QStyleOptionViewItem opt = option;
     initStyleOption(&opt, index);
@@ -30,12 +32,15 @@ void ResettableCounterDelegate::paint(QPainter* painter, const QStyleOptionViewI
     style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, widget);
 }
 
-bool ResettableCounterDelegate::editorEvent(QEvent* event, QAbstractItemModel* model,
-    const QStyleOptionViewItem& option, const QModelIndex& index)
+bool ResettableCounterDelegate::editorEvent(
+    QEvent * event,
+    QAbstractItemModel * model,
+    const QStyleOptionViewItem & option,
+    const QModelIndex & index)
 {
     if (event->type() == QEvent::MouseButtonPress)
     {
-        const auto mouseEvent = static_cast<QMouseEvent*>(event);
+        const auto mouseEvent = static_cast<QMouseEvent *>(event);
         auto opt = option;
         initStyleOption(&opt, index);
 
@@ -51,7 +56,7 @@ bool ResettableCounterDelegate::editorEvent(QEvent* event, QAbstractItemModel* m
     return QStyledItemDelegate::editorEvent(event, model, option, index);
 }
 
-void ResettableCounterDelegate::initStyleOption(QStyleOptionViewItem *option, const QModelIndex &index) const
+void ResettableCounterDelegate::initStyleOption(QStyleOptionViewItem * option, const QModelIndex & index) const
 {
     QStyledItemDelegate::initStyleOption(option, index);
     option->icon = QIcon(":/icons/clear.png");

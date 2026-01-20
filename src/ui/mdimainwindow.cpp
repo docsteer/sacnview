@@ -14,20 +14,20 @@
 // limitations under the License.
 
 #include "mdimainwindow.h"
-#include "ui_mdimainwindow.h"
-#include "glscopewindow.h"
-#include "universeview.h"
-#include "transmitwindow.h"
-#include "preferences.h"
-#include "preferencesdialog.h"
 #include "aboutdialog.h"
-#include "sacnuniverselistmodel.h"
-#include "sacndiscoveredsourcelistmodel.h"
-#include "sacnsynclistmodel.h"
-#include "snapshot.h"
+#include "glscopewindow.h"
 #include "multiuniverse.h"
 #include "multiview.h"
 #include "pcapplayback.h"
+#include "preferences.h"
+#include "preferencesdialog.h"
+#include "sacndiscoveredsourcelistmodel.h"
+#include "sacnsynclistmodel.h"
+#include "sacnuniverselistmodel.h"
+#include "snapshot.h"
+#include "transmitwindow.h"
+#include "ui_mdimainwindow.h"
+#include "universeview.h"
 
 #include <QMdiArea>
 #include <QMdiSubWindow>
@@ -35,473 +35,478 @@
 
 static constexpr int kDockStateVersion = 1; // Increment whenever changing Docking
 
-MDIMainWindow::MDIMainWindow(QWidget* parent) :
-  QMainWindow(parent),
-  ui(new Ui::MDIMainWindow),
-  m_model(new sACNUniverseListModel(this)),
-  m_modelDiscovered(new sACNDiscoveredSourceListModel(this)),
-  m_proxyDiscovered(new sACNDiscoveredSourceListProxy(this)),
-  m_modelSync(new sACNSyncListModel(this)),
-  m_proxySync(new sACNSyncListModel::proxy(this))
+MDIMainWindow::MDIMainWindow(QWidget * parent)
+    : QMainWindow(parent)
+    , ui(new Ui::MDIMainWindow)
+    , m_model(new sACNUniverseListModel(this))
+    , m_modelDiscovered(new sACNDiscoveredSourceListModel(this))
+    , m_proxyDiscovered(new sACNDiscoveredSourceListProxy(this))
+    , m_modelSync(new sACNSyncListModel(this))
+    , m_proxySync(new sACNSyncListModel::proxy(this))
 {
-  ui->setupUi(this);
+    ui->setupUi(this);
 
-  if (Preferences::Instance().GetWindowMode() == WindowMode::MDI)
-  {
-      m_mdiArea = new QMdiArea(this);
-      setCentralWidget(m_mdiArea);
+    if (Preferences::Instance().GetWindowMode() == WindowMode::MDI)
+    {
+        m_mdiArea = new QMdiArea(this);
+        setCentralWidget(m_mdiArea);
 
-      // Nasty workaround to prevent the window being shown/hidden when we open the scope view
-      // See https://stackoverflow.com/questions/76026196/how-to-force-qt-to-use-the-opengl-window-type
-      const auto dummyGlWidget = new QOpenGLWidget(this);
-      const auto dummySubWindow = m_mdiArea->addSubWindow(dummyGlWidget);
-      QTimer::singleShot(0, [this, dummySubWindow]() {
-              m_mdiArea->removeSubWindow(dummySubWindow);
-              delete dummySubWindow;
-          });
-  }
+        // Nasty workaround to prevent the window being shown/hidden when we open the scope view
+        // See https://stackoverflow.com/questions/76026196/how-to-force-qt-to-use-the-opengl-window-type
+        const auto dummyGlWidget = new QOpenGLWidget(this);
+        const auto dummySubWindow = m_mdiArea->addSubWindow(dummyGlWidget);
+        QTimer::singleShot(
+            0,
+            [this, dummySubWindow]()
+            {
+                m_mdiArea->removeSubWindow(dummySubWindow);
+                delete dummySubWindow;
+            });
+    }
 
-  // Universe list
-  ui->treeView->setModel(m_model);
-  ui->treeView->expandAll();
-  connect(ui->treeView, &QAbstractItemView::doubleClicked, this, &MDIMainWindow::universeDoubleClick);
-  connect(m_model, &QAbstractItemModel::rowsAboutToBeRemoved, this, &MDIMainWindow::rowsAboutToBeRemoved);
+    // Universe list
+    ui->treeView->setModel(m_model);
+    ui->treeView->expandAll();
+    connect(ui->treeView, &QAbstractItemView::doubleClicked, this, &MDIMainWindow::universeDoubleClick);
+    connect(m_model, &QAbstractItemModel::rowsAboutToBeRemoved, this, &MDIMainWindow::rowsAboutToBeRemoved);
 
-  ui->sbUniverseList->setMinimum(MIN_SACN_UNIVERSE);
-  ui->sbUniverseList->setMaximum(MAX_SACN_UNIVERSE - Preferences::Instance().GetUniversesListCount() + 1);
-  ui->sbUniverseList->setWrapping(true);
-  ui->sbUniverseList->setValue(Preferences::Instance().GetUniversesListStart());
+    ui->sbUniverseList->setMinimum(MIN_SACN_UNIVERSE);
+    ui->sbUniverseList->setMaximum(MAX_SACN_UNIVERSE - Preferences::Instance().GetUniversesListCount() + 1);
+    ui->sbUniverseList->setWrapping(true);
+    ui->sbUniverseList->setValue(Preferences::Instance().GetUniversesListStart());
 
-  ui->sbUniversesCount->setMinimum(MIN_UNIVERSES_LIST_COUNT);
-  ui->sbUniversesCount->setMaximum(MAX_UNIVERSES_LIST_COUNT);
-  ui->sbUniversesCount->setValue(Preferences::Instance().GetUniversesListCount());
+    ui->sbUniversesCount->setMinimum(MIN_UNIVERSES_LIST_COUNT);
+    ui->sbUniversesCount->setMaximum(MAX_UNIVERSES_LIST_COUNT);
+    ui->sbUniversesCount->setValue(Preferences::Instance().GetUniversesListCount());
 
-  // Discovered sources list
-  m_proxyDiscovered->setSourceModel(m_modelDiscovered);
-  ui->treeViewDiscovered->setModel(m_proxyDiscovered);
-  connect(ui->treeViewDiscovered, &QAbstractItemView::doubleClicked, this, &MDIMainWindow::universeDoubleClick);
-  ui->treeViewDiscovered->setSortingEnabled(true);
-  ui->treeViewDiscovered->sortByColumn(0, Qt::AscendingOrder);
+    // Discovered sources list
+    m_proxyDiscovered->setSourceModel(m_modelDiscovered);
+    ui->treeViewDiscovered->setModel(m_proxyDiscovered);
+    connect(ui->treeViewDiscovered, &QAbstractItemView::doubleClicked, this, &MDIMainWindow::universeDoubleClick);
+    ui->treeViewDiscovered->setSortingEnabled(true);
+    ui->treeViewDiscovered->sortByColumn(0, Qt::AscendingOrder);
 
-  // Universe Synchronization details
-  m_proxySync->setSourceModel(m_modelSync);
-  ui->treeViewSync->setModel(m_proxySync);
-  connect(ui->treeViewSync, &QAbstractItemView::doubleClicked, this, &MDIMainWindow::universeDoubleClick);
-  ui->treeViewSync->setSortingEnabled(true);
-  ui->treeViewSync->sortByColumn(0, Qt::AscendingOrder);
+    // Universe Synchronization details
+    m_proxySync->setSourceModel(m_modelSync);
+    ui->treeViewSync->setModel(m_proxySync);
+    connect(ui->treeViewSync, &QAbstractItemView::doubleClicked, this, &MDIMainWindow::universeDoubleClick);
+    ui->treeViewSync->setSortingEnabled(true);
+    ui->treeViewSync->sortByColumn(0, Qt::AscendingOrder);
 }
 
 MDIMainWindow::~MDIMainWindow()
 {
-  qDeleteAll(m_subWindows);
-  delete ui;
+    qDeleteAll(m_subWindows);
+    delete ui;
 }
 
-void MDIMainWindow::showEvent(QShowEvent* ev)
+void MDIMainWindow::showEvent(QShowEvent * ev)
 {
-  if (Preferences::Instance().GetWindowMode() == WindowMode::Floating && !Preferences::Instance().GetRestoreWindowLayout())
-    resize(310, 560);
+    if (Preferences::Instance().GetWindowMode() == WindowMode::Floating
+        && !Preferences::Instance().GetRestoreWindowLayout())
+        resize(310, 560);
 
-  QMainWindow::showEvent(ev);
+    QMainWindow::showEvent(ev);
 
-  // And apply prefs
-  applyPrefs();
+    // And apply prefs
+    applyPrefs();
 }
 
-void MDIMainWindow::closeEvent(QCloseEvent* ev)
+void MDIMainWindow::closeEvent(QCloseEvent * ev)
 {
-  if (Preferences::Instance().GetAutoSaveWindowLayout())
-    saveSubWindows();
+    if (Preferences::Instance().GetAutoSaveWindowLayout()) saveSubWindows();
 
-  qDeleteAll(m_subWindows);
-  m_subWindows.clear();
+    qDeleteAll(m_subWindows);
+    m_subWindows.clear();
 
-  QMainWindow::closeEvent(ev);
+    QMainWindow::closeEvent(ev);
 }
 
 void MDIMainWindow::on_actionScopeView_triggered(bool checked)
 {
-  Q_UNUSED(checked);
-  GlScopeWindow* scopeWindow = new GlScopeWindow(getSelectedUniverse(), this);
-  showWidgetAsSubWindow(scopeWindow);
+    Q_UNUSED(checked);
+    GlScopeWindow * scopeWindow = new GlScopeWindow(getSelectedUniverse(), this);
+    showWidgetAsSubWindow(scopeWindow);
 }
 
 void MDIMainWindow::on_actionRecieve_triggered(bool checked)
 {
-  Q_UNUSED(checked);
-  UniverseView* uniView = new UniverseView(getSelectedUniverse(), this);
-  showWidgetAsSubWindow(uniView);
+    Q_UNUSED(checked);
+    UniverseView * uniView = new UniverseView(getSelectedUniverse(), this);
+    showWidgetAsSubWindow(uniView);
 }
 
 void MDIMainWindow::on_actionMultiView_triggered(bool checked)
 {
-  Q_UNUSED(checked);
-  MultiView* multiView = new MultiView(ui->sbUniverseList->value(), this);
-  showWidgetAsSubWindow(multiView);
+    Q_UNUSED(checked);
+    MultiView * multiView = new MultiView(ui->sbUniverseList->value(), this);
+    showWidgetAsSubWindow(multiView);
 }
 
 void MDIMainWindow::on_actionTranmsit_triggered(bool checked)
 {
-  Q_UNUSED(checked);
-  transmitwindow* trView = new transmitwindow(getSelectedUniverse(), this);
-  showWidgetAsSubWindow(trView);
+    Q_UNUSED(checked);
+    transmitwindow * trView = new transmitwindow(getSelectedUniverse(), this);
+    showWidgetAsSubWindow(trView);
 }
 
 void MDIMainWindow::on_actionSnapshot_triggered(bool checked)
 {
-  Q_UNUSED(checked);
-  Snapshot* snapView = new Snapshot(getSelectedUniverse(), this);
-  showWidgetAsSubWindow(snapView);
+    Q_UNUSED(checked);
+    Snapshot * snapView = new Snapshot(getSelectedUniverse(), this);
+    showWidgetAsSubWindow(snapView);
 }
 
 void MDIMainWindow::on_actionSettings_triggered(bool /*checked*/)
 {
-  if (m_prefDialog == nullptr)
-  {
-    m_prefDialog = new PreferencesDialog(this);
-    connect(m_prefDialog, &QDialog::accepted, this, &MDIMainWindow::applyPrefs);
-    connect(m_prefDialog, &PreferencesDialog::storeWindowLayoutNow, this, &MDIMainWindow::saveSubWindows);
-  }
+    if (m_prefDialog == nullptr)
+    {
+        m_prefDialog = new PreferencesDialog(this);
+        connect(m_prefDialog, &QDialog::accepted, this, &MDIMainWindow::applyPrefs);
+        connect(m_prefDialog, &PreferencesDialog::storeWindowLayoutNow, this, &MDIMainWindow::saveSubWindows);
+    }
 
-  m_prefDialog->open();
+    m_prefDialog->open();
 }
 
 void MDIMainWindow::on_actionAbout_triggered(bool checked)
 {
-  Q_UNUSED(checked);
-  aboutDialog* about = new aboutDialog(this);
-  about->exec();
+    Q_UNUSED(checked);
+    aboutDialog * about = new aboutDialog(this);
+    about->exec();
 }
 
 void MDIMainWindow::on_btnUnivListBack_pressed()
 {
-  ui->sbUniverseList->setValue(ui->sbUniverseList->value() - Preferences::Instance().GetUniversesListCount());
+    ui->sbUniverseList->setValue(ui->sbUniverseList->value() - Preferences::Instance().GetUniversesListCount());
 }
 
 void MDIMainWindow::on_btnUnivListForward_pressed()
 {
 
-  ui->sbUniverseList->setValue(ui->sbUniverseList->value() + Preferences::Instance().GetUniversesListCount());
+    ui->sbUniverseList->setValue(ui->sbUniverseList->value() + Preferences::Instance().GetUniversesListCount());
 }
 
 void MDIMainWindow::on_sbUniverseList_valueChanged(int value)
 {
-  if (m_model)
-  {
-    m_model->setStartUniverse(value);
-    Preferences::Instance().SetUniversesListStart(value);
-  }
+    if (m_model)
+    {
+        m_model->setStartUniverse(value);
+        Preferences::Instance().SetUniversesListStart(value);
+    }
 }
 
-void MDIMainWindow::universeDoubleClick(const QModelIndex& index)
+void MDIMainWindow::universeDoubleClick(const QModelIndex & index)
 {
-  int universe = 0;
+    int universe = 0;
 
-  if (ui->treeView->isVisible())
-  {
-    if (!m_model) return;
-    universe = m_model->indexToUniverse(index);
-  }
-  else if (ui->treeViewDiscovered->isVisible())
-  {
-    if (!m_modelDiscovered) return;
-    QModelIndex srcIndex = m_proxyDiscovered->mapToSource(index);
-    universe = m_modelDiscovered->indexToUniverse(srcIndex);
-  }
-  else if (ui->treeViewSync->isVisible())
-  {
-    if (!m_modelSync) return;
-    universe = m_modelSync->indexToUniverse(index);
-  }
+    if (ui->treeView->isVisible())
+    {
+        if (!m_model) return;
+        universe = m_model->indexToUniverse(index);
+    }
+    else if (ui->treeViewDiscovered->isVisible())
+    {
+        if (!m_modelDiscovered) return;
+        QModelIndex srcIndex = m_proxyDiscovered->mapToSource(index);
+        universe = m_modelDiscovered->indexToUniverse(srcIndex);
+    }
+    else if (ui->treeViewSync->isVisible())
+    {
+        if (!m_modelSync) return;
+        universe = m_modelSync->indexToUniverse(index);
+    }
 
-  if (universe > 0)
-  {
-    UniverseView* uniView = new UniverseView(universe, this);
-    showWidgetAsSubWindow(uniView);
-    uniView->startRx();
-  }
-
+    if (universe > 0)
+    {
+        UniverseView * uniView = new UniverseView(universe, this);
+        showWidgetAsSubWindow(uniView);
+        uniView->startRx();
+    }
 }
 
-void MDIMainWindow::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end)
+void MDIMainWindow::rowsAboutToBeRemoved(const QModelIndex & parent, int start, int end)
 {
-  QModelIndex index = ui->treeView->currentIndex();
-  if ((parent.model() == index.model()) && (index.row() >= start) && (index.row() <= end)) {
-    ui->treeView->clearSelection();
-  }
+    QModelIndex index = ui->treeView->currentIndex();
+    if ((parent.model() == index.model()) && (index.row() >= start) && (index.row() <= end))
+    {
+        ui->treeView->clearSelection();
+    }
 }
 
 void MDIMainWindow::on_actionMultiUniverse_triggered()
 {
-  MultiUniverse* multiUniv = new MultiUniverse(ui->sbUniverseList->value(), this);
-  showWidgetAsSubWindow(multiUniv);
+    MultiUniverse * multiUniv = new MultiUniverse(ui->sbUniverseList->value(), this);
+    showWidgetAsSubWindow(multiUniv);
 }
 
-QWidget* MDIMainWindow::showWidgetAsSubWindow(QWidget* w)
+QWidget * MDIMainWindow::showWidgetAsSubWindow(QWidget * w)
 {
-  switch (Preferences::Instance().GetWindowMode())
-  {
-  default:
-  case WindowMode::MDI: return addMdiWidget(w);
-  case WindowMode::Floating: return addFloatWidget(w);
-  }
+    switch (Preferences::Instance().GetWindowMode())
+    {
+        default:
+        case WindowMode::MDI: return addMdiWidget(w);
+        case WindowMode::Floating: return addFloatWidget(w);
+    }
 }
 
 void MDIMainWindow::saveSubWindows() const
 {
-  Preferences& p = Preferences::Instance();
-  p.SetMainWindowGeometry(saveGeometry(), saveState(kDockStateVersion));
+    Preferences & p = Preferences::Instance();
+    p.SetMainWindowGeometry(saveGeometry(), saveState(kDockStateVersion));
 
-  QList<SubWindowInfo> result;
-  if (m_mdiArea)
-  {
-    QList<QMdiSubWindow*> windows = m_mdiArea->subWindowList();
-    for (const QMdiSubWindow* window : windows)
+    QList<SubWindowInfo> result;
+    if (m_mdiArea)
     {
-      StoreWidgetGeometry(window, window->widget(), result);
+        QList<QMdiSubWindow *> windows = m_mdiArea->subWindowList();
+        for (const QMdiSubWindow * window : windows)
+        {
+            StoreWidgetGeometry(window, window->widget(), result);
+        }
     }
-  }
-  else
-  {
-    for (const QWidget* window : m_subWindows)
+    else
     {
-      StoreWidgetGeometry(window, window, result);
+        for (const QWidget * window : m_subWindows)
+        {
+            StoreWidgetGeometry(window, window, result);
+        }
     }
-  }
 
-  p.SetSavedWindows(result);
+    p.SetSavedWindows(result);
 }
 
 void MDIMainWindow::restoreSubWindows()
 {
-  const Preferences& p = Preferences::Instance();
-  if (!p.GetRestoreWindowLayout())
-    return;
+    const Preferences & p = Preferences::Instance();
+    if (!p.GetRestoreWindowLayout()) return;
 
-  restoreGeometry(p.GetMainWindowGeometry());
-  restoreState(p.GetMainWindowState(), kDockStateVersion);
+    restoreGeometry(p.GetMainWindowGeometry());
+    restoreState(p.GetMainWindowState(), kDockStateVersion);
 
-  const QList<SubWindowInfo>& windows = p.GetSavedWindows();
-  for (const SubWindowInfo& window : windows)
-  {
-    QWidget* widget = Q_NULLPTR;
+    const QList<SubWindowInfo> & windows = p.GetSavedWindows();
+    for (const SubWindowInfo & window : windows)
+    {
+        QWidget * widget = Q_NULLPTR;
 
-    // Construct supported windows
-    if (window.name == "Scope")
-    {
-      widget = new GlScopeWindow(MIN_SACN_UNIVERSE, this);
-    }
-    else if (window.name == "Universe")
-    {
-      widget = new UniverseView(MIN_SACN_UNIVERSE, this);
-    }
-    else if (window.name == "Transmit")
-    {
-      widget = new transmitwindow(MIN_SACN_UNIVERSE, this);
-    }
-    else if (window.name == "Snapshot")
-    {
-      widget = new Snapshot(MIN_SACN_UNIVERSE, this);
-    }
-    else if (window.name == "MultiUniverse")
-    {
-      widget = new MultiUniverse(MIN_SACN_UNIVERSE, this);
-    }
-    else if (window.name == "MultiView")
-    {
-      widget = new MultiView(MIN_SACN_UNIVERSE, this);
+        // Construct supported windows
+        if (window.name == "Scope")
+        {
+            widget = new GlScopeWindow(MIN_SACN_UNIVERSE, this);
+        }
+        else if (window.name == "Universe")
+        {
+            widget = new UniverseView(MIN_SACN_UNIVERSE, this);
+        }
+        else if (window.name == "Transmit")
+        {
+            widget = new transmitwindow(MIN_SACN_UNIVERSE, this);
+        }
+        else if (window.name == "Snapshot")
+        {
+            widget = new Snapshot(MIN_SACN_UNIVERSE, this);
+        }
+        else if (window.name == "MultiUniverse")
+        {
+            widget = new MultiUniverse(MIN_SACN_UNIVERSE, this);
+        }
+        else if (window.name == "MultiView")
+        {
+            widget = new MultiView(MIN_SACN_UNIVERSE, this);
+        }
+
+        if (widget)
+        {
+            showWidgetAsSubWindow(widget)->restoreGeometry(window.geometry);
+            // Attempt to set the config
+            if (!window.config.isEmpty())
+                QMetaObject::invokeMethod(widget, "setJsonConfiguration", Q_ARG(QJsonObject, window.config));
+        }
     }
 
-    if (widget)
+    if (p.GetAutoStartRX())
     {
-      showWidgetAsSubWindow(widget)->restoreGeometry(window.geometry);
-      // Attempt to set the config
-      if (!window.config.isEmpty())
-        QMetaObject::invokeMethod(widget, "setJsonConfiguration", Q_ARG(QJsonObject, window.config));
+        // Automatically start all receiver views after a moment
+        QTimer::singleShot(500, this, &MDIMainWindow::startReceiverViews);
     }
-
-  }
-
-  if (p.GetAutoStartRX())
-  {
-    // Automatically start all receiver views after a moment
-    QTimer::singleShot(500, this, &MDIMainWindow::startReceiverViews);
-  }
 }
 
 void MDIMainWindow::startReceiverViews()
 {
-  // Invoke startRx() on everything except the sender
-  for (QWidget *widget : m_subWindows)
-  {
-    if (sender() == widget)
-      continue;
-    QMetaObject::invokeMethod(widget, "startRx");
-  }
+    // Invoke startRx() on everything except the sender
+    for (QWidget * widget : m_subWindows)
+    {
+        if (sender() == widget) continue;
+        QMetaObject::invokeMethod(widget, "startRx");
+    }
 }
 
 void MDIMainWindow::stopReceiverViews()
 {
-  // Invoke stopRx() on everything except the sender
-  for (QWidget* widget : m_subWindows)
-  {
-    if (sender() == widget)
-      continue;
-    QMetaObject::invokeMethod(widget, "stopRx");
-  }
+    // Invoke stopRx() on everything except the sender
+    for (QWidget * widget : m_subWindows)
+    {
+        if (sender() == widget) continue;
+        QMetaObject::invokeMethod(widget, "stopRx");
+    }
 }
 
 void MDIMainWindow::on_actionPCAPPlayback_triggered()
 {
-  PcapPlayback* pcapPlayback = new PcapPlayback(this);
-  showWidgetAsSubWindow(pcapPlayback);
+    PcapPlayback * pcapPlayback = new PcapPlayback(this);
+    showWidgetAsSubWindow(pcapPlayback);
 }
 
 void MDIMainWindow::on_sbUniversesCount_editingFinished()
 {
-  Preferences::Instance().SetUniversesListCount(ui->sbUniversesCount->value());
-  on_sbUniverseList_valueChanged(ui->sbUniverseList->value());
+    Preferences::Instance().SetUniversesListCount(ui->sbUniversesCount->value());
+    on_sbUniverseList_valueChanged(ui->sbUniverseList->value());
 }
 
 int MDIMainWindow::getSelectedUniverse() const
 {
-  QModelIndex selectedIndex = ui->treeView->currentIndex();
-  int selectedUniverse = m_model->indexToUniverse(selectedIndex);
-  return (selectedUniverse >= MIN_SACN_UNIVERSE && selectedUniverse <= MAX_SACN_UNIVERSE) ? selectedUniverse : ui->sbUniverseList->value();
+    QModelIndex selectedIndex = ui->treeView->currentIndex();
+    int selectedUniverse = m_model->indexToUniverse(selectedIndex);
+    return (selectedUniverse >= MIN_SACN_UNIVERSE && selectedUniverse <= MAX_SACN_UNIVERSE)
+        ? selectedUniverse
+        : ui->sbUniverseList->value();
 }
 
-QWidget* MDIMainWindow::addMdiWidget(QWidget* w)
+QWidget * MDIMainWindow::addMdiWidget(QWidget * w)
 {
-  if (!m_mdiArea)
-  {
-    m_mdiArea = new QMdiArea();
-    m_mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    m_mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    QWidget* oldCentral = centralWidget();
-    setCentralWidget(m_mdiArea);
-    if (oldCentral)
+    if (!m_mdiArea)
     {
-      qDebug() << "Destroying" << oldCentral->objectName();
-      delete oldCentral;
+        m_mdiArea = new QMdiArea();
+        m_mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        m_mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        QWidget * oldCentral = centralWidget();
+        setCentralWidget(m_mdiArea);
+        if (oldCentral)
+        {
+            qDebug() << "Destroying" << oldCentral->objectName();
+            delete oldCentral;
+        }
     }
-  }
 
-  // Parent it to an MDI subwindow
-  w->setAttribute(Qt::WA_DeleteOnClose, false); // Let the MDI area control lifetime
-  QWidget* result = m_mdiArea->addSubWindow(w);
-  w->show();
-  return result;
+    // Parent it to an MDI subwindow
+    w->setAttribute(Qt::WA_DeleteOnClose, false); // Let the MDI area control lifetime
+    QWidget * result = m_mdiArea->addSubWindow(w);
+    w->show();
+    return result;
 }
 
-QWidget* MDIMainWindow::addFloatWidget(QWidget* w)
+QWidget * MDIMainWindow::addFloatWidget(QWidget * w)
 {
-  // Promote to a toplevel window but keep track of it
-  if (!m_subWindows.contains(w))
-  {
-    m_subWindows.append(w);
-    connect(w, &QObject::destroyed, this, &MDIMainWindow::subWindowRemoved);
-  }
+    // Promote to a toplevel window but keep track of it
+    if (!m_subWindows.contains(w))
+    {
+        m_subWindows.append(w);
+        connect(w, &QObject::destroyed, this, &MDIMainWindow::subWindowRemoved);
+    }
 
-  w->setParent(nullptr);
-  w->setAttribute(Qt::WA_DeleteOnClose);
-  w->show();
-  return w;
+    w->setParent(nullptr);
+    w->setAttribute(Qt::WA_DeleteOnClose);
+    w->show();
+    return w;
 }
 
-void MDIMainWindow::StoreWidgetGeometry(const QWidget* window, const QWidget* widget, QList<SubWindowInfo>& result)
+void MDIMainWindow::StoreWidgetGeometry(const QWidget * window, const QWidget * widget, QList<SubWindowInfo> & result)
 {
-  SubWindowInfo i;
+    SubWindowInfo i;
 
-  if (qobject_cast<const GlScopeWindow*>(widget) != Q_NULLPTR)
-  {
-    i.name = "Scope";
-  }
-  else if (qobject_cast<const UniverseView*>(widget) != Q_NULLPTR)
-  {
-    i.name = "Universe";
-  }
-  else if (qobject_cast<const transmitwindow*>(widget) != Q_NULLPTR)
-  {
-    i.name = "Transmit";
-  }
-  else if (qobject_cast<const Snapshot*>(widget) != Q_NULLPTR)
-  {
-    i.name = "Snapshot";
-  }
-  else if (qobject_cast<const MultiUniverse*>(widget) != Q_NULLPTR)
-  {
-    i.name = "MultiUniverse";
-  }
-  else if (qobject_cast<const MultiView*>(widget) != Q_NULLPTR)
-  {
-    i.name = "MultiView";
-  }
+    if (qobject_cast<const GlScopeWindow *>(widget) != Q_NULLPTR)
+    {
+        i.name = "Scope";
+    }
+    else if (qobject_cast<const UniverseView *>(widget) != Q_NULLPTR)
+    {
+        i.name = "Universe";
+    }
+    else if (qobject_cast<const transmitwindow *>(widget) != Q_NULLPTR)
+    {
+        i.name = "Transmit";
+    }
+    else if (qobject_cast<const Snapshot *>(widget) != Q_NULLPTR)
+    {
+        i.name = "Snapshot";
+    }
+    else if (qobject_cast<const MultiUniverse *>(widget) != Q_NULLPTR)
+    {
+        i.name = "MultiUniverse";
+    }
+    else if (qobject_cast<const MultiView *>(widget) != Q_NULLPTR)
+    {
+        i.name = "MultiView";
+    }
 
-  // Add to list if supported
-  if (!i.name.isEmpty())
-  {
-    i.geometry = window->saveGeometry();
-    QMetaObject::invokeMethod(const_cast<QWidget*>(widget), "getJsonConfiguration", Qt::DirectConnection, Q_RETURN_ARG(QJsonObject, i.config));
-    result.append(i);
-  }
+    // Add to list if supported
+    if (!i.name.isEmpty())
+    {
+        i.geometry = window->saveGeometry();
+        QMetaObject::invokeMethod(
+            const_cast<QWidget *>(widget),
+            "getJsonConfiguration",
+            Qt::DirectConnection,
+            Q_RETURN_ARG(QJsonObject, i.config));
+        result.append(i);
+    }
 }
 
 void MDIMainWindow::subWindowRemoved()
 {
-  QWidget* widget = qobject_cast<QWidget*>(sender());
-  if (widget)
-    m_subWindows.removeOne(widget);
+    QWidget * widget = qobject_cast<QWidget *>(sender());
+    if (widget) m_subWindows.removeOne(widget);
 }
 
 void MDIMainWindow::applyPrefs()
 {
-  // Apply new window mode
-  if (Preferences::Instance().GetWindowMode() != m_currentWindowMode)
-  {
-    qDebug("Changing windowing mode");
-    switch (Preferences::Instance().GetWindowMode())
+    // Apply new window mode
+    if (Preferences::Instance().GetWindowMode() != m_currentWindowMode)
     {
-    case WindowMode::COUNT: Preferences::Instance().SetWindowMode(WindowMode::MDI);
-      [[fallthrough]];
-
-    case WindowMode::MDI:
-    {
-      // Move the Universe List widget back into the DockWidget if necessary
-      if (centralWidget() == ui->widgetUniverseList)
-      {
-        ui->dockWidgetContents->layout()->addWidget(ui->widgetUniverseList);
-      }
-      ui->dwUnivList->show();
-      // Reparent all floating windows to the MDI Area
-      for (QWidget* widget : m_subWindows)
-      {
-        disconnect(widget, &QObject::destroyed, this, &MDIMainWindow::subWindowRemoved);
-        addMdiWidget(widget);
-      }
-      m_subWindows.clear();
-    } break;
-
-    case WindowMode::Floating:
-    {
-      if (m_mdiArea)
-      {
-        // Promote all MDI widgets to top-level
-        QList<QMdiSubWindow*> windows = m_mdiArea->subWindowList(QMdiArea::StackingOrder);
-        for (QMdiSubWindow* window : windows)
+        qDebug("Changing windowing mode");
+        switch (Preferences::Instance().GetWindowMode())
         {
-          addFloatWidget(window->widget());
-          delete window;
-        }
-        delete m_mdiArea;
-        m_mdiArea = nullptr;
-      }
+            case WindowMode::COUNT: Preferences::Instance().SetWindowMode(WindowMode::MDI); [[fallthrough]];
 
-      // Move the Universe List dockwidget to the centralWidget
-      setCentralWidget(ui->widgetUniverseList);
-      ui->dwUnivList->hide();
-    } break;
+            case WindowMode::MDI:
+            {
+                // Move the Universe List widget back into the DockWidget if necessary
+                if (centralWidget() == ui->widgetUniverseList)
+                {
+                    ui->dockWidgetContents->layout()->addWidget(ui->widgetUniverseList);
+                }
+                ui->dwUnivList->show();
+                // Reparent all floating windows to the MDI Area
+                for (QWidget * widget : m_subWindows)
+                {
+                    disconnect(widget, &QObject::destroyed, this, &MDIMainWindow::subWindowRemoved);
+                    addMdiWidget(widget);
+                }
+                m_subWindows.clear();
+            }
+            break;
+
+            case WindowMode::Floating:
+            {
+                if (m_mdiArea)
+                {
+                    // Promote all MDI widgets to top-level
+                    QList<QMdiSubWindow *> windows = m_mdiArea->subWindowList(QMdiArea::StackingOrder);
+                    for (QMdiSubWindow * window : windows)
+                    {
+                        addFloatWidget(window->widget());
+                        delete window;
+                    }
+                    delete m_mdiArea;
+                    m_mdiArea = nullptr;
+                }
+
+                // Move the Universe List dockwidget to the centralWidget
+                setCentralWidget(ui->widgetUniverseList);
+                ui->dwUnivList->hide();
+            }
+            break;
+        }
+        // Done, store mode
+        m_currentWindowMode = Preferences::Instance().GetWindowMode();
     }
-    // Done, store mode
-    m_currentWindowMode = Preferences::Instance().GetWindowMode();
-  }
 }

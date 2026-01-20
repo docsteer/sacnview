@@ -5,7 +5,8 @@
 class QSpinBox_ResizeToContent : public QSpinBox
 {
 public:
-    QSpinBox_ResizeToContent(QWidget *parent = nullptr);
+
+    QSpinBox_ResizeToContent(QWidget * parent = nullptr);
     QSize minimumSizeHint() const;
 };
 

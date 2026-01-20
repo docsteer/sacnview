@@ -14,38 +14,37 @@
 // limitations under the License.
 
 #include "grideditwidget.h"
-#include <QWheelEvent>
 #include "consts.h"
+#include <QWheelEvent>
 
-GridEditWidget::GridEditWidget(QWidget *parent) : GridWidget(parent)
+GridEditWidget::GridEditWidget(QWidget * parent)
+    : GridWidget(parent)
 {
     setMultiSelect(true);
 }
 
-
-void GridEditWidget::wheelEvent(QWheelEvent *event)
+void GridEditWidget::wheelEvent(QWheelEvent * event)
 {
     int numDegrees = event->angleDelta().y() / 8;
     int numSteps = numDegrees / 15;
 
     QList<QPair<int, int>> level_list;
 
-    QListIterator<int>i(selectedCells());
-    while(i.hasNext())
+    QListIterator<int> i(selectedCells());
+    while (i.hasNext())
     {
         int cell = i.next();
         int value = cellValue(cell).toInt();
         value += numSteps;
 
-        if(!(value<m_minimum || value>m_maximum))
+        if (!(value < m_minimum || value > m_maximum))
         {
             setCellValue(cell, QString::number(value));
-            level_list << QPair<int,int>(cell, value);
+            level_list << QPair<int, int>(cell, value);
         }
     }
 
-    if(level_list.count()>0)
-        emit levelsSet(level_list);
+    if (level_list.count() > 0) emit levelsSet(level_list);
 
     update();
 
@@ -54,7 +53,7 @@ void GridEditWidget::wheelEvent(QWheelEvent *event)
 
 void GridEditWidget::setAllValues(int value)
 {
-    for(int i=0; i<512; i++)
+    for (int i = 0; i < 512; i++)
     {
         setCellValue(i, QString::number(value));
     }

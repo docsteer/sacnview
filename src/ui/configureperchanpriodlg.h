@@ -13,16 +13,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #ifndef CONFIGUREPERCHANPRIODLG_H
 #define CONFIGUREPERCHANPRIODLG_H
 
+#include "consts.h"
 #include <QDialog>
 #include <QToolButton>
-#include "consts.h"
 
-namespace Ui {
-class ConfigurePerChanPrioDlg;
+namespace Ui
+{
+    class ConfigurePerChanPrioDlg;
 }
 
 class ConfigurePerChanPrioDlg : public QDialog
@@ -30,21 +30,24 @@ class ConfigurePerChanPrioDlg : public QDialog
     Q_OBJECT
 
 public:
-    explicit ConfigurePerChanPrioDlg(QWidget *parent = Q_NULLPTR);
+
+    explicit ConfigurePerChanPrioDlg(QWidget * parent = Q_NULLPTR);
     ~ConfigurePerChanPrioDlg();
-    void setData(quint8 *data);
-    quint8 *data();
+    void setData(quint8 * data);
+    quint8 * data();
 public slots:
     void on_btnSetAll_pressed();
     void on_btnSet_pressed();
     void on_widget_selectedCellsChanged(QList<int> cells);
     void on_btnPresetRec_toggled(bool on);
     void presetButtonPressed();
+
 private:
-    Ui::ConfigurePerChanPrioDlg *ui;
+
+    Ui::ConfigurePerChanPrioDlg * ui;
     quint8 m_data[MAX_DMX_ADDRESS];
     QList<QByteArray> m_presets;
-    QList<QToolButton *>m_presetButtons;
+    QList<QToolButton *> m_presetButtons;
     QList<int> m_selectedCells;
 };
 

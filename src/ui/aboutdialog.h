@@ -16,44 +16,47 @@
 #ifndef ABOUTDIALOG_H
 #define ABOUTDIALOG_H
 
-#include "streamingacn.h"
 #include "sacnlistener.h"
+#include "streamingacn.h"
 #include <QDialog>
-#include <QTreeWidgetItem>
 #include <QTreeWidget>
+#include <QTreeWidgetItem>
 
 class VersionCheck;
 class SACNListenerTableModel;
 
-namespace Ui {
-  class aboutDialog;
+namespace Ui
+{
+    class aboutDialog;
 }
 
 class aboutDialog : public QDialog
 {
-  Q_OBJECT
+    Q_OBJECT
 
 public:
-  explicit aboutDialog(QWidget* parent = Q_NULLPTR);
-  ~aboutDialog();
+
+    explicit aboutDialog(QWidget * parent = Q_NULLPTR);
+    ~aboutDialog();
 
 private slots:
-  void updateDisplay();
-  void on_chkAutoUpdate_clicked(bool checked);
-  void on_btnCheckUpdateNow_clicked(bool);
+    void updateDisplay();
+    void on_chkAutoUpdate_clicked(bool checked);
+    void on_btnCheckUpdateNow_clicked(bool);
 
-  void on_twDiag_expanded(const QModelIndex& index);
-  void on_twDiag_collapsed(const QModelIndex& index);
+    void on_twDiag_expanded(const QModelIndex & index);
+    void on_twDiag_collapsed(const QModelIndex & index);
 
-  void on_aboutDialog_finished(int result);
+    void on_aboutDialog_finished(int result);
 
 private:
-  Ui::aboutDialog* ui = Q_NULLPTR;
-  QTimer* m_displayTimer = Q_NULLPTR;
-  VersionCheck* m_versionCheck = Q_NULLPTR;
-  SACNListenerTableModel* m_listenerModel = Q_NULLPTR;
 
-  void resizeDiagColumn();
+    Ui::aboutDialog * ui = Q_NULLPTR;
+    QTimer * m_displayTimer = Q_NULLPTR;
+    VersionCheck * m_versionCheck = Q_NULLPTR;
+    SACNListenerTableModel * m_listenerModel = Q_NULLPTR;
+
+    void resizeDiagColumn();
 };
 
 #endif // ABOUTDIALOG_H

@@ -16,15 +16,16 @@
 #ifndef SACNSOCKET_H
 #define SACNSOCKET_H
 
+#include <QNetworkInterface>
 #include <QObject>
 #include <QUdpSocket>
-#include <QNetworkInterface>
 
 class sACNRxSocket : public QUdpSocket
 {
     Q_OBJECT
 public:
-    sACNRxSocket(QNetworkInterface iface, QObject *parent = Q_NULLPTR);
+
+    sACNRxSocket(QNetworkInterface iface, QObject * parent = Q_NULLPTR);
 
     enum eBindStatus
     {
@@ -34,7 +35,8 @@ public:
     };
     struct sBindStatus
     {
-        sBindStatus() {
+        sBindStatus()
+        {
             unicast = BIND_UNKNOWN;
             multicast = BIND_UNKNOWN;
         }
@@ -44,10 +46,11 @@ public:
 
     sBindStatus bind(quint16 universe);
     int getBoundUniverse() const { return m_universe; }
-    QNetworkInterface getBoundInterface() const{ return m_interface; }
-    const QHostAddress &getMulticastAddr() const {return m_multicastAddr; }
+    QNetworkInterface getBoundInterface() const { return m_interface; }
+    const QHostAddress & getMulticastAddr() const { return m_multicastAddr; }
 
 private:
+
     QNetworkInterface m_interface;
     int m_universe = 0;
     QHostAddress m_multicastAddr;
@@ -57,18 +60,21 @@ class sACNTxSocket : public QUdpSocket
 {
     Q_OBJECT
 public:
-    sACNTxSocket(QNetworkInterface iface, QObject *parent = Q_NULLPTR);
+
+    sACNTxSocket(QNetworkInterface iface, QObject * parent = Q_NULLPTR);
 
     bool bind();
 
     //qint64 writeDatagram(const QNetworkDatagram &datagram);
-    qint64 writeDatagram(const char *data, qint64 len, const QHostAddress &host, quint16 port);
-    inline qint64 writeDatagram(const QByteArray &datagram, const QHostAddress &host, quint16 port)
-        { return writeDatagram(datagram.constData(), datagram.size(), host, port); }
+    qint64 writeDatagram(const char * data, qint64 len, const QHostAddress & host, quint16 port);
+    inline qint64 writeDatagram(const QByteArray & datagram, const QHostAddress & host, quint16 port)
+    {
+        return writeDatagram(datagram.constData(), datagram.size(), host, port);
+    }
 
 private:
+
     QNetworkInterface m_interface;
 };
-
 
 #endif // SACNSOCKET_H

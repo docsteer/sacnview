@@ -31,10 +31,7 @@ static QElapsedTimer timer;
 // Gadget to enforce a single start
 struct TockStarter
 {
-    TockStarter()
-    {
-        timer.start();
-    }
+    TockStarter() { timer.start(); }
 };
 
 // Initializes the tock layer. Only needs to be called once per application
@@ -51,12 +48,11 @@ tock Tock_GetTock()
 }
 
 // Shuts down the tock layer. No-Op on desktop platforms
-void Tock_StopLib()
-{
+void Tock_StopLib() {}
 
-}
-
-tock::tock():v(0) {}
+tock::tock()
+    : v(0)
+{}
 
 tock::resolution_t tock::Get() const
 {
@@ -68,44 +64,45 @@ void tock::Set(tock::resolution_t time)
     v = time;
 }
 
-bool operator>(const tock& t1, const tock& t2)
+bool operator>(const tock & t1, const tock & t2)
 {
     return t1.v.count() - t2.v.count() > 0;
 }
 
-bool operator>=(const tock& t1, const tock& t2)
+bool operator>=(const tock & t1, const tock & t2)
 {
     return t1.v.count() - t2.v.count() >= 0;
 }
 
-bool operator==(const tock& t1, const tock& t2)
+bool operator==(const tock & t1, const tock & t2)
 {
     return t1.v.count() - t2.v.count() == 0;
 }
 
-bool operator!=(const tock& t1, const tock& t2)
+bool operator!=(const tock & t1, const tock & t2)
 {
     return t1.v.count() - t2.v.count() != 0;
 }
 
-bool operator<(const tock& t1, const tock& t2)
+bool operator<(const tock & t1, const tock & t2)
 {
     return t2.v.count() - t1.v.count() > 0;
 }
 
-bool operator<=(const tock& t1, const tock& t2)
+bool operator<=(const tock & t1, const tock & t2)
 {
     return t2.v.count() - t1.v.count() >= 0;
 }
 
-ttimer::ttimer():interval(0)
+ttimer::ttimer()
+    : interval(0)
 {
     Reset();
 }
 
-template <typename Rep, typename Period>
-ttimer::ttimer(std::chrono::duration<Rep, Period> interval) :
-    interval(interval)
+template<typename Rep, typename Period>
+ttimer::ttimer(std::chrono::duration<Rep, Period> interval)
+    : interval(interval)
 {
     Reset();
 }
@@ -131,12 +128,12 @@ bool ttimer::Expired() const
     return (Tock_GetTock().Get()) >= tockout.Get();
 }
 
-bool operator==(const ttimer& t1, const ttimer& t2)
+bool operator==(const ttimer & t1, const ttimer & t2)
 {
     return ((t1.tockout == t2.tockout) && (t1.interval == t2.interval));
 }
 
-bool operator!=(const ttimer& t1, const ttimer& t2)
+bool operator!=(const ttimer & t1, const ttimer & t2)
 {
     return !(t1 == t2);
 }

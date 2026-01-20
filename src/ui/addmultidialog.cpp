@@ -14,14 +14,13 @@
 // limitations under the License.
 
 #include "addmultidialog.h"
-#include "ui_addmultidialog.h"
-#include "sacneffectengine.h"
 #include "consts.h"
 #include "preferences.h"
+#include "sacneffectengine.h"
+#include "ui_addmultidialog.h"
 
-AddMultiDialog::AddMultiDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::AddMultiDialog)
+AddMultiDialog::AddMultiDialog(QWidget * parent)
+    : QDialog(parent), ui(new Ui::AddMultiDialog)
 {
     ui->setupUi(this);
 
@@ -47,7 +46,7 @@ AddMultiDialog::AddMultiDialog(QWidget *parent) :
     connect(ui->sbNumUniverses, QOverload<int>::of(&QSpinBox::valueChanged), this, &AddMultiDialog::rangeChanged);
 
     ui->dlFadeRate->setMinimum(0);
-    ui->dlFadeRate->setMaximum(static_cast<int>(FX_FADE_RATES.count()-1));
+    ui->dlFadeRate->setMaximum(static_cast<int>(FX_FADE_RATES.count() - 1));
     ui->dlFadeRate->setValue(0);
 
     rangeChanged(0);
@@ -63,7 +62,7 @@ void AddMultiDialog::rangeChanged(int)
 {
     const int startUniverse = ui->sbStartUniverse->value();
     const int endRange = startUniverse + ui->sbNumUniverses->value() - 1;
-    if(endRange>MAX_SACN_UNIVERSE)
+    if (endRange > MAX_SACN_UNIVERSE)
     {
         ui->sbStartUniverse->setValue(startUniverse - (endRange - MAX_SACN_UNIVERSE));
         return;
@@ -73,30 +72,30 @@ void AddMultiDialog::rangeChanged(int)
 
 void AddMultiDialog::on_cbEffect_currentIndexChanged(int index)
 {
-    sACNEffectEngine::FxMode mode = (sACNEffectEngine::FxMode) index;
-    switch(mode)
+    sACNEffectEngine::FxMode mode = (sACNEffectEngine::FxMode)index;
+    switch (mode)
     {
-    case sACNEffectEngine::FxManual:
-        ui->slLevel->setMinimum(MIN_SACN_LEVEL);
-        ui->slLevel->setMaximum(MAX_SACN_LEVEL);
-        ui->lbDialFunction->setText(tr("Level"));
-        break;
+        case sACNEffectEngine::FxManual:
+            ui->slLevel->setMinimum(MIN_SACN_LEVEL);
+            ui->slLevel->setMaximum(MAX_SACN_LEVEL);
+            ui->lbDialFunction->setText(tr("Level"));
+            break;
 
-    case sACNEffectEngine::FxChaseSnap:
-    case sACNEffectEngine::FxChaseRamp:
-    case sACNEffectEngine::FxChaseSine:
-    case sACNEffectEngine::FxRamp:
-    case sACNEffectEngine::FxInverseRamp:
-    case sACNEffectEngine::FxSinewave:
-    case sACNEffectEngine::FxVerticalBar:
-    case sACNEffectEngine::FxHorizontalBar:
-    case sACNEffectEngine::FxDate:
-    case sACNEffectEngine::FxText:
-    default:
-        ui->slLevel->setMinimum(1);
-        ui->slLevel->setMaximum(500);
-        ui->lbDialFunction->setText(tr("Rate"));
-        break;
+        case sACNEffectEngine::FxChaseSnap:
+        case sACNEffectEngine::FxChaseRamp:
+        case sACNEffectEngine::FxChaseSine:
+        case sACNEffectEngine::FxRamp:
+        case sACNEffectEngine::FxInverseRamp:
+        case sACNEffectEngine::FxSinewave:
+        case sACNEffectEngine::FxVerticalBar:
+        case sACNEffectEngine::FxHorizontalBar:
+        case sACNEffectEngine::FxDate:
+        case sACNEffectEngine::FxText:
+        default:
+            ui->slLevel->setMinimum(1);
+            ui->slLevel->setMaximum(500);
+            ui->lbDialFunction->setText(tr("Rate"));
+            break;
     }
 
     on_slLevel_sliderMoved(ui->slLevel->value());
@@ -104,25 +103,23 @@ void AddMultiDialog::on_cbEffect_currentIndexChanged(int index)
 
 void AddMultiDialog::on_slLevel_sliderMoved(int value)
 {
-    sACNEffectEngine::FxMode mode = (sACNEffectEngine::FxMode) ui->cbEffect->currentIndex();
-    switch(mode)
+    sACNEffectEngine::FxMode mode = (sACNEffectEngine::FxMode)ui->cbEffect->currentIndex();
+    switch (mode)
     {
-    case sACNEffectEngine::FxManual:
-        ui->lbDialValue->setText(Preferences::Instance().GetFormattedValue(value, true));
-        break;
+        case sACNEffectEngine::FxManual:
+            ui->lbDialValue->setText(Preferences::Instance().GetFormattedValue(value, true));
+            break;
 
-    case sACNEffectEngine::FxChaseSnap:
-    case sACNEffectEngine::FxChaseRamp:
-    case sACNEffectEngine::FxRamp:
-    case sACNEffectEngine::FxInverseRamp:
-    case sACNEffectEngine::FxSinewave:
-    case sACNEffectEngine::FxVerticalBar:
-    case sACNEffectEngine::FxHorizontalBar:
-    case sACNEffectEngine::FxDate:
-    case sACNEffectEngine::FxText:
-    default:
-        ui->lbDialValue->setText(tr("%1 Hz").arg(value));
-        break;
+        case sACNEffectEngine::FxChaseSnap:
+        case sACNEffectEngine::FxChaseRamp:
+        case sACNEffectEngine::FxRamp:
+        case sACNEffectEngine::FxInverseRamp:
+        case sACNEffectEngine::FxSinewave:
+        case sACNEffectEngine::FxVerticalBar:
+        case sACNEffectEngine::FxHorizontalBar:
+        case sACNEffectEngine::FxDate:
+        case sACNEffectEngine::FxText:
+        default: ui->lbDialValue->setText(tr("%1 Hz").arg(value)); break;
     }
 }
 
@@ -138,7 +135,7 @@ int AddMultiDialog::universeCount()
 
 sACNEffectEngine::FxMode AddMultiDialog::mode()
 {
-    return (sACNEffectEngine::FxMode) ui->cbEffect->currentIndex();
+    return (sACNEffectEngine::FxMode)ui->cbEffect->currentIndex();
 }
 
 int AddMultiDialog::startAddress()
@@ -158,8 +155,7 @@ bool AddMultiDialog::startNow()
 
 int AddMultiDialog::level()
 {
-    if ((sACNEffectEngine::FxMode) ui->cbEffect->currentIndex() == sACNEffectEngine::FxChaseSnap)
-        return 255;
+    if ((sACNEffectEngine::FxMode)ui->cbEffect->currentIndex() == sACNEffectEngine::FxChaseSnap) return 255;
 
     return ui->slLevel->value();
 }
