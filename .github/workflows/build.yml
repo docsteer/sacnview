@@ -32,7 +32,9 @@ jobs:
             configure_preset_name: "linux-x64-release"
             build_preset_name: "linux-release"
             package_preset_name: "linux"
-            artifact: ./out/build/linux-x64-release/package/*
+            artifact: |
+              ./out/build/linux-x64-release/package/*
+              sACNView-x86_64.AppImage
 
           - os: windows-latest
             qt: '6.8.3'
@@ -96,6 +98,17 @@ jobs:
     - name: CPack Package
       if: matrix.package_preset_name
       run: cpack --preset ${{matrix.package_preset_name}}
+
+    - name: Install Linuxdeploy (Linux)
+      if: runner.os == 'linux'
+      uses: miurahr/install-linuxdeploy-action@v1.8.0
+      with:
+        dir: ${{ github.workspace }}
+        plugins: qt appimage
+
+    - name: Build AppImage (Linux)
+      if: runner.os == 'linux'
+      run: install/linux/build_appimage.sh
 
     - name: Upload Artifact(s)
       if: matrix.artifact
