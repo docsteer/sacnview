@@ -67,6 +67,8 @@ ipch/
 #Build Output
 out/*
 build/*
+AppDir/*
+*.AppImage
 
 #macos
 .DS_Store

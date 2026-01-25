@@ -51,3 +51,32 @@ Once configuration is successful, you can run the build by navigating to the dir
 
 	cd out\build\windows-x64-release-installer
     cmake --build .
+
+## Linux
+
+Note that we use a newer version of Qt than is provided by many distributions, so recommend using the Qt installer tool to install a recent LTS version.
+
+Set an environment variable, QT_ROOT_DIR, pointing to the root directory of your Qt installation, including the version and compiler parts, for example:
+
+    export QT_ROOT_DIR=~/Qt/6.8.3/gcc_64
+
+Configure the application for the appropriate target using a CMake preset, e.g:
+
+    cmake --preset "linux-x64-release"
+
+Once configuration is successful, you can run the build by navigating to the directory in the out folder and running
+
+	cd out\build\linux-x64-release
+    cmake --build .
+
+The build can be packaged as either an AppImage or a DEB package:
+
+### AppImage
+
+To build an AppImage, you will need the linuxdeploy utility, which is itself an appimage. Obtain it and locate it in your path.
+
+Then from the root of the repository run the script `install/linux/build_appimage.sh`. This will run the build and then use the linuxdeploy tool to build the AppImage.
+
+### Debian Package (DEB)
+
+To build a DEB package, run the command `cpack --package "linux"`. This will generate the deb package under the output directory.
