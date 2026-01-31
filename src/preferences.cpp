@@ -99,6 +99,10 @@ static const QString S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT = QStringLiteral("Pa
 
 static const QString S_PATHWAYSECURE_SEQUENCE_MAP = QStringLiteral("PathwaySecure/SequenceMap");
 
+// Keyboard Shortcuts
+static const QString S_KEYBOARD_SHORTCUTS = QStringLiteral("KeyboardShortcuts");
+static const QString S_KEYBOARD_SHORTCUT = QStringLiteral("KeyboardShortcuts/%1");
+
 // The base color to generate pastel shades for sources
 static const QColor mixColor(QColorConstants::Svg::coral);
 
@@ -440,6 +444,13 @@ void Preferences::savePreferences() const
     settings.setValue(S_PATHWAYSECURE_TX_SEQUENCE_BOOT_COUNT, m_pathwaySecureTxSequenceBootCount);
     SaveByteArray(settings, S_PATHWAYSECURE_SEQUENCE_MAP, m_pathwaySecureSequenceMap);
 
+    settings.beginGroup(S_KEYBOARD_SHORTCUTS);
+    for (auto i = m_shortcutMap.cbegin(); i != m_shortcutMap.cend(); ++i)
+    {
+        settings.setValue(QString::number(i.key()), QString::number(i.value().toCombined()));
+    }
+    settings.endGroup();
+
     settings.sync();
 }
 
@@ -529,6 +540,15 @@ void Preferences::loadPreferences()
             m_priorityPresets[i].replace(0, MAX_DMX_ADDRESS, settings.value(key).toByteArray());
         }
     }
+
+    for (int i = 0; i < SHORTCUT_COUNT; i++)
+    {
+        const auto key = S_KEYBOARD_SHORTCUT.arg(i);
+        if (settings.contains(key))
+        {
+            m_shortcutMap[(KeyShortcutTarget)i] = QKeyCombination::fromCombined(settings.value(key).toInt());
+        }
+    }
 }
 
 void Preferences::loadWindowGeometrySettings()
@@ -587,4 +607,38 @@ void Preferences::saveWindowGeometrySettings() const
             settings.setValue(S_WINDOWCONFIG, info.config);
     }
     settings.endArray();
+}
+
+const QKeyCombination Preferences::getKeyShortcut(KeyShortcutTarget target) const
+{
+    if (m_shortcutMap.contains(target))
+    {
+        return m_shortcutMap.value(target);
+    }
+
+    switch (target)
+    {
+        case KeyShortcutTarget::SHORTCUT_CHANNELCHECK_NEXT: return QKeyCombination(Qt::Key_PageUp);
+
+        case KeyShortcutTarget::SHORTCUT_CHANNELCHECK_PREV: return QKeyCombination(Qt::Key_PageDown);
+    }
+
+    return QKeyCombination();
+}
+
+QString Preferences::getKeyShortcutDescription(KeyShortcutTarget target) const
+{
+    switch (target)
+    {
+        case KeyShortcutTarget::SHORTCUT_CHANNELCHECK_NEXT: return QString("Channel Check - Next Channel");
+
+        case KeyShortcutTarget::SHORTCUT_CHANNELCHECK_PREV: return QString("Channel Check - Previous Channel");
+    }
+
+    return "Unknown";
+}
+
+void Preferences::setKeyShortcut(KeyShortcutTarget target, const QKeyCombination & keys)
+{
+    m_shortcutMap[target] = keys;
 }
