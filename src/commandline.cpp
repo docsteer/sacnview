@@ -463,6 +463,40 @@ void EditableLCDNumber::keyPressEvent(QKeyEvent * event)
 {
     int buf = 0;
 
+    if (event->keyCombination()
+        == Preferences::Instance().getKeyShortcut(KeyShortcutTarget::SHORTCUT_CHANNELCHECK_NEXT))
+    {
+        if (intValue() < MAX_DMX_ADDRESS)
+        {
+            buf = intValue() + 1;
+            display(buf);
+            emit valueChanged(buf);
+        }
+        else
+        {
+            display(1);
+            emit valueChanged(1);
+        }
+        return;
+    }
+
+    if (event->keyCombination()
+        == Preferences::Instance().getKeyShortcut(KeyShortcutTarget::SHORTCUT_CHANNELCHECK_PREV))
+    {
+        if (intValue() - 1 > 0)
+        {
+            buf = intValue() - 1;
+            display(buf);
+            emit valueChanged(buf);
+        }
+        else
+        {
+            display(MAX_DMX_ADDRESS);
+            emit valueChanged(MAX_DMX_ADDRESS);
+        }
+        return;
+    }
+
     switch (event->key())
     {
         case Qt::Key_Backspace:
@@ -474,32 +508,6 @@ void EditableLCDNumber::keyPressEvent(QKeyEvent * event)
             }
             else
                 display(QString(" "));
-            break;
-        case Qt::Key_PageDown:
-            if (intValue() - 1 > 0)
-            {
-                buf = intValue() - 1;
-                display(buf);
-                emit valueChanged(buf);
-            }
-            else
-            {
-                display(MAX_DMX_ADDRESS);
-                emit valueChanged(MAX_DMX_ADDRESS);
-            }
-            break;
-        case Qt::Key_PageUp:
-            if (intValue() < MAX_DMX_ADDRESS)
-            {
-                buf = intValue() + 1;
-                display(buf);
-                emit valueChanged(buf);
-            }
-            else
-            {
-                display(1);
-                emit valueChanged(1);
-            }
             break;
         case Qt::Key_0:
         case Qt::Key_1:

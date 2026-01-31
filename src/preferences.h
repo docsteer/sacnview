@@ -40,6 +40,19 @@ struct SubWindowInfo
     QJsonObject config; // A configuration to load
 };
 
+enum KeyShortcutTarget
+{
+    SHORTCUT_CHANNELCHECK_NEXT,
+    SHORTCUT_CHANNELCHECK_PREV,
+    SHORTCUT_COUNT
+};
+
+struct KeyShortcutData
+{
+    QKeyCombination keyCombination;
+    QString name;
+};
+
 class Preferences
 {
 
@@ -216,6 +229,10 @@ public:
 
     void savePreferences() const;
 
+    const QKeyCombination getKeyShortcut(KeyShortcutTarget target) const;
+    QString getKeyShortcutDescription(KeyShortcutTarget target) const;
+    void setKeyShortcut(KeyShortcutTarget target, const QKeyCombination & keys);
+
 private:
 
     QString m_settings_file; // Overridden settings filepath
@@ -251,6 +268,8 @@ private:
     quint8 m_pathwaySecureTxSequenceType = 0;
     quint32 m_pathwaySecureTxSequenceBootCount = 0;
     quint32 m_pathwaySecureRxSequenceTimeWindow = 1000;
+
+    QMap<KeyShortcutTarget, QKeyCombination> m_shortcutMap;
 
     bool m_interfaceListenAll = false;
     bool m_flickerFinderShowInfo = true;

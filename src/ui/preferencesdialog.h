@@ -17,7 +17,9 @@
 #define PREFERENCESDIALOG_H
 
 #include "translations/translationdialog.h"
+
 #include <QDialog>
+#include <QKeySequenceEdit>
 #include <QNetworkInterface>
 
 class QRadioButton;
@@ -50,6 +52,7 @@ private:
     Ui::PreferencesDialog * ui;
     QList<QNetworkInterface> m_interfaceList;
     TranslationDialog * m_translation;
+    QHash<int, QKeySequenceEdit *> m_shortcutEdits;
 };
 
 #endif // PREFERENCESDIALOG_H

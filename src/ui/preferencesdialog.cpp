@@ -20,8 +20,10 @@
 #include "src/sacn/sacnlistener.h"
 #include "streamingacn.h"
 #include "ui_preferencesdialog.h"
+
 #include <QListWidget>
 #include <QMessageBox>
+
 #include <sstream>
 
 PreferencesDialog::PreferencesDialog(QWidget * parent)
@@ -41,6 +43,19 @@ PreferencesDialog::PreferencesDialog(QWidget * parent)
     ui->cmbPathwayTxSequenceType->setCurrentIndex(0); // Default Time
 
     connect(ui->btnSaveWindows, &QAbstractButton::clicked, this, &PreferencesDialog::storeWindowLayoutNow);
+
+    // Keyboard Shortcuts
+    QGridLayout * layout = new QGridLayout(this);
+    ui->keyboardShortcutWidget->setLayout(layout);
+    for (int i = 0; i < KeyShortcutTarget::SHORTCUT_COUNT; i++)
+    {
+        const auto label = new QLabel(Preferences::Instance().getKeyShortcutDescription((KeyShortcutTarget)i));
+        layout->addWidget(label, i, 0);
+        const auto edit = new QKeySequenceEdit(this);
+        edit->setMaximumSequenceLength(1);
+        layout->addWidget(edit, i, 1);
+        m_shortcutEdits[i] = edit;
+    }
 
     // Category selection
     connect(
@@ -152,6 +167,13 @@ void PreferencesDialog::showEvent(QShowEvent * e)
 #endif
 
     ui->sbMulticastTtl->setValue(Preferences::Instance().GetMulticastTtl());
+
+    // Keyboard Shortcuts
+    for (int i = 0; i < KeyShortcutTarget::SHORTCUT_COUNT; i++)
+    {
+        m_shortcutEdits[i]->setKeySequence(Preferences::Instance().getKeyShortcut((KeyShortcutTarget)i));
+        ;
+    }
 }
 
 void PreferencesDialog::on_buttonBox_accepted()
@@ -273,6 +295,12 @@ void PreferencesDialog::on_buttonBox_accepted()
     {
         p.SetMulticastTtl(ui->sbMulticastTtl->value());
         requiresRestart = true;
+    }
+
+    // Keyboard Shortcuts
+    for (int i = 0; i < KeyShortcutTarget::SHORTCUT_COUNT; i++)
+    {
+        p.setKeyShortcut((KeyShortcutTarget)i, m_shortcutEdits[i]->keySequence()[0]);
     }
 
     // Restart to apply?
