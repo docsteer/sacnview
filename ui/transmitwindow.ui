@@ -110,10 +110,10 @@ border-radius: 4px;
    <item>
     <widget class="QSplitter" name="splitter">
      <property name="focusPolicy">
-      <enum>Qt::NoFocus</enum>
+      <enum>Qt::FocusPolicy::NoFocus</enum>
      </property>
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <widget class="QGroupBox" name="gbSource">
       <property name="sizePolicy">
@@ -129,7 +129,7 @@ border-radius: 4px;
        </size>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::NoFocus</enum>
+       <enum>Qt::FocusPolicy::NoFocus</enum>
       </property>
       <property name="title">
        <string>Source</string>
@@ -144,10 +144,10 @@ border-radius: 4px;
           </sizepolicy>
          </property>
          <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
+          <enum>QFrame::Shape::NoFrame</enum>
          </property>
          <property name="frameShadow">
-          <enum>QFrame::Plain</enum>
+          <enum>QFrame::Shadow::Plain</enum>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_12">
           <property name="leftMargin">
@@ -171,7 +171,7 @@ border-radius: 4px;
              </sizepolicy>
             </property>
             <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
+             <enum>Qt::FocusPolicy::NoFocus</enum>
             </property>
             <property name="title">
              <string>Protocol Version</string>
@@ -186,7 +186,7 @@ border-radius: 4px;
                 </sizepolicy>
                </property>
                <property name="focusPolicy">
-                <enum>Qt::NoFocus</enum>
+                <enum>Qt::FocusPolicy::NoFocus</enum>
                </property>
                <property name="text">
                 <string>Ratified</string>
@@ -205,7 +205,7 @@ border-radius: 4px;
                 </sizepolicy>
                </property>
                <property name="focusPolicy">
-                <enum>Qt::NoFocus</enum>
+                <enum>Qt::FocusPolicy::NoFocus</enum>
                </property>
                <property name="text">
                 <string>Draft</string>
@@ -249,7 +249,7 @@ border-radius: 4px;
                </sizepolicy>
               </property>
               <property name="focusPolicy">
-               <enum>Qt::NoFocus</enum>
+               <enum>Qt::FocusPolicy::NoFocus</enum>
               </property>
               <property name="text">
                <string>Source Name:</string>
@@ -265,7 +265,7 @@ border-radius: 4px;
                </sizepolicy>
               </property>
               <property name="focusPolicy">
-               <enum>Qt::ClickFocus</enum>
+               <enum>Qt::FocusPolicy::ClickFocus</enum>
               </property>
               <property name="maxLength">
                <number>63</number>
@@ -281,7 +281,7 @@ border-radius: 4px;
                </sizepolicy>
               </property>
               <property name="focusPolicy">
-               <enum>Qt::NoFocus</enum>
+               <enum>Qt::FocusPolicy::NoFocus</enum>
               </property>
               <property name="text">
                <string>Universe:</string>
@@ -297,10 +297,10 @@ border-radius: 4px;
                </sizepolicy>
               </property>
               <property name="focusPolicy">
-               <enum>Qt::ClickFocus</enum>
+               <enum>Qt::FocusPolicy::ClickFocus</enum>
               </property>
               <property name="alignment">
-               <set>Qt::AlignCenter</set>
+               <set>Qt::AlignmentFlag::AlignCenter</set>
               </property>
              </widget>
             </item>
@@ -320,7 +320,7 @@ border-radius: 4px;
                </sizepolicy>
               </property>
               <property name="alignment">
-               <set>Qt::AlignCenter</set>
+               <set>Qt::AlignmentFlag::AlignCenter</set>
               </property>
              </widget>
             </item>
@@ -333,7 +333,7 @@ border-radius: 4px;
                </sizepolicy>
               </property>
               <property name="focusPolicy">
-               <enum>Qt::NoFocus</enum>
+               <enum>Qt::FocusPolicy::NoFocus</enum>
               </property>
               <property name="text">
                <string>Priority Mode:</string>
@@ -345,7 +345,7 @@ border-radius: 4px;
               <item>
                <widget class="QComboBox" name="cbPriorityMode">
                 <property name="focusPolicy">
-                 <enum>Qt::ClickFocus</enum>
+                 <enum>Qt::FocusPolicy::ClickFocus</enum>
                 </property>
                 <item>
                  <property name="text">
@@ -380,7 +380,7 @@ border-radius: 4px;
                  </size>
                 </property>
                 <property name="focusPolicy">
-                 <enum>Qt::NoFocus</enum>
+                 <enum>Qt::FocusPolicy::NoFocus</enum>
                 </property>
                 <property name="toolTip">
                  <string>Set up per-channel priorities</string>
@@ -401,7 +401,7 @@ border-radius: 4px;
                </sizepolicy>
               </property>
               <property name="focusPolicy">
-               <enum>Qt::NoFocus</enum>
+               <enum>Qt::FocusPolicy::NoFocus</enum>
               </property>
               <property name="text">
                <string>Priority:</string>
@@ -417,10 +417,10 @@ border-radius: 4px;
                </sizepolicy>
               </property>
               <property name="focusPolicy">
-               <enum>Qt::ClickFocus</enum>
+               <enum>Qt::FocusPolicy::ClickFocus</enum>
               </property>
               <property name="alignment">
-               <set>Qt::AlignCenter</set>
+               <set>Qt::AlignmentFlag::AlignCenter</set>
               </property>
              </widget>
             </item>
@@ -460,7 +460,7 @@ border-radius: 4px;
           <item>
            <widget class="QGroupBox" name="gbProtocolMode">
             <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
+             <enum>Qt::FocusPolicy::NoFocus</enum>
             </property>
             <property name="title">
              <string>Mode</string>
@@ -475,7 +475,7 @@ border-radius: 4px;
                 </sizepolicy>
                </property>
                <property name="focusPolicy">
-                <enum>Qt::ClickFocus</enum>
+                <enum>Qt::FocusPolicy::ClickFocus</enum>
                </property>
               </widget>
              </item>
@@ -488,7 +488,7 @@ border-radius: 4px;
                 </sizepolicy>
                </property>
                <property name="focusPolicy">
-                <enum>Qt::NoFocus</enum>
+                <enum>Qt::FocusPolicy::NoFocus</enum>
                </property>
                <property name="text">
                 <string>Unicast to</string>
@@ -504,7 +504,7 @@ border-radius: 4px;
                 </sizepolicy>
                </property>
                <property name="focusPolicy">
-                <enum>Qt::NoFocus</enum>
+                <enum>Qt::FocusPolicy::NoFocus</enum>
                </property>
                <property name="text">
                 <string>Multicast to</string>
@@ -526,7 +526,7 @@ border-radius: 4px;
              </sizepolicy>
             </property>
             <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
+             <enum>Qt::FocusPolicy::NoFocus</enum>
             </property>
             <property name="text">
              <string>Blind-mode data</string>
@@ -536,10 +536,10 @@ border-radius: 4px;
           <item>
            <spacer name="verticalSpacer">
             <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
+             <enum>Qt::FocusPolicy::NoFocus</enum>
             </property>
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -555,7 +555,7 @@ border-radius: 4px;
        <item>
         <widget class="QPushButton" name="btnStart">
          <property name="focusPolicy">
-          <enum>Qt::NoFocus</enum>
+          <enum>Qt::FocusPolicy::NoFocus</enum>
          </property>
          <property name="text">
           <string>Start</string>
@@ -572,10 +572,10 @@ border-radius: 4px;
        </sizepolicy>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::NoFocus</enum>
+       <enum>Qt::FocusPolicy::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tabFaders">
        <attribute name="title">
@@ -587,7 +587,7 @@ border-radius: 4px;
           <item>
            <widget class="QGroupBox" name="groupBox_4">
             <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
+             <enum>Qt::FocusPolicy::NoFocus</enum>
             </property>
             <property name="title">
              <string>Start</string>
@@ -596,7 +596,7 @@ border-radius: 4px;
              <item>
               <widget class="QLabel" name="label_5">
                <property name="focusPolicy">
-                <enum>Qt::NoFocus</enum>
+                <enum>Qt::FocusPolicy::NoFocus</enum>
                </property>
                <property name="text">
                 <string>Start at :</string>
@@ -606,10 +606,10 @@ border-radius: 4px;
              <item>
               <widget class="QSpinBox" name="sbFadersStart">
                <property name="focusPolicy">
-                <enum>Qt::ClickFocus</enum>
+                <enum>Qt::FocusPolicy::ClickFocus</enum>
                </property>
                <property name="alignment">
-                <set>Qt::AlignCenter</set>
+                <set>Qt::AlignmentFlag::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -619,7 +619,7 @@ border-radius: 4px;
           <item>
            <widget class="QGroupBox" name="gbPresets">
             <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
+             <enum>Qt::FocusPolicy::NoFocus</enum>
             </property>
             <property name="title">
              <string>Presets</string>
@@ -639,7 +639,7 @@ border-radius: 4px;
              </sizepolicy>
             </property>
             <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
+             <enum>Qt::FocusPolicy::NoFocus</enum>
             </property>
             <property name="title">
              <string/>
@@ -655,7 +655,7 @@ border-radius: 4px;
              </sizepolicy>
             </property>
             <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
+             <enum>Qt::FocusPolicy::NoFocus</enum>
             </property>
             <property name="title">
              <string/>
@@ -664,7 +664,7 @@ border-radius: 4px;
              <item>
               <widget class="CommandLineWidget" name="teCommandline">
                <property name="focusPolicy">
-                <enum>Qt::StrongFocus</enum>
+                <enum>Qt::FocusPolicy::StrongFocus</enum>
                </property>
                <property name="plainText">
                 <string/>
@@ -695,12 +695,11 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
                      <property name="focusPolicy">
-                      <enum>Qt::NoFocus</enum>
+                      <enum>Qt::FocusPolicy::NoFocus</enum>
                      </property>
                      <property name="text">
                       <string>-</string>
@@ -725,12 +724,11 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
                      <property name="focusPolicy">
-                      <enum>Qt::NoFocus</enum>
+                      <enum>Qt::FocusPolicy::NoFocus</enum>
                      </property>
                      <property name="text">
                       <string>THRU</string>
@@ -755,12 +753,11 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
                      <property name="focusPolicy">
-                      <enum>Qt::NoFocus</enum>
+                      <enum>Qt::FocusPolicy::NoFocus</enum>
                      </property>
                      <property name="text">
                       <string>+</string>
@@ -789,12 +786,11 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
                      <property name="focusPolicy">
-                      <enum>Qt::NoFocus</enum>
+                      <enum>Qt::FocusPolicy::NoFocus</enum>
                      </property>
                      <property name="text">
                       <string>7</string>
@@ -819,12 +815,11 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
                      <property name="focusPolicy">
-                      <enum>Qt::NoFocus</enum>
+                      <enum>Qt::FocusPolicy::NoFocus</enum>
                      </property>
                      <property name="text">
                       <string>8</string>
@@ -849,12 +844,11 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
                      <property name="focusPolicy">
-                      <enum>Qt::NoFocus</enum>
+                      <enum>Qt::FocusPolicy::NoFocus</enum>
                      </property>
                      <property name="text">
                       <string>9</string>
@@ -879,12 +873,11 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
                      <property name="focusPolicy">
-                      <enum>Qt::NoFocus</enum>
+                      <enum>Qt::FocusPolicy::NoFocus</enum>
                      </property>
                      <property name="text">
                       <string>4</string>
@@ -909,12 +902,11 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
                      <property name="focusPolicy">
-                      <enum>Qt::NoFocus</enum>
+                      <enum>Qt::FocusPolicy::NoFocus</enum>
                      </property>
                      <property name="text">
                       <string>5</string>
@@ -939,12 +931,11 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
                      <property name="focusPolicy">
-                      <enum>Qt::NoFocus</enum>
+                      <enum>Qt::FocusPolicy::NoFocus</enum>
                      </property>
                      <property name="text">
                       <string>6</string>
@@ -969,12 +960,11 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
                      <property name="focusPolicy">
-                      <enum>Qt::NoFocus</enum>
+                      <enum>Qt::FocusPolicy::NoFocus</enum>
                      </property>
                      <property name="text">
                       <string>1</string>
@@ -999,12 +989,11 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
                      <property name="focusPolicy">
-                      <enum>Qt::NoFocus</enum>
+                      <enum>Qt::FocusPolicy::NoFocus</enum>
                      </property>
                      <property name="text">
                       <string>3</string>
@@ -1029,12 +1018,11 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
                      <property name="focusPolicy">
-                      <enum>Qt::NoFocus</enum>
+                      <enum>Qt::FocusPolicy::NoFocus</enum>
                      </property>
                      <property name="text">
                       <string>2</string>
@@ -1059,12 +1047,11 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
                      <property name="focusPolicy">
-                      <enum>Qt::NoFocus</enum>
+                      <enum>Qt::FocusPolicy::NoFocus</enum>
                      </property>
                      <property name="text">
                       <string>0</string>
@@ -1089,12 +1076,11 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
                      <property name="focusPolicy">
-                      <enum>Qt::NoFocus</enum>
+                      <enum>Qt::FocusPolicy::NoFocus</enum>
                      </property>
                      <property name="text">
                       <string>CLEAR</string>
@@ -1119,12 +1105,11 @@ border-radius: 4px;
                       <font>
                        <family>Arial</family>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
                      <property name="focusPolicy">
-                      <enum>Qt::NoFocus</enum>
+                      <enum>Qt::FocusPolicy::NoFocus</enum>
                      </property>
                      <property name="text">
                       <string>ENTER</string>
@@ -1155,12 +1140,11 @@ border-radius: 4px;
                     <font>
                      <family>Arial</family>
                      <pointsize>11</pointsize>
-                     <weight>75</weight>
                      <bold>true</bold>
                     </font>
                    </property>
                    <property name="focusPolicy">
-                    <enum>Qt::NoFocus</enum>
+                    <enum>Qt::FocusPolicy::NoFocus</enum>
                    </property>
                    <property name="text">
                     <string>AT</string>
@@ -1185,12 +1169,11 @@ border-radius: 4px;
                     <font>
                      <family>Arial</family>
                      <pointsize>11</pointsize>
-                     <weight>75</weight>
                      <bold>true</bold>
                     </font>
                    </property>
                    <property name="focusPolicy">
-                    <enum>Qt::NoFocus</enum>
+                    <enum>Qt::FocusPolicy::NoFocus</enum>
                    </property>
                    <property name="text">
                     <string>ALL OFF</string>
@@ -1215,12 +1198,11 @@ border-radius: 4px;
                     <font>
                      <family>Arial</family>
                      <pointsize>11</pointsize>
-                     <weight>75</weight>
                      <bold>true</bold>
                     </font>
                    </property>
                    <property name="focusPolicy">
-                    <enum>Qt::NoFocus</enum>
+                    <enum>Qt::FocusPolicy::NoFocus</enum>
                    </property>
                    <property name="text">
                     <string>FULL</string>
@@ -1245,12 +1227,11 @@ border-radius: 4px;
                     <font>
                      <family>Arial</family>
                      <pointsize>11</pointsize>
-                     <weight>75</weight>
                      <bold>true</bold>
                     </font>
                    </property>
                    <property name="focusPolicy">
-                    <enum>Qt::NoFocus</enum>
+                    <enum>Qt::FocusPolicy::NoFocus</enum>
                    </property>
                    <property name="text">
                     <string>OFFSET</string>
@@ -1276,10 +1257,10 @@ border-radius: 4px;
         <item>
          <spacer name="verticalSpacer_2">
           <property name="orientation">
-           <enum>Qt::Vertical</enum>
+           <enum>Qt::Orientation::Vertical</enum>
           </property>
           <property name="sizeType">
-           <enum>QSizePolicy::Minimum</enum>
+           <enum>QSizePolicy::Policy::Minimum</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -1298,28 +1279,97 @@ border-radius: 4px;
            </sizepolicy>
           </property>
           <property name="focusPolicy">
-           <enum>Qt::StrongFocus</enum>
+           <enum>Qt::FocusPolicy::StrongFocus</enum>
           </property>
           <property name="styleSheet">
            <string notr="true">background-color:rgb(0, 0, 0);
 color: rgb(255, 85, 0);</string>
           </property>
           <property name="frameShape">
-           <enum>QFrame::NoFrame</enum>
+           <enum>QFrame::Shape::NoFrame</enum>
           </property>
           <property name="frameShadow">
-           <enum>QFrame::Plain</enum>
+           <enum>QFrame::Shadow::Plain</enum>
           </property>
           <property name="digitCount">
            <number>3</number>
           </property>
           <property name="segmentStyle">
-           <enum>QLCDNumber::Flat</enum>
+           <enum>QLCDNumber::SegmentStyle::Flat</enum>
           </property>
           <property name="intValue" stdset="0">
            <number>512</number>
           </property>
          </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_10">
+          <item>
+           <widget class="QLabel" name="label_11">
+            <property name="text">
+             <string>Offset</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="sbOffset">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>Grouping</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="sbGrouping">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -1332,7 +1382,7 @@ color: rgb(255, 85, 0);</string>
              </sizepolicy>
             </property>
             <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
+             <enum>Qt::FocusPolicy::NoFocus</enum>
             </property>
             <property name="text">
              <string>Previous</string>
@@ -1342,7 +1392,7 @@ color: rgb(255, 85, 0);</string>
           <item>
            <spacer name="horizontalSpacer_2">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -1365,19 +1415,19 @@ color: rgb(255, 85, 0);</string>
           <item>
            <widget class="QSlider" name="slChannelCheck">
             <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
+             <enum>Qt::FocusPolicy::NoFocus</enum>
             </property>
             <property name="maximum">
              <number>255</number>
             </property>
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="invertedAppearance">
              <bool>false</bool>
             </property>
             <property name="tickPosition">
-             <enum>QSlider::TicksBelow</enum>
+             <enum>QSlider::TickPosition::TicksBelow</enum>
             </property>
             <property name="tickInterval">
              <number>20</number>
@@ -1387,7 +1437,7 @@ color: rgb(255, 85, 0);</string>
           <item>
            <widget class="QPushButton" name="btnCcBlink">
             <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
+             <enum>Qt::FocusPolicy::NoFocus</enum>
             </property>
             <property name="text">
              <string>Blink</string>
@@ -1421,14 +1471,14 @@ color: rgb(255, 85, 0);</string>
              <string/>
             </property>
             <property name="alignment">
-             <set>Qt::AlignCenter</set>
+             <set>Qt::AlignmentFlag::AlignCenter</set>
             </property>
            </widget>
           </item>
           <item>
            <spacer name="horizontalSpacer">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -1447,7 +1497,7 @@ color: rgb(255, 85, 0);</string>
              </sizepolicy>
             </property>
             <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
+             <enum>Qt::FocusPolicy::NoFocus</enum>
             </property>
             <property name="text">
              <string>Next</string>
@@ -1480,7 +1530,7 @@ color: rgb(255, 85, 0);</string>
              </size>
             </property>
             <property name="focusPolicy">
-             <enum>Qt::ClickFocus</enum>
+             <enum>Qt::FocusPolicy::ClickFocus</enum>
             </property>
             <property name="styleSheet">
              <string notr="true">QSpinBox { 
@@ -1491,7 +1541,7 @@ color: rgb(255, 85, 0);</string>
 }</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignCenter</set>
+             <set>Qt::AlignmentFlag::AlignCenter</set>
             </property>
             <property name="keyboardTracking">
              <bool>false</bool>
@@ -1546,7 +1596,7 @@ color: rgb(255, 85, 0);</string>
              </size>
             </property>
             <property name="focusPolicy">
-             <enum>Qt::ClickFocus</enum>
+             <enum>Qt::FocusPolicy::ClickFocus</enum>
             </property>
             <property name="styleSheet">
              <string notr="true">QSpinBox { 
@@ -1557,7 +1607,7 @@ color: rgb(255, 85, 0);</string>
 }</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignCenter</set>
+             <set>Qt::AlignmentFlag::AlignCenter</set>
             </property>
             <property name="keyboardTracking">
              <bool>false</bool>
@@ -1580,7 +1630,7 @@ color: rgb(255, 85, 0);</string>
              </sizepolicy>
             </property>
             <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
+             <enum>Qt::FocusPolicy::NoFocus</enum>
             </property>
             <property name="title">
              <string>Effect Type</string>
@@ -1589,7 +1639,7 @@ color: rgb(255, 85, 0);</string>
              <item>
               <widget class="QRadioButton" name="rbFadeManual">
                <property name="focusPolicy">
-                <enum>Qt::NoFocus</enum>
+                <enum>Qt::FocusPolicy::NoFocus</enum>
                </property>
                <property name="text">
                 <string>Manual</string>
@@ -1602,7 +1652,7 @@ color: rgb(255, 85, 0);</string>
              <item>
               <widget class="QRadioButton" name="rbFadeSine">
                <property name="focusPolicy">
-                <enum>Qt::NoFocus</enum>
+                <enum>Qt::FocusPolicy::NoFocus</enum>
                </property>
                <property name="text">
                 <string>Sinewave</string>
@@ -1612,7 +1662,7 @@ color: rgb(255, 85, 0);</string>
              <item>
               <widget class="QRadioButton" name="rbFadeRamp">
                <property name="focusPolicy">
-                <enum>Qt::NoFocus</enum>
+                <enum>Qt::FocusPolicy::NoFocus</enum>
                </property>
                <property name="text">
                 <string>Ramp</string>
@@ -1622,7 +1672,7 @@ color: rgb(255, 85, 0);</string>
              <item>
               <widget class="QRadioButton" name="rbChase">
                <property name="focusPolicy">
-                <enum>Qt::NoFocus</enum>
+                <enum>Qt::FocusPolicy::NoFocus</enum>
                </property>
                <property name="text">
                 <string>Chase</string>
@@ -1635,10 +1685,10 @@ color: rgb(255, 85, 0);</string>
                 <bool>false</bool>
                </property>
                <property name="frameShape">
-                <enum>QFrame::StyledPanel</enum>
+                <enum>QFrame::Shape::StyledPanel</enum>
                </property>
                <property name="frameShadow">
-                <enum>QFrame::Raised</enum>
+                <enum>QFrame::Shadow::Raised</enum>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_10">
                 <item>
@@ -1697,7 +1747,7 @@ color: rgb(255, 85, 0);</string>
              <item>
               <widget class="QRadioButton" name="rbText">
                <property name="focusPolicy">
-                <enum>Qt::NoFocus</enum>
+                <enum>Qt::FocusPolicy::NoFocus</enum>
                </property>
                <property name="text">
                 <string>Text</string>
@@ -1707,7 +1757,7 @@ color: rgb(255, 85, 0);</string>
              <item>
               <widget class="QRadioButton" name="rbDateTime">
                <property name="focusPolicy">
-                <enum>Qt::NoFocus</enum>
+                <enum>Qt::FocusPolicy::NoFocus</enum>
                </property>
                <property name="text">
                 <string>Date/Time</string>
@@ -1717,7 +1767,7 @@ color: rgb(255, 85, 0);</string>
              <item>
               <widget class="QDial" name="dlFadeRate">
                <property name="focusPolicy">
-                <enum>Qt::NoFocus</enum>
+                <enum>Qt::FocusPolicy::NoFocus</enum>
                </property>
                <property name="wrapping">
                 <bool>false</bool>
@@ -1730,23 +1780,23 @@ color: rgb(255, 85, 0);</string>
              <item>
               <widget class="QLabel" name="lblFadeSpeed">
                <property name="focusPolicy">
-                <enum>Qt::NoFocus</enum>
+                <enum>Qt::FocusPolicy::NoFocus</enum>
                </property>
                <property name="text">
                 <string>Speed - 1Hz</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignCenter</set>
+                <set>Qt::AlignmentFlag::AlignCenter</set>
                </property>
               </widget>
              </item>
              <item>
               <spacer name="verticalSpacer_3">
                <property name="focusPolicy">
-                <enum>Qt::NoFocus</enum>
+                <enum>Qt::FocusPolicy::NoFocus</enum>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -1761,7 +1811,7 @@ color: rgb(255, 85, 0);</string>
                <item>
                 <widget class="QToolButton" name="btnFxStart">
                  <property name="focusPolicy">
-                  <enum>Qt::NoFocus</enum>
+                  <enum>Qt::FocusPolicy::NoFocus</enum>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -1775,7 +1825,7 @@ color: rgb(255, 85, 0);</string>
                <item>
                 <widget class="QToolButton" name="btnFxPause">
                  <property name="focusPolicy">
-                  <enum>Qt::NoFocus</enum>
+                  <enum>Qt::FocusPolicy::NoFocus</enum>
                  </property>
                  <property name="text">
                   <string>...</string>
@@ -1800,7 +1850,7 @@ color: rgb(255, 85, 0);</string>
              </sizepolicy>
             </property>
             <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
+             <enum>Qt::FocusPolicy::NoFocus</enum>
             </property>
             <property name="currentIndex">
              <number>0</number>
@@ -1812,10 +1862,10 @@ color: rgb(255, 85, 0);</string>
                 <item>
                  <widget class="QSlider" name="slFadeLevel">
                   <property name="focusPolicy">
-                   <enum>Qt::NoFocus</enum>
+                   <enum>Qt::FocusPolicy::NoFocus</enum>
                   </property>
                   <property name="orientation">
-                   <enum>Qt::Vertical</enum>
+                   <enum>Qt::Orientation::Vertical</enum>
                   </property>
                  </widget>
                 </item>
@@ -1824,13 +1874,13 @@ color: rgb(255, 85, 0);</string>
               <item>
                <widget class="QLabel" name="lblFadeLevel">
                 <property name="focusPolicy">
-                 <enum>Qt::NoFocus</enum>
+                 <enum>Qt::FocusPolicy::NoFocus</enum>
                 </property>
                 <property name="text">
                  <string>0</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignCenter</set>
+                 <set>Qt::AlignmentFlag::AlignCenter</set>
                 </property>
                </widget>
               </item>
@@ -1841,7 +1891,7 @@ color: rgb(255, 85, 0);</string>
               <item>
                <spacer name="verticalSpacer_6">
                 <property name="orientation">
-                 <enum>Qt::Vertical</enum>
+                 <enum>Qt::Orientation::Vertical</enum>
                 </property>
                 <property name="sizeHint" stdset="0">
                  <size>
@@ -1857,7 +1907,7 @@ color: rgb(255, 85, 0);</string>
                  <string>Text to Scroll</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignCenter</set>
+                 <set>Qt::AlignmentFlag::AlignCenter</set>
                 </property>
                </widget>
               </item>
@@ -1882,14 +1932,14 @@ color: rgb(255, 85, 0);</string>
                  <string>sACN!</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignCenter</set>
+                 <set>Qt::AlignmentFlag::AlignCenter</set>
                 </property>
                </widget>
               </item>
               <item>
                <spacer name="verticalSpacer_7">
                 <property name="orientation">
-                 <enum>Qt::Vertical</enum>
+                 <enum>Qt::Orientation::Vertical</enum>
                 </property>
                 <property name="sizeHint" stdset="0">
                  <size>
@@ -1917,7 +1967,7 @@ color: rgb(255, 85, 0);</string>
                  <string/>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignCenter</set>
+                 <set>Qt::AlignmentFlag::AlignCenter</set>
                 </property>
                </widget>
               </item>
@@ -1954,7 +2004,7 @@ color: rgb(255, 85, 0);</string>
                  <string/>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignCenter</set>
+                 <set>Qt::AlignmentFlag::AlignCenter</set>
                 </property>
                </widget>
               </item>
@@ -1999,6 +2049,27 @@ color: rgb(255, 85, 0);</string>
    <header>commandline.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>rbPathwaySecure</tabstop>
+  <tabstop>lePathwaySecurePassword</tabstop>
+  <tabstop>sbSlotCount</tabstop>
+  <tabstop>sbMinFPS</tabstop>
+  <tabstop>sbMaxFPS</tabstop>
+  <tabstop>teCommandline</tabstop>
+  <tabstop>lcdNumber</tabstop>
+  <tabstop>sbOffset</tabstop>
+  <tabstop>sbGrouping</tabstop>
+  <tabstop>cbCcPap</tabstop>
+  <tabstop>cbFadeRangePap</tabstop>
+  <tabstop>rbChaseSnap</tabstop>
+  <tabstop>rbChaseSine</tabstop>
+  <tabstop>rbChaseRamp</tabstop>
+  <tabstop>rbVerticalBars</tabstop>
+  <tabstop>rbHorizBars</tabstop>
+  <tabstop>rbUsDate</tabstop>
+  <tabstop>leScrollText</tabstop>
+  <tabstop>rbEuDate</tabstop>
+ </tabstops>
  <resources>
   <include location="../res/resources.qrc"/>
  </resources>

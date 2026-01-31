@@ -466,34 +466,14 @@ void EditableLCDNumber::keyPressEvent(QKeyEvent * event)
     if (event->keyCombination()
         == Preferences::Instance().getKeyShortcut(KeyShortcutTarget::SHORTCUT_CHANNELCHECK_NEXT))
     {
-        if (intValue() < MAX_DMX_ADDRESS)
-        {
-            buf = intValue() + 1;
-            display(buf);
-            emit valueChanged(buf);
-        }
-        else
-        {
-            display(1);
-            emit valueChanged(1);
-        }
+        increment();
         return;
     }
 
     if (event->keyCombination()
         == Preferences::Instance().getKeyShortcut(KeyShortcutTarget::SHORTCUT_CHANNELCHECK_PREV))
     {
-        if (intValue() - 1 > 0)
-        {
-            buf = intValue() - 1;
-            display(buf);
-            emit valueChanged(buf);
-        }
-        else
-        {
-            display(MAX_DMX_ADDRESS);
-            emit valueChanged(MAX_DMX_ADDRESS);
-        }
+        decrement();
         return;
     }
 
@@ -528,5 +508,45 @@ void EditableLCDNumber::keyPressEvent(QKeyEvent * event)
             break;
         case Qt::Key_Space: emit toggleOff(); break;
         default: break;
+    }
+}
+
+void EditableLCDNumber::increment()
+{
+    auto value = intValue();
+    if (value + m_offset <= MAX_DMX_ADDRESS)
+    {
+        value += m_offset;
+        display(value);
+        emit valueChanged(value);
+    }
+    else
+    {
+        display(1);
+        emit valueChanged(1);
+    }
+}
+
+void EditableLCDNumber::decrement()
+{
+    auto value = intValue();
+    if (value - m_offset > 0)
+    {
+        value -= m_offset;
+        display(value);
+        emit valueChanged(value);
+    }
+    else
+    {
+        display(MAX_DMX_ADDRESS);
+        emit valueChanged(MAX_DMX_ADDRESS);
+    }
+}
+
+void EditableLCDNumber::setOffset(int offset)
+{
+    if (offset > 1)
+    {
+        m_offset = offset;
     }
 }

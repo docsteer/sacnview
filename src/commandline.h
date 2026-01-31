@@ -140,9 +140,16 @@ signals:
     void valueChanged(int);
     void toggleOff();
 
-protected:
+public slots:
+    void increment();
+    void decrement();
+    void setOffset(int offset);
 
+protected:
     virtual void keyPressEvent(QKeyEvent * event);
+
+private:
+    int m_offset = 1;
 };
 
 #endif // COMMANDLINE_H

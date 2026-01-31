@@ -54,7 +54,7 @@ transmitwindow::transmitwindow(int universe, QWidget * parent)
     m_slotCount = MAX_DMX_ADDRESS;
     ui->sbSlotCount->setValue(m_slotCount);
     ui->sbSlotCount->setWrapping(true);
-
+        
     ui->sbFadeRangeEnd->setMinimum(MIN_DMX_ADDRESS);
     ui->sbFadeRangeEnd->setMaximum(m_slotCount);
     ui->sbFadeRangeEnd->setValue(m_slotCount);
@@ -156,7 +156,9 @@ transmitwindow::transmitwindow(int universe, QWidget * parent)
     ui->slChannelCheck->setMinimum(0);
     ui->slChannelCheck->setMaximum(MAX_SACN_LEVEL);
     ui->slChannelCheck->setValue(MAX_SACN_LEVEL);
+
     ui->lcdNumber->display(1);
+    connect(ui->sbOffset, &QSpinBox::valueChanged, ui->lcdNumber, &EditableLCDNumber::setOffset);
 
     m_blinkTimer = new QTimer(this);
     m_blinkTimer->setInterval(BLINK_TIME);
@@ -526,40 +528,12 @@ void transmitwindow::on_cbPriorityMode_currentIndexChanged(int index)
 
 void transmitwindow::on_btnCcNext_pressed()
 {
-    int value = ui->lcdNumber->value();
-
-    if (++value > m_slotCount) value = MIN_DMX_ADDRESS;
-
-    ui->lcdNumber->display(value);
-
-    if (m_sender)
-    {
-        // Update levels.
-        m_sender->setLevelRange(MIN_DMX_ADDRESS - 1, m_slotCount - 1, 0);
-        m_sender->setLevel(value - 1, ui->slChannelCheck->value());
-
-        // Update priorities if requested.
-        updateChanCheckPap(value - 1);
-    }
+    ui->lcdNumber->increment();
 }
 
 void transmitwindow::on_btnCcPrev_pressed()
 {
-    int value = ui->lcdNumber->value();
-
-    if (--value < MIN_DMX_ADDRESS) value = m_slotCount;
-
-    ui->lcdNumber->display(value);
-
-    if (m_sender)
-    {
-        // Update levels.
-        m_sender->setLevelRange(MIN_DMX_ADDRESS - 1, m_slotCount - 1, 0);
-        m_sender->setLevel(value - 1, ui->slChannelCheck->value());
-
-        // Update priorities if requested.
-        updateChanCheckPap(value - 1);
-    }
+    ui->lcdNumber->decrement();
 }
 
 void transmitwindow::on_cbCcPap_toggled(bool checked)
@@ -571,7 +545,7 @@ void transmitwindow::on_cbCcPap_toggled(bool checked)
 
     if (checked)
     {
-        updateChanCheckPap(ui->lcdNumber->value() - 1);
+        updateChanCheckPap(ui->lcdNumber->value() - 1, ui->sbGrouping->value());
     }
     else
     {
@@ -584,11 +558,17 @@ void transmitwindow::on_lcdNumber_valueChanged(int value)
     if (m_sender)
     {
         // Update levels.
+        const auto grouping = ui->sbGrouping->value();
+        const uint16_t maxAddress = value - 1 + grouping;
+
         m_sender->setLevelRange(0, m_slotCount - 1, 0);
-        m_sender->setLevel(value - 1, ui->slChannelCheck->value());
+        for (auto channel = value - 1; channel < std::min(MAX_DMX_ADDRESS, maxAddress); channel++)
+        {
+            m_sender->setLevel(channel, ui->slChannelCheck->value());
+        }
 
         // Update priorities if requested.
-        updateChanCheckPap(value - 1);
+        updateChanCheckPap(value - 1, grouping);
     }
 }
 
@@ -666,7 +646,7 @@ void transmitwindow::on_tabWidget_currentChanged(int index)
         {
             auto address = ui->lcdNumber->value() - 1;
             m_sender->setLevel(address, ui->slChannelCheck->value());
-            updateChanCheckPap(address);
+            updateChanCheckPap(address, ui->sbGrouping->value());
 
             ui->lcdNumber->setFocus();
             break;
@@ -994,7 +974,7 @@ void transmitwindow::on_sbMaxFPS_editingFinished()
     if (ui->sbMaxFPS->value() < ui->sbMinFPS->value()) ui->sbMaxFPS->setValue(ui->sbMinFPS->value());
 }
 
-void transmitwindow::updateChanCheckPap(int address)
+void transmitwindow::updateChanCheckPap(int address, int length)
 {
     Q_ASSERT(address < DMX_SLOT_MAX);
     if (address >= m_slotCount)
@@ -1009,7 +989,10 @@ void transmitwindow::updateChanCheckPap(int address)
     }
 
     std::array<quint8, MAX_DMX_ADDRESS> ccPap{0};
-    ccPap[address] = m_perAddressPriorities[address];
+    for (int i = address; i < std::min(address+length, DMX_SLOT_MAX); i++)
+    {
+        ccPap[i] = m_perAddressPriorities[i];
+    }
     m_sender->setPerChannelPriorities(ccPap.data());
 }
 
