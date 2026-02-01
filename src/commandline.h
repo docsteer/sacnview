@@ -147,6 +147,8 @@ public slots:
 
 protected:
     virtual void keyPressEvent(QKeyEvent * event);
+    virtual void focusInEvent(QFocusEvent* event);
+    virtual void focusOutEvent(QFocusEvent* event);
 
 private:
     int m_offset = 1;

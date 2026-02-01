@@ -511,6 +511,16 @@ void EditableLCDNumber::keyPressEvent(QKeyEvent * event)
     }
 }
 
+void EditableLCDNumber::focusInEvent(QFocusEvent* event)
+{
+    setStyleSheet("background-color:rgb(0, 0, 0);\ncolor: rgb(255, 85, 0);");
+}
+
+void EditableLCDNumber::focusOutEvent(QFocusEvent* event)
+{
+    setStyleSheet("background-color:rgb(0, 0, 0);\ncolor: rgb(24, 24, 24);");
+}
+
 void EditableLCDNumber::increment()
 {
     auto value = intValue();
