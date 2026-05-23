@@ -7,11 +7,20 @@ if(WIN32)
     set(SACNVIEW_MAKENSIS_FILE "$ENV{ProgramFiles\(x86\)}/NSIS/makensis.exe" CACHE STRING "makensis.exe filepath")
 
     if(TARGET Qt::windeployqt)
+        # Command needs forward slashes or directory separators will be interpreted as escapes.
+        cmake_path(CONVERT $ENV{VCINSTALLDIR} TO_CMAKE_PATH_LIST _windeployqt_vcinstalldir)
         # execute windeployqt in deploy directory after build
         add_custom_command(TARGET sACNView
                 POST_BUILD
+                # Clean deploy directory.
                 COMMAND ${CMAKE_COMMAND} -E rm -Rf ${SACNVIEW_DEPLOY_DIR}
-                COMMAND Qt::windeployqt --$<IF:$<CONFIG:Debug>,debug,release> --compiler-runtime --dir "${SACNVIEW_DEPLOY_DIR}" "$<TARGET_FILE:sACNView>"
+                # Run windeployqt with VCINSTALLDIR set so it will install the MSVC runtime.
+                COMMAND ${CMAKE_COMMAND} -E env VCINSTALLDIR="${_windeployqt_vcinstalldir}"
+                "$<TARGET_FILE:Qt::windeployqt>"
+                --release
+                --compiler-runtime
+                --dir "${SACNVIEW_DEPLOY_DIR}"
+                "$<TARGET_FILE:sACNView>"
         )
 
         # Copy target
