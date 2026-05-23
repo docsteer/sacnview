@@ -31,6 +31,7 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QScrollBar>
 #include <QStandardPaths>
 
 UniverseView::UniverseView(int universe, QWidget * parent)
@@ -279,12 +280,12 @@ QString UniverseView::prioText(const sACNSource * source, quint8 address) const
 
 void UniverseView::selectedAddressChanged(int address)
 {
-    ui->teInfo->clear();
     m_selectedAddress = address;
-    ui->teInfo->clear();
-    if (address < 0) return;
-
-    if (!m_listener) return;
+    if (address < 0 || !m_listener)
+    {
+        ui->teInfo->clear();
+        return;
+    }
     sACNMergedSourceList list = m_listener->mergedLevels();
 
     QString info;
@@ -323,7 +324,9 @@ void UniverseView::selectedAddressChanged(int address)
         }
     }
 
+    const auto scrollVal = ui->teInfo->verticalScrollBar()->value();
     ui->teInfo->setPlainText(info);
+    ui->teInfo->verticalScrollBar()->setValue(scrollVal);
 }
 
 void UniverseView::openBigDisplay(quint16 address)
