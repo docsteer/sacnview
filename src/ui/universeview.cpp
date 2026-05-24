@@ -302,7 +302,7 @@ void UniverseView::selectedAddressChanged(int address)
 
         if (list[address].otherSources.count() > 0)
         {
-            foreach (sACNSource * source, list[address].otherSources)
+            for (const sACNSource* source : list[address].otherSources)
             {
                 info.append(tr("\nOther Source : %1 @ %2 (Priority %3)")
                                 .arg(
