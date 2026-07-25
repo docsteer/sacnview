@@ -60,6 +60,7 @@ protected slots:
     void on_tabWidget_currentChanged(int index);
     void on_slChannelCheck_valueChanged(int value);
     void on_btnCcBlink_pressed();
+    void on_sbGrouping_valueChanged(int value);
     void on_dlFadeRate_valueChanged(int value);
     void on_dlDwellTime_valueChanged(int value);
     void doBlink();
@@ -106,6 +107,7 @@ private:
     void setLevel(int address, int value);
     void updatePerChanPriorityButton();
     void updateChanCheckPap(int address, int length);
+    void updateChanCheckLevel(int address, int length, quint8 value);
     void updateFadeRangePap();
     Ui::transmitwindow * ui = nullptr;
     ConfigurePerChanPrioDlg * m_perChannelDialog = nullptr;
