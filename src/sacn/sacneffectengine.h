@@ -17,6 +17,7 @@
 #define SACNEFFECTENGINE_H
 
 #include "sacnsender.h"
+#include <QElapsedTimer>
 #include <QImage>
 #include <QObject>
 #include <QPixmap>
