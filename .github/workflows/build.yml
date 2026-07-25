@@ -21,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         # https://github.com/actions/virtual-environments#available-environments
-        os: [ubuntu-22.04, windows-latest, macos-latest]
+        os: [ubuntu-22.04, windows-2022, macos-latest]
         include:
           - os: ubuntu-22.04 # Oldest LTS for appimage support
             qt: '6.8.3' # Qt6 LTS
@@ -36,7 +36,7 @@ jobs:
               ./out/build/linux-x64-release/package/*
               sACNView-x86_64.AppImage
 
-          - os: windows-latest
+          - os: windows-2022
             qt: '6.8.3'
             qt_modules: 'qtmultimedia'
             installer_setup: |
