@@ -14,6 +14,8 @@
 // limitations under the License.
 
 #include "gridwidget.h"
+#include "color_helpers.h"
+
 #include <QApplication>
 #include <QMouseEvent>
 #include <QPainter>
@@ -29,7 +31,11 @@
 #define CELL_COUNT 512
 
 GridWidget::GridWidget(QWidget * parent)
-    : QWidget(parent), m_colors(CELL_COUNT, this->palette().color(QPalette::Base)), m_cellHeight(CELL_HEIGHT)
+    : QWidget(parent)
+    , m_bgColors(CELL_COUNT, this->palette().color(QPalette::Base))
+    , m_fgColors(CELL_COUNT, this->palette().color(QPalette::Text))
+    , m_possibleFgColors({this->palette().color(QPalette::Text), this->palette().color(QPalette::BrightText)})
+    , m_cellHeight(CELL_HEIGHT)
 {
     for (int i = 0; i < CELL_COUNT; i++)
     {
@@ -117,10 +123,11 @@ void GridWidget::paintEvent(QPaintEvent * event)
 
             if (!value.isEmpty())
             {
-                QColor fillColor = m_colors[address];
+                QColor fillColor = m_bgColors[address];
 
                 QString rowLabel = value;
                 painter.fillRect(textRect, fillColor);
+                painter.setPen(m_fgColors[address]);
                 painter.drawText(textRect, Qt::AlignHCenter | Qt::AlignVCenter, rowLabel);
             }
         }
@@ -333,17 +340,29 @@ void GridWidget::mouseDoubleClickEvent(QMouseEvent * event)
 void GridWidget::setAllCellColor(const QColor & color)
 {
     if (color.isValid())
-        m_colors.fill(color);
+    {
+        m_bgColors.fill(color);
+        const QColor fgColor = findBestContrastingColor(color, m_possibleFgColors.cbegin(), m_possibleFgColors.cend());
+        m_fgColors.fill(fgColor);
+    }
     else
+    {
         setAllCellColor(palette().color(QPalette::Base));
+    }
 }
 
 void GridWidget::setCellColor(int cell, const QColor & color)
 {
     if (color.isValid())
-        m_colors[cell] = color;
+    {
+        m_bgColors[cell] = color;
+        const QColor fgColor = findBestContrastingColor(color, m_possibleFgColors.cbegin(), m_possibleFgColors.cend());
+        m_fgColors[cell] = fgColor;
+    }
     else
+    {
         setCellColor(cell, palette().color(QPalette::Base));
+    }
 }
 
 void GridWidget::setCellValue(int cell, const QString & value)

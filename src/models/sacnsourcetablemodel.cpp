@@ -14,13 +14,18 @@
 
 #include "sacnsourcetablemodel.h"
 
+#include <QApplication>
+
 #include "preferences.h"
 
 #include "sacn/sacnlistener.h"
 
+#include "color_helpers.h"
+
 SACNSourceTableModel::SACNSourceTableModel(QObject * parent)
     : QAbstractTableModel(parent)
-{}
+{
+}
 
 SACNSourceTableModel::~SACNSourceTableModel() {}
 
@@ -67,6 +72,8 @@ QVariant SACNSourceTableModel::data(const QModelIndex & index, int role) const
         case Qt::DisplayRole: return getDisplayData(rowData, index.column());
 
         case Qt::BackgroundRole: return getBackgroundData(rowData, index.column());
+
+        case Qt::ForegroundRole: return getForegroundData(rowData, index.column());
 
         case Qt::TextAlignmentRole:
             switch (index.column())
@@ -213,6 +220,23 @@ QVariant SACNSourceTableModel::getBackgroundData(const RowData & rowData, int co
         case COL_JUMPS:
         case COL_VER:
         case COL_SLOTS: break;
+    }
+
+    return QVariant();
+}
+
+QVariant SACNSourceTableModel::getForegroundData(const RowData & rowData, int column) const
+{
+    const QVariant bgData = getBackgroundData(rowData, column);
+    if (!bgData.isValid())
+    {
+        return QVariant();
+    }
+
+    const QColor bgColor = bgData.value<QColor>();
+    if (bgColor.isValid())
+    {
+        return findBestContrastingColor(bgColor);
     }
 
     return QVariant();

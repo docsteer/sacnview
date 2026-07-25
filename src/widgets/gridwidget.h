@@ -76,7 +76,9 @@ protected:
 private:
 
     QList<int> m_selectedAddresses;
-    QVector<QColor> m_colors;
+    QVector<QColor> m_bgColors;
+    QVector<QColor> m_fgColors;
+    std::array<QColor, 2> m_possibleFgColors;
     QStringList m_values;
     bool m_allowMultiSelect = false;
     QPoint m_lastClickPoint;

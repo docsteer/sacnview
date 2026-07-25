@@ -101,10 +101,12 @@ set(SACNVIEW_HEADERS
     src/widgets/checkableheader.h
     src/models/sacnlistenermodel.h
     src/delegates/resettablecounterdelegate.h
+    src/color_helpers.h
 )
 
 set(SACNVIEW_SOURCES
     sacnview.natvis
+    src/color_helpers.cpp
     src/commandline.cpp
     src/firewallcheck.cpp
     src/ipc.cpp

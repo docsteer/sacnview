@@ -176,6 +176,7 @@ private:
     // Data
     QVariant getDisplayData(const RowData & rowData, int column) const;
     QVariant getBackgroundData(const RowData & rowData, int column) const;
+    QVariant getForegroundData(const RowData & rowData, int column) const;
     QVariant getTimingSummary(const RowData & rowData, int column) const;
 
     void RefreshAllTimingData();

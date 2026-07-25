@@ -22,6 +22,8 @@
 
 #include <QJsonArray>
 
+#include "color_helpers.h"
+
 static constexpr qreal AXIS_LABEL_WIDTH = 45.0;
 static constexpr qreal AXIS_LABEL_HEIGHT = 20.0;
 static constexpr qreal TOP_GAP = 10.0;
@@ -716,6 +718,8 @@ QVariant ScopeModel::data(const QModelIndex & index, int role) const
                 case COL_COLOUR:
                     if (role == Qt::BackgroundRole || role == Qt::DisplayRole || role == Qt::EditRole)
                         return trace->color();
+                    if (role == Qt::ForegroundRole)
+                        return findBestContrastingColor(trace->color());
                     if (role == DataSortRole) return static_cast<uint32_t>(trace->color().rgba());
                     if (role == Qt::ToolTipRole) return tr("Trace color (#RRGGBB)");
                     break;
