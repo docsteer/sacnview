@@ -13,17 +13,14 @@
   <property name="windowTitle">
    <string>sACNView</string>
   </property>
-  <property name="toolTip">
-   <string>Number of universes to monitor</string>
-  </property>
   <property name="styleSheet">
    <string notr="true">QSpinBox {
-border: 1px solid palette(mid); 
+border: 1px solid palette(mid);
 height: 22px;
 }
 
 QSpinBox:focus {
-border: 1px solid palette(highlight); 
+border: 1px solid palette(highlight);
 }
 
 QSpinBox:disabled{
@@ -102,7 +99,7 @@ background-color:grey;
     <bool>false</bool>
    </property>
    <property name="features">
-    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+    <set>QDockWidget::DockWidgetFeature::DockWidgetFloatable|QDockWidget::DockWidgetFeature::DockWidgetMovable</set>
    </property>
    <property name="windowTitle">
     <string>Universe List</string>
@@ -202,7 +199,7 @@ background-color:grey;
                <bool>false</bool>
               </property>
               <property name="alignment">
-               <set>Qt::AlignCenter</set>
+               <set>Qt::AlignmentFlag::AlignCenter</set>
               </property>
              </widget>
             </item>
@@ -229,14 +226,14 @@ background-color:grey;
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <property name="sizeConstraint">
-            <enum>QLayout::SetNoConstraint</enum>
+            <enum>QLayout::SizeConstraint::SetNoConstraint</enum>
            </property>
           </layout>
          </item>
          <item>
           <widget class="QTreeView" name="treeView">
            <property name="editTriggers">
-            <set>QAbstractItemView::NoEditTriggers</set>
+            <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
            </property>
            <property name="alternatingRowColors">
             <bool>true</bool>
@@ -252,15 +249,18 @@ background-color:grey;
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0">
            <property name="sizeConstraint">
-            <enum>QLayout::SetNoConstraint</enum>
+            <enum>QLayout::SizeConstraint::SetNoConstraint</enum>
            </property>
            <item>
             <widget class="QSpinBox" name="sbUniversesCount">
+             <property name="toolTip">
+              <string>Number of universes to monitor</string>
+             </property>
              <property name="frame">
               <bool>false</bool>
              </property>
              <property name="alignment">
-              <set>Qt::AlignCenter</set>
+              <set>Qt::AlignmentFlag::AlignCenter</set>
              </property>
             </widget>
            </item>
@@ -282,7 +282,7 @@ background-color:grey;
          <item>
           <widget class="QTreeView" name="treeViewDiscovered">
            <property name="editTriggers">
-            <set>QAbstractItemView::NoEditTriggers</set>
+            <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
            </property>
            <property name="alternatingRowColors">
             <bool>true</bool>
@@ -305,7 +305,7 @@ background-color:grey;
          <item>
           <widget class="QTreeView" name="treeViewSync">
            <property name="editTriggers">
-            <set>QAbstractItemView::NoEditTriggers</set>
+            <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
            </property>
            <property name="alternatingRowColors">
             <bool>true</bool>
