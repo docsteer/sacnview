@@ -6,43 +6,22 @@ set(SACNVIEW_DEPLOY_DIR "${CMAKE_CURRENT_LIST_DIR}/deploy" CACHE PATH "Folder to
 if(WIN32)
     set(SACNVIEW_MAKENSIS_FILE "$ENV{ProgramFiles\(x86\)}/NSIS/makensis.exe" CACHE STRING "makensis.exe filepath")
 
-    if(TARGET Qt::qmake AND NOT TARGET Qt::windeployqt)
-        get_target_property(_qt_qmake_location Qt::qmake IMPORTED_LOCATION)
-
-        execute_process(
-            COMMAND "${_qt_qmake_location}" -query QT_INSTALL_PREFIX
-            RESULT_VARIABLE return_code
-            OUTPUT_VARIABLE qt_install_prefix
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
-
-        set(imported_location "${qt_install_prefix}/bin/windeployqt.exe")
-
-        if(EXISTS ${imported_location})
-            add_executable(Qt::windeployqt IMPORTED)
-
-            set_target_properties(Qt::windeployqt PROPERTIES
-                IMPORTED_LOCATION ${imported_location}
-            )
-        endif()
-    endif()
-
     if(TARGET Qt::windeployqt)
+        # Command needs forward slashes or directory separators will be interpreted as escapes.
+        cmake_path(CONVERT $ENV{VCINSTALLDIR} TO_CMAKE_PATH_LIST _windeployqt_vcinstalldir)
         # execute windeployqt in deploy directory after build
         add_custom_command(TARGET sACNView
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E remove_directory ${SACNVIEW_DEPLOY_DIR}
-            COMMAND set PATH=%PATH%$<SEMICOLON>${qt5_install_prefix}/bin
-            COMMAND Qt::windeployqt --release --no-compiler-runtime --dir "${SACNVIEW_DEPLOY_DIR}" "$<TARGET_FILE:sACNView>"
+                POST_BUILD
+                # Clean deploy directory.
+                COMMAND ${CMAKE_COMMAND} -E rm -Rf ${SACNVIEW_DEPLOY_DIR}
+                # Run windeployqt with VCINSTALLDIR set so it will install the MSVC runtime.
+                COMMAND ${CMAKE_COMMAND} -E env VCINSTALLDIR="${_windeployqt_vcinstalldir}"
+                "$<TARGET_FILE:Qt::windeployqt>"
+                --release
+                --compiler-runtime
+                --dir "${SACNVIEW_DEPLOY_DIR}"
+                "$<TARGET_FILE:sACNView>"
         )
-
-        # Qt5 requires OpenSSL to be added separately
-        if(NOT Qt6_FOUND)
-            foreach(DLLFILE IN LISTS OPENSSL_LIBS)
-                add_custom_command(TARGET sACNView POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${DLLFILE} ${SACNVIEW_DEPLOY_DIR})
-            endforeach()
-        endif()
 
         # Copy target
         add_custom_command(TARGET sACNView POST_BUILD
