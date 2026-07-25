@@ -80,3 +80,22 @@ Then from the root of the repository run the script `install/linux/build_appimag
 ### Debian Package (DEB)
 
 To build a DEB package, run the command `cpack --package "linux"`. This will generate the deb package under the output directory.
+
+# MacOS
+
+To build for MacOS:
+
+Tell CMake where Qt is located by setting the `Qt6_DIR` environment variable, for example:
+
+    export Qt6_DIR=~/Qt/6.9.3/macos
+
+Then configure the application using CMake:
+
+    cmake --preset "macos"
+
+Once configuration is successful, you can run the build by navigating to the directory in the out folder and opening the generated XCode project.
+
+To create a release, you will need code signing certificates installed. Once set up:
+
+- Run a release build from XCode.
+- Run the script at `install/macos/create_sacnview_dmg.sh` to create a DMG file for distribution.
