@@ -185,9 +185,14 @@ sACNDiscoveryRX::sACNDiscoveryRX()
 
 sACNDiscoveryRX::~sACNDiscoveryRX()
 {
+    m_expiredTimer->stop();
+
     m_thread->exit();
     m_thread->wait();
+
+    QMutexLocker locker(m_mutex);
     qDeleteAll(m_discoveryList);
+    m_discoveryList.clear();
 }
 
 void sACNDiscoveryRX::timeoutUniverses()
@@ -198,31 +203,28 @@ void sACNDiscoveryRX::timeoutUniverses()
     {
         discoveryListIterator.next();
         auto source = discoveryListIterator.value();
+        const CID cid = discoveryListIterator.key();
 
         QMutableHashIterator<quint16, ttimer> universeListIterator(source->Universe);
         while (universeListIterator.hasNext())
         {
             universeListIterator.next();
-            auto universeTimer = universeListIterator.value();
-            if (universeTimer.Expired())
+            if (universeListIterator.value().Expired())
             {
-                auto universe = source->Universe.key(universeTimer);
-                const auto & cid = m_discoveryList.key(source);
-                if (source->Universe.remove(universe))
-                {
-                    qDebug()
-                        << "DiscoveryRX : Expired universe - CID"
-                        << CID::CIDIntoQString(cid)
-                        << ", universe"
-                        << universe;
-                    emit expiredUniverse(cid, universe);
-                }
+                const quint16 universe = universeListIterator.key();
+                universeListIterator.remove();
+                qDebug()
+                    << "DiscoveryRX : Expired universe - CID"
+                    << CID::CIDIntoQString(cid)
+                    << ", universe"
+                    << universe;
+                emit expiredUniverse(cid, universe);
             }
         }
         if (!source->Universe.count())
         {
-            const auto & cid = m_discoveryList.key(source);
-            m_discoveryList.remove(cid);
+            discoveryListIterator.remove();
+            delete source;
             qDebug() << "DiscoveryRX : Expired Source - CID" << CID::CIDIntoQString(cid);
             emit expiredSource(cid);
         }
