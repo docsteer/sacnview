@@ -62,3 +62,36 @@ else()
     ${BLAKE2_PATH}/blake2xs-ref.c
   )
 endif()
+
+# Breakpad
+if(WIN32)
+    message(STATUS "Configuring Breakpad")
+    set(USING_BREAKPAD true)
+
+    set(DEPOT_TOOLS_PATH ${CMAKE_CURRENT_LIST_DIR}/../tools/depot_tools)
+    set(BREAKPAD_FETCH_DIR ${CMAKE_CURRENT_LIST_DIR}/breakpad)
+    set(BREAKPAD_PATH ${BREAKPAD_FETCH_DIR}/src)
+
+    if(NOT EXISTS ${BREAKPAD_PATH})
+        message(STATUS "Fetching Breakpad using depot_tools (${DEPOT_TOOLS_PATH})")
+        file(MAKE_DIRECTORY ${BREAKPAD_FETCH_DIR})
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEPOT_TOOLS_PATH};$ENV{PATH}" fetch.bat breakpad
+            WORKING_DIRECTORY ${BREAKPAD_FETCH_DIR}
+            RESULT_VARIABLE BREAKPAD_FETCH_RESULT
+        )
+        if(NOT BREAKPAD_FETCH_RESULT EQUAL 0)
+            message(FATAL_ERROR "Failed to fetch Breakpad using depot_tools (exit code ${BREAKPAD_FETCH_RESULT})")
+        endif()
+    endif()
+
+    set(BREAKPAD_SOURCES
+        ${BREAKPAD_PATH}/src/client/windows/handler/exception_handler.cc
+        ${BREAKPAD_PATH}/src/common/windows/string_utils.cc
+        ${BREAKPAD_PATH}/src/common/windows/guid_string.cc
+        ${BREAKPAD_PATH}/src/client/windows/crash_generation/crash_generation_client.cc
+    )
+    set(BREAKPAD_HEADER_PATHS
+        ${BREAKPAD_PATH}/src
+    )
+endif()
