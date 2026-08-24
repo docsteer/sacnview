@@ -81,7 +81,7 @@ private:
 
     void updateButtons(bool running);
 
-    QString prioText(const sACNSource * source, quint8 address) const;
+    QString prioText(const sACNSource * source, int address) const;
 
     Ui::UniverseView * ui = nullptr;
     SACNSourceTableModel * m_sourceTableModel = nullptr;

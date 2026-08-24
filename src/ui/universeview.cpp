@@ -265,17 +265,25 @@ void UniverseView::resizeColumns()
     ui->tableView->setColumnWidth(SACNSourceTableModel::COL_NAME, width - used - 5);
 }
 
-QString UniverseView::prioText(const sACNSource * source, quint8 address) const
+QString UniverseView::prioText(const sACNSource * source, int address) const
 {
     if (source == nullptr) return tr("Unknown");
 
     if (source->doing_per_channel)
+    {
         if (source->priority_array[address] > 0)
+        {
             return QString::number(source->priority_array[address]);
+        }
         else
+        {
             return tr("Unpatched");
+        }
+    }
     else
+    {
         return QString::number(source->priority);
+    }
 }
 
 void UniverseView::selectedAddressChanged(int address)
