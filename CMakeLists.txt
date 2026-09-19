@@ -346,12 +346,12 @@ if(APPLE)
         MACOSX_BUNDLE True
         MACOSX_BUNDLE_ICON_FILE "icon.icns"
 		MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/res/MacOSXBundleInfo.plist.in"
-        MACOSX_BUNDLE_GUI_IDENTIFIER com.carallon.sacnview
-        MACOSX_BUNDLE_BUNDLE_NAME "sACNView Desktop"
+        MACOSX_BUNDLE_GUI_IDENTIFIER net.tomsteer.sacnview
+        MACOSX_BUNDLE_BUNDLE_NAME "sACNView"
         MACOSX_BUNDLE_BUNDLE_VERSION "${APPLE_VERSION}"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${APPLE_VERSION}"
         XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_CURRENT_LIST_DIR}/res/Entitlements.plist"
-        XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER com.carallon.sacnview
+        XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER net.tomsteer.sacnview
     )
     set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/res/icon.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/res/icon.icns" DESTINATION "sACNView.app/Contents/Resources")
