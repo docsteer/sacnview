@@ -57,7 +57,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         submodules: recursive
         fetch-depth: 0
@@ -76,7 +76,9 @@ jobs:
 
     - name: Environment Setup (MSVC)
       if: runner.os == 'Windows'
-      uses: ilammy/msvc-dev-cmd@v1
+      uses: TheMrMilchmann/setup-msvc-dev@v4
+      with:
+        arch: x64
 
     - name: Environment Setup (Xcode)
       if: runner.os == 'macOS'
@@ -112,7 +114,7 @@ jobs:
 
     - name: Upload Artifact(s)
       if: matrix.artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ runner.os }}
         path: ${{ matrix.artifact }}
