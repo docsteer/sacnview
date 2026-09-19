@@ -267,6 +267,19 @@ target_compile_definitions(sACNView PRIVATE ${BLAKE2_DEFINES})
 target_sources(sACNView PRIVATE ${BLAKE2_SOURCES})
 target_include_directories(sACNView PRIVATE ${BLAKE2_PATH})
 
+# Breakpad
+if(USING_BREAKPAD)
+    message(STATUS "Using Breakpad")
+    target_compile_definitions(sACNView PRIVATE USE_BREAKPAD)
+    target_sources(sACNView PRIVATE ${BREAKPAD_SOURCES}
+        src/crash_handler.cpp
+        src/ui/crash_test.cpp
+    )
+    target_include_directories(sACNView PRIVATE
+        ${BREAKPAD_HEADER_PATHS}
+    )
+endif()
+
 ## Git Version info
 
 # sha or tag
